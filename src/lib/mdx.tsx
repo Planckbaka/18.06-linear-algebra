@@ -37,6 +37,8 @@ import { AffineSolutionAndFourRankCasesDiagram } from '@/components/diagrams/lec
 import { BasisGoldilocksDiagram } from '@/components/diagrams/lecture-09-diagrams';
 import { FourSubspacesBigPictureDiagram } from '@/components/diagrams/lecture-10-diagrams';
 import { MatrixSubspacesAndRank1BlocksDiagram } from '@/components/diagrams/lecture-11-diagrams';
+import { DirectedGraphIncidenceDiagram } from '@/components/diagrams/lecture-12-diagrams';
+import { Module1SynthesisMapDiagram } from '@/components/diagrams/lecture-13-diagrams';
 import {
   ProblemSet,
   ExerciseCard,
@@ -127,6 +129,8 @@ const MDX_COMPONENTS = {
   BasisGoldilocksDiagram,
   FourSubspacesBigPictureDiagram,
   MatrixSubspacesAndRank1BlocksDiagram,
+  DirectedGraphIncidenceDiagram,
+  Module1SynthesisMapDiagram,
   ProblemSet,
   ExerciseCard,
   TrueFalseInteractive,

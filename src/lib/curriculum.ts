@@ -282,7 +282,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Graphs, Networks, Incidence Matrices',
     focusZh: '有向图关联矩阵的四子空间物理意义（电势差、环路与基尔霍夫电流定律 Aᵀy = 0）及欧拉公式纯线代证明。',
     focusEn: 'Graph incidence matrices, potentials, loops in Null(Aᵀ), Kirchhoff’s law, and proving Euler’s formula v - e + f = 1.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-05',
@@ -306,7 +306,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Quiz 1 Review (Module I Synthesis)',
     focusZh: '消元分解、矩阵秩边界不等式与四个基本子空间维数推理综合试炼。',
     focusEn: 'Comprehensive synthesis of LU, rank inequalities, affine solution geometry, and Four Subspaces exam problems.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {

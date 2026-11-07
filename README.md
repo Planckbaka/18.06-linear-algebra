@@ -36,7 +36,7 @@ This project bridges both worlds with four strict design pillars:
 
 > **Note on Video Numbering**: MIT OCW labels Quiz 2 Review as `Lecture 24b` (35 videos numbered `1–34`), whereas popular video mirrors number it sequentially as Episode `25` (`P01–P35`). Every session below displays **both** identifiers to eliminate cross-referencing confusion.
 
-### Module I: $Ax = b$ and the Four Fundamental Subspaces
+### Module I: $Ax = b$ and the Four Fundamental Subspaces (13 / 13 `zh` Complete ✅)
 | Session | OCW # | Video P# | Topic | `zh` Status | `en` Status | Isolated Frontier AI Reading |
 | :---: | :---: | :---: | :--- | :---: | :---: | :--- |
 | **01** | L01 | P01 | The Geometry of Linear Equations (Row vs. Column Picture) | ✅ Live | ✅ Live | — |
@@ -50,8 +50,8 @@ This project bridges both worlds with four strict design pillars:
 | **09** | L09 | P09 | Independence, Basis, and Dimension | ✅ Live | 🗓️ Planned | — |
 | **10** | L10 | P10 | The Four Fundamental Subspaces | ✅ Live | 🗓️ Planned | — |
 | **11** | L11 | P11 | Matrix Spaces; Rank 1 ($\mathbf{u}\mathbf{v}^T$); Small World Graphs | ✅ Live | 🗓️ Planned | **[AI-04]** LoRA ($\Delta W = BA = \sum \mathbf{b}_i\mathbf{a}_i^T$) Low-Rank Subspace Adaptation |
-| **12** | L12 | P12 | Graphs, Networks, Incidence Matrices | 🗓️ Planned | 🗓️ Planned | **[AI-05]** Graph Neural Networks (GNNs) & Incidence/Laplacian Operators |
-| **13** | L13 | P13 | Quiz 1 Review (Module I Synthesis) | 🗓️ Planned | 🗓️ Planned | — |
+| **12** | L12 | P12 | Graphs, Networks, Incidence Matrices | ✅ Live | 🗓️ Planned | **[AI-05]** Graph Neural Networks (GNNs) & Incidence/Laplacian Operators |
+| **13** | L13 | P13 | Quiz 1 Review (Module I Synthesis) | ✅ Live | 🗓️ Planned | — |
 
 ### Module II: Orthogonality, Projections & Least Squares
 | Session | OCW # | Video P# | Topic | `zh` Status | `en` Status | Isolated Frontier AI Reading |
