@@ -1,0 +1,451 @@
+---
+title: "第 01 讲：方程组的几何解释（行图像与列图像）"
+ocwId: "L01"
+videoEpisode: "P01"
+textbookRef: "§1.1–1.2, §2.1"
+---
+
+线性代数最根本的起点，是求解包含 $n$ 个未知数、$m$ 个线性方程的方程组 $A\mathbf{x} = \mathbf{b}$。在中学代数里，我们习惯把方程组看作一条条等式联立消元；而在 MIT 18.06 的第一堂课上，Gilbert Strang 教授直接抛出了贯穿整门课程的灵魂转换——**从“一次看一行”的超平面求交，转向“一次看一列”的向量线性组合**。
+
+---
+
+## 一、从二元方程组看两种截然不同的几何世界
+
+我们从最简洁的 $2\times 2$ 线性方程组出发：
+
+$$
+\begin{cases}
+2x - y = 0 \\
+-x + 2y = 3
+\end{cases}
+$$
+
+将其提取出系数矩阵（Coefficient Matrix）$A \in \mathbb{R}^{2\times 2}$、未知向量 $\mathbf{x} \in \mathbb{R}^2$ 与右侧目标向量 $\mathbf{b} \in \mathbb{R}^2$，便得到紧凑的矩阵方程 $A\mathbf{x} = \mathbf{b}$：
+
+$$
+\underbrace{\begin{bmatrix} 2 & -1 \\ -1 & 2 \end{bmatrix}}_{A}
+\underbrace{\begin{bmatrix} x \\ y \end{bmatrix}}_{\mathbf{x}}
+=
+\underbrace{\begin{bmatrix} 0 \\ 3 \end{bmatrix}}_{\mathbf{b}}
+$$
+
+面对同一个式子，我们有两种完全等价却通往不同维度的几何解读方式：
+
+### 1.1 行图像（Row Picture）：超平面的交集
+
+**行图像（Row Picture）**一次聚焦矩阵的一行（即一个标量方程）：
+
+- 第一个方程 $2x - y = 0$ 在二维平面 $\mathbb{R}^2$ 中是一条穿过原点 $(0, 0)$、斜率为 $2$ 的直线；
+- 第二个方程 $-x + 2y = 3$ 是另一条穿过 $(0, \frac{3}{2})$ 与 $(-3, 0)$ 的直线。
+
+求方程组的解，在行图像中等价于寻找**同时躺在这两条直线上的公共交点**。不难验证，点 $(x, y) = (1, 2)$ 同时满足两个方程，因此两直线唯一交于 $(1, 2)$。
+
+### 1.2 列图像（Column Picture）：列向量的线性组合
+
+**列图像（Column Picture）**则彻底改写方程结构——把矩阵按列拆开，将未知数 $x, y$ 视为对各列向量施加的**缩放权重**：
+
+$$
+x \underbrace{\begin{bmatrix} 2 \\ -1 \end{bmatrix}}_{\mathbf{a}_1}
++
+y \underbrace{\begin{bmatrix} -1 \\ 2 \end{bmatrix}}_{\mathbf{a}_2}
+=
+\underbrace{\begin{bmatrix} 0 \\ 3 \end{bmatrix}}_{\mathbf{b}}
+$$
+
+现在问题不再是“两条线交在哪里”，而变成了极具几何动感的向量拼图问题：**如何把第一列向量 $\mathbf{a}_1$ 与第二列向量 $\mathbf{a}_2$ 按恰当比例缩放再首尾相加，恰好拼出目标向量 $\mathbf{b} = (0, 3)^T$？**
+
+观察下方左右对比图：取 $x = 1$ 倍的 $\mathbf{a}_1 = (2, -1)^T$，加上 $y = 2$ 倍的 $\mathbf{a}_2$（即 $(-2, 4)^T$），按照平行四边形法则合成后的对角线终点，分毫不差地落在 $y$ 轴上的 $(0, 3)^T$！
+
+<RowVsColumn2DDiagram />
+
+<InteractiveCanvasSlot
+  id="l01-row-vs-col-2d"
+  title="2D 行图像与列图像实时联动实验台"
+  description="二期交互预留：支持鼠标自由拖拽列向量 $\mathbf{a}_1, \mathbf{a}_2$ 或目标向量 $\mathbf{b}$，同步观察左图两直线交点移动轨迹与右图平行四边形分解系数 $(x, y)$ 的实时联动。"
+/>
+
+紧接着，我们用严格数学语言将这一核心运算固定下来——这是整门线性代数最重要的一条基础定义：
+
+<DefinitionCard
+  label="Definition 1.1"
+  title="矩阵—向量乘积的列组合定义与列空间"
+  termEn="Matrix-Vector Product by Columns & Column Space"
+>
+设实矩阵 $A = \begin{bmatrix} \mathbf{a}_1 & \mathbf{a}_2 & \cdots & \mathbf{a}_n \end{bmatrix} \in \mathbb{R}^{m\times n}$，其中每一列 $\mathbf{a}_j \in \mathbb{R}^m$（$j = 1, \dots, n$），且向量 $\mathbf{x} = (x_1, x_2, \dots, x_n)^T \in \mathbb{R}^n$。
+
+1. **列线性组合定义（Linear Combination）**：矩阵与向量的乘积 $A\mathbf{x} \in \mathbb{R}^m$ **严格定义为 $A$ 的各列以 $x_j$ 为系数的线性组合**：
+
+$$
+A\mathbf{x} := x_1 \mathbf{a}_1 + x_2 \mathbf{a}_2 + \cdots + x_n \mathbf{a}_n = \sum_{j=1}^{n} x_j \mathbf{a}_j
+$$
+
+2. **列空间（Column Space）**：当系数向量 $\mathbf{x}$ 取遍整个 $\mathbb{R}^n$ 时，所有可能的线性组合 $A\mathbf{x}$ 在 $\mathbb{R}^m$ 中张成的集合称为 $A$ 的**列空间**，记作 $\operatorname{Col}(A)$（Strang 教材中亦记为 $C(A)$）：
+
+$$
+\operatorname{Col}(A) := \left\{ A\mathbf{x} \in \mathbb{R}^m : \mathbf{x} \in \mathbb{R}^n \right\} = \operatorname{span}\{\mathbf{a}_1, \mathbf{a}_2, \dots, \mathbf{a}_n\} \subseteq \mathbb{R}^m
+$$
+</DefinitionCard>
+
+有了列空间语言，线性方程组的可解性（Solvability）瞬间化繁为简：**方程 $A\mathbf{x} = \mathbf{b}$ 有解，当且仅当右侧向量 $\mathbf{b}$ 落在 $A$ 的列空间 $\operatorname{Col}(A)$ 之内！**
+
+---
+
+## 二、跃迁至三维与高维空间：为什么列图像完胜行图像？
+
+再往前迈一步，考虑 Strang 教授在黑板上写下的 $3\times 3$ 方程组：
+
+$$
+\underbrace{\begin{bmatrix}
+2 & -1 & 0 \\
+-1 & 2 & -1 \\
+0 & -1 & 2
+\end{bmatrix}}_{A}
+\underbrace{\begin{bmatrix}
+x \\ y \\ z
+\end{bmatrix}}_{\mathbf{x}}
+=
+\underbrace{\begin{bmatrix}
+0 \\ -1 \\ 4
+\end{bmatrix}}_{\mathbf{b}}
+$$
+
+在三维空间 $\mathbb{R}^3$ 中对比两种图像：
+
+- **行图像的困境**：每一个三元一次方程（例如 $2x - y = 0$）在 $\mathbb{R}^3$ 中定义了一个**二维平面**。两个不平行的平面相交成一条三维直线，再与第三个平面相交于唯一一点（本例解为 $(x, y, z) = (0, 0, 2)$）。光是在黑板上准确画出三个倾斜平面的交点就已经相当吃力；一旦上升到 $\mathbb{R}^{10}$ 中的 $10\times 10$ 方程组，行图像要求你想象 **10 个九维超平面（Hyperplanes）在十维空间里的交集**——人类视觉在此彻底失效。
+- **列图像的从容**：写成列组合形式：
+
+$$
+x \begin{bmatrix} 2 \\ -1 \\ 0 \end{bmatrix}
++
+y \begin{bmatrix} -1 \\ 2 \\ -1 \end{bmatrix}
++
+z \begin{bmatrix} 0 \\ -1 \\ 2 \end{bmatrix}
+=
+\begin{bmatrix} 0 \\ -1 \\ 4 \end{bmatrix}
+$$
+
+无论维度是 $3$ 还是 $1000$，列图像的几何追问始终如一：从原点出发的三支（或 $n$ 支）向量箭头的线性组合，能否抵达目标点 $\mathbf{b}$？
+
+更妙的是，列视角常常让你**一眼秒杀方程**而无需动用消元法！比如把右侧向量换成 $\tilde{\mathbf{b}} = (-1, 2, -1)^T$，求解 $A\mathbf{x} = \tilde{\mathbf{b}}$：观察发现 $\tilde{\mathbf{b}}$ **分毫不差就是矩阵 $A$ 的第二列 $\mathbf{a}_2$**！于是我们需要 $0$ 倍第一列、$1$ 倍第二列、$0$ 倍第三列，当场直接写出解 $\mathbf{x} = (0, 1, 0)^T$！
+
+---
+
+## 三、核心追问：何时对“任意” $\mathbf{b}$ 都有解？（非奇异 vs 奇异退化）
+
+从特定右侧向量 $\mathbf{b}$ 抽身出来，科学计算中最核心的结构问题是：**给定方阵 $A \in \mathbb{R}^{n\times n}$，是否对于空间中每一个 $\mathbf{b} \in \mathbb{R}^n$，方程组 $A\mathbf{x} = \mathbf{b}$ 都存在解？**
+
+用列空间语言翻译，这个问题等价于：**$A$ 的 $n$ 个列向量的所有线性组合，能否填满整个 $\mathbb{R}^n$ 空间（即 $\operatorname{Col}(A) = \mathbb{R}^n$）？**
+
+答案取决于列向量之间是否存在冗余方向。试看下面这个发生“维度坍缩”的 $2\times 2$ 反例：
+
+$$
+A_{\text{sing}} = \begin{bmatrix} 2 & -4 \\ -1 & 2 \end{bmatrix}
+\quad \Longrightarrow \quad
+\mathbf{a}_1 = \begin{bmatrix} 2 \\ -1 \end{bmatrix}, \;\;
+\mathbf{a}_2 = \begin{bmatrix} -4 \\ 2 \end{bmatrix} = -2\mathbf{a}_1
+$$
+
+第二列 $\mathbf{a}_2$ 没有提供任何新方向，它只是第一列反向拉长 $2$ 倍。结果，无论 $x, y \in \mathbb{R}$ 如何取值，组合向量 $x\mathbf{a}_1 + y\mathbf{a}_2 = (x - 2y)\mathbf{a}_1$ 永远无法逃离 $\mathbf{a}_1$ 所在的**一维直线**！二维平面上绝大多数向量（例如 $\mathbf{b} = (0, 3)^T$）都落在这条直线之外，导致方程彻底无解。
+
+<SingularColumn2DDiagram />
+
+在三维空间 $\mathbb{R}^3$ 中也是完全相同的图景：如果三个列向量 $\mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3$ 恰好躺在**同一个过原点的二维平面**内（例如 $\mathbf{a}_3 = \mathbf{a}_1 + \mathbf{a}_2$），那么它们的线性组合就只能铺满这张二维薄片，而无法触及平面外的任何向量 $\mathbf{b}$。这种矩阵就称为**奇异矩阵（Singular Matrix）**或不可逆矩阵。
+
+我们将这一几何事实升华为严密的等价定理（详细证明将在后续消元与维数章节完全展开，此处给出逻辑闭环）：
+
+<TheoremCard
+  label="Theorem 1.1"
+  title="方阵普遍可解性与列空间张成定理"
+  termEn="Universal Solvability for Square Matrices"
+>
+设**方阵** $A = \begin{bmatrix} \mathbf{a}_1 & \cdots & \mathbf{a}_n \end{bmatrix} \in \mathbb{R}^{n\times n}$。以下四个命题彼此**充分必要（等价）**：
+
+1. **普遍可解性**：对**任意**右侧向量 $\mathbf{b} \in \mathbb{R}^n$，线性方程组 $A\mathbf{x} = \mathbf{b}$ 至少有一个解；
+2. **列空间充满全空间**：$A$ 的 $n$ 个列向量张成整个 $\mathbb{R}^n$，即 $\operatorname{Col}(A) = \mathbb{R}^n$；
+3. **无方向坍缩（线性无关）**：仅当 $x_1 = x_2 = \cdots = x_n = 0$ 时才有 $x_1\mathbf{a}_1 + \cdots + x_n\mathbf{a}_n = \mathbf{0}$（即 $A\mathbf{x} = \mathbf{0}$ 仅有零解）；
+4. **解的唯一性与非奇异性**：$A$ 为**非奇异矩阵（Nonsingular / Invertible Matrix）**，对每个 $\mathbf{b} \in \mathbb{R}^n$ 解不仅存在而且**唯一**。
+</TheoremCard>
+
+<ProofCollapse title="展开逻辑骨架说明：为什么在方阵中“处处有解”与“解唯一”死死绑定？">
+对于一般长方矩阵，有解性和唯一性本是两件独立的事；但当行数与列数相等（方阵 $A \in \mathbb{R}^{n\times n}$）时，输入空间与输出空间同为 $n$ 维：
+
+- 若存在非零向量 $\mathbf{v} \neq \mathbf{0}$ 使得 $A\mathbf{v} = \mathbf{0}$（比如 $v_n \neq 0$），则最后一列 $\mathbf{a}_n$ 可以表示为前 $n-1$ 列的线性组合：
+
+$$
+\mathbf{a}_n = -\frac{v_1}{v_n}\mathbf{a}_1 - \cdots - \frac{v_{n-1}}{v_n}\mathbf{a}_{n-1}
+$$
+
+- 这意味着剔除 $\mathbf{a}_n$ 完全不缩小列空间：$\operatorname{Col}(A) = \operatorname{span}\{\mathbf{a}_1, \dots, \mathbf{a}_{n-1}\}$。而区区 $n-1$ 个向量至多只能张成 $(n-1)$ 维超平面，绝不可能填满 $n$ 维空间 $\mathbb{R}^n$，故必然存在大量 $\mathbf{b} \notin \operatorname{Col}(A)$ 无解！
+- 反之，若对某个 $\tilde{\mathbf{b}} \in \operatorname{Col}(A)$ 存在特解 $\mathbf{x}_p$，则对于任意 $c \in \mathbb{R}$，$A(\mathbf{x}_p + c\mathbf{v}) = A\mathbf{x}_p + c\mathbf{0} = \tilde{\mathbf{b}}$，立即导出无穷多解。
+
+这解释了为什么方阵一旦发生奇异退化，解的分布会从“对所有 $\mathbf{b}$ 唯一可解”瞬间撕裂为**“对绝大部分 $\mathbf{b}$ 无解，而对子空间内的 $\mathbf{b}$ 有无穷多解”**——绝不存在“恰有两个解”的线性方程组！
+</ProofCollapse>
+
+<PitfallAlert title="常见直觉陷阱与网传笔记三大勘误">
+1. **误区一：“矩阵 $A$ 奇异 $\implies$ 方程 $A\mathbf{x} = \mathbf{b}$ 无解”（严厉勘误！）**
+   网传笔记常笼统地写“奇异矩阵无解”。**这是错误的！** 例如取 $\mathbf{b} = \mathbf{0}$，奇异矩阵不仅有解 $\mathbf{x} = \mathbf{0}$，更有无穷多非零解！严格表述必须是：奇异方阵对 $\mathbf{b} \notin \operatorname{Col}(A)$ **无解**，但对 $\mathbf{b} \in \operatorname{Col}(A)$ **有无穷多解**。
+2. **误区二：忽略“方阵 $n\times n$”前提，把定理 1.1 照搬到长方矩阵**
+   若 $A \in \mathbb{R}^{3\times 2}$（3 个方程、2 个未知数），哪怕两列向量完全不共线（线性无关），它们的线性组合 $\operatorname{Col}(A)$ 也只是 $\mathbb{R}^3$ 里的一张二维平面，不可能对任意 $\mathbf{b} \in \mathbb{R}^3$ 都有解！
+3. **误区三：把高维行图像仍称为“平面”**
+   在 $\mathbb{R}^n$ 中，单个非退化线性方程 $a_1 x_1 + \cdots + a_n x_n = b_1$ 定义的几何对象维数是 **$n - 1$ 维仿射超平面（Hyperplane）**：在 $\mathbb{R}^2$ 中是 1 维直线，在 $\mathbb{R}^3$ 中才是 2 维平面，而在 $\mathbb{R}^4$ 中则是 3 维超平面。
+</PitfallAlert>
+
+<KeyTakeaways
+  items={[
+    "矩阵乘向量 $A\\mathbf{x}$ 的第一性原理是**列向量的线性组合**：$A\\mathbf{x} = x_1\\mathbf{a}_1 + \\cdots + x_n\\mathbf{a}_n$，做题时永远优先先按列看，再按行看。",
+    "方程组 $A\\mathbf{x} = \\mathbf{b}$ 是否有解，等价于几何判据 $\\mathbf{b} \\in \\operatorname{Col}(A)$。",
+    "对于 $n \\times n$ 方阵，$n$ 个列向量不共超平面（线性无关）$\\iff \\operatorname{Col}(A) = \\mathbb{R}^n \\iff$ 对任意 $\\mathbf{b}$ 存在唯一解。",
+    "实线性方程组的解集个数只有三种可能：**$0$ 个（无解）**、**$1$ 个（唯一解）**或 **无穷多个（$\\infty$）**，绝不可能恰好只有 $2$ 个解。"
+  ]}
+/>
+
+<ProblemSet>
+
+<ExerciseCard id="l01-ex1" tier="L1" title="不动笔消元：用列图像直接读取方程组的解">
+考虑如下 $3\times 3$ 线性方程组 $A\mathbf{x} = \mathbf{b}$：
+
+$$
+\begin{bmatrix}
+1 & 3 & 2 \\
+0 & 1 & 4 \\
+2 & 5 & 0
+\end{bmatrix}
+\begin{bmatrix} x_1 \\ x_2 \\ x_3 \end{bmatrix}
+=
+\mathbf{b}
+$$
+
+请**完全不写高斯消元步骤**，仅通过观察 $A$ 的三列 $\mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3$ 回答下列问题：
+1. 当 $\mathbf{b}_1 = (3, 1, 5)^T$ 时，一眼写出一个特解 $\mathbf{x}$；
+2. 当 $\mathbf{b}_2 = (5, 5, 5)^T$ 时，一眼写出一个特解 $\mathbf{x}$；若将右侧微调为 $\tilde{\mathbf{b}}_2 = (4, 5, 5)^T$，方程还有解吗？
+3. 当 $\mathbf{b}_3 = (0, 0, 0)^T$ 时，除了零向量外还存在非零解吗？（提示：观察三列各自是否满足同一个平面方程 $2u_1 - u_2 - u_3 = 0$！）
+
+<ProgressiveHint
+  hints={[
+    "把 $\\mathbf{b}_1$ 和 $\\mathbf{b}_2$ 直接与 $A$ 的三列比对：$\\mathbf{b}_1$ 恰好是哪一列本身？$\\mathbf{b}_2 = (5, 5, 5)^T$ 恰好是哪两列直接相加？",
+    "对每一列检验 $2(\\text{第 1 分量}) - (\\text{第 2 分量}) - (\\text{第 3 分量})$：你会发现三列全部等于 $0$！再检验 $\\tilde{\\mathbf{b}}_2 = (4, 5, 5)^T$ 是否满足这一平面条件！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. $\mathbf{b}_1 = (3, 1, 5)^T$ 分毫不差就是第二列 $\mathbf{a}_2$，因此直接读出特解 $\mathbf{x} = (0, 1, 0)^T$。
+2. $\mathbf{b}_2 = (5, 5, 5)^T$ 恰好等于后两列直接相加 $\mathbf{a}_2 + \mathbf{a}_3 = (3+2,\; 1+4,\; 5+0)^T$，故直接读出特解 $\mathbf{x} = (0, 1, 1)^T$！
+   然而仔细审视三列，每一列都满足 $2u_1 - u_2 - u_3 = 0$（对 $\mathbf{a}_1: 2-0-2=0$；对 $\mathbf{a}_2: 6-1-5=0$；对 $\mathbf{a}_3: 4-4-0=0$），说明三列全部共面于平面 $2u_1 - u_2 - u_3 = 0$！而微调后的 $\tilde{\mathbf{b}}_2 = (4, 5, 5)^T$ 有 $2(4) - 5 - 5 = -2 \neq 0$，飘在列空间平面之外，因此**严格无解**！
+3. 既然三列共面，必然存在非零线性组合归零：观察 $4\mathbf{a}_2 - \mathbf{a}_3 = (10, 0, 20)^T = 10\mathbf{a}_1$，移项即得 $10\mathbf{a}_1 - 4\mathbf{a}_2 + \mathbf{a}_3 = \mathbf{0}$！因此对 $\mathbf{b}_3 = \mathbf{0}$，整条直线 $c(10, -4, 1)^T$（$c \in \mathbb{R}$）全都是解！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+先寻找列向量之间的线性相关性：设 $x_1\mathbf{a}_1 + x_2\mathbf{a}_2 + x_3\mathbf{a}_3 = \mathbf{0}$。由第二行 $x_2 + 4x_3 = 0 \implies x_2 = -4x_3$；代入第三行 $2x_1 + 5(-4x_3) = 0 \implies x_1 = 10x_3$；检验第一行：
+
+$$
+1(10x_3) + 3(-4x_3) + 2x_3 = (10 - 12 + 2)x_3 = 0
+$$
+
+恒成立！故矩阵 $A$ 奇异，且由于 $\mathbf{a}_1, \mathbf{a}_2$ 不共线，列空间精确为过原点的二维平面：
+
+$$
+\operatorname{Col}(A) = \left\{ \mathbf{u} \in \mathbb{R}^3 : 2u_1 - u_2 - u_3 = 0 \right\}
+$$
+
+由此立判全部三问：
+1. $\mathbf{b}_1 = \mathbf{a}_2 \in \operatorname{Col}(A)$，通解为 $\mathbf{x} = (0, 1, 0)^T + c(10, -4, 1)^T$（$c \in \mathbb{R}$）。
+2. $\mathbf{b}_2 = \mathbf{a}_2 + \mathbf{a}_3 \in \operatorname{Col}(A)$，通解为 $\mathbf{x} = (0, 1, 1)^T + c(10, -4, 1)^T$；而 $\tilde{\mathbf{b}}_2 = (4, 5, 5)^T$ 因 $2(4) - 5 - 5 = -2 \neq 0 \implies \tilde{\mathbf{b}}_2 \notin \operatorname{Col}(A)$，故无解。
+3. $\mathbf{b}_3 = \mathbf{0}$ 通解为 $\mathbf{x} = c(10, -4, 1)^T$（$c \in \mathbb{R}$）。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l01-ex2" tier="L2" title="概念辨析：奇异矩阵一定让非零右侧向量无解吗？">
+判断下列命题真伪，并在脑海中给出几何解释或最简 $2\times 2$ 反例：
+
+> **命题**：设 $A \in \mathbb{R}^{3\times 3}$ 是奇异矩阵（其三个列向量共面），则对于**任何非零向量** $\mathbf{b} \neq \mathbf{0}$，线性方程组 $A\mathbf{x} = \mathbf{b}$ 都无解。
+
+<TrueFalseInteractive
+  id="l01-tf1"
+  correct={false}
+  quickFeedback="命题为假（False）！三列共面说明列空间 $\operatorname{Col}(A)$ 退化为一张平面（或直线、原点），只要非零向量 $\mathbf{b}$ 恰好取在这张平面内（例如直接取 $\mathbf{b} = \mathbf{a}_1 \neq \mathbf{0}$），方程不仅有解，而且有无穷多解！"
+/>
+
+<ProgressiveHint
+  hints={[
+    "如果 $A$ 不全为零矩阵，比如第一列 $\\mathbf{a}_1 \\neq \\mathbf{0}$，试试令右侧向量 $\\mathbf{b} = \\mathbf{a}_1$，此时 $\\mathbf{x} = (1, 0, 0)^T$ 是不是解？"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+想象三维空间中三支非零箭头躺在同一张桌面上：虽然你无法拼出飘在桌面空中的目标点，但**桌面上除了原点之外还有无穷多个非零点**！只要 $\mathbf{b}$ 躺在这张桌面上，就一定能拼出来，而且由于三支箭头存在冗余，拼法有无穷多种。
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+构造最简反例：取
+
+$$
+A = \begin{bmatrix} 1 & 1 & 0 \\ 0 & 0 & 0 \\ 0 & 0 & 0 \end{bmatrix}, \quad \mathbf{b} = \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix} \neq \mathbf{0}
+$$
+
+显然 $A$ 的三列共线（自然也共面），$A$ 为奇异矩阵；但对于非零向量 $\mathbf{b} = (1, 0, 0)^T$，任意形如 $\mathbf{x} = (1 - t, t, s)^T$（$t, s \in \mathbb{R}$）的向量均满足 $A\mathbf{x} = \mathbf{b}$，故原命题不成立。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l01-ex3" tier="L2" title="维度边界辨析：高瘦矩阵的列向量能铺满高维空间吗？">
+判断下列命题真伪：
+
+> **命题**：设长方矩阵 $A \in \mathbb{R}^{4\times 3}$ 的三个列向量 $\mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3 \in \mathbb{R}^4$ 没有任何方向冗余（彼此线性无关），那么对任意 $\mathbf{b} \in \mathbb{R}^4$，方程组 $A\mathbf{x} = \mathbf{b}$ 都有解。
+
+<TrueFalseInteractive
+  id="l01-tf2"
+  correct={false}
+  quickFeedback="命题为假（False）！在四维空间 $\mathbb{R}^4$ 中，区区 $3$ 个列向量的线性组合至多只能张成一个 $3$ 维超平面，永远无法填满整个 $4$ 维空间 $\mathbb{R}^4$。"
+/>
+
+<ProgressiveHint
+  hints={[
+    "先降一维类比：在三维房间 $\\mathbb{R}^3$ 里，给你 $2$ 支不共线的向量箭头，它们的线性组合能飞出那张二维平面吗？",
+    "取最简单的特例：令 $A$ 的三列分别为 $\\mathbb{R}^4$ 的前三个标准基向量 $\\mathbf{e}_1, \\mathbf{e}_2, \\mathbf{e}_3$，看看 $\\mathbf{b} = (0, 0, 0, 1)^T$ 是否有解。"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+你有 $3$ 个自由调节旋钮 $(x_1, x_2, x_3)$，却要去同时命中四维空间里的 $4$ 个独立坐标 $(b_1, b_2, b_3, b_4)$。就像在三维空间里用两支向量只能铺出一张薄薄的纸片，在 $\mathbb{R}^4$ 里三支向量张成的 $\operatorname{Col}(A)$ 只是一个“没有四维厚度”的三维切片，绝大多数 $\mathbf{b} \in \mathbb{R}^4$ 都落在切片之外。
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+构造反例：设
+
+$$
+A = \begin{bmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & 0 & 1 \\
+0 & 0 & 0
+\end{bmatrix} \in \mathbb{R}^{4\times 3}, \quad
+\mathbf{b} = \begin{bmatrix} 0 \\ 0 \\ 0 \\ 1 \end{bmatrix} \in \mathbb{R}^4
+$$
+
+若 $x_1\mathbf{a}_1 + x_2\mathbf{a}_2 + x_3\mathbf{a}_3 = \mathbf{0}$，即 $(x_1, x_2, x_3, 0)^T = \mathbf{0}$，必有 $x_1 = x_2 = x_3 = 0$，故三列严格线性无关。然而对任意 $\mathbf{x} \in \mathbb{R}^3$，$A\mathbf{x} = (x_1, x_2, x_3, 0)^T$ 的第四分量恒为 $0 \neq 1$，因此 $A\mathbf{x} = \mathbf{b}$ 无解。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l01-ex4" tier="L3" title="无计算子空间推理：循环差分矩阵的列平面锁死现象">
+（改编自 Gilbert Strang 教材 §1.2 经典星号题）观察如下具有优美对称性的循环差分矩阵 $A \in \mathbb{R}^{3\times 3}$：
+
+$$
+A = \begin{bmatrix}
+1 & 0 & -1 \\
+-1 & 1 & 0 \\
+0 & -1 & 1
+\end{bmatrix}
+$$
+
+1. **零计算找零解**：观察 $A$ 的三列之和 $\mathbf{a}_1 + \mathbf{a}_2 + \mathbf{a}_3$，直接写出一个非零向量 $\mathbf{x}_0$ 使得 $A\mathbf{x}_0 = \mathbf{0}$。这说明 $A$ 的三个列向量在 $\mathbb{R}^3$ 中处于什么几何状态？
+2. **精确刻画列空间 $\operatorname{Col}(A)$**：观察 $A$ 每一列的三个分量之和，直接说出右侧向量 $\mathbf{b} = (b_1, b_2, b_3)^T \in \mathbb{R}^3$ 必须满足什么充要条件，方程 $A\mathbf{x} = \mathbf{b}$ 才有解？
+
+<ProgressiveHint
+  hints={[
+    "第一列各分量之和为 $1 + (-1) + 0 = 0$，第二列和第三列呢？如果三个积木向量的分量之和都为 $0$，用它们线性组合拼出来的任何向量 $A\\mathbf{x}$，三个分量之和必然是多少？",
+    "在 $\\mathbb{R}^3$ 中，满足 $b_1 + b_2 + b_3 = 0$ 的所有点构成什么几何图形？而 $\\mathbf{a}_1$ 与 $\\mathbf{a}_2$ 本身不共线，能否恰好撑满这个图形？"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. 把三列直接相加：$\mathbf{a}_1 + \mathbf{a}_2 + \mathbf{a}_3 = (1+0-1,\; -1+1+0,\; 0-1+1)^T = (0, 0, 0)^T$！即取 $\mathbf{x}_0 = (1, 1, 1)^T$ 立即让组合归零。在三维几何里，三支向量首尾相接闭合为一个三角形，说明它们**严格共面**！
+2. 每一列自身的三个分量相加都等于 $0$，这意味着三列全都躺在过原点、法向量为 $(1, 1, 1)^T$ 的平面 $b_1 + b_2 + b_3 = 0$ 上！既然前两列 $\mathbf{a}_1 = (1, -1, 0)^T$ 与 $\mathbf{a}_2 = (0, 1, -1)^T$ 方向不同，它们的组合就能铺满整张平面。因此**当且仅当 $b_1 + b_2 + b_3 = 0$ 时方程有解**！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. 直接验证矩阵乘法：
+
+$$
+A \begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix}
+= 1\mathbf{a}_1 + 1\mathbf{a}_2 + 1\mathbf{a}_3 = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}
+$$
+
+由于 $\mathbf{a}_3 = -\mathbf{a}_1 - \mathbf{a}_2$，故 $\operatorname{Col}(A) = \operatorname{span}\{\mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3\} = \operatorname{span}\{\mathbf{a}_1, \mathbf{a}_2\}$。又因 $c_1(1, -1, 0)^T + c_2(0, 1, -1)^T = \mathbf{0} \implies c_1 = c_2 = 0$，知 $\operatorname{Col}(A)$ 是 $\mathbb{R}^3$ 中的二维平面。
+
+2. **必要性**：若 $A\mathbf{x} = \mathbf{b}$ 有解，将三个方程左右分别相加：
+
+$$
+(x_1 - x_3) + (-x_1 + x_2) + (-x_2 + x_3) = b_1 + b_2 + b_3 \implies b_1 + b_2 + b_3 = 0
+$$
+
+**充分性**：若 $b_1 + b_2 + b_3 = 0$，则 $b_3 = -b_1 - b_2$。固定自由参数 $x_3 = 0$，取 $x_1 = b_1$，$x_2 = b_1 + b_2$，代入检验：
+
+$$
+b_1 \begin{bmatrix} 1 \\ -1 \\ 0 \end{bmatrix} + (b_1 + b_2) \begin{bmatrix} 0 \\ 1 \\ -1 \end{bmatrix}
+= \begin{bmatrix} b_1 \\ b_2 \\ -b_1 - b_2 \end{bmatrix}
+= \begin{bmatrix} b_1 \\ b_2 \\ b_3 \end{bmatrix} = \mathbf{b}
+$$
+
+故 $A\mathbf{x} = \mathbf{b}$ 可解的充要条件严格为 $b_1 + b_2 + b_3 = 0$。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l01-ex5" tier="L4" title="MIT 18.06 综合挑战：行图像“三棱柱”与列图像的对偶互译">
+在 $\mathbb{R}^3$ 的 $3\times 3$ 方程组 $A\mathbf{x} = \mathbf{b}$ 中，**行图像**里三个平面可能出现两种经典的奇异构型（假设没有任何两个平面平行或重合）：
+
+- **构型甲（三棱柱 / Toblerone 巧克力盒）**：任意两个平面都相交于一条直线，但三条交线彼此平行，三个平面**没有公共交点**；
+- **构型乙（书页装订轴）**：三个平面像翻开的书页一样，**共同交于同一条直线**。
+
+请用**列图像**语言回答：
+1. 在构型甲和构型乙中，矩阵 $A$ 的三个列向量 $\mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3$ 各自张成了几维的列空间 $\operatorname{Col}(A)$？两者的矩阵 $A$ 本身有本质区别吗，还是区别仅在于右侧向量 $\mathbf{b}$ 的位置？
+2. 请构造一个具体的 $3\times 3$ 矩阵 $A$，并分别给出一组产生**构型甲**的 $\mathbf{b}_{\text{甲}}$ 与产生**构型乙**的 $\mathbf{b}_{\text{乙}}$。
+
+<ProgressiveHint
+  hints={[
+    "注意！行图像中三个平面的法向量由矩阵 $A$ 决定，而常数项 $\\mathbf{b} = (b_1, b_2, b_3)^T$ 只负责把这三个平面沿着各自法向量做**平行平移**！",
+    "把构型甲里的三个平面平移回全部穿过原点（即令 $\\mathbf{b} = \\mathbf{0}$），那三条原本平行的交线会发生什么？它们会重合为同一条过原点的直线——也就是构型乙！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+这是一道打通**行图像平移**与**列空间包含关系**的绝佳桥梁题！
+1. 构型甲与构型乙对应的系数矩阵 $A$ 可以**完全相同**！在两种构型下，因为存在任意两平面相交成线（不全部平行），说明 $A$ 的列空间 $\operatorname{Col}(A)$ 都是 $\mathbb{R}^3$ 中的一张**二维平面**（三列共面但不共线）。
+   唯一的区别纯粹在于 $\mathbf{b}$ 落在哪里：
+   - 当 **$\mathbf{b} \notin \operatorname{Col}(A)$** 时，列组合拼不出 $\mathbf{b}$（无解），折射到行图像上，就是原本共线的三个平面被 $\mathbf{b}$ 错开平移成了中空的**三棱柱（构型甲）**！
+   - 当 **$\mathbf{b} \in \operatorname{Col}(A)$** 时，列组合有无穷多解（一维自由度），折射到行图像上，就是三个平面严丝合缝地交汇于**同一条书脊直线（构型乙）**！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. 由于行图像中任意两平面不平行，矩阵 $A$ 至少有两个法向量线性无关；又因三个平面不交于唯一一点，$A$ 不可逆，故三个列向量张成的列空间维数在两种构型下均为 $2$（即 $\operatorname{Col}(A)$ 是 $\mathbb{R}^3$ 中过原点的二维平面）。两者的本质区别仅在于 $\mathbf{b} \notin \operatorname{Col}(A)$（构型甲，解集为空）与 $\mathbf{b} \in \operatorname{Col}(A)$（构型乙，解集为一维仿射直线）。
+
+2. **显式构造**：令三个过原点的平面分别为 $x = 0$、$y = 0$ 与 $x + y = 0$（两两不平行，均含 $z$ 轴）：
+
+$$
+A = \begin{bmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+1 & 1 & 0
+\end{bmatrix}, \quad
+\operatorname{Col}(A) = \left\{ \begin{bmatrix} u \\ v \\ u+v \end{bmatrix} : u, v \in \mathbb{R} \right\}
+$$
+
+- **产生构型甲（三棱柱无解）**：取 $\mathbf{b}_{\text{甲}} = (0, 0, 1)^T \notin \operatorname{Col}(A)$。此时三个平面 $x = 0$、$y = 0$、$x + y = 1$ 两两相交于平行于 $z$ 轴的三条直线 $(0,0,z)$、$(0,1,z)$、$(1,0,z)$，围成竖直三棱柱，无公共交点。
+- **产生构型乙（书页共线）**：取 $\mathbf{b}_{\text{乙}} = (1, 2, 3)^T \in \operatorname{Col}(A)$（因 $1 + 2 = 3$）。此时三个平面 $x = 1$、$y = 2$、$x + y = 3$ 共同相交于同一条竖直直线 $\{(1, 2, z)^T : z \in \mathbb{R}\}$。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>

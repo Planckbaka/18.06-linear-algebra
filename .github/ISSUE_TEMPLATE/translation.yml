@@ -1,0 +1,21 @@
+name: "🌐 Bilingual Translation / 英文学术版翻译认领"
+description: "Claim or coordinate translating finalized Chinese lectures into idiomatic academic English (/en/)."
+title: "[Translation] Session XX -> English (/en/)"
+labels: ["i18n", "translation"]
+body:
+  - type: input
+    id: sessions
+    attributes:
+      label: "Session(s) to Translate / 拟认领讲次"
+      placeholder: "e.g., Session 03 (OCW L03)"
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "Translation Standards / 翻译准则确认"
+      options:
+        - label: "I have read `docs/STYLE_GUIDE.md` and will align mathematical terminology with Gilbert Strang's *Introduction to Linear Algebra*."
+          required: true
+        - label: "I will preserve all MDX pedagogical components (`<DefinitionCard>`, `<TheoremCard>`, `<ExerciseCard>`, `<FrontierAIReading>`) 1:1."
+          required: true

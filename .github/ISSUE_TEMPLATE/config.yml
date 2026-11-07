@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📖 Online Study Site (GitHub Pages)
+    url: https://planckbaka.github.io/18.06-linear-algebra/
+    about: Read the rendered bilingual MIT 18.06 notes and try interactive intuition exercises.
+  - name: 📐 Mathematical Style & Notation Guide
+    url: https://github.com/Planckbaka/18.06-linear-algebra/blob/main/docs/STYLE_GUIDE.md
+    about: Check our notation conventions, rigor rules, and Chinese-English terminology glossary before opening a content issue.

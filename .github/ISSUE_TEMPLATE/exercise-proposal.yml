@@ -1,0 +1,40 @@
+name: "🧠 Intuition Exercise Proposal / 线性代数直觉题投稿"
+description: "Propose a zero-calculation reasoning problem, conceptual True/False trap, or matrix construction challenge."
+title: "[Exercise] Lecture XX: "
+labels: ["exercise", "pedagogy"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We prioritize **low-calculation, high-intuition** problems (subspace reasoning, rank bounds, minimal $2\times 2$ counterexamples). Please avoid tedious mechanical crunching!
+        我们追求**少算多想**的直觉好题（子空间几何推理、秩的边界、极简 $2\times 2$ 反例构造），拒绝繁琐机械计算。
+  - type: input
+    id: target_lecture
+    attributes:
+      label: "Target Lecture / 归属讲次"
+      placeholder: "Session 10 (OCW L10: The Four Fundamental Subspaces)"
+    validations:
+      required: true
+  - type: dropdown
+    id: level
+    attributes:
+      label: "Problem Tier / 题目层级"
+      options:
+        - "L1: Minimal Numerical Check (极小整数矩阵核验)"
+        - "L2: Conceptual True/False + Counterexample (概念辨析与极简反例)"
+        - "L3: Zero-Calculation Geometric/Subspace Reasoning (无计算几何/子空间推理)"
+        - "L4: MIT 18.06 Quiz/Final Synthesis Challenge (考题级综合挑战)"
+    validations:
+      required: true
+  - type: textarea
+    id: statement
+    attributes:
+      label: "Problem Statement / 题干描述 (LaTeX)"
+    validations:
+      required: true
+  - type: textarea
+    id: hints_and_solution
+    attributes:
+      label: "Progressive Hints & Dual Solution / 分级提示与（几何直觉 + 严谨代数）双解析"
+    validations:
+      required: true

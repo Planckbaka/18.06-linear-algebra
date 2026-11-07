@@ -1,0 +1,19 @@
+name: "🎨 SVG Diagram or Phase-2 Interactive Sandbox / 几何图解与交互组件建议"
+description: "Suggest a static mathematical SVG improvement or design a Phase-2 interactive `<InteractiveCanvasSlot>` widget."
+title: "[Visual] Lecture XX: "
+labels: ["visualization", "enhancement"]
+body:
+  - type: input
+    id: lecture
+    attributes:
+      label: "Lecture & Slot ID / 对应讲次与插槽 ID"
+      placeholder: "e.g., Session 01 — slot `row-vs-column-2d`"
+    validations:
+      required: true
+  - type: textarea
+    id: concept
+    attributes:
+      label: "Geometric Intuition to Convey / 希望传达的几何直觉与交互方式"
+      description: "What should the learner immediately *see* or manipulate?"
+    validations:
+      required: true

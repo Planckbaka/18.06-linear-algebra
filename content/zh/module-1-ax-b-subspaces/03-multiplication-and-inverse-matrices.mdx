@@ -1,0 +1,670 @@
+---
+title: "第 03 讲：矩阵乘法（五种视角）与逆矩阵"
+ocwId: "L03"
+videoEpisode: "P03"
+textbookRef: "§2.4–2.5"
+---
+
+如果只把矩阵乘法 $C = AB$ 背诵成“左行乘右列求和”的机械口诀，你就错过了线性代数一半以上的洞察力。在 MIT 18.06 第 03 讲中，Gilbert Strang 教授展示了**观察同一个矩阵乘积 $AB$ 的五种等价几何/代数视角**——其中“列组合”、“行组合”和“秩 1 外积之和”更是直接揭示了乘积矩阵的子空间归属；随后，我们从零空间与分块消元出发，建立方阵逆矩阵 $A^{-1}$ 的严密理论。
+
+---
+
+## 一、矩阵乘法 $C = AB$ 的五种黄金结构视角
+
+首先严格锁定维度前提：设矩阵 $A \in \mathbb{R}^{m\times n}$，$B \in \mathbb{R}^{n\times p}$。**当且仅当 $A$ 的列数等于 $B$ 的行数（同为 $n$）时**，乘积 $C = AB$ 有定义，且结果矩阵维度为 $C \in \mathbb{R}^{m\times p}$。
+
+<MatrixMultFiveViewsDiagram />
+
+下面我们逐层拆解这五种视角及其蕴含的结构推论：
+
+### 视角 ①：常规元素视角（行与列的内积）
+
+若只想单独算出 $C$ 中第 $i$ 行、第 $j$ 列的某一个标量元素 $c_{ij}$，只需提取 $A$ 的第 $i$ 行与 $B$ 的第 $j$ 列做点积（Inner Product）：
+
+$$
+c_{ij} = (\text{row } i \text{ of } A) \cdot (\text{column } j \text{ of } B) = \sum_{k=1}^{n} a_{ik} b_{kj}
+$$
+
+这一视角适合手算单个数字，但掩盖了矩阵整体的子空间结构。
+
+### 视角 ②：列视角（$C$ 的各列是 $A$ 各列的线性组合）
+
+将右矩阵按列拆写为 $B = \begin{bmatrix} \mathbf{b}_1 & \mathbf{b}_2 & \cdots & \mathbf{b}_p \end{bmatrix}$，其中每一列 $\mathbf{b}_j \in \mathbb{R}^n$。矩阵乘法相当于 $A$ 依次独立作用于 $B$ 的每一列：
+
+$$
+AB = A \begin{bmatrix} \mathbf{b}_1 & \mathbf{b}_2 & \cdots & \mathbf{b}_p \end{bmatrix}
+= \begin{bmatrix} A\mathbf{b}_1 & A\mathbf{b}_2 & \cdots & A\mathbf{b}_p \end{bmatrix}
+$$
+
+回到第 01 讲的核心定义：$A\mathbf{b}_j$ 正是以 $\mathbf{b}_j$ 的分量为权重、对 **$A$ 的各列**所做的线性组合！这意味着 **$C = AB$ 的每一列都毫无例外地躺在 $A$ 的列空间 $\operatorname{Col}(A)$ 里**。
+
+### 视角 ③：行视角（$C$ 的各行是 $B$ 各行的线性组合）
+
+对称地，将左矩阵按行拆写为行向量组 $\mathbf{a}_1^T, \dots, \mathbf{a}_m^T \in \mathbb{R}^{1\times n}$：
+
+$$
+AB = \begin{bmatrix} \mathbf{a}_1^T \\ \mathbf{a}_2^T \\ \vdots \\ \mathbf{a}_m^T \end{bmatrix} B
+= \begin{bmatrix} \mathbf{a}_1^T B \\ \mathbf{a}_2^T B \\ \vdots \\ \mathbf{a}_m^T B \end{bmatrix}
+$$
+
+每一行 $\mathbf{a}_i^T B = a_{i1}(\text{row } 1 \text{ of } B) + \cdots + a_{in}(\text{row } n \text{ of } B)$ 都是 **$B$ 各行的线性组合**！
+
+### 视角 ④：列乘行外积视角（$n$ 个秩 1 矩阵之和！）
+
+这是初学者最陌生、但在高等矩阵分解（$LU$、谱分解、奇异值分解 SVD）中威力最大的一种切法！
+
+- “行（$1\times n$）乘列（$n\times 1$）”收缩为一个标量（内积）；
+- 反过来，**“列（$m\times 1$）乘行（$1\times p$）”则会张开成一整张 $m\times p$ 的满尺寸矩阵（外积 Outer Product）！**
+
+记 $A$ 的第 $k$ 列为 $\mathbf{c}_k \in \mathbb{R}^{m\times 1}$，$B$ 的第 $k$ 行为 $\mathbf{r}_k^T \in \mathbb{R}^{1\times p}$，则矩阵乘积精确等于 **$n$ 张外积切片矩阵的逐元素叠加**：
+
+$$
+AB = \begin{bmatrix} \mathbf{c}_1 & \mathbf{c}_2 & \cdots & \mathbf{c}_n \end{bmatrix}
+\begin{bmatrix} \mathbf{r}_1^T \\ \mathbf{r}_2^T \\ \vdots \\ \mathbf{r}_n^T \end{bmatrix}
+= \sum_{k=1}^{n} \mathbf{c}_k \mathbf{r}_k^T
+$$
+
+用具体算例直观感受它的神奇之处：
+
+$$
+\begin{bmatrix} 2 & 7 \\ 3 & 8 \\ 4 & 9 \end{bmatrix}
+\begin{bmatrix} 1 & 6 \\ 0 & 0 \end{bmatrix}
+=
+\underbrace{\begin{bmatrix} 2 \\ 3 \\ 4 \end{bmatrix} \begin{bmatrix} 1 & 6 \end{bmatrix}}_{\text{第 1 张秩 1 切片}}
++
+\underbrace{\begin{bmatrix} 7 \\ 8 \\ 9 \end{bmatrix} \begin{bmatrix} 0 & 0 \end{bmatrix}}_{\text{第 2 张全零切片}}
+=
+\begin{bmatrix} 2 & 12 \\ 3 & 18 \\ 4 & 24 \end{bmatrix}
+$$
+
+仔细观察右侧结果矩阵 $\begin{bmatrix} 2 & 12 \\ 3 & 18 \\ 4 & 24 \end{bmatrix}$：它的所有列都是 $(2, 3, 4)^T$ 的倍数（列空间是一条线），所有行也都是 $[1 \;\; 6]$ 的倍数（行空间也是一条线）——任何形如 $\mathbf{c}\mathbf{r}^T$（非零列乘非零行）的矩阵都叫做**秩 1 矩阵（Rank-One Matrix）**。
+
+### 视角 ⑤：分块矩阵乘法（Block Matrix Multiplication）
+
+只要对 $A$ 的列划分方式与对 $B$ 的行划分方式完全一致（内部分块维度匹配），就可以把子矩阵块直接当作普通标量一样按行列规则相乘相加：
+
+$$
+\begin{bmatrix} A_{11} & A_{12} \\ A_{21} & A_{22} \end{bmatrix}
+\begin{bmatrix} B_{11} & B_{12} \\ B_{21} & B_{22} \end{bmatrix}
+=
+\begin{bmatrix}
+A_{11}B_{11} + A_{12}B_{21} & A_{11}B_{12} + A_{12}B_{22} \\
+A_{21}B_{11} + A_{22}B_{21} & A_{21}B_{12} + A_{22}B_{22}
+\end{bmatrix}
+$$
+
+**注意关键细节**：由于子矩阵乘法不可交换，在写 $A_{11}B_{11} + A_{12}B_{21}$ 时，**$A$ 的子块必须严格在左、$B$ 的子块必须严格在右**，绝不可颠倒次序！
+
+<TheoremCard
+  label="Theorem 3.1"
+  title="乘积矩阵的子空间包含定理"
+  termEn="Subspace Inclusion for Matrix Products"
+>
+对于任意维度相容的实矩阵 $A \in \mathbb{R}^{m\times n}$ 与 $B \in \mathbb{R}^{n\times p}$，乘积 $AB \in \mathbb{R}^{m\times p}$ 恒满足以下三条基本包含关系：
+
+1. **列空间收缩于左因子**：$\operatorname{Col}(AB) \subseteq \operatorname{Col}(A) \subseteq \mathbb{R}^m$；
+2. **行空间收缩于右因子**（记 $\operatorname{Row}(M) := \operatorname{Col}(M^T)$）：$\operatorname{Row}(AB) \subseteq \operatorname{Row}(B) \subseteq \mathbb{R}^p$；
+3. **右因子零空间继承**：$\operatorname{Null}(B) \subseteq \operatorname{Null}(AB)$，即若 $B\mathbf{x} = \mathbf{0}$，则必有 $(AB)\mathbf{x} = \mathbf{0}$。
+</TheoremCard>
+
+<ProofCollapse title="展开三行严密证明">
+1. 任取 $\mathbf{y} \in \operatorname{Col}(AB)$，由列空间定义存在 $\mathbf{x} \in \mathbb{R}^p$ 使得 $\mathbf{y} = (AB)\mathbf{x}$。由矩阵乘法结合律得 $\mathbf{y} = A(B\mathbf{x})$。令 $\mathbf{w} = B\mathbf{x} \in \mathbb{R}^n$，则 $\mathbf{y} = A\mathbf{w} \in \operatorname{Col}(A)$，故 $\operatorname{Col}(AB) \subseteq \operatorname{Col}(A)$。
+2. 利用转置反转公式 $(AB)^T = B^T A^T$，直接应用第 1 条于 $B^T$ 和 $A^T$：
+
+$$
+\operatorname{Row}(AB) = \operatorname{Col}((AB)^T) = \operatorname{Col}(B^T A^T) \subseteq \operatorname{Col}(B^T) = \operatorname{Row}(B)
+$$
+
+3. 若 $\mathbf{x} \in \mathbb{R}^p$ 满足 $B\mathbf{x} = \mathbf{0}$，则 $(AB)\mathbf{x} = A(B\mathbf{x}) = A\mathbf{0} = \mathbf{0}$。
+</ProofCollapse>
+
+<InteractiveCanvasSlot
+  id="l03-rank1-outer-slicer"
+  title="秩 1 外积切片累加器 (AB = ∑ c_k r_kᵀ)"
+  description="二期交互预留：逐层点亮 $k = 1, \dots, n$ 的每一张秩 1 外积切片 $\mathbf{c}_k \mathbf{r}_k^T$，直观观察若干个简单秩 1 网格如何叠加重构出任意复杂矩阵 $AB$。"
+/>
+
+---
+
+## 二、方阵的可逆性（Invertibility）与逆矩阵
+
+接下来把目光聚焦到**方阵** $A \in \mathbb{R}^{n\times n}$。如果矩阵 $A$ 代表某种线性操作（例如第 02 讲中用初等矩阵 $E_{21}$ 从第 2 行减去 $3$ 倍第 1 行），什么样的矩阵能将这一操作完全“撤销”还原？
+
+<DefinitionCard
+  label="Definition 3.1"
+  title="方阵的逆矩阵"
+  termEn="Inverse of a Square Matrix"
+>
+设**方阵** $A \in \mathbb{R}^{n\times n}$。若存在同阶方阵 $X \in \mathbb{R}^{n\times n}$ 同时满足左逆与右逆等式：
+
+$$
+XA = I_n \quad \text{且} \quad AX = I_n
+$$
+
+则称 $A$ 为**可逆矩阵（Invertible / Nonsingular Matrix）**；满足该条件的矩阵 $X$ 是**唯一**的（若 $X_1 A = I_n$ 且 $AX_2 = I_n$，则 $X_1 = X_1(AX_2) = (X_1 A)X_2 = X_2$），记作 $A^{-1}$。若不存在这样的矩阵，则称 $A$ 为**奇异矩阵（Singular Matrix）**。
+</DefinitionCard>
+
+为什么有些方阵坚决没有逆矩阵？用**列视角与零空间**只需一秒就能看透本质！假设存在某个**非零向量** $\mathbf{x} \neq \mathbf{0}$ 被 $A$ 压缩成了零向量：$A\mathbf{x} = \mathbf{0}$。如果此时居然存在逆矩阵 $A^{-1}$，在等式两边左乘 $A^{-1}$ 就会得到：
+
+$$
+A^{-1}(A\mathbf{x}) = A^{-1}\mathbf{0} \quad \Longrightarrow \quad (A^{-1}A)\mathbf{x} = \mathbf{0} \quad \Longrightarrow \quad \mathbf{x} = \mathbf{0}
+$$
+
+这与 $\mathbf{x} \neq \mathbf{0}$ 直接矛盾！直观地说：**如果 $A$ 把某个非零向量压扁成了 $\mathbf{0}$，信息就已经永久丢失，世上没有任何线性矩阵能把同一个 $\mathbf{0}$ 既映射回 $\mathbf{0}$、又同时映射回非零的 $\mathbf{x}$！**
+
+<TheoremCard
+  label="Theorem 3.2"
+  title="有限维方阵单侧逆等价定理与运算法则"
+  termEn="One-Sided Inverse Equivalence & Inverse Rules"
+>
+设 $A, B \in \mathbb{R}^{n\times n}$ 均为 $n$ 阶**方阵**：
+
+1. **单侧逆自动升格为双侧逆**：若存在 $X \in \mathbb{R}^{n\times n}$ 使得 $XA = I_n$（左逆），则必有 $AX = I_n$，即 $X = A^{-1}$；同理，若 $AY = I_n$（右逆），也必有 $YA = I_n$。
+2. **零空间充要判据**：方阵 $A$ 可逆 $\iff$ 齐次方程 $A\mathbf{x} = \mathbf{0}$ 仅有唯一零解 $\mathbf{x} = \mathbf{0}$ $\iff$ 高斯消元（允许行交换）产生完整的 $n$ 个非零主元（Pivots）。
+3. **乘积求逆穿脱反转律（Reverse Order Law）**：若 $A, B$ 均可逆，则 $AB$ 也可逆，且
+
+$$
+(AB)^{-1} = B^{-1} A^{-1}
+$$
+
+4. **转置求逆交换律**：若 $A$ 可逆，则 $A^T$ 也可逆，且 $(A^T)^{-1} = (A^{-1})^T$（常简记为 $A^{-T}$）。
+</TheoremCard>
+
+<ProofCollapse title="展开证明：为什么对于 n×n 方阵，只要有左逆 XA = I 就自动满足右逆 AX = I？">
+设 $X \in \mathbb{R}^{n\times n}$ 满足 $XA = I_n$：
+1. 先看 $A\mathbf{x} = \mathbf{0}$：两边左乘 $X$ 得 $\mathbf{x} = I_n\mathbf{x} = X(A\mathbf{x}) = \mathbf{0}$，故 $A$ 的 $n$ 个列向量线性无关。
+2. 根据定理 1.1，$A$ 的列向量张成整个 $\mathbb{R}^n$，因此对 $\mathbb{R}^n$ 的每一个标准基向量 $\mathbf{e}_j$（单位阵 $I_n$ 的第 $j$ 列），方程 $A\mathbf{y}_j = \mathbf{e}_j$ 必存在解 $\mathbf{y}_j \in \mathbb{R}^n$。
+3. 将这 $n$ 个解向量按列拼成方阵 $Y = \begin{bmatrix} \mathbf{y}_1 & \cdots & \mathbf{y}_n \end{bmatrix} \in \mathbb{R}^{n\times n}$，由矩阵乘法**视角 ②（列视角）**立得 $AY = \begin{bmatrix} A\mathbf{y}_1 & \cdots & A\mathbf{y}_n \end{bmatrix} = \begin{bmatrix} \mathbf{e}_1 & \cdots & \mathbf{e}_n \end{bmatrix} = I_n$！
+4. 最后利用结合律串联左右两侧：$X = X I_n = X(AY) = (XA)Y = I_n Y = Y$。既然 $X = Y$，自然有 $AX = AY = I_n$！
+
+（同时验证穿脱反转律：$(AB)(B^{-1}A^{-1}) = A(BB^{-1})A^{-1} = A I_n A^{-1} = I_n$，同理左乘亦为 $I_n$。）
+</ProofCollapse>
+
+---
+
+## 三、Gauss-Jordan 消元法求逆：$[A \mid I_n] \longrightarrow [I_n \mid A^{-1}]$
+
+如何系统地算出 $A^{-1}$？设未知逆矩阵按列写为 $A^{-1} = \begin{bmatrix} \mathbf{x}_1 & \mathbf{x}_2 & \cdots & \mathbf{x}_n \end{bmatrix}$。根据乘法**视角 ②（按列相乘）**，矩阵方程 $AA^{-1} = I_n$ 其实只是把 **$n$ 个共享同一个系数矩阵 $A$ 的线性方程组**并排写在了一起：
+
+$$
+A \begin{bmatrix} \mathbf{x}_1 & \mathbf{x}_2 & \cdots & \mathbf{x}_n \end{bmatrix}
+= \begin{bmatrix} \mathbf{e}_1 & \mathbf{e}_2 & \cdots & \mathbf{e}_n \end{bmatrix} = I_n
+\quad \Longleftrightarrow \quad
+A\mathbf{x}_j = \mathbf{e}_j \;\; (j = 1, \dots, n)
+$$
+
+与其把同一个消元步骤重复算 $n$ 遍，数学家 Gauss 与 Jordan 给出了极其优雅的一次性方案：构造 $n\times 2n$ 增广分块矩阵 $\begin{bmatrix} A \mid I_n \end{bmatrix}$，对其持续施加初等行变换（先向下消成上三角 $U$，再**向上回消**消去主元上方所有非零元，最后将每行除以主元化为 $I_n$）。
+
+用视角 ⑤（分块乘法）一眼就能看懂为什么右侧会自动浮现出 $A^{-1}$：设所有行变换连乘起来的总消元矩阵为 $E \in \mathbb{R}^{n\times n}$，将其左乘在分块增广矩阵上：
+
+$$
+E \begin{bmatrix} A & \big| & I_n \end{bmatrix} = \begin{bmatrix} EA & \big| & E I_n \end{bmatrix} = \begin{bmatrix} EA & \big| & E \end{bmatrix}
+$$
+
+当我们把左半边成功化简为单位阵 $EA = I_n$ 时，由定理 3.2 第一条立即推出 **$E$ 必然等于 $A^{-1}$**！于是右半边躺着的 $E$ 就自动变成了梦寐以求的 $A^{-1}$：
+
+$$
+\left[\begin{array}{cc|cc}
+1 & 3 & 1 & 0 \\
+2 & 7 & 0 & 1
+\end{array}\right]
+\xrightarrow{R_2 \leftarrow R_2 - 2R_1}
+\left[\begin{array}{cc|cc}
+1 & 3 & 1 & 0 \\
+0 & 1 & -2 & 1
+\end{array}\right]
+\xrightarrow{R_1 \leftarrow R_1 - 3R_2}
+\left[\begin{array}{cc|cc}
+1 & 0 & 7 & -3 \\
+0 & 1 & -2 & 1
+\end{array}\right]
+$$
+
+立得 $A^{-1} = \begin{bmatrix} 7 & -3 \\ -2 & 1 \end{bmatrix}$，口算核验 $\begin{bmatrix} 1 & 3 \\ 2 & 7 \end{bmatrix}\begin{bmatrix} 7 & -3 \\ -2 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ 完美无误！
+
+<PitfallAlert title="常见直觉陷阱与网传笔记四大勘误">
+1. **误区一：把“$XA = I \implies AX = I$”错误套用到长方矩阵！（极高频大坑）**
+   定理 3.2 的单侧逆自动对称**仅对方阵成立**！对于长方矩阵，例如令 $X = \begin{bmatrix} 1 & 0 \end{bmatrix} \in \mathbb{R}^{1\times 2}$，$A = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \in \mathbb{R}^{2\times 1}$，虽然 $XA = [1] = I_1$，但调换顺序后的 $AX = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix} \neq I_2$（秩仅为 $1$，绝不可逆）！长方矩阵的左右单侧逆将在第 34 讲彻底剖析。
+2. **误区二：从实数乘法盲目外推“$AB = 0 \implies A = 0$ 或 $B = 0$”**
+   在矩阵世界里，两个非零矩阵相乘完全可以等于全零矩阵（只要 $B$ 的每一列都恰好落在 $A$ 的零空间里）！例如 $\begin{bmatrix} 1 & -1 \\ 1 & -1 \end{bmatrix}\begin{bmatrix} 1 & 2 \\ 1 & 2 \end{bmatrix} = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}$。同理，由 $AB = AC$ 且 $A \neq 0$ **绝不能约去 $A$**，除非严格已知 $A$ **可逆**！
+3. **误区三：把乘积求逆写反成 $(AB)^{-1} = A^{-1}B^{-1}$，或捏造 $(A+B)^{-1} = A^{-1} + B^{-1}$**
+   记住 Strang 教授的“穿鞋袜法则”：先穿袜子（乘 $B$）再穿鞋（乘 $A$），撤销时必须**先脱鞋（乘 $A^{-1}$）再脱袜子（乘 $B^{-1}$）**，故 $(AB)^{-1} = B^{-1}A^{-1}$。至于矩阵加法，$(I + I)^{-1} = \frac{1}{2}I \neq I + I$，和的逆没有任何简单拆开公式。
+</PitfallAlert>
+
+<KeyTakeaways
+  items={[
+    "五种乘法视角各司其职：算单个数用**行·列内积**，推列空间包含 $\\operatorname{Col}(AB)\\subseteq\\operatorname{Col}(A)$ 用**按列组合**，推 $\\operatorname{Row}(AB)\\subseteq\\operatorname{Row}(B)$ 用**按行组合**，做低秩分解用**列×行秩 1 外积和 $\\sum \\mathbf{c}_k \\mathbf{r}_k^T$**。",
+    "方阵 $A \\in \\mathbb{R}^{n\\times n}$ 可逆 $\\iff A\\mathbf{x}=\\mathbf{0}$ 仅有零解 $\\iff$ 存在左逆（或右逆）；长方矩阵永远不存在双侧逆。",
+    "乘积求逆务必反序 $(AB)^{-1} = B^{-1}A^{-1}$，转置与求逆可自由交换 $(A^T)^{-1} = (A^{-1})^T$。",
+    "Gauss-Jordan 消元 $\\begin{bmatrix} A \\mid I_n \\end{bmatrix} \\to \\begin{bmatrix} I_n \\mid A^{-1} \\end{bmatrix}$ 的本质是分块左乘总消元矩阵 $E = A^{-1}$。"
+  ]}
+/>
+
+<ProblemSet>
+
+<ExerciseCard id="l03-ex1" tier="L1" title="用视角 ④（列×行秩 1 外积之和）拆解矩阵乘积">
+给定矩阵 $A \in \mathbb{R}^{3\times 2}$ 与 $B \in \mathbb{R}^{2\times 3}$：
+
+$$
+A = \begin{bmatrix}
+1 & 0 \\
+2 & 1 \\
+-1 & 3
+\end{bmatrix}, \quad
+B = \begin{bmatrix}
+2 & 0 & -2 \\
+1 & 3 & 0
+\end{bmatrix}
+$$
+
+请显式写出 $AB = \mathbf{c}_1\mathbf{r}_1^T + \mathbf{c}_2\mathbf{r}_2^T$ 的两张 $3\times 3$ 秩 1 外积切片并求和；然后**不做任何消元**，仅凭定理 3.1 判断最终 $3\times 3$ 矩阵 $C = AB$ 是否可逆！
+
+<ProgressiveHint
+  hints={[
+    "第一张切片是 $A$ 的第 1 列 $(1, 2, -1)^T$ 乘以 $B$ 的第 1 行 $[2, 0, -2]$；第二张切片是 $(0, 1, 3)^T$ 乘以 $[1, 3, 0]$。",
+    "关于 $C = AB$ 是否可逆：看看 $\\operatorname{Col}(AB) \\subseteq \\operatorname{Col}(A)$！矩阵 $A$ 只有 $2$ 列，它的列空间最多几维？能撑满三维空间 $\\mathbb{R}^3$ 吗？"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+两张切片每一张都是“各列成比例、各行也成比例”的极简网格；而关于 $3\times 3$ 矩阵 $C = AB$ 是否可逆，根本不需要算行列式或消元——因为 $C$ 的三列全都只是 $A$ 那**区区两列**的线性组合（$\operatorname{Col}(AB) \subseteq \operatorname{Col}(A)$），三维空间里由两支向量张成的子空间至多是一个二维平面，因此 $3\times 3$ 矩阵 $C$ **必然奇异（不可逆）**！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+按视角 ④ 展开列×行外积：
+
+$$
+\mathbf{c}_1 \mathbf{r}_1^T =
+\begin{bmatrix} 1 \\ 2 \\ -1 \end{bmatrix} \begin{bmatrix} 2 & 0 & -2 \end{bmatrix}
+= \begin{bmatrix}
+2 & 0 & -2 \\
+4 & 0 & -4 \\
+-2 & 0 & 2
+\end{bmatrix}, \quad
+\mathbf{c}_2 \mathbf{r}_2^T =
+\begin{bmatrix} 0 \\ 1 \\ 3 \end{bmatrix} \begin{bmatrix} 1 & 3 & 0 \end{bmatrix}
+= \begin{bmatrix}
+0 & 0 & 0 \\
+1 & 3 & 0 \\
+3 & 9 & 0
+\end{bmatrix}
+$$
+
+逐元素相加得：
+
+$$
+C = AB = \mathbf{c}_1 \mathbf{r}_1^T + \mathbf{c}_2 \mathbf{r}_2^T =
+\begin{bmatrix}
+2 & 0 & -2 \\
+5 & 3 & -4 \\
+1 & 9 & 2
+\end{bmatrix}
+$$
+
+**不可逆严格证明**：对右因子 $B \in \mathbb{R}^{2\times 3}$，取非零向量 $\mathbf{x}_0 = (3, -1, 3)^T \neq \mathbf{0}$，易验 $B\mathbf{x}_0 = (6 - 6,\; 3 - 3)^T = \mathbf{0}$。由定理 3.1 第 3 条，$C\mathbf{x}_0 = A(B\mathbf{x}_0) = \mathbf{0}$，再由定理 3.2 第 2 条知方阵 $C$ 不可逆。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l03-ex2" tier="L2" title="概念辨析：两个奇异矩阵相加一定还是奇异矩阵吗？">
+判断下列命题真伪：
+
+> **命题**：若 $n$ 阶方阵 $A, B \in \mathbb{R}^{n\times n}$（$n \ge 2$）均为奇异（不可逆）矩阵，则它们的和 $A + B$ 也必定是奇异矩阵。
+
+<TrueFalseInteractive
+  id="l03-tf1"
+  correct={false}
+  quickFeedback="命题为假（False）！可逆矩阵集合与奇异矩阵集合对矩阵加法均不封闭——两个秩 1 的投影奇异矩阵沿互补方向相加，可以直接拼出满秩可逆的单位阵 $I_2$！"
+/>
+
+<ProgressiveHint
+  hints={[
+    "把单位阵 $I_2 = \\begin{bmatrix} 1 & 0 \\\\ 0 & 1 \\end{bmatrix}$ 拆成两个各含一行全零的 $2\\times 2$ 矩阵之和试试！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+矩阵 $A$ 把所有向量拍扁到 $x$ 轴上（丢失 $y$ 方向，奇异），矩阵 $B$ 把所有向量拍扁到 $y$ 轴上（丢失 $x$ 方向，奇异）；但把它们加在一起 $A + B$，原本各自缺失的维度完美互补，恢复成了完整可逆的恒等映射 $I$！（反过来，两个可逆矩阵相加 $I + (-I) = 0$ 也会瞬间变成奇异矩阵。）
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+对任意 $n \ge 2$，构造对角分块矩阵：
+
+$$
+A = \operatorname{diag}(1, 0, \dots, 0) \in \mathbb{R}^{n\times n}, \quad
+B = \operatorname{diag}(0, 1, \dots, 1) \in \mathbb{R}^{n\times n}
+$$
+
+由于 $A\mathbf{e}_2 = \mathbf{0}$ 且 $B\mathbf{e}_1 = \mathbf{0}$，$A$ 与 $B$ 均存在非零零空间向量，故均不可逆；然而 $A + B = I_n$ 显然可逆（逆矩阵即 $I_n$ 本身）。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l03-ex3" tier="L2" title="维度与单侧逆陷阱：BA = I₂ 能推出 AB = I₃ 吗？">
+判断下列命题真伪：
+
+> **命题**：设长方矩阵 $A \in \mathbb{R}^{3\times 2}$ 与 $B \in \mathbb{R}^{2\times 3}$ 满足乘积 $BA = I_2$（$2\times 2$ 单位矩阵），则调换顺序后的 $3\times 3$ 方阵 $AB \in \mathbb{R}^{3\times 3}$ 也是可逆矩阵。
+
+<TrueFalseInteractive
+  id="l03-tf2"
+  correct={false}
+  quickFeedback="命题为假（False）！虽然 $BA = I_2$ 可逆，但 $AB \in \mathbb{R}^{3\times 3}$ 的列空间受限于 $\operatorname{Col}(AB) \subseteq \operatorname{Col}(A)$，而 $A$ 只有 $2$ 列，绝对不可能张成整个三维空间 $\mathbb{R}^3$，因此 $AB$ 100% 奇异！"
+/>
+
+<ProgressiveHint
+  hints={[
+    "回忆定理 3.1：$\\operatorname{Col}(AB) \\subseteq \\operatorname{Col}(A)$。在 $\\mathbb{R}^3$ 中，矩阵 $A \\in \\mathbb{R}^{3\\times 2}$ 只有两列，它的列空间能充满整个 $\\mathbb{R}^3$ 吗？",
+    "还可以观察 $(AB)^2 = A(BA)B = A I_2 B = AB$：如果 $AB$ 可逆，两边左乘 $(AB)^{-1}$ 会迫使 $AB = I_3$，这可能吗？"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+把 $B: \mathbb{R}^3 \to \mathbb{R}^2$ 想象成将三维物体拍成二维照片，必然有一个方向的深度信息被彻底压扁归零（即存在非零向量 $\mathbf{z} \in \mathbb{R}^3$ 使 $B\mathbf{z} = \mathbf{0}$）。哪怕后面再接一个 $A: \mathbb{R}^2 \to \mathbb{R}^3$ 把照片举回三维空间，刚才丢失的深度也再也找不回来了——$(AB)\mathbf{z} = A\mathbf{0} = \mathbf{0}$，所以 $AB$ 永远不可逆！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+用反证法给出对**一切** $A \in \mathbb{R}^{3\times 2}, B \in \mathbb{R}^{2\times 3}$ 普适的严密证明：
+假设 $AB \in \mathbb{R}^{3\times 3}$ 可逆。由定理 1.1 必有 $\operatorname{Col}(AB) = \mathbb{R}^3$。但由定理 3.1 知：
+
+$$
+\mathbb{R}^3 = \operatorname{Col}(AB) \subseteq \operatorname{Col}(A) = \operatorname{span}\{\mathbf{a}_1, \mathbf{a}_2\}
+$$
+
+这意味着仅凭两个三维向量 $\mathbf{a}_1, \mathbf{a}_2$ 就能张成整个 $\mathbb{R}^3$（矛盾，正如第 01 讲习题 `l01-ex3` 所示，对法向量或消元至少留有一行恒等约束，无法覆盖全空间）。故 $AB$ 必奇异！
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l03-ex4" tier="L3" title="无消元代数推理：幂零矩阵与 (I − N)⁻¹ 的精确展开">
+设严格上三角矩阵 $N \in \mathbb{R}^{3\times 3}$ 形如：
+
+$$
+N = \begin{bmatrix}
+0 & a & b \\
+0 & 0 & c \\
+0 & 0 & 0
+\end{bmatrix} \quad (a, b, c \in \mathbb{R})
+$$
+
+1. 用行/列乘法视角解释为什么 $N^2$ 只剩右上角一个非零元 $ac$，而 $N^3 = 0$（全零矩阵）。
+2. 类比高中等比数列恒等式 $(1 - x)(1 + x + x^2) = 1 - x^3$，**完全不动用 Gauss-Jordan 消元**，一行推导出单位上三角矩阵
+
+$$
+A = I_3 - N = \begin{bmatrix}
+1 & -a & -b \\
+0 & 1 & -c \\
+0 & 0 & 1
+\end{bmatrix}
+$$
+
+的精确逆矩阵 $A^{-1}$！
+
+<ProgressiveHint
+  hints={[
+    "因为单位阵 $I_3$ 与 $N$ 可交换（$I_3 N = N I_3$），直接展开矩阵乘积 $(I_3 - N)(I_3 + N + N^2)$ 看看中间项如何正负相消！",
+    "既然 $N^3 = 0$，$(I_3 - N)(I_3 + N + N^2)$ 等于什么？再调用定理 3.2 第 1 条（方阵右逆即双侧逆）！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+每次乘以严格上三角矩阵 $N$，都会把非零对角线进一步向右上角“推远一格”：乘一次在超对角线，乘两次推到最右上角 $(1, 3)$ 位置（值为 $ac$），乘三次直接被推出矩阵边界变成全零矩阵 $0$！于是无穷几何级数 $(1-x)^{-1} = 1 + x + x^2 + x^3 + \cdots$ 在矩阵 $N$ 上到平方项就**精确自然截断**，连无穷极限都不需要取！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. 直接分步计算矩阵幂：
+
+$$
+N^2 = \begin{bmatrix} 0 & a & b \\ 0 & 0 & c \\ 0 & 0 & 0 \end{bmatrix}
+\begin{bmatrix} 0 & a & b \\ 0 & 0 & c \\ 0 & 0 & 0 \end{bmatrix}
+= \begin{bmatrix} 0 & 0 & ac \\ 0 & 0 & 0 \\ 0 & 0 & 0 \end{bmatrix}, \quad
+N^3 = N^2 N = \begin{bmatrix} 0 & 0 & 0 \\ 0 & 0 & 0 \\ 0 & 0 & 0 \end{bmatrix}
+$$
+
+2. 由矩阵乘法分配律及 $I_3 N = N I_3$：
+
+$$
+(I_3 - N)(I_3 + N + N^2) = I_3 + N + N^2 - N - N^2 - N^3 = I_3 - N^3 = I_3
+$$
+
+由定理 3.2 第 1 条（方阵存在右逆即为唯一逆矩阵），直接写出精确解析式：
+
+$$
+(I_3 - N)^{-1} = I_3 + N + N^2 =
+\begin{bmatrix}
+1 & a & b + ac \\
+0 & 1 & c \\
+0 & 0 & 1
+\end{bmatrix}
+$$
+
+（注意右上角元素为什么不是 $+b$ 而是 $b + ac$——这正是两步间接路径 $1 \to 2 \to 3$ 叠加在直接路径 $1 \to 3$ 上的消元回代补偿项！）
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l03-ex5" tier="L4" title="MIT 18.06 考题级挑战：分块上三角矩阵求逆公式">
+（MIT 18.06 经典期中压轴题）设方阵 $M \in \mathbb{R}^{(m+n)\times(m+n)}$ 具有如下 $2\times 2$ 分块上三角结构，其中 $A \in \mathbb{R}^{m\times m}$ 与 $D \in \mathbb{R}^{n\times n}$ 均为**可逆方阵**，$B \in \mathbb{R}^{m\times n}$ 为任意长方矩阵，$0$ 为 $n\times m$ 全零块：
+
+$$
+M = \begin{bmatrix}
+A & B \\
+0 & D
+\end{bmatrix}
+$$
+
+1. 许多初学者会凭错觉把右上角块猜成 $-B$ 或 $-B^{-1}$（注意 $B$ 甚至都不是方阵，根本不存在 $B^{-1}$！）。请设待定分块逆矩阵 $M^{-1} = \begin{bmatrix} X & Y \\ Z & W \end{bmatrix}$，利用分块矩阵乘法直接解出 $X, Y, Z, W$ 的精确表达式，并严格注意矩阵相乘左右顺序！
+2. 当 $m = n = 1$ 且 $A = [1], D = [1]$ 时，核验你的公式是否退化回标量消元矩阵 $\begin{bmatrix} 1 & b \\ 0 & 1 \end{bmatrix}^{-1} = \begin{bmatrix} 1 & -b \\ 0 & 1 \end{bmatrix}$。
+
+<ProgressiveHint
+  hints={[
+    "写出分块方程 $\\begin{bmatrix} A & B \\\\ 0 & D \\end{bmatrix} \\begin{bmatrix} X & Y \\\\ Z & W \\end{bmatrix} = \\begin{bmatrix} I_m & 0 \\\\ 0 & I_n \\end{bmatrix}$，先看第二行对应的两个分块等式 $DZ = 0$ 与 $DW = I_n$！",
+    "解出 $Z = 0$ 和 $W = D^{-1}$ 后，代入第一行第二列等式 $AY + BW = 0$，左边左乘 $A^{-1}$ 时千万看清 $A^{-1}, B, D^{-1}$ 谁在左谁在右！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+在分块 Gauss-Jordan 消元 $\begin{bmatrix} A & B & \mid & I_m & 0 \\ 0 & D & \mid & 0 & I_n \end{bmatrix}$ 中：
+- 先把右下角块 $D$ 归一化为 $I_n$，这需要给第二分块行**左乘 $D^{-1}$**；
+- 再用第二行向上消掉右上角的 $B$，需要从第一行减去 $B$ 倍的新第二行（产生 $-BD^{-1}$）；
+- 最后把左上角的 $A$ 归一化为 $I_m$，给整个第一分块行**左乘 $A^{-1}$**——于是右上角顺理成章被夹在中间变成了 **$-A^{-1} B D^{-1}$**！不仅维度 $(m\times m)(m\times n)(n\times n) = m\times n$ 严丝合缝，而且完全无需 $B$ 是方阵！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. 令 $X \in \mathbb{R}^{m\times m}, Y \in \mathbb{R}^{m\times n}, Z \in \mathbb{R}^{n\times m}, W \in \mathbb{R}^{n\times n}$，按视角 ⑤ 展开 $M \begin{bmatrix} X & Y \\ Z & W \end{bmatrix} = I_{m+n}$：
+
+$$
+\begin{bmatrix}
+AX + BZ & AY + BW \\
+DZ & DW
+\end{bmatrix}
+=
+\begin{bmatrix}
+I_m & 0 \\
+0 & I_n
+\end{bmatrix}
+$$
+
+逐块求解四个矩阵方程（已知 $A, D$ 可逆）：
+- 由 $DZ = 0$，左乘 $D^{-1}$ 得 $Z = 0$；
+- 由 $DW = I_n$，左乘 $D^{-1}$ 得 $W = D^{-1}$；
+- 将 $Z = 0$ 代入 $AX + BZ = I_m$ 得 $AX = I_m \implies X = A^{-1}$；
+- 将 $W = D^{-1}$ 代入 $AY + BW = 0$ 得 $AY = -B D^{-1}$，两边**左乘** $A^{-1}$ 得 $Y = -A^{-1} B D^{-1}$。
+
+由定理 3.2 第 1 条（方阵右逆即唯一双侧逆），完整分块逆矩阵公式为：
+
+$$
+\begin{bmatrix}
+A & B \\
+0 & D
+\end{bmatrix}^{-1}
+=
+\begin{bmatrix}
+A^{-1} & -A^{-1} B D^{-1} \\
+0 & D^{-1}
+\end{bmatrix}
+$$
+
+2. 当 $A = [1], D = [1], B = [b]$ 时，$-A^{-1}BD^{-1} = -1 \cdot b \cdot 1 = -b$，精确还原为 $\begin{bmatrix} 1 & -b \\ 0 & 1 \end{bmatrix}$。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>
+
+<FrontierAIReading
+  id="AI-01"
+  title="Transformer 自注意力 QKᵀV 的四种矩阵几何视角、KV Cache 增量本质与分块 FlashAttention"
+  paperRef="Vaswani et al. (NeurIPS 2017) Attention Is All You Need · Dao et al. (NeurIPS 2022) FlashAttention"
+>
+
+在现代大语言模型（LLM）与多模态 Transformer 架构中，最核心的算子莫过于**缩放点积自注意力（Scaled Dot-Product Self-Attention）**。令人惊叹的是，从原始注意力机制的语义汇聚，到自回归推理时的 **KV Cache** 加速，再到硬件感知的 **FlashAttention** 显存革命，背后没有任何高深莫测的黑魔法——**全部都是第 03 讲矩阵乘法五种视角在张量上的直接推演！**
+
+### 1. 用第 03 讲视角 ① 与视角 ③ 解剖 $O = \operatorname{softmax}\!\left(\frac{QK^T}{\sqrt{d_k}}\right) V$
+
+设输入序列包含 $L$ 个词元（Tokens），单头查询/键特征维度为 $d_k$，值特征维度为 $d_v$。将 $L$ 个词元的向量按**行**堆叠为三个矩阵：
+
+$$
+Q = \begin{bmatrix} \mathbf{q}_1^T \\ \vdots \\ \mathbf{q}_L^T \end{bmatrix} \in \mathbb{R}^{L\times d_k}, \quad
+K = \begin{bmatrix} \mathbf{k}_1^T \\ \vdots \\ \mathbf{k}_L^T \end{bmatrix} \in \mathbb{R}^{L\times d_k}, \quad
+V = \begin{bmatrix} \mathbf{v}_1^T \\ \vdots \\ \mathbf{v}_L^T \end{bmatrix} \in \mathbb{R}^{L\times d_v}
+$$
+
+注意力计算分两步矩阵乘法完成：
+
+1. **第一步打分矩阵 $S = \frac{1}{\sqrt{d_k}} Q K^T \in \mathbb{R}^{L\times L}$ —— 视角 ①（行·列内积）**：
+   注意 $K^T \in \mathbb{R}^{d_k \times L}$ 的第 $j$ **列**恰好就是第 $j$ 个词元的键向量 $\mathbf{k}_j$！因此根据视角 ①，$S$ 的第 $(i, j)$ 个元素正是第 $i$ 个查询向量与第 $j$ 个键向量的缩放点积：
+
+$$
+s_{ij} = \frac{\mathbf{q}_i^T \mathbf{k}_j}{\sqrt{d_k}}
+$$
+
+   随后对 $S$ 的每一行独立做行归一化（Row-wise Softmax），得到注意力概率矩阵 $P \in \mathbb{R}^{L\times L}$（满足 $p_{ij} \ge 0$ 且每行之和 $\sum_{j=1}^L p_{ij} = 1$）。
+
+2. **第二步上下文聚合 $O = P V \in \mathbb{R}^{L\times d_v}$ —— 视角 ③（按行线性组合）与视角 ④（秩 1 外积和）**：
+   不要逐个元素去看 $PV$！直接调用本讲**视角 ③（行组合视角）**：输出矩阵 $O$ 的第 $i$ 行等于 $P$ 的第 $i$ 行对 **$V$ 各行所做的凸组合（Convex Combination）**：
+
+$$
+\mathbf{o}_i^T = \mathbf{p}_i^T V = \sum_{j=1}^{L} p_{ij} \mathbf{v}_j^T \in \operatorname{Row}(V)
+$$
+
+   由**定理 3.1 第 2 条**立得一个深刻几何结论：$\operatorname{Row}(PV) \subseteq \operatorname{Row}(V)$——自注意力机制本身并不创造超脱于 $V$ 行空间之外的新特征维度，它做的是在 $\operatorname{Row}(V)$ 张成的凸包内动态重混各词元信息！
+   同时，若改用**视角 ④（列×行外积视角）**改写 $PV = \sum_{j=1}^{L} \mathbf{p}_{:, j} \mathbf{v}_j^T$，你会发现第 $j$ 个词元的 Value 行向量 $\mathbf{v}_j^T$ 以秩 1 外积切片的形式，按照其被全体词元关注的列权重 $\mathbf{p}_{:, j} \in \mathbb{R}^{L\times 1}$ 广播投射到了整篇序列上！
+
+---
+
+### 2. 用视角 ⑤（分块矩阵乘法）一眼看懂为什么大模型推理需要 KV Cache
+
+在 GPT 类因果自回归生成（Causal Autoregressive Generation）中，已生成前 $t$ 个词元，现输入第 $t+1$ 个新词元预测下一个词。此时矩阵按行自然新增一行，形成 **$2\times 1$ 分块结构**：
+
+$$
+Q_{t+1} = \begin{bmatrix} Q_t \\ \mathbf{q}_{t+1}^T \end{bmatrix}, \quad
+K_{t+1} = \begin{bmatrix} K_t \\ \mathbf{k}_{t+1}^T \end{bmatrix} \implies K_{t+1}^T = \begin{bmatrix} K_t^T & \mathbf{k}_{t+1} \end{bmatrix}, \quad
+V_{t+1} = \begin{bmatrix} V_t \\ \mathbf{v}_{t+1}^T \end{bmatrix}
+$$
+
+将分块乘法**视角 ⑤** 直接代入 $Q_{t+1} K_{t+1}^T$，并叠加因果掩码（未来位置置为 $-\infty$，Softmax 后概率严格为 $0$）：
+
+$$
+Q_{t+1} K_{t+1}^T =
+\begin{bmatrix} Q_t \\ \mathbf{q}_{t+1}^T \end{bmatrix}
+\begin{bmatrix} K_t^T & \mathbf{k}_{t+1} \end{bmatrix}
+=
+\begin{bmatrix}
+Q_t K_t^T & Q_t \mathbf{k}_{t+1} \;\text{(被因果掩码清零!)} \\
+\mathbf{q}_{t+1}^T K_t^T & \mathbf{q}_{t+1}^T \mathbf{k}_{t+1}
+\end{bmatrix}
+\xrightarrow{\text{Causal Softmax}}
+P_{t+1} =
+\begin{bmatrix}
+P_t & \mathbf{0} \\
+\tilde{\mathbf{p}}_{t+1, 1:t}^T & p_{t+1, t+1}
+\end{bmatrix}
+$$
+
+再与分块的 $V_{t+1}$ 相乘（简直就是本讲习题 `l03-ex5` 分块三角矩阵的对偶翻版！）：
+
+$$
+O_{t+1} = P_{t+1} V_{t+1} =
+\begin{bmatrix}
+P_t & \mathbf{0} \\
+\tilde{\mathbf{p}}_{t+1, 1:t}^T & p_{t+1, t+1}
+\end{bmatrix}
+\begin{bmatrix} V_t \\ \mathbf{v}_{t+1}^T \end{bmatrix}
+=
+\begin{bmatrix}
+P_t V_t \\
+\tilde{\mathbf{p}}_{t+1, 1:t}^T V_t + p_{t+1, t+1} \mathbf{v}_{t+1}^T
+\end{bmatrix}
+=
+\begin{bmatrix}
+O_t \\
+\mathbf{o}_{t+1}^T
+\end{bmatrix}
+$$
+
+分块结果一目了然：
+1. 上半块历史输出 $O_t = P_t V_t$ **纹丝不动**，根本无需重算；
+2. 新词元唯一需要的输出行 $\mathbf{o}_{t+1}^T$，只涉及**单行向量** $\mathbf{q}_{t+1}^T$ 与缓存下来的历史矩阵 $K_t, V_t$ 相乘！这就是 **KV Cache** 将每步解码计算复杂度从 $O(t^2 d)$ 精确削减至 $O(t d)$ 的全部线性代数真相。
+
+---
+
+### 3. 再用视角 ⑤（分块平铺）理解 FlashAttention 的零显存爆炸技巧
+
+当上下文长度达到 $L = 128\text{K}$ 时，中间矩阵 $S = QK^T \in \mathbb{R}^{L\times L}$ 包含上百亿个浮点数，直接写回 GPU 主显存（HBM）会瞬间撑爆显存带宽。**FlashAttention** 的核心洞察正是本讲**视角 ④ 与视角 ⑤ 的结合**：
+
+将 $K, V$ 沿序列维度切分为若干小块 $K^{(b)}, V^{(b)} \in \mathbb{R}^{B_c \times d}$。若没有 Softmax，分块外积求和 $\sum_b (Q_i K^{(b)T}) V^{(b)}$ 天生就可以在片上高速缓存（SRAM）里一块块累加而无需存储完整的 $L\times L$ 矩阵；唯一阻碍分块结合律的是指数和分母 $\ell_i = \sum_j e^{s_{ij}}$，而通过维护局部最大值 $m_i$ 与动态重缩放因子 $e^{m_i^{\text{old}} - m_i^{\text{new}}}$（Online Softmax），分块矩阵乘法得以在不落地完整 $P$ 矩阵的前提下，**数学上零近似误差（Exact）**地流式还原出精确的 $O = PV$！
+
+<CollapsibleCode title="展开 PyTorch 张量维度对照核验（验证行视角、秩 1 外积和与分块增量完全等价）">
+
+```python
+import torch
+import torch.nn.functional as F
+
+torch.manual_seed(42)
+L, d_k, d_v = 6, 4, 5
+Q = torch.randn(L, d_k)
+K = torch.randn(L, d_k)
+V = torch.randn(L, d_v)
+
+# 1. 标准因果自注意力 O = P @ V
+mask = torch.tril(torch.ones(L, L, dtype=torch.bool))
+scores = (Q @ K.T) / (d_k ** 0.5)
+P = F.softmax(scores.masked_fill(~mask, float('-inf')), dim=-1)  # (L, L)
+O_standard = P @ V                                               # (L, d_v)
+
+# 2. 第 03 讲视角 ④ 验证：列 × 行秩 1 外积切片之和 ∑ p_{:, j} v_j^T
+O_rank1_sum = sum(P[:, j:j+1] @ V[j:j+1, :] for j in range(L))
+
+# 3. 第 03 讲视角 ⑤ 验证：KV Cache 仅用最后一行 q_L^T 与缓存 [K_{1:L}, V_{1:L}] 计算 o_L^T
+q_last = Q[-1:, :]                                               # (1, d_k)
+p_last = F.softmax((q_last @ K.T) / (d_k ** 0.5), dim=-1)        # (1, L)
+o_last_cached = p_last @ V                                       # (1, d_v)
+
+assert torch.allclose(O_standard, O_rank1_sum, atol=1e-6)
+assert torch.allclose(O_standard[-1:, :], o_last_cached, atol=1e-6)
+print("All matrix multiplication views match within 1e-6!")
+```
+
+</CollapsibleCode>
+
+</FrontierAIReading>

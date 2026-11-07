@@ -1,0 +1,44 @@
+name: "📐 Mathematical Errata / 数学推导与公式勘误"
+description: "Report an imprecise definition, missing dimension/rank condition, proof gap, or formula typo."
+title: "[Errata] Lecture XX: "
+labels: ["errata", "math-rigor"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping keep **18.06 Linear Algebra** mathematically rigorous and crystal-clear!
+        感谢协助维护本项目教材级的数学严谨度！请指出具体的讲次、条件遗漏或公式偏差。
+  - type: input
+    id: lecture
+    attributes:
+      label: "Lecture Number & Language / 涉及讲次与语言版本"
+      description: "e.g., `zh / Session 03 (OCW L03)` or `en / Session 01`"
+      placeholder: "zh / Session 03 (OCW L03)"
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: "Errata Category / 勘误类型"
+      options:
+        - "Missing Premise / Condition (遗漏矩阵维度、数域或满秩/对称等前提条件)"
+        - "Necessary vs. Sufficient Confusion (充分条件与充要条件混淆)"
+        - "Formula / LaTeX Typo (公式或符号笔误)"
+        - "Geometric Diagram / SVG Inaccuracy (几何图解不准确)"
+        - "Exercise Solution / Counterexample Issue (习题答案或反例有误)"
+    validations:
+      required: true
+  - type: textarea
+    id: current_text
+    attributes:
+      label: "Current Statement / 原文表述"
+      description: "Quote the exact passage, theorem, or equation."
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_fix
+    attributes:
+      label: "Proposed Correction & Justification / 修正建议与数学依据"
+      description: "Provide the rigorous correction, counterexample, or Strang textbook section reference."
+    validations:
+      required: true
