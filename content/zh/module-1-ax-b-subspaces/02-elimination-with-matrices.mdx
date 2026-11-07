@@ -1,0 +1,619 @@
+---
+title: "第 02 讲：矩阵消元（初等矩阵与主元）"
+ocwId: "L02"
+videoEpisode: "P02"
+textbookRef: "§2.2–2.3"
+---
+
+在第 01 讲中，我们学会了用列向量的线性组合理解 $A\mathbf{x} = \mathbf{b}$ 的几何全貌；但在真正的科学计算中，计算机究竟如何系统地解出成千上万个未知数？答案依然是两百年前高斯确立的经典算法——**高斯消元法（Gaussian Elimination）**。
+
+然而，MIT 18.06 第 02 讲绝不是带你重温中学的加减消元算术。Gilbert Strang 教授在本讲完成了现代线性代数最关键的一次语言升维：**把原本用文字描述的“某一行减去另一行的若干倍”，彻底改写为干净利落的矩阵左乘运算 $E_{ij} A$**——这不仅打开了逆矩阵与矩阵分解的大门，更第一次揭示了“左乘控行、右乘控列”的根本对偶法则。
+
+---
+
+## 一、从具体 3×3 方程组看高斯消元与主元（Pivots）机制
+
+让我们直接追踪 Strang 教授在课堂黑板上亲自推演的 $3\times 3$ 线性方程组 $A\mathbf{x} = \mathbf{b}$：
+
+$$
+\begin{cases}
+x + 2y + z = 2 \\
+3x + 8y + z = 12 \\
+\phantom{3x + {}} 4y + z = 2
+\end{cases}
+\quad \Longleftrightarrow \quad
+\underbrace{\begin{bmatrix}
+1 & 2 & 1 \\
+3 & 8 & 1 \\
+0 & 4 & 1
+\end{bmatrix}}_{A}
+\begin{bmatrix} x \\ y \\ z \end{bmatrix}
+=
+\underbrace{\begin{bmatrix}
+2 \\ 12 \\ 2
+\end{bmatrix}}_{\mathbf{b}}
+$$
+
+为了在同一个表格中同步更新右侧向量 $\mathbf{b}$，我们把 $\mathbf{b}$ 拼接在 $A$ 的右侧，形成 $3\times 4$ **增广矩阵（Augmented Matrix）** $\begin{bmatrix} A \mid \mathbf{b} \end{bmatrix}$。消元的目标非常纯粹：把主对角线下方的元素逐列清零，化为**上三角矩阵（Upper Triangular Matrix）** $U$。
+
+### 1.1 两步前向消元（Forward Elimination）与回代（Back Substitution）
+
+1. **锁定第 1 个主元（First Pivot）**：左上角 $(1,1)$ 位置的元素为 $\boxed{1} \neq 0$，它就是第一个**主元（Pivot）**。
+   - 我们要消灭它正下方 $(2,1)$ 处的元素 $3$。需要从第 2 行减去多少倍的第 1 行？这个倍数称为**消元乘数（Multiplier）**：
+
+$$
+\ell_{21} = \frac{a_{21}}{\text{pivot}_1} = \frac{3}{1} = 3
+$$
+
+   - 执行行操作 $R_2 \leftarrow R_2 - 3R_1$，第 2 行变为 $[3-3,\; 8-6,\; 1-3 \mid 12-6] = [0,\; 2,\; -2 \mid 6]$。
+   - 至于 $(3,1)$ 位置本来就是 $0$（相当于乘数 $\ell_{31} = 0$），直接跳过！
+
+2. **锁定第 2 个主元（Second Pivot）**：目光移至中间 $(2,2)$ 位置，经过刚才的更新，这里躺着非零数 $\boxed{2} \neq 0$，它成为第二个主元！
+   - 为消灭它正下方 $(3,2)$ 处的元素 $4$，计算消元乘数：
+
+$$
+\ell_{32} = \frac{4}{2} = 2
+$$
+
+   - 执行行操作 $R_3 \leftarrow R_3 - 2R_2$，第 3 行变为 $[0,\; 4-4,\; 1-(-4) \mid 2-12] = [0,\; 0,\; 5 \mid -10]$。
+
+至此，前向消元大功告成！左侧的 $A$ 化为了阶梯状的上三角矩阵 $U$，右侧的 $\mathbf{b}$ 同步化为了新向量 $\mathbf{c}$：
+
+$$
+\left[\begin{array}{ccc|c}
+\mathbf{1} & 2 & 1 & 2 \\
+3 & 8 & 1 & 12 \\
+0 & 4 & 1 & 2
+\end{array}\right]
+\xrightarrow{R_2 - 3R_1}
+\left[\begin{array}{ccc|c}
+\mathbf{1} & 2 & 1 & 2 \\
+0 & \mathbf{2} & -2 & 6 \\
+0 & 4 & 1 & 2
+\end{array}\right]
+\xrightarrow{R_3 - 2R_2}
+\underbrace{\left[\begin{array}{ccc|c}
+\mathbf{1} & 2 & 1 & 2 \\
+0 & \mathbf{2} & -2 & 6 \\
+0 & 0 & \mathbf{5} & -10
+\end{array}\right]}_{[U \;\mid\; \mathbf{c}]}
+$$
+
+对角线上三个醒目的非零数 **$1, 2, 5$** 就是矩阵 $A$ 的全部三个主元。而方程组 $U\mathbf{x} = \mathbf{c}$ 之所以无比友好，是因为我们可以自下而上执行**回代（Back Substitution）**瞬间读出唯一解：
+
+$$
+5z = -10 \implies z = -2 \;\longrightarrow\; 2y - 2(-2) = 6 \implies y = 1 \;\longrightarrow\; x + 2(1) + (-2) = 2 \implies x = 2
+$$
+
+### 1.2 消元何时会“翻车”？（暂时性失效 vs 永久性崩溃）
+
+消元过程的核心铁律只有一条：**主元绝对不能等于 $0$！**（否则乘数 $\ell_{ij}$ 分母为零，根本无法消去下方非零元。）如果在第 $k$ 个主元位置撞上了 $0$，必须严格区分两种截然不同的命运：
+
+- **暂时性失效（Temporary Failure —— 行交换即可挽救）**：主元位置是 $0$，但**它正下方同一列中还存在非零元素**。例如把上例原方程第 1 行与第 3 行对调，$(1,1)$ 位置虽为 $0$，但下方 $(2,1)$ 处有 $3 \neq 0$。只需做一次**行交换（Row Exchange）**把非零元换上来充当主元，方程组依然非奇异、唯一可解！
+- **永久性崩溃（Complete Failure —— 矩阵奇异不可逆）**：主元位置是 $0$，且**它正下方整列也全是 $0$**！例如把原题右下角 $(3,3)$ 的 $1$ 改成 $-3$，最后一步消元将得到 $0z = -10$，第三个主元彻底消失。这标志着 $n\times n$ 方阵发生了第 01 讲所说的维度坍缩——**$n$ 阶方阵非奇异（可逆），当且仅当消元（允许行交换）能产生完整的 $n$ 个非零主元。**
+
+---
+
+## 二、用矩阵语言重写消元：左乘初等消元矩阵 $E_{ij}$
+
+现在进入本讲最精彩的核心转折：如何不用文字箭头 $\xrightarrow{R_2 - 3R_1}$，而是找到一个 $3\times 3$ 矩阵 $E_{21}$，使得它与 $A$ 相乘就自动完成“第 2 行减去 $3$ 倍第 1 行，其余行保持不变”？
+
+这里藏着整门课程最重要的一把钥匙——**行视角 vs 列视角的对偶黄金律**：
+
+- 第 01 讲告诉我们：矩阵**右乘列向量** $A\mathbf{x}$，算的是 **$A$ 各列的线性组合**；
+- 完全对称地：**行向量左乘矩阵** $\mathbf{r}^T A$，算的则是 **$A$ 各行的线性组合**！
+
+具体试算一下：若拿行向量 $\begin{bmatrix} c_1 & c_2 & c_3 \end{bmatrix}$ 左乘 $3\times 3$ 矩阵 $A$：
+
+$$
+\begin{bmatrix} c_1 & c_2 & c_3 \end{bmatrix}
+\begin{bmatrix}
+\text{— row } 1 \text{ of } A \text{ —} \\
+\text{— row } 2 \text{ of } A \text{ —} \\
+\text{— row } 3 \text{ of } A \text{ —}
+\end{bmatrix}
+= c_1 (\text{row } 1) + c_2 (\text{row } 2) + c_3 (\text{row } 3)
+$$
+
+豁然开朗！要想构造左乘算子 $E_{21}$，只需逐行指定“新矩阵的每一行由原矩阵各行按什么权重拼成”：
+
+- 新第 1 行 = $1\cdot(\text{row } 1) + 0\cdot(\text{row } 2) + 0\cdot(\text{row } 3) \implies E_{21}$ 的第 1 行为 $\begin{bmatrix} 1 & 0 & 0 \end{bmatrix}$；
+- 新第 2 行 = $-3\cdot(\text{row } 1) + 1\cdot(\text{row } 2) + 0\cdot(\text{row } 3) \implies E_{21}$ 的第 2 行为 $\begin{bmatrix} -3 & 1 & 0 \end{bmatrix}$；
+- 新第 3 行 = $0\cdot(\text{row } 1) + 0\cdot(\text{row } 2) + 1\cdot(\text{row } 3) \implies E_{21}$ 的第 3 行为 $\begin{bmatrix} 0 & 0 & 1 \end{bmatrix}$！
+
+换句话说，**只需对单位矩阵 $I$ 施加完全相同的行操作，就能直接得到对应的初等矩阵**！同理，第二步“第 3 行减去 $2$ 倍第 2 行”对应的初等矩阵正是第 $(3,2)$ 位填 $-2$ 的 $E_{32}$：
+
+$$
+E_{21} = \begin{bmatrix}
+1 & 0 & 0 \\
+-3 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}, \qquad
+E_{32} = \begin{bmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & -2 & 1
+\end{bmatrix}
+$$
+
+<EliminationPipelineDiagram />
+
+<InteractiveCanvasSlot
+  id="l02-elimination-stepper"
+  title="初等消元矩阵 E_ij 与行/列操作对比沙盒"
+  description="二期交互预留：自由点击 3×3 矩阵下三角目标格自动生成初等矩阵 $E_{ij}$，并支持一键切换『左乘 $EA$（行组合）』与『右乘 $AE$（列组合）』，直观对比列空间与零空间在两种操作下的变与不变。"
+/>
+
+<DefinitionCard
+  label="Definition 2.1"
+  title="初等消元矩阵与置换矩阵"
+  termEn="Elementary Elimination Matrix & Permutation Matrix"
+>
+设 $I_n \in \mathbb{R}^{n\times n}$ 为 $n$ 阶单位矩阵，$\mathbf{e}_i \in \mathbb{R}^n$ 为第 $i$ 分量为 $1$、其余为 $0$ 的标准基列向量：
+
+1. **初等消元矩阵（Elementary Elimination Matrix）**：对满足 $i \neq j$ 的下标与实标量 $\ell_{ij} \in \mathbb{R}$，将 $I_n$ 的第 $(i, j)$ 个零元素替换为 $-\ell_{ij}$ 所得的方阵记为 $E_{ij}$：
+
+$$
+E_{ij} := I_n - \ell_{ij} \mathbf{e}_i \mathbf{e}_j^T \in \mathbb{R}^{n\times n}
+$$
+
+   对任意矩阵 $A \in \mathbb{R}^{n\times m}$ 左乘 $E_{ij}$，精确等价于将其第 $i$ 行替换为 $(\text{row } i) - \ell_{ij}(\text{row } j)$，其余 $n-1$ 行保持不变。
+
+2. **行交换初等置换矩阵（Row-Exchange Matrix）**：交换单位矩阵 $I_n$ 的第 $i$ 行与第 $j$ 行（$i \neq j$）所得的方阵记为 $P_{ij} \in \mathbb{R}^{n\times n}$。对 $A \in \mathbb{R}^{n\times m}$ 左乘 $P_{ij}$ 精确交换 $A$ 的第 $i$ 行与第 $j$ 行。
+</DefinitionCard>
+
+---
+
+## 三、结合律压缩、不可交换性与初等矩阵的“一眼求逆”
+
+在刚才的两步消元中，我们先算 $E_{21} A$，再在左侧套上 $E_{32}$，即 $E_{32}(E_{21} A) = U$。这里展现了矩阵运算最迷人的一对张力：**矩阵乘法不满足交换律（$AB \neq BA$），但无条件满足结合律（$A(BC) = (AB)C$）！**
+
+正因为结合律成立，我们可以随意移动括号，把两步独立的消元矩阵提前打包乘在一起，合成一个一步到位的总消元矩阵 $E$：
+
+$$
+E_{32} (E_{21} A) = (E_{32} E_{21}) A = U
+\quad \Longrightarrow \quad
+E = E_{32} E_{21} =
+\begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & -2 & 1 \end{bmatrix}
+\begin{bmatrix} 1 & 0 & 0 \\ -3 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}
+=
+\begin{bmatrix}
+1 & 0 & 0 \\
+-3 & 1 & 0 \\
+\mathbf{6} & -2 & 1
+\end{bmatrix}
+$$
+
+请瞪大眼睛看乘积 $E$ 左下角 $(3,1)$ 位置冒出来的 **$+6$**！如果把顺序颠倒成 $E_{21} E_{32}$ 来乘，左下角会变成 $0$（两步顺序颠倒后果完全不同，证明 $E_{32}E_{21} \neq E_{21}E_{32}$）。至于为什么这里会冒出一个讨厌的交叉项 $+6$，以及如何通过**求逆矩阵**让这个 $+6$ 奇迹般消失——这正是第 04 讲 $A = LU$ 分解的核心伏笔！
+
+在此之前，我们先看单步初等消元矩阵 $E_{21}$ 如何求逆：既然 $E_{21}$ 的物理动作是“从第 2 行**减去** $3$ 倍第 1 行”，而第 1 行本身根本没变，那么要想完美撤销这一步还原回原矩阵，只需“给第 2 行**加回** $3$ 倍第 1 行”！
+
+$$
+\underbrace{\begin{bmatrix}
+1 & 0 & 0 \\
+\mathbf{+3} & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}}_{E_{21}^{-1}}
+\underbrace{\begin{bmatrix}
+1 & 0 & 0 \\
+\mathbf{-3} & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}}_{E_{21}}
+=
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+= I_3
+$$
+
+下面我们将左乘/右乘对偶规律、方程同解不变性与初等矩阵逆公式浓缩为严密定理：
+
+<TheoremCard
+  label="Theorem 2.1"
+  title="初等矩阵左右作用对偶定理与单步求逆公式"
+  termEn="Row vs. Column Action & Inverse of Elementary Matrices"
+>
+设矩阵 $A \in \mathbb{R}^{m\times n}$，初等消元矩阵 $E_{ij} = I_m - \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T \in \mathbb{R}^{m\times m}$（$i \neq j$），初等行交换矩阵 $P_{pq} \in \mathbb{R}^{m\times m}$：
+
+1. **左乘控行 vs 右乘控列（核心对偶）**：
+   - 将 $m\times m$ 初等矩阵放在 $A$ 的**左侧**（$E_{ij}A$ 或 $P_{pq}A$），对 $A$ 执行**初等行变换**；
+   - 将 $n\times n$ 初等矩阵放在 $A$ 的**右侧**（$A \tilde{E}_{rs}$ 或 $A \tilde{P}_{rs}$），则对 $A$ 执行**初等列变换**（例如右乘 $\tilde{P}_{12}$ 交换 $A$ 的第 1 列与第 2 列）。
+2. **单步消元与对换矩阵的精确逆**：对任意 $i \neq j$ 及任意实数 $\ell_{ij} \in \mathbb{R}$，$E_{ij}$ 与 $P_{pq}$ 均恒可逆，且：
+
+$$
+E_{ij}^{-1} = \left(I_m - \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T\right)^{-1} = I_m + \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T, \qquad P_{pq}^{-1} = P_{pq}
+$$
+
+3. **线性方程组同解不变性**：若 $E \in \mathbb{R}^{m\times m}$ 为任意有限个初等消元与行交换矩阵的乘积，则 $E$ 可逆，且对任意 $\mathbf{b} \in \mathbb{R}^m$，原方程与消元后方程拥有**完全相同的解集**：
+
+$$
+A\mathbf{x} = \mathbf{b} \quad \Longleftrightarrow \quad (EA)\mathbf{x} = E\mathbf{b}
+$$
+</TheoremCard>
+
+<ProofCollapse title="展开严格代数证明（含外积正交消去技巧）">
+1. **证明 $E_{ij}^{-1} = I_m + \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T$**：利用矩阵乘法分配律与结合律直接展开乘积：
+
+$$
+(I_m + \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T)(I_m - \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T)
+= I_m + \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T - \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T - \ell_{ij}^2 \mathbf{e}_i (\underbrace{\mathbf{e}_j^T \mathbf{e}_i}_{= 0}) \mathbf{e}_j^T = I_m
+$$
+
+   注意关键假设 **$i \neq j$** 保证了内积 $\mathbf{e}_j^T \mathbf{e}_i = 0$，从而二次项精准归零！同理反序相乘亦等于 $I_m$。至于对换矩阵 $P_{pq}$，连续交换同一对行两次显然还原单位阵，故 $P_{pq}^2 = I_m \implies P_{pq}^{-1} = P_{pq}$。
+2. **证明同解等价性 $(\iff)$**：
+   - $(\implies)$ 若 $A\mathbf{x} = \mathbf{b}$，两边左乘 $E$ 立得 $E(A\mathbf{x}) = (EA)\mathbf{x} = E\mathbf{b}$；
+   - $(\impliedby)$ 由于每个初等因子均可逆，$E$ 的逆矩阵为各因子逆矩阵的反序乘积，在 $(EA)\mathbf{x} = E\mathbf{b}$ 两边左乘 $E^{-1}$ 即还原 $A\mathbf{x} = \mathbf{b}$。注意逻辑方向是严格的双向充要条件（$\iff$），绝不会增根或漏根！
+</ProofCollapse>
+
+<PitfallAlert title="常见直觉陷阱与网传笔记三大勘误">
+1. **误区一：“高斯消元（初等行变换）不改变矩阵的列空间 $\operatorname{Col}(A)$”（头号致命大坑！）**
+   许多初学者因为“消元不改变方程的解”，就想当然地认为 $\operatorname{Col}(A) = \operatorname{Col}(U)$。**大错特错！** 试看最简反例 $A = \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix} \xrightarrow{R_2 - R_1} U = \begin{bmatrix} 1 & 1 \\ 0 & 0 \end{bmatrix}$：原矩阵 $\operatorname{Col}(A)$ 是斜率为 $1$ 的对角直线 $\operatorname{span}\{(1,1)^T\}$，而消元后 $\operatorname{Col}(U)$ 变成了水平的 $x$ 轴 $\operatorname{span}\{(1,0)^T\}$！行变换保持的是解集（尤其是 $\mathbf{b}=\mathbf{0}$ 时的零空间 $\operatorname{Null}(A) = \operatorname{Null}(U)$）以及行空间，之所以解没变，是因为右侧向量 $\mathbf{b}$ 也被同步旋转/剪切成了 $E\mathbf{b}$！
+2. **误区二：把多步左乘顺序写反成 $E_{21} E_{32} A = U$**
+   矩阵左乘是从靠近 $A$ 的一侧**由右向左**依次生效的！先做第 1 步 $E_{21}$，再做第 2 步 $E_{32}$，连写出来必须是 $E_{32} E_{21} A$（离 $A$ 越近越先执行），写反顺序会算出完全错误的结果。
+3. **误区三：见到对角线出现 $0$ 就立刻宣判“矩阵奇异、无逆”**
+   比如置换矩阵 $P_{12} = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$ 主对角线上全是 $0$，但它明明完美可逆（$P_{12}^{-1} = P_{12}$）！只有当主元位为 $0$ **且其正下方整列也没有任何非零候选元素可供行交换**时，方阵才真正奇异。
+</PitfallAlert>
+
+<KeyTakeaways
+  items={[
+    "**左乘控行、右乘控列**：要对 $A$ 做行变换，把初等矩阵放在**左边**（$EA$）；要对 $A$ 做列变换，把初等矩阵放在**右边**（$AE$）。",
+    "构造初等矩阵无需死记硬背：**你想对 $A$ 做什么行（或列）操作，就先对单位矩阵 $I$ 做完全相同的操作**，得到的就是所需的初等矩阵。",
+    "单步初等消元矩阵 $E_{ij} = I - \\ell_{ij}\\mathbf{e}_i\\mathbf{e}_j^T$（$i \\neq j$）的逆矩阵只需把非对角线上的 $-\\ell_{ij}$ 变号为 $+\\ell_{ij}$；单次行交换矩阵满足自逆性 $P_{ij}^{-1} = P_{ij}$。",
+    "初等行变换严格保持解集（$A\\mathbf{x}=\\mathbf{b} \\iff EA\\mathbf{x}=E\\mathbf{b}$）与主元个数，但**会改变列空间 $\\operatorname{Col}(A)$**。"
+  ]}
+/>
+
+<ProblemSet>
+
+<ExerciseCard id="l02-ex1" tier="L1" title="左乘 vs 右乘对偶实验：同一初等矩阵放在左右的剧烈反差">
+设 $3\times 3$ 矩阵 $A$ 与初等矩阵 $E_{21}$ 分别为：
+
+$$
+A = \begin{bmatrix}
+1 & 2 & 3 \\
+4 & 5 & 6 \\
+7 & 8 & 9
+\end{bmatrix}, \qquad
+E_{21} = \begin{bmatrix}
+1 & 0 & 0 \\
+-4 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+$$
+
+1. **不做逐元素点积死算**，直接利用“左乘做行组合、右乘做列组合”的几何规律，一眼写出左乘结果 $E_{21} A$ 与右乘结果 $A E_{21}$；
+2. 对 $E_{21} A$ 再继续消去第 3 行非零元，看看第 3 个主元位置变成了什么？由此直接判定矩阵 $A$ 是否奇异！
+
+<ProgressiveHint
+  hints={[
+    "左乘 $E_{21} A$：对 $I_3$ 做了什么**行**操作得到 $E_{21}$？（第 2 行减 4 倍第 1 行！）直接对 $A$ 做这个行操作即可。",
+    "右乘 $A E_{21}$：换按**列**看 $E_{21}$！$E_{21}$ 的第 1 列是 $\\mathbf{e}_1 - 4\\mathbf{e}_2$，第 2、3 列就是 $\\mathbf{e}_2, \\mathbf{e}_3$！所以 $A E_{21}$ 的第 1 列变成『原第 1 列减去 4 倍原第 2 列』，后两列完全不变！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. **左乘看行**：$E_{21}$ 的第 2 行是 $[-4, 1, 0]$，所以 $E_{21}A$ 只把 $A$ 的第 2 行替换成 $(\text{row } 2) - 4(\text{row } 1) = [0, -3, -6]$，第 1、3 行纹丝不动！
+   **右乘看列**：$E_{21}$ 的第 1 列是 $(1, -4, 0)^T$，所以 $AE_{21}$ 只把 $A$ 的第 1 列替换成 $(\text{col } 1) - 4(\text{col } 2) = (-7, -16, -25)^T$，第 2、3 列纹丝不动！左右相差十万八千里！
+2. 观察 $A$ 的三行本身其实是等差数列：$R_1 + R_3 = 2R_2$。一旦消完第一列再消第二列，第 3 行必然整行坍缩成 $[0, 0, 0]$，第 3 个主元彻底消失，$A$ 为典型奇异矩阵！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. 由定理 2.1 第 1 条直接写出左右乘积：
+
+$$
+E_{21} A = \begin{bmatrix}
+1 & 2 & 3 \\
+0 & -3 & -6 \\
+7 & 8 & 9
+\end{bmatrix}, \qquad
+A E_{21} = \begin{bmatrix}
+1 - 4(2) & 2 & 3 \\
+4 - 4(5) & 5 & 6 \\
+7 - 4(8) & 8 & 9
+\end{bmatrix} = \begin{bmatrix}
+-7 & 2 & 3 \\
+-16 & 5 & 6 \\
+-25 & 8 & 9
+\end{bmatrix}
+$$
+
+2. 对 $E_{21} A$ 继续消元：先左乘 $E_{31}$（$R_3 \leftarrow R_3 - 7R_1$）得第 3 行为 $[0, -6, -12]$；再左乘 $E_{32}$（$R_3 \leftarrow R_3 - 2R_2$）得：
+
+$$
+U = \begin{bmatrix}
+1 & 2 & 3 \\
+0 & -3 & -6 \\
+0 & 0 & 0
+\end{bmatrix}
+$$
+
+$(3,3)$ 主元位为 $0$ 且下方已无行可换，仅产生 $2 \lt 3$ 个主元，故 $A$ 严格奇异（事实上 $A(1, -2, 1)^T = \mathbf{0}$）。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l02-ex2" tier="L2" title="概念辨析：高斯消元会保持列空间 Col(A) 不变吗？">
+判断下列命题真伪，并在脑海中构造最简 $2\times 2$ 反例：
+
+> **命题**：对任意矩阵 $A \in \mathbb{R}^{m\times n}$ 施加初等行变换化为上三角矩阵 $U = EA$（其中 $E$ 可逆），由于 $A\mathbf{x} = \mathbf{b}$ 与 $U\mathbf{x} = E\mathbf{b}$ 同解，所以 $A$ 与 $U$ 拥有完全相同的列空间，即 $\operatorname{Col}(A) = \operatorname{Col}(U)$。
+
+<TrueFalseInteractive
+  id="l02-tf1"
+  correct={false}
+  quickFeedback="命题为假（False）！上三角矩阵 $U$ 左下角出现了大量 $0$，其列向量的底部坐标往往恒为 $0$，而原矩阵 $A$ 的列向量底部未必为 $0$——初等行变换保持的是解集与行空间，但几乎总会改变列空间 $\operatorname{Col}(A)$！"
+/>
+
+<ProgressiveHint
+  hints={[
+    "想想 $2\\times 2$ 秩 1 矩阵 $A = \\begin{bmatrix} 1 & 2 \\\\ 3 & 6 \\end{bmatrix}$：它的列空间是斜率为 $3$ 的直线；消元一步后得到的 $U = \\begin{bmatrix} 1 & 2 \\\\ 0 & 0 \\end{bmatrix}$ 的列空间又是哪条直线？"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+想象 $\mathbb{R}^2$ 中两支共线于直线 $y = 3x$ 上的列向量 $(1, 3)^T$ 与 $(2, 6)^T$。消元操作 $R_2 \leftarrow R_2 - 3R_1$ 把所有向量的第二个分量强行压扁归零，变成了躺在水准轴 $y = 0$ 上的 $(1, 0)^T$ 与 $(2, 0)^T$！整条列空间直线被直接拍到了 $x$ 轴上，怎么可能还是原来的列空间？之所以方程同解，是因为目标向量 $\mathbf{b}$ 也被同步拍了同样的变换 $E\mathbf{b}$！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+构造极简 $2\times 2$ 反例：取
+
+$$
+A = \begin{bmatrix} 1 & 2 \\ 3 & 6 \end{bmatrix}, \quad
+E = \begin{bmatrix} 1 & 0 \\ -3 & 1 \end{bmatrix}
+\quad \Longrightarrow \quad
+U = EA = \begin{bmatrix} 1 & 2 \\ 0 & 0 \end{bmatrix}
+$$
+
+此时：
+- $\operatorname{Col}(A) = \operatorname{span}\{(1, 3)^T\} = \{(t, 3t)^T : t \in \mathbb{R}\}$；
+- $\operatorname{Col}(U) = \operatorname{span}\{(1, 0)^T\} = \{(t, 0)^T : t \in \mathbb{R}\}$。
+
+显然 $(1, 3)^T \in \operatorname{Col}(A)$ 但 $(1, 3)^T \notin \operatorname{Col}(U)$，故 $\operatorname{Col}(A) \neq \operatorname{Col}(U)$。（注：仅当 $\operatorname{Col}(A) = \mathbb{R}^m$ 充满全空间时，因可逆矩阵双射才有 $\operatorname{Col}(EA) = \mathbb{R}^m = \operatorname{Col}(A)$。）
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l02-ex3" tier="L2" title="概念辨析：左上角 a₁₁ = 0 的方阵一定无法做消元或不可逆吗？">
+判断下列命题真伪：
+
+> **命题**：若 $3\times 3$ 方阵 $A$ 的左上角第一个元素 $a_{11} = 0$，则由于第一个主元不能为 $0$，矩阵 $A$ 必定是奇异（不可逆）矩阵。
+
+<TrueFalseInteractive
+  id="l02-tf2"
+  correct={false}
+  quickFeedback="命题为假（False）！$a_{11} = 0$ 仅代表消元遇到了『暂时性失效』，只要第 1 列下方 $a_{21}$ 或 $a_{31}$ 非零，左乘一个行交换置换矩阵 $P_{12}$ 或 $P_{13}$ 即可顺利产生第一个非零主元！"
+/>
+
+<ProgressiveHint
+  hints={[
+    "最简单的 $2\\times 2$ 行交换矩阵 $P = \\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix}$ 左上角就是 $0$，方程 $P\\mathbf{x} = \\mathbf{b}$（即 $x_2 = b_1, x_1 = b_2$）是不是对任意 $\\mathbf{b}$ 都有唯一解？"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+方程组的排列先后顺序纯属人为书写习惯！把第一个方程和第二个方程上下调换一行，空间里的三个平面（或列向量的可解性）半点都没变。左上角撞上 $0$ 只是提醒你“换一行排头兵”，绝不是奇异判决书。
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+构造 $3\times 3$ 反例：取循环置换矩阵
+
+$$
+A = \begin{bmatrix}
+0 & 1 & 0 \\
+1 & 0 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+$$
+
+虽然 $a_{11} = 0$，但左乘行交换初等矩阵 $P_{12} = A$ 立即化为单位阵 $U = P_{12} A = I_3$，拥有完整的 $3$ 个非零主元 $1, 1, 1$，对任意 $\mathbf{b} = (b_1, b_2, b_3)^T \in \mathbb{R}^3$ 均有唯一解 $\mathbf{x} = (b_2, b_1, b_3)^T$，矩阵完全可逆。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l02-ex4" tier="L3" title="参数敏感度推理：主元何时归零？行交换何时能救场？">
+（改编自 MIT 18.06 经典随堂参数题）设含实参数 $a, b \in \mathbb{R}$ 的两个 $3\times 3$ 方阵分别为：
+
+$$
+M_1(a) = \begin{bmatrix}
+a & 2 & 3 \\
+a & a & 4 \\
+a & a & a
+\end{bmatrix}, \qquad
+M_2(b) = \begin{bmatrix}
+1 & b & 0 \\
+b & 1 & b \\
+0 & b & 1
+\end{bmatrix}
+$$
+
+1. 对 $M_1(a)$ 执行两步向下消元，直接用含 $a$ 的因式写出三个主元的表达式，并找出所有使 $M_1(a)$ **奇异（永久崩溃）**的实数 $a$；
+2. 对三对角对称矩阵 $M_2(b)$，找出所有使消元产生完整 $3$ 个非零主元（非奇异）的 $b$ 的条件，并指出是否存在某个 $b$ 会触发“第 2 个主元位为 $0$，但**可以通过与第 3 行交换挽救回来**”的暂时性失效！
+
+<ProgressiveHint
+  hints={[
+    "对 $M_1(a)$：直接用 $R_2 - R_1$ 和 $R_3 - R_2$（或者按标准顺序 $R_2 - R_1, R_3 - R_1$ 再 $R_3 - R_2$），瞬间化出极简上三角矩阵，三个对角元一目了然！",
+    "对 $M_2(b)$：第 1 步 $R_2 \\leftarrow R_2 - b R_1$ 后，$(2,2)$ 主元位变成了 $1 - b^2$！如果 $1 - b^2 = 0$（即 $b = \\pm 1$），看看第 3 行 $(3,2)$ 位置躺着什么数，能不能换上来救场！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. 在 $M_1(a)$ 中，三行首元全是 $a$！第 2 行减第 1 行消出第二个主元 $a - 2$；原第 3 行减原第 2 行直接消出第三个主元 $a - 4$！三个主元依次是 $a,\; a-2,\; a-4$，只要 $a \in \{0, 2, 4\}$，那一列下方也全是 $0$ 无行可换，当场永久崩溃！
+2. 在 $M_2(b)$ 中更有戏剧性：第 1 步消元后 $(2,2)$ 位变成 $1 - b^2$。当 $b = \pm 1$ 时第 2 个主元位虽然变成了 $0$，但第 3 行是 $[0,\; \pm 1,\; 1]$，$(3,2)$ 位非零！立刻把第 2、3 行一交换，居然起死回生拿齐了三个非零主元！真正让 $M_2(b)$ 彻底死掉的反而是 $1 - 2b^2 = 0$，即 $b = \pm \frac{1}{\sqrt{2}}$！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **分析 $M_1(a)$**：假设 $a \neq 0$，执行 $R_2 \leftarrow R_2 - R_1$ 与 $R_3 \leftarrow R_3 - R_1$，再执行 $R_3 \leftarrow R_3 - R_2$：
+
+$$
+\begin{bmatrix}
+a & 2 & 3 \\
+a & a & 4 \\
+a & a & a
+\end{bmatrix}
+\longrightarrow
+\begin{bmatrix}
+a & 2 & 3 \\
+0 & a - 2 & 1 \\
+0 & a - 2 & a - 3
+\end{bmatrix}
+\longrightarrow
+\begin{bmatrix}
+a & 2 & 3 \\
+0 & a - 2 & 1 \\
+0 & 0 & a - 4
+\end{bmatrix}
+$$
+
+   - 若 $a \notin \{0, 2, 4\}$，三个主元依次为 $a,\; a-2,\; a-4$（均非零）；
+   - 若 $a = 0$（第 1 列全零）、$a = 2$（前两行在消元后前两列全同导致线性相关）或 $a = 4$（后两行消元后同比例），均发生永久性崩溃。故 $M_1(a)$ 奇异 $\iff a \in \{0, 2, 4\}$。
+
+2. **分析 $M_2(b)$**：第 1 主元为 $1$，执行 $R_2 \leftarrow R_2 - bR_1$：
+
+$$
+\begin{bmatrix}
+1 & b & 0 \\
+0 & 1 - b^2 & b \\
+0 & b & 1
+\end{bmatrix}
+$$
+
+   - **情形 A（$b = \pm 1$，暂时性失效可挽救！）**：此时 $1 - b^2 = 0$，中间矩阵为 $\begin{bmatrix} 1 & \pm 1 & 0 \\ 0 & 0 & \pm 1 \\ 0 & \pm 1 & 1 \end{bmatrix}$。交换第 2、3 行即得上三角阵 $\begin{bmatrix} 1 & \pm 1 & 0 \\ 0 & \pm 1 & 1 \\ 0 & 0 & \pm 1 \end{bmatrix}$，三个主元为 $1, \pm 1, \pm 1$，矩阵**非奇异**！
+   - **情形 B（$b \neq \pm 1$，无需行交换继续消元）**：乘数 $\ell_{32} = \frac{b}{1-b^2}$，执行 $R_3 \leftarrow R_3 - \frac{b}{1-b^2} R_2$，右下角第 3 个主元位变为：
+
+$$
+d_3 = 1 - \frac{b^2}{1 - b^2} = \frac{1 - 2b^2}{1 - b^2}
+$$
+
+   当且仅当 $1 - 2b^2 = 0 \iff b = \pm \frac{\sqrt{2}}{2}$ 时 $d_3 = 0$ 发生永久崩溃；对一切 $b \neq \pm \frac{\sqrt{2}}{2}$，$M_2(b)$ 均非奇异！
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l02-ex5" tier="L4" title="MIT 18.06 综合挑战：双向剪刀矩阵的一次性构造与反序求逆">
+考虑寻找一个 $3\times 3$ 矩阵 $E$，使得对**任意**矩阵 $A \in \mathbb{R}^{3\times n}$ 左乘 $E$ 时，按严格先后顺序依次执行以下三步操作：
+1. 先将第 1 行与第 2 行互换；
+2. 再从（新的）第 3 行减去 $5$ 倍（新的）第 1 行；
+3. 最后从第 2 行加上 $2$ 倍（新的）第 3 行。
+
+请完成以下两问：
+1. 分别写出每一步对应的初等矩阵 $M_1, M_2, M_3$，注意左右次序组装出总矩阵 $E$；并验证它是否严格等于“直接对单位阵 $I_3$ 依次做这三步操作”所得的矩阵；
+2. **不动用增广矩阵消元**，仅利用单步初等矩阵逆公式与逆矩阵“穿鞋袜反序律”，分步写出 $E^{-1}$ 的乘积形式并算出 $E^{-1}$ 的显式数值矩阵！
+
+<ProgressiveHint
+  hints={[
+    "第 1 步先作用于 $A$，所以 $M_1$ 必须紧贴在 $A$ 左边：$E A = M_3 M_2 M_1 A$！其中 $M_1 = P_{12}$，$M_2$ 在 $(3,1)$ 位为 $-5$，$M_3$ 在 $(2,3)$ 位为 $+2$。",
+    "注意到 $E = E I_3 = M_3(M_2(M_1 I_3))$，这从代数上一步证明了『直接对 $I_3$ 顺序做这三步操作』必然得到同一个 $E$！",
+    "求逆时千万反序：$E^{-1} = (M_3 M_2 M_1)^{-1} = M_1^{-1} M_2^{-1} M_3^{-1}$！这意味着可以把 $I_3$ 按逆向操作撤销回去（先第 2 行减 2 倍第 3 行，再第 3 行加 5 倍第 1 行，最后互换第 1、2 行）！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+这道题把第 02 讲与第 03 讲的精髓熔于一炉！
+- 正向构造 $E$ 时根本不用真的乘三次矩阵：由结合律 $E = (M_3 M_2 M_1) I_3 = M_3(M_2(M_1 I_3))$，拿着单位阵 $I_3$ 顺手做三步心算（换 1,2 行 $\to$ 3 行减 5 倍 1 行 $\to$ 2 行加 2 倍 3 行），十秒钟直接写出 $E$！
+- 反向求 $E^{-1}$ 同样十秒钟：所谓逆操作，就是把录像带**倒着播放**！对单位阵 $I_3$ 先撤销第 3 步（2 行减 2 倍 3 行），再撤销第 2 步（3 行加 5 倍 1 行），最后撤销第 1 步（换回 1,2 行），连矩阵乘法都省了！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **构造单步初等矩阵与总算子 $E$**：
+
+$$
+M_1 = P_{12} = \begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}, \quad
+M_2 = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ -5 & 0 & 1 \end{bmatrix}, \quad
+M_3 = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 2 \\ 0 & 0 & 1 \end{bmatrix}
+$$
+
+按作用先后从右向左连乘得 $E = M_3 M_2 M_1$。利用 $E = M_3(M_2(M_1 I_3))$ 逐步作用于 $I_3$：
+
+$$
+I_3 \xrightarrow{M_1}
+\begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}
+\xrightarrow{M_2}
+\begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & -5 & 1 \end{bmatrix}
+\xrightarrow{M_3}
+E = \begin{bmatrix}
+0 & 1 & 0 \\
+1 & -10 & 2 \\
+0 & -5 & 1
+\end{bmatrix}
+$$
+
+2. **反序求逆 $E^{-1} = M_1^{-1} M_2^{-1} M_3^{-1}$**：
+由定理 2.1 第 2 条，$M_1^{-1} = P_{12}$，$M_2^{-1}$ 将 $-5$ 变号为 $+5$，$M_3^{-1}$ 将 $+2$ 变号为 $-2$：
+
+$$
+E^{-1} =
+\underbrace{\begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}}_{M_1^{-1}}
+\underbrace{\begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 5 & 0 & 1 \end{bmatrix}}_{M_2^{-1}}
+\underbrace{\begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & -2 \\ 0 & 0 & 1 \end{bmatrix}}_{M_3^{-1}}
+=
+\begin{bmatrix}
+0 & 1 & -2 \\
+1 & 0 & 0 \\
+5 & 0 & 1
+\end{bmatrix}
+$$
+
+分步作用于单位阵 $I_3$ 亦可一步印证：
+
+$$
+I_3 \xrightarrow{M_3^{-1}}
+\begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & -2 \\ 0 & 0 & 1 \end{bmatrix}
+\xrightarrow{M_2^{-1}}
+\begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & -2 \\ 5 & 0 & 1 \end{bmatrix}
+\xrightarrow{M_1^{-1}}
+E^{-1} = \begin{bmatrix}
+0 & 1 & -2 \\
+1 & 0 & 0 \\
+5 & 0 & 1
+\end{bmatrix}
+$$
+
+直接检验 $E E^{-1}$：
+
+$$
+\begin{bmatrix}
+0 & 1 & 0 \\
+1 & -10 & 2 \\
+0 & -5 & 1
+\end{bmatrix}
+\begin{bmatrix}
+0 & 1 & -2 \\
+1 & 0 & 0 \\
+5 & 0 & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 - 10 + 10 & 1 & -2 + 0 + 2 \\
+-5 + 5 & 0 & 1
+\end{bmatrix}
+= I_3
+$$
+
+完全吻合！
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>

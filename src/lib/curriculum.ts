@@ -102,7 +102,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Elimination with Matrices',
     focusZh: '高斯消元的主元（Pivot）机制、左乘初等消元矩阵 E_ij 的行组合本质与行交换置换。',
     focusEn: 'Gaussian elimination pivots, left-multiplication by elementary matrices E_ij as row operations, and row exchanges.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -140,7 +140,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Factorization into A = LU',
     focusZh: '为什么下三角逆矩阵 L 无乘数交叉污染（无填充），以及消元 O(n³/3) 与回代 O(n²) 的复杂度分野。',
     focusEn: 'Why multipliers sit cleanly inside L = E⁻¹ without cross-contamination, PA = LU, and O(n³/3) elimination cost.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -154,7 +154,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Transposes, Permutations, Spaces ℝⁿ',
     focusZh: '置换矩阵群 Pᵀ = P⁻¹、对称构造 AᵀA，以及向量空间与子空间对线性组合封闭的严格公理意义。',
     focusEn: 'Permutation group Pᵀ = P⁻¹, symmetric products AᵀA, and closure of vector subspaces under linear combinations.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {

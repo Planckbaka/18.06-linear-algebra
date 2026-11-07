@@ -13,16 +13,24 @@ export function renderLatexToHtml(latex: string, displayMode = false): string {
  * into safe HTML containing KaTeX spans.
  */
 export function renderInlineMathText(text: string): string {
-  const escaped = text
+  const mathHtmlList: string[] = [];
+  const withPlaceholders = text.replace(/\$([^$\n]+)\$/g, (_, mathExpr: string) => {
+    const idx = mathHtmlList.length;
+    mathHtmlList.push(renderLatexToHtml(mathExpr, false));
+    return `\u0000MATH_${idx}\u0000`;
+  });
+
+  const formatted = withPlaceholders
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/>/g, '&gt;')
+    .replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>')
+    .replace(
+      /`([^`\n]+)`/g,
+      '<code class="rounded bg-muted px-1 py-0.5 font-mono text-[0.9em]">$1</code>'
+    );
 
-  return escaped.replace(/\$([^$\n]+)\$/g, (_, mathExpr: string) => {
-    const rawLatex = mathExpr
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>');
-    return renderLatexToHtml(rawLatex, false);
+  return formatted.replace(/\u0000MATH_(\d+)\u0000/g, (_, idxStr: string) => {
+    return mathHtmlList[Number(idxStr)] ?? '';
   });
 }

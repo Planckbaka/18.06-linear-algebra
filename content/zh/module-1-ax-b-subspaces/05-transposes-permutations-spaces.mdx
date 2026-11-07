@@ -1,0 +1,442 @@
+---
+title: "第 05 讲：转置、置换与向量空间 ℝⁿ"
+ocwId: "L05"
+videoEpisode: "P05"
+textbookRef: "§2.7, §3.1"
+---
+
+MIT 18.06 第 05 讲是一座承前启后的分水岭桥梁：前半节课收官第二章矩阵代数（第 04 讲 $PA = LU$ 留下的**置换矩阵 $P$** 与贯穿全书的**转置算子 $A^T$**、**对称矩阵 $A^TA$**）；后半节课则正式推开第三章的宏伟大门——**从具体的消元计算跃升至抽象而充满几何美感的向量空间（Vector Spaces）与子空间（Subspaces）**。
+
+---
+
+## 一、置换矩阵（Permutation Matrices）：重排行序的正交群
+
+在第 04 讲中，为了应对主元位撞上 $0$ 的情况，我们把完整的消元分解升级为了 $PA = LU$。那么，左乘在 $A$ 前面的**置换矩阵（Permutation Matrix）** $P$ 究竟长什么样？一共有多少个？它的逆矩阵又有什么特殊规律？
+
+以 $3\times 3$ 方阵为例，把单位矩阵 $I_3$ 的三行做**任意全排列重排**，一共可以得到 $3! = 3 \times 2 \times 1 = 6$ 个不同的 $3\times 3$ 置换矩阵：
+
+$$
+\underbrace{\begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}}_{I_3},\;
+\underbrace{\begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}}_{P_{12}},\;
+\underbrace{\begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ 1 & 0 & 0 \end{bmatrix}}_{P_{13}},\;
+\underbrace{\begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & 1 & 0 \end{bmatrix}}_{P_{23}},\;
+\underbrace{\begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ 1 & 0 & 0 \end{bmatrix}}_{P_{\text{cycle 1}}},\;
+\underbrace{\begin{bmatrix} 0 & 0 & 1 \\ 1 & 0 & 0 \\ 0 & 1 & 0 \end{bmatrix}}_{P_{\text{cycle 2}}}
+$$
+
+仔细观察最后两个需要两次行交换才能拼出来的**循环置换矩阵**：在 $P_{\text{cycle 1}}$ 中，第 1 行放的是原第 2 行，第 2 行放的是原第 3 行，第 3 行放的是原第 1 行。请注意一个极其重要的细节：
+- 单次对换矩阵 $P_{12}$ 满足自逆性 $P_{12}^{-1} = P_{12}$；
+- 但循环置换 $P_{\text{cycle 1}}$ 的平方并**不等于** $I_3$！它的逆矩阵恰好是把循环方向倒过来的 $P_{\text{cycle 2}}$——而对比两者的矩阵元素你会惊讶地发现：**$P_{\text{cycle 2}}$ 分毫不差就是把 $P_{\text{cycle 1}}$ 行列翻折过来的转置矩阵 $P_{\text{cycle 1}}^T$！**
+
+推广到 $n$ 阶方阵：将 $I_n$ 的 $n$ 行重排共有 **$n!$ 个置换矩阵**（例如 $n=4$ 有 $24$ 个，$n=5$ 有 $120$ 个）。这 $n!$ 个矩阵在乘法下构成一个封闭的代数群（两个重排连着做依然是一个重排），且每一个置换矩阵都满足一个美妙到极致的恒等式：
+
+$$
+P^T P = I_n \quad \Longleftrightarrow \quad P^{-1} = P^T
+$$
+
+为什么？用内积视角一秒看穿：$P$ 的每一行与每一列都**恰好只有一个 $1$、其余全是 $0$**，且不同列里的 $1$ 处于不同行！因此 $P^T$ 的第 $i$ 行（即 $P$ 的第 $i$ 列）只有与 $P$ 自己的第 $i$ 列做点积时才会让两个 $1$ 撞在一起得 $1$，与其他任何列做点积全得 $0$！（这也是模块二第 17 讲“正交矩阵 $Q^TQ = I$”最早登场的离散原型！）
+
+---
+
+## 二、转置（Transpose）与对称之王 $A^T A$
+
+把任意长方矩阵 $A \in \mathbb{R}^{m\times n}$ 的行与列互换（第 $i$ 行变成第 $i$ 列），就得到维度翻转的**转置矩阵（Transpose Matrix）** $A^T \in \mathbb{R}^{n\times m}$，逐元素记作 $(A^T)_{ij} = A_{ji}$：
+
+$$
+A = \begin{bmatrix} 1 & 3 \\ 2 & 3 \\ 4 & 1 \end{bmatrix} \in \mathbb{R}^{3\times 2}
+\quad \Longrightarrow \quad
+A^T = \begin{bmatrix} 1 & 2 & 4 \\ 3 & 3 & 1 \end{bmatrix} \in \mathbb{R}^{2\times 3}
+$$
+
+如果一个**方阵**沿主对角线翻折后与自身完全重合，即满足 $S^T = S$，则称之为**对称矩阵（Symmetric Matrix）**。
+
+在应用数学、统计学（协方差矩阵）、最小二乘回归与图论中，对称矩阵是最核心的主角。**哪怕手头给你的原始数据矩阵 $R \in \mathbb{R}^{m\times n}$ 是任意高矮胖瘦、毫无对称性可言的长方矩阵，如何瞬间制造出一个漂亮的对称方阵？**
+
+Strang 教授给出的答案简单而深刻：**直接拿它的转置乘以它自己——计算 $R^T R$（或 $R R^T$）！**
+
+试算上例 $A^T A$：
+
+$$
+A^T A =
+\begin{bmatrix} 1 & 2 & 4 \\ 3 & 3 & 1 \end{bmatrix}
+\begin{bmatrix} 1 & 3 \\ 2 & 3 \\ 4 & 1 \end{bmatrix}
+=
+\begin{bmatrix}
+21 & \mathbf{13} \\
+\mathbf{13} & 19
+\end{bmatrix}
+$$
+
+非对角线上的两个元素都是“$A$ 的第 1 列与第 2 列的点积”，由于实向量点积满足交换律 $\mathbf{a}_1^T \mathbf{a}_2 = \mathbf{a}_2^T \mathbf{a}_1 = 13$，乘积天生对称！而用代数法则只需半行就能证明它对一切实矩阵普遍成立：利用乘积转置的**反序律** $(AB)^T = B^T A^T$，对 $R^T R$ 整体取转置：
+
+$$
+(R^T R)^T = R^T (R^T)^T = R^T R
+$$
+
+<DefinitionCard
+  label="Definition 5.1"
+  title="转置矩阵、对称矩阵与置换矩阵"
+  termEn="Transpose, Symmetric Matrix, and Permutation Matrix"
+>
+1. **转置矩阵（Transpose）**：设 $A \in \mathbb{R}^{m\times n}$，其转置 $A^T \in \mathbb{R}^{n\times m}$ 定义为对一切 $1 \le i \le n,\; 1 \le j \le m$ 满足 $(A^T)_{ij} := A_{ji}$。
+2. **实对称矩阵（Real Symmetric Matrix）**：设**方阵** $S \in \mathbb{R}^{n\times n}$。若 $S^T = S$（即 $S_{ij} = S_{ji}$），则称 $S$ 为实对称矩阵。
+3. **置换矩阵（Permutation Matrix）**：将单位矩阵 $I_n$ 的各行按任意全排列重排所得的 $n\times n$ 矩阵称为置换矩阵（$n$ 阶共 $n!$ 个），其每行每列恰有一个元素为 $1$，其余元素全为 $0$。
+</DefinitionCard>
+
+<TheoremCard
+  label="Theorem 5.1"
+  title="转置运算法则、置换正交逆与对称矩阵的 LDLᵀ 分解"
+  termEn="Transpose Laws, Permutation Inverse P⁻¹ = Pᵀ, and Symmetric LDLᵀ"
+>
+1. **乘积转置反序律与求逆交换律**：对任意维度相容的实矩阵 $A \in \mathbb{R}^{m\times n},\; B \in \mathbb{R}^{n\times p}$ 及可逆方阵 $M \in \mathbb{R}^{n\times n}$：
+
+$$
+(A + C)^T = A^T + C^T, \qquad (AB)^T = B^T A^T, \qquad (M^{-1})^T = (M^T)^{-1}
+$$
+
+2. **置换群性质**：任意两个 $n$ 阶置换矩阵 $P_1, P_2$ 的乘积 $P_1 P_2$ 仍是置换矩阵；且对每个置换矩阵 $P \in \mathbb{R}^{n\times n}$，恒有 **$P^T P = P P^T = I_n$**，即 $P^{-1} = P^T$。
+3. **普适对称构造**：对**任意长方实矩阵** $R \in \mathbb{R}^{m\times n}$，$R^T R \in \mathbb{R}^{n\times n}$ 与 $R R^T \in \mathbb{R}^{m\times m}$ 必为实对称方阵。
+4. **对称矩阵的 $LDL^T$ 分解**：若**可逆实对称矩阵** $A = A^T \in \mathbb{R}^{n\times n}$ 存在无需行交换的 $A = L D \tilde{U}$ 分解，则必有 $\tilde{U} = L^T$，从而分解自动简化为对称形式（消元工作量减半为 $\approx \frac{1}{6}n^3$）：
+
+$$
+A = L D L^T
+$$
+</TheoremCard>
+
+<ProofCollapse title="展开严格代数证明：(AB)ᵀ = BᵀAᵀ 与对称唯一性导出 Ũ = Lᵀ">
+1. **证明 $(AB)^T = B^T A^T$**：先考虑右矩阵仅为一列 $\mathbf{x} \in \mathbb{R}^n$ 的核心情形：$A\mathbf{x} = \sum_{k=1}^n x_k \mathbf{a}_k$ 是 $A$ 各列的线性组合；两边转置后，$(A\mathbf{x})^T = \sum_{k=1}^n x_k \mathbf{a}_k^T = \mathbf{x}^T A^T$ 正是以 $\mathbf{x}^T$ 左乘对 $A^T$ 各行做完全相同的线性组合！再对 $B = \begin{bmatrix} \mathbf{b}_1 & \cdots & \mathbf{b}_p \end{bmatrix}$ 按列拼装：
+
+$$
+(AB)^T = \begin{bmatrix} A\mathbf{b}_1 & \cdots & A\mathbf{b}_p \end{bmatrix}^T
+= \begin{bmatrix} (A\mathbf{b}_1)^T \\ \vdots \\ (A\mathbf{b}_p)^T \end{bmatrix}
+= \begin{bmatrix} \mathbf{b}_1^T A^T \\ \vdots \\ \mathbf{b}_p^T A^T \end{bmatrix}
+= B^T A^T
+$$
+
+2. **证明对称矩阵必有 $\tilde{U} = L^T$**：已知可逆阵 $A = A^T$ 且 $A = L D \tilde{U}$（其中 $L$ 为单位下三角、$D$ 为非零对角阵、$\tilde{U}$ 为单位上三角）。利用转置反序律连用两次 $(XYZ)^T = Z^T Y^T X^T$：
+
+$$
+A = A^T = (L D \tilde{U})^T = \tilde{U}^T D^T L^T = (\tilde{U}^T) D (L^T)
+$$
+
+   注意 $\tilde{U}^T$ 恰为单位下三角矩阵，而 $L^T$ 恰为单位上三角矩阵，且 $D^T = D$！根据第 04 讲**定理 4.1 第 2 条（可逆矩阵 $LDU$ 分解的唯一性）**，对比 $L D \tilde{U} = (\tilde{U}^T) D (L^T)$ 立即唯一锁定 $\tilde{U} = L^T$，证毕！（这也完美解释了第 04 讲习题 `l04-ex1` 中你亲手算出的奇观！）
+</ProofCollapse>
+
+---
+
+## 三、推开第三章大门：向量空间 $\mathbb{R}^n$ 与子空间（Subspaces）
+
+从现在起，我们的视线不再局限于孤立的一两个向量，而是投向**整片对线性运算自给自足的向量集合**。
+
+什么是实**向量空间（Vector Space）** $\mathbb{R}^n$？直观上，$\mathbb{R}^2$ 是全体含 $2$ 个实分量的列向量组成的二维平面，$\mathbb{R}^3$ 是含 $3$ 个实分量的三维物理空间，$\mathbb{R}^n$ 则是全体 $n\times 1$ 实列向量的家园。之所以称它们为“向量空间”，是因为在里面你可以放心大胆地做两件事——**向量加法（$\mathbf{v} + \mathbf{w}$）**与**实标量数乘（$c\mathbf{v}$）**，合起来即**任意线性组合 $c\mathbf{v} + d\mathbf{w}$**，且满足八条基本运算律（交换律、结合律、零向量存在性、负向量、分配律等），运算结果永远不会飞出这个空间。
+
+但线性代数真正关心的核心概念是**子空间（Subspace）**——躺在大空间 $\mathbb{R}^n$ 内部、自己本身也构成一个完整小向量空间的几何切片！
+
+### 3.1 铁律第一条：为什么任何子空间都必须穿过原点 $\mathbf{0}$？
+
+很多初学者喜欢把 $\mathbb{R}^2$ 里的任意一条直线都叫子空间。**请立刻刹住这个念头！**
+
+假设集合 $S \subseteq \mathbb{R}^2$ 是一条**不经过原点** $(0, 0)^T$ 的平移直线（例如方程 $x + 2y = 3$ 上的所有点）。随便在上面取一个向量 $\mathbf{v} \in S$：
+- 如果 $S$ 想当一个合格的子空间，它必须允许你给 $\mathbf{v}$ 乘上**任何实数标量 $c \in \mathbb{R}$** 后依然留在 $S$ 里面；
+- 现在我偏偏选标量 **$c = 0$**！计算 $0 \cdot \mathbf{v} = \mathbf{0} = (0, 0)^T$，结果直接掉到了直线外面的原点上，$0\mathbf{v} \notin S$，当场破产！
+
+再看另一个著名“伪装者”——二维平面的**第一象限** $Q_1 = \{(x, y)^T \in \mathbb{R}^2 : x \ge 0,\; y \ge 0\}$：
+- 它包含原点 $(0,0)^T$ 吗？包含！
+- 任取第一象限里两个向量相加 $\mathbf{v} + \mathbf{w}$，还在第一象限吗？还在！（对加法封闭！）
+- **那它是子空间吗？绝对不是！** 因为取 $\mathbf{v} = (2, 1)^T \in Q_1$ 并乘上负实数 $c = -1$，$(-1)\mathbf{v} = (-2, -1)^T$ 直接飞进了第三象限！（对负标量数乘不封闭！）
+
+<SubspacesOfR2AndImpostorsDiagram />
+
+<InteractiveCanvasSlot
+  id="l05-subspace-closure-tester"
+  title="ℝ² / ℝ³ 子空间线性组合封闭性检验器"
+  description="二期交互预留：在平面或三维空间中切换候选集合（过原点直线、平移直线、第一象限、两直线并集、过原点平面），随意调节线性组合滑块 $c\mathbf{v} + d\mathbf{w}$，实时高亮组合向量是否冲破集合边界。"
+/>
+
+<DefinitionCard
+  label="Definition 5.2"
+  title="ℝⁿ 的子空间与线性组合封闭判据"
+  termEn="Subspace of ℝⁿ & Closure under Linear Combinations"
+>
+设非空子集 $V \subseteq \mathbb{R}^n$（即 $V \neq \varnothing$）。称 $V$ 为 $\mathbb{R}^n$ 的一个**子空间（Subspace）**，当且仅当 $V$ 对**一切实线性组合封闭**——即对任意向量 $\mathbf{v}, \mathbf{w} \in V$ 以及任意实标量 $c, d \in \mathbb{R}$，恒有：
+
+$$
+c\mathbf{v} + d\mathbf{w} \in V
+$$
+
+（等价拆写为两条：① 加法封闭：$\mathbf{v}, \mathbf{w} \in V \implies \mathbf{v} + \mathbf{w} \in V$；② 数乘封闭：$\mathbf{v} \in V, c \in \mathbb{R} \implies c\mathbf{v} \in V$。由 $V$ 非空取 $c = d = 0$ 必然推出 **零向量 $\mathbf{0} \in V$**。）
+</DefinitionCard>
+
+### 3.2 穷举分类：$\mathbb{R}^2$ 与 $\mathbb{R}^3$ 中究竟有哪些子空间？
+
+用定义 5.2 的封闭放大镜一照，二维与三维空间里合法的子空间种类少得清清楚楚、毫无灰色地带：
+
+- **$\mathbb{R}^2$ 的全部子空间（共 3 类，维数 0, 1, 2）**：
+  1. **零子空间 $\{\mathbf{0}\}$**（仅含原点 $(0,0)^T$ 单点，因为 $\mathbf{0} + \mathbf{0} = \mathbf{0}$，$c\mathbf{0} = \mathbf{0}$ 完全封闭！注意是单元素集合 $\{\mathbf{0}\}$ 而非空集 $\varnothing$！）；
+  2. **任何一条穿过原点 $\mathbf{0}$ 的无限长直线 $L$**；
+  3. **整个二维平面 $\mathbb{R}^2$ 自身**。
+
+- **$\mathbb{R}^3$ 的全部子空间（共 4 类，维数 0, 1, 2, 3）**：
+  1. **零子空间 $\{\mathbf{0}\}$**（$0$ 维）；
+  2. **任何一条穿过原点的无限长直线 $L$**（$1$ 维）；
+  3. **任何一张穿过原点的无限大平面 $P$**（$2$ 维）；
+  4. **整个三维空间 $\mathbb{R}^3$ 自身**（$3$ 维）。
+
+最后，回到我们的老朋友矩阵 $A \in \mathbb{R}^{m\times n}$：从矩阵出发，如何一秒钟构造出 $\mathbb{R}^m$ 的一个真子空间？答案正是第 01 讲埋下的**列空间 $\operatorname{Col}(A)$**——对 $A$ 的各列取**所有可能的线性组合**！既然 $\operatorname{Col}(A)$ 本身就是由全体线性组合构成的，把里面任意两个组合 $A\mathbf{x}_1$ 和 $A\mathbf{x}_2$ 再做一次线性组合 $c(A\mathbf{x}_1) + d(A\mathbf{x}_2) = A(c\mathbf{x}_1 + d\mathbf{x}_2)$，自然还是 $A$ 各列的线性组合！下一讲（第 06 讲），我们将让列空间与它的孪生兄弟**零空间 $\operatorname{Null}(A)$** 正式同台亮相。
+
+<PitfallAlert title="常见直觉陷阱与网传笔记四大勘误">
+1. **误区一：“空集 $\varnothing$ 是最小的零维子空间”（概念混淆！）**
+   **错！** 任何向量空间和子空间的第一公理都是**必须包含加法单位元（零向量 $\mathbf{0}$）**，因此任何子空间都至少有 $1$ 个元素，最小的子空间是包含零向量的单点集 **$\{\mathbf{0}\}$**（维数为 $0$），而空集 $\varnothing$ 连零向量都没有，**不是**子空间！
+2. **误区二：“检验 $\mathbf{0} \in S$ 成立就说明 $S$ 是子空间”（把必要条件当充要条件！）**
+   $\mathbf{0} \in S$ 只是子空间的**必要条件**（用来一票否决不过原点的平移集：$\mathbf{0} \notin S \implies$ 必非子空间），绝非充分条件！例如抛物线 $\{(x, y)^T : y = x^2\}$、第一象限、或者两坐标轴的并集都穿过原点 $\mathbf{0}$，但它们全都在加法或数乘下破界，统统不是子空间！
+3. **误区三：“两个对称矩阵 $A, B$ 的乘积 $AB$ 也是对称矩阵”**
+   用转置反序律一算便知真伪：$(AB)^T = B^T A^T = BA$！因此 **$AB$ 对称，当且仅当 $A$ 与 $B$ 可交换（$AB = BA$）**！随便拿两个不可交换的 $2\times 2$ 对称阵一乘就会得到非对称矩阵。
+4. **误区四：把长方矩阵的 $R^T R$ 与 $R R^T$ 当成同阶矩阵**
+   若 $R \in \mathbb{R}^{3\times 2}$，则 $R^T R$ 是 $2\times 2$ 对称阵，而 $R R^T$ 是 $3\times 3$ 对称阵（不仅阶数不同，后者还是秩至多为 $2$ 的奇异对称阵！）。
+</PitfallAlert>
+
+<KeyTakeaways
+  items={[
+    "$n$ 阶置换矩阵共有 $n!$ 个，在乘法下封闭成群，且每个置换矩阵都满足正交求逆律 **$P^{-1} = P^T$**（即 $P^T P = I_n$）。",
+    "乘积转置必须反序 **$(AB)^T = B^T A^T$**；对任意 $m\\times n$ 实矩阵 $R$，内积矩阵 $R^T R$ 与外积矩阵 $R R^T$ 永远是实对称方阵。",
+    "可逆实对称矩阵 $A = A^T$ 若无需行交换，其 $LDU$ 分解必然对称收缩为 **$A = L D L^T$**。",
+    "验证非空集合 $V \\subseteq \\mathbb{R}^n$ 是否为子空间的唯一充要标准是**对任意实线性组合封闭**（$\\forall \\mathbf{v}, \\mathbf{w} \\in V, \\forall c, d \\in \\mathbb{R} \\implies c\\mathbf{v} + d\\mathbf{w} \\in V$）；不过原点 $\\mathbf{0}$ 的集合一票否决。"
+  ]}
+/>
+
+<ProblemSet>
+
+<ExerciseCard id="l05-ex1" tier="L1" title="置换循环幂与对称内积/外积对比：P³ = I 与 RᵀR vs RRᵀ">
+1. 考虑 $3\times 3$ 循环置换矩阵 $P = \begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ 1 & 0 & 0 \end{bmatrix}$。请不靠机械乘法，直接从“行循环移位”的物理动作写出 $P^2$、$P^3$ 以及逆矩阵 $P^{-1}$，并验证 $P^{-1} = P^T = P^2$！
+2. 给定 $1\times 3$ 行矩阵 $R = \begin{bmatrix} 1 & -2 & 3 \end{bmatrix} \in \mathbb{R}^{1\times 3}$，分别计算 $R R^T$ 与 $R^T R$，对比两者的维度、对称性以及是否可逆！
+
+<ProgressiveHint
+  hints={[
+    "左乘 $P$ 把向量 $(x_1, x_2, x_3)^T$ 变成 $(x_2, x_3, x_1)^T$（所有元素向上轮转一格）！连转 2 次是什么？连转 3 次是不是原地满血复活回到 $(x_1, x_2, x_3)^T$？",
+    "$R$ 是 $1\\times 3$，$R^T$ 是 $3\\times 1$：$R R^T$ 是 $(1\\times 3)(3\\times 1) = 1\\times 1$ 标量内积；而 $R^T R$ 是 $(3\\times 1)(1\\times 3) = 3\\times 3$ 秩 1 外积矩阵！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. 把三个位置想象成旋转木马：转 1 格是 $P$，转 2 格是 $P^2$，转满 3 格正好回到起点（$P^3 = I_3$）！既然 $P \cdot P^2 = I_3$，那么撤销“顺转 1 格”既可以理解成“顺转 2 格（$P^2$）”，也可以理解成“倒转 1 格（$P^T$）”——所以 $P^{-1} = P^2 = P^T$ 三位一体！
+2. $R R^T = [1^2 + (-2)^2 + 3^2] = [14]$ 是一个非零 $1\times 1$ 满秩可逆小方阵；而调换顺序的 $R^T R$ 是一张 $3\times 3$ 的对称秩 1 外积网格，三列全成比例，100% 奇异不可逆！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. 对任意 $\mathbf{x} = (x_1, x_2, x_3)^T \in \mathbb{R}^3$，$P\mathbf{x} = (x_2, x_3, x_1)^T$，故 $P^2\mathbf{x} = (x_3, x_1, x_2)^T$，$P^3\mathbf{x} = (x_1, x_2, x_3)^T = \mathbf{x} \implies P^3 = I_3$。由此直接写出：
+
+$$
+P^2 = \begin{bmatrix}
+0 & 0 & 1 \\
+1 & 0 & 0 \\
+0 & 1 & 0
+\end{bmatrix} = P^T = P^{-1}
+$$
+
+2. 计算两个对称乘积：
+
+$$
+R R^T = \begin{bmatrix} 1 & -2 & 3 \end{bmatrix} \begin{bmatrix} 1 \\ -2 \\ 3 \end{bmatrix} = \begin{bmatrix} 14 \end{bmatrix} \in \mathbb{R}^{1\times 1} \quad (\text{对称且可逆，逆为 } [\tfrac{1}{14}])
+$$
+
+$$
+R^T R = \begin{bmatrix} 1 \\ -2 \\ 3 \end{bmatrix} \begin{bmatrix} 1 & -2 & 3 \end{bmatrix}
+= \begin{bmatrix}
+1 & -2 & 3 \\
+-2 & 4 & -6 \\
+3 & -6 & 9
+\end{bmatrix} \in \mathbb{R}^{3\times 3} \quad (\text{对称但奇异，因 } (R^TR)(2,1,0)^T = \mathbf{0})
+$$
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l05-ex2" tier="L2" title="概念辨析：两个实对称矩阵相乘 AB 一定还是对称矩阵吗？">
+判断下列命题真伪，并在脑海中构造极简 $2\times 2$ 反例：
+
+> **命题**：若 $A \in \mathbb{R}^{n\times n}$ 与 $B \in \mathbb{R}^{n\times n}$（$n \ge 2$）都是实对称矩阵（即 $A^T = A,\; B^T = B$），则它们的乘积 $AB$ 也必定是实对称矩阵。
+
+<TrueFalseInteractive
+  id="l05-tf1"
+  correct={false}
+  quickFeedback="命题为假（False）！由转置反序律 $(AB)^T = B^T A^T = BA$，只有当 $A$ 与 $B$ 恰好满足乘法交换律 $AB = BA$ 时，乘积 $AB$ 才是对称矩阵！"
+/>
+
+<ProgressiveHint
+  hints={[
+    "检验对称性的唯一标准是算 $(AB)^T$：根据穿鞋袜反序律，$(AB)^T = B^T A^T = BA$！",
+    "随便找一个对角阵 $A = \\begin{bmatrix} 1 & 0 \\\\ 0 & 2 \\end{bmatrix}$ 和一个全 1 对称阵 $B = \\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix}$ 乘一下看看！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+矩阵转置遇到乘积必须掉头反序！虽然 $A$ 和 $B$ 各自转置不变，但 $(AB)^T$ 翻过来变成了 $BA$。左乘对角阵 $\operatorname{diag}(1, 2)$ 是把**第 2 行**乘 $2$，右乘它却是把**第 2 列**乘 $2$，一横一竖当场破坏了沿对角线的镜像对称！（注意对比：夹心三明治结构 **$ABA$** 反而永远是对称的，因为 $(ABA)^T = A^T B^T A^T = ABA$！）
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+构造极简 $2\times 2$ 反例：取实对称矩阵
+
+$$
+A = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix} = A^T, \qquad
+B = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} = B^T
+$$
+
+计算乘积及其转置：
+
+$$
+AB = \begin{bmatrix} 0 & 1 \\ 2 & 0 \end{bmatrix}, \qquad
+(AB)^T = \begin{bmatrix} 0 & 2 \\ 1 & 0 \end{bmatrix} = BA \neq AB
+$$
+
+故 $AB$ 不是对称矩阵。（充要条件：对对称阵 $A, B$，$AB$ 对称 $\iff (AB)^T = AB \iff BA = AB$。）
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l05-ex3" tier="L2" title="概念辨析：穿过原点且对称优美的圆锥面 b₁² + b₂² − b₃² = 0 是子空间吗？">
+判断下列命题真伪：
+
+> **命题**：在三维空间 $\mathbb{R}^3$ 中，双圆锥面集合 $S = \{(x, y, z)^T \in \mathbb{R}^3 : x^2 + y^2 - z^2 = 0\}$ 既包含原点 $\mathbf{0}$，又对任意实数标量数乘封闭（若 $\mathbf{v} \in S$，则对一切 $c \in \mathbb{R}$ 均有 $c\mathbf{v} \in S$），因此 $S$ 是 $\mathbb{R}^3$ 的一个子空间。
+
+<TrueFalseInteractive
+  id="l05-tf2"
+  correct={false}
+  quickFeedback="命题为假（False）！这是检验你是否漏掉『加法封闭性』的经典试金石：虽然 $S$ 包含原点且对任意标量数乘 $c\mathbf{v}$ 全部封闭（由过原点的无穷多条母线组成），但在圆锥不同侧各取一个向量相加：$(1, 0, 1)^T + (0, 1, 1)^T = (1, 1, 2)^T$，显然 $1^2 + 1^2 - 2^2 = -2 \neq 0$，加法瞬间飞出圆锥面！"
+/>
+
+<ProgressiveHint
+  hints={[
+    "光检查『过原点』和『数乘封闭 $c\\mathbf{v} \\in S$』还差哪一半？向量加法 $\\mathbf{v} + \\mathbf{w} \\in S$ 检没检查？",
+    "试试取圆锥面上的两个简单整点 $\\mathbf{v} = (1, 0, 1)^T$ 与 $\\mathbf{w} = (-1, 0, 1)^T$ 相加！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+这道题极其深刻！很多同学以为“包含原点 + 任意正负拉伸 $c\mathbf{v}$ 不出界”就已经是子空间了——错！这只能保证集合是由一堆过原点的直线（圆锥母线）拼起来的“放射束”，但不同母线上的两支向量一旦首尾相加，立刻跑到圆锥内部中空区去了！在 $\mathbb{R}^3$ 里，真正的二维子空间必须是**平直的平面**，绝不能有任何二次弯曲！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+取集合 $S$ 中的两个具体向量：
+
+$$
+\mathbf{v} = \begin{bmatrix} 1 \\ 0 \\ 1 \end{bmatrix} \in S \;\; (1^2 + 0^2 - 1^2 = 0), \qquad
+\mathbf{w} = \begin{bmatrix} -1 \\ 0 \\ 1 \end{bmatrix} \in S \;\; ((-1)^2 + 0^2 - 1^2 = 0)
+$$
+
+检验它们的和向量 $\mathbf{u} = \mathbf{v} + \mathbf{w} = (0, 0, 2)^T$：
+
+$$
+0^2 + 0^2 - 2^2 = -4 \neq 0 \quad \Longrightarrow \quad \mathbf{v} + \mathbf{w} \notin S
+$$
+
+加法封闭性失效，故 $S$ 不是 $\mathbb{R}^3$ 的子空间。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l05-ex4" tier="L3" title="子空间火眼金睛：四组 ℝ³ 点集的封闭性快速甄别">
+在三维空间 $\mathbb{R}^3$ 中，逐一判断下列四个集合是否为 $\mathbb{R}^3$ 的子空间；若是，指出它的几何形状；若不是，指出它违背了哪一条封闭规则：
+1. $S_1 = \left\{ (b_1, b_2, b_3)^T \in \mathbb{R}^3 : b_1 + 2b_2 - 3b_3 = 0 \right\}$
+2. $S_2 = \left\{ (b_1, b_2, b_3)^T \in \mathbb{R}^3 : b_1 + 2b_2 - 3b_3 = 1 \right\}$
+3. $S_3 = \left\{ (b_1, b_2, b_3)^T \in \mathbb{R}^3 : b_1 b_2 = 0 \right\}$
+4. $S_4 = \text{所有形如 } c \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix} + d \begin{bmatrix} 0 \\ 2 \\ -1 \end{bmatrix} \; (c, d \in \mathbb{R}) \text{ 的向量集合}$
+
+<ProgressiveHint
+  hints={[
+    "先用『零向量测试 $\\mathbf{0} \\in S_i$？』一秒枪毙 $S_2$！",
+    "小心 $S_3$（$b_1 b_2 = 0$）：这意味着『$b_1 = 0$ **或者** $b_2 = 0$』（两张坐标平面 $yz$ 平面与 $xz$ 平面的并集）！分别从两张平面各抓一个向量 $(1, 0, 0)^T$ 和 $(0, 1, 0)^T$ 加起来看看乘积还是不是 $0$！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+- **$S_1$（✓ 是子空间）**：齐次线性方程定义的**过原点平面**！齐次等式左侧是线性的，$0 + 0 = 0$，$c\cdot 0 = 0$，永远封闭。
+- **$S_2$（✗ 不是子空间）**：常数项 $= 1 \neq 0$，原点 $(0,0,0)^T$ 代入得 $0 \neq 1$，不过原点的平移平面一票否决！
+- **$S_3$（✗ 不是子空间）**：最具欺骗性的陷阱！$b_1 b_2 = 0$ 看似齐次（过原点且对数乘封闭），但它几何上是**两张垂直平面的并集**！一张平面上的 $(1,0,0)^T$ 加上另一张平面上的 $(0,1,0)^T$ 变成 $(1,1,0)^T$，乘积 $1\times 1 = 1 \neq 0$，直接掉进两平面夹缝里了！
+- **$S_4$（✓ 是子空间）**：这就是矩阵 $\begin{bmatrix} 1 & 0 \\ 1 & 2 \\ 0 & -1 \end{bmatrix}$ 的**列空间**（两支不共线向量张成的过原点平面），天生对一切线性组合封闭！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **$S_1$ 是子空间**：显然 $\mathbf{0} \in S_1$。任取 $\mathbf{u}, \mathbf{v} \in S_1$ 及 $\alpha, \beta \in \mathbb{R}$，记 $\mathbf{n} = (1, 2, -3)^T$，则 $\mathbf{n}^T(\alpha\mathbf{u} + \beta\mathbf{v}) = \alpha(\mathbf{n}^T\mathbf{u}) + \beta(\mathbf{n}^T\mathbf{v}) = \alpha\cdot 0 + \beta\cdot 0 = 0 \implies \alpha\mathbf{u} + \beta\mathbf{v} \in S_1$（过原点的二维平面）。
+2. **$S_2$ 不是子空间**：检验零向量 $0 + 2(0) - 3(0) = 0 \neq 1 \implies \mathbf{0} \notin S_2$，不满足子空间必要条件。
+3. **$S_3$ 不是子空间**：取 $\mathbf{u} = (1, 0, 0)^T \in S_3$ 与 $\mathbf{v} = (0, 1, 0)^T \in S_3$，但其和 $\mathbf{u} + \mathbf{v} = (1, 1, 0)^T$ 满足 $1 \cdot 1 = 1 \neq 0 \implies \mathbf{u} + \mathbf{v} \notin S_3$，违反加法封闭性。
+4. **$S_4$ 是子空间**：令 $A = \begin{bmatrix} 1 & 0 \\ 1 & 2 \\ 0 & -1 \end{bmatrix}$，则 $S_4 = \{A\mathbf{x} : \mathbf{x} \in \mathbb{R}^2\} = \operatorname{Col}(A)$。任取 $A\mathbf{x}_1, A\mathbf{x}_2 \in S_4$ 及 $\alpha, \beta \in \mathbb{R}$，有 $\alpha(A\mathbf{x}_1) + \beta(A\mathbf{x}_2) = A(\alpha\mathbf{x}_1 + \beta\mathbf{x}_2) \in S_4$（过原点的二维平面）。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l05-ex5" tier="L4" title="MIT 18.06 综合挑战：置换群奇偶分解与分块反对称子空间">
+（综合考察置换逆性质与高阶矩阵对称性）
+1. 设 $P \in \mathbb{R}^{4\times 4}$ 为把 $(x_1, x_2, x_3, x_4)^T$ 变为 $(x_4, x_1, x_2, x_3)^T$ 的 $4$ 阶循环置换矩阵。问：**最少需要几次单次行交换**才能从 $I_4$ 得到 $P$？并求满足 $P^k = I_4$ 的最小正整数 $k$ 以及满足 $P^T = P^m$ 的最小正整数 $m$。
+2. 称方阵 $K \in \mathbb{R}^{n\times n}$ 为**反对称矩阵（Skew-Symmetric Matrix）**，若 $K^T = -K$。证明：
+   - 任意反对称矩阵的主对角元必全为 $0$；
+   - **任意方阵** $M \in \mathbb{R}^{n\times n}$ 都可以**唯一**地分解为一个对称矩阵 $S$ 与一个反对称矩阵 $K$ 之和 $M = S + K$！（请显式写出 $S$ 和 $K$ 关于 $M, M^T$ 的表达式并证唯一性！）
+
+<ProgressiveHint
+  hints={[
+    "第 1 问：追踪 $(1, 2, 3, 4) \\to (4, 1, 2, 3)$，把第 4 行一步步往上换到第 1 行需要换几次相邻行？而转一圈是 4 步，所以 $P^4 = I_4$，两边乘 $P^{-1} = P^T$ 立得 $P^T = P^3$！",
+    "第 2 问：类比把任意函数拆成偶函数 $\\frac{f(x)+f(-x)}{2}$ 加奇函数 $\\frac{f(x)-f(-x)}{2}$！设 $M = S + K$，两边取转置得 $M^T = S^T + K^T = S - K$，两式相加相减立解 $S$ 与 $K$！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. 把排在第 4 位的队员依次和第 3、第 2、第 1 位互换，**3 次行交换**就精准到位 $(4, 1, 2, 3)$！每次整体向下轮转 1 格，转 4 次回到原位（$k=4$），而倒退 1 格（$P^{-1} = P^T$）等价于向前顺转 3 格（$m=3$）！
+2. 任意方阵的“对称 + 反对称”正交拆解是线性代数中最经典的恒等变形之一：$(M + M^T)/2$ 天生对称，$(M - M^T)/2$ 天生反对称（对角线自己减自己当然全是 $0$！），两者相加分毫不差还原 $M$，且没有任何第二种拆法！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **分析 $4$ 阶循环置换 $P$**：
+
+$$
+P = \begin{bmatrix}
+0 & 0 & 0 & 1 \\
+1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0
+\end{bmatrix} = P_{12} P_{23} P_{34}
+$$
+
+   - 单次行交换会使连通轮换长度至多增加 $1$，一个长度为 $4$ 的单轮换最少需要 $4 - 1 = \mathbf{3}$ **次**行交换（奇置换）。
+   - 对任意 $\mathbf{x} \in \mathbb{R}^4$，$P\mathbf{x}, P^2\mathbf{x}, P^3\mathbf{x}$ 均不恒等于 $\mathbf{x}$，而 $P^4\mathbf{x} = \mathbf{x}$，故最小正周期 $k = \mathbf{4}$。
+   - 由 $P^4 = I_4$ 及定理 5.1 第 2 条 $P^{-1} = P^T$，两边左乘 $P^T$ 得 $P^T = P^3$，最小正整数 $m = \mathbf{3}$。
+
+2. **反对称性质与唯一分解 $M = S + K$**：
+   - 若 $K^T = -K$，考察第 $(i, i)$ 主对角元素：$(K^T)_{ii} = K_{ii} = -K_{ii} \implies 2K_{ii} = 0 \implies K_{ii} = 0$（$\forall i = 1, \dots, n$）。
+   - **唯一性（先设存在以导出公式）**：假设 $M = S + K$，其中 $S^T = S$ 且 $K^T = -K$。两边取转置得：
+
+$$
+M^T = (S + K)^T = S^T + K^T = S - K
+$$
+
+     将 $M = S + K$ 与 $M^T = S - K$ 分别相加与相减除以 $2$，必有：
+
+$$
+S = \frac{1}{2}(M + M^T), \qquad K = \frac{1}{2}(M - M^T)
+$$
+
+     这证明若分解存在则 $S, K$ 唯一。
+   - **存在性核验**：对上述显式构造，$S + K = \frac{1}{2}(M+M^T) + \frac{1}{2}(M-M^T) = M$；且 $S^T = \frac{1}{2}(M^T + M) = S$（对称），$K^T = \frac{1}{2}(M^T - M) = -K$（反对称），证毕！
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>

@@ -1,0 +1,493 @@
+---
+title: "第 04 讲：A 的 LU 分解"
+ocwId: "L04"
+videoEpisode: "P04"
+textbookRef: "§2.6"
+---
+
+在第 02 讲末尾，我们把高斯消元写成了 $E A = U$；而在第 03 讲里，我们掌握了乘积求逆的“穿鞋袜反序律” $(AB)^{-1} = B^{-1}A^{-1}$。今天，把这两块拼图扣在一起，就会诞生科学计算史上使用频率最高、结构最干净的第一个伟大矩阵分解——**$A = LU$ 分解（LU Factorization）**。
+
+Gilbert Strang 教授在第 04 讲中提出了一个直击灵魂的追问：**明明 $EA = U$ 已经把消元表达清楚了，数学家与数值计算软件（如 LAPACK、MATLAB）为什么偏偏要把左边的 $E$ 求逆移到右边，大费周章写成 $A = LU$？** 答案藏在一个美妙绝伦的“乘数零交叉污染”现象里。
+
+---
+
+## 一、核心奇迹：为什么逆矩阵 $L = E^{-1}$ 比正向矩阵 $E$ 干净百倍？
+
+让我们先热身一个极简 $2\times 2$ 算例：
+
+$$
+A = \begin{bmatrix} 2 & 1 \\ 8 & 7 \end{bmatrix}
+\quad \xrightarrow{R_2 \leftarrow R_2 - 4R_1 \;(\ell_{21}=4)} \quad
+U = \begin{bmatrix} 2 & 1 \\ 0 & 3 \end{bmatrix}
+$$
+
+用初等消元矩阵写出正向等式 $E_{21} A = U$，再两边同时左乘 $E_{21}^{-1}$（仅需将 $-4$ 变号为 $+4$！），立即得到 $A = LU$：
+
+$$
+\underbrace{\begin{bmatrix} 1 & 0 \\ -4 & 1 \end{bmatrix}}_{E_{21}}
+\underbrace{\begin{bmatrix} 2 & 1 \\ 8 & 7 \end{bmatrix}}_{A}
+=
+\underbrace{\begin{bmatrix} 2 & 1 \\ 0 & 3 \end{bmatrix}}_{U}
+\quad \Longleftrightarrow \quad
+\underbrace{\begin{bmatrix} 2 & 1 \\ 8 & 7 \end{bmatrix}}_{A}
+=
+\underbrace{\begin{bmatrix} 1 & 0 \\ \mathbf{4} & 1 \end{bmatrix}}_{L = E_{21}^{-1}}
+\underbrace{\begin{bmatrix} 2 & 1 \\ 0 & 3 \end{bmatrix}}_{U}
+$$
+
+在 $2\times 2$ 时，$E_{21}$ 和 $L$ 看起来只差一个负号，似乎平平无奇；**真正的魔法发生在 $3\times 3$ 乃至 $n\times n$！**
+
+假设对一个无需行交换的 $3\times 3$ 矩阵 $A$ 做消元：
+- 第一步用主元 $1$ 消去 $(2,1)$，乘数 $\ell_{21} = 2$；而 $(3,1)$ 本来就是 $0$，乘数 **$\ell_{31} = 0$**（即无需 $E_{31}$）；
+- 第二步用第 2 个主元消去 $(3,2)$，乘数 $\ell_{32} = 5$。
+
+于是正向消元等式为 $E_{32} E_{21} A = U$。现在请对比左侧的正向乘积 $E = E_{32} E_{21}$ 与移到右侧后的逆乘积 $L = (E_{32} E_{21})^{-1} = E_{21}^{-1} E_{32}^{-1}$：
+
+<LUMultiplierNoFillDiagram />
+
+看到了吗？！这正是 Strang 教授在黑板上重重画圈的高光时刻：
+
+- **在正向顺序 $E = E_{32} E_{21}$ 中**：后一步 $E_{32}$ 从第 3 行减去 $5$ 倍的“新第 2 行”，但新第 2 行肚子里已经带着 $-2$ 倍的第 1 行！结果明明我们从未动过 $(3,1)$ 位置（$\ell_{31} = 0$），左下角却凭空冒出了交叉污染项 $(-5)(-2) = \mathbf{+10}$！在大规模稀疏矩阵里，这种多米诺骨牌式的非零蔓延会彻底摧毁稀疏性。
+- **在反序逆乘积 $L = E_{21}^{-1} E_{32}^{-1}$ 中**：因为求逆调换了左右次序，右边的 $E_{32}^{-1}$ 先给第 3 行加上 $5$ 倍的**原始单位基行** $\mathbf{e}_2^T$（此时第 2 行还是干干净净的 $[0, 1, 0]$，尚未沾染第 1 行！），随后左边的 $E_{21}^{-1}$ 只修改第 2 行而不碰第 3 行！于是，**每一个消元乘数 $\ell_{ij}$ 都分毫不差、原封不动地直接坐进了单位下三角矩阵 $L$ 的第 $(i,j)$ 格子里，绝无任何乘积交叉项！**
+
+### 1.1 追求完美对称形式：从 $A = LU$ 到 $A = LDU$
+
+仔细审视 $A = LU$，你会发现一丝“不对称”：$L$ 是对角线全为 $1$ 的**单位下三角矩阵（Unit Lower Triangular Matrix）**，而 $U$ 的对角线上却挂着主元 $d_1, d_2, \dots, d_n$。如果我们把 $U$ 的每一行各自提出对角主元，拆成一个纯主元**对角矩阵（Diagonal Matrix）** $D = \operatorname{diag}(d_1, \dots, d_n)$ 乘以对角线也全为 $1$ 的单位上三角矩阵 $\tilde{U}$，就得到了完全对称优美的 **$LDU$ 分解**：
+
+$$
+A = L U =
+\begin{bmatrix} 1 & 0 \\ 4 & 1 \end{bmatrix}
+\begin{bmatrix} 2 & 1 \\ 0 & 3 \end{bmatrix}
+=
+\underbrace{\begin{bmatrix} 1 & 0 \\ 4 & 1 \end{bmatrix}}_{L}
+\underbrace{\begin{bmatrix} 2 & 0 \\ 0 & 3 \end{bmatrix}}_{D}
+\underbrace{\begin{bmatrix} 1 & 1/2 \\ 0 & 1 \end{bmatrix}}_{\tilde{U}}
+$$
+
+<DefinitionCard
+  label="Definition 4.1"
+  title="方阵的 LU 分解与 LDU 分解"
+  termEn="LU and LDU Factorizations"
+>
+设可逆方阵 $A \in \mathbb{R}^{n\times n}$ 在高斯消元过程中**无需任何行交换**即可产生 $n$ 个非零主元 $d_1, d_2, \dots, d_n \neq 0$，记第 $j$ 列主元消去第 $i$ 行（$i \gt j$）所用乘数为 $\ell_{ij} \in \mathbb{R}$：
+
+1. **$A = LU$ 分解**：$A$ 可分解为单位下三角矩阵 $L$（主对角元全为 $1$，严格下三角位直接存放乘数 $L_{ij} = \ell_{ij}$）与上三角矩阵 $U$（主对角元为主元 $U_{kk} = d_k$）的乘积。
+2. **$A = LDU$ 分解**：进一步令 $D = \operatorname{diag}(d_1, d_2, \dots, d_n)$ 为主元对角矩阵，$\tilde{U} = D^{-1}U$ 为主对角元全为 $1$ 的单位上三角矩阵，则 $A = L D \tilde{U}$。
+</DefinitionCard>
+
+<TheoremCard
+  label="Theorem 4.1"
+  title="LU 分解无交叉污染定理、唯一性与带置换 PA = LU 定理"
+  termEn="No Cross-Terms in L, Uniqueness of LDU, and PA = LU"
+>
+设实方阵 $A \in \mathbb{R}^{n\times n}$：
+
+1. **乘数直接归位公式（无交叉项）**：对按列顺序构造的初等消元矩阵族，逆矩阵按消元正序连乘恒等于各项非对角偏移的**直接相加**：
+
+$$
+L = \left(E_{n,n-1} \cdots E_{31} E_{21}\right)^{-1}
+= E_{21}^{-1} E_{31}^{-1} \cdots E_{n,n-1}^{-1}
+= I_n + \sum_{i \gt j} \ell_{ij} \mathbf{e}_i \mathbf{e}_j^T
+$$
+
+2. **分解唯一性**：若**可逆方阵** $A \in \mathbb{R}^{n\times n}$ 存在无需行交换的 $A = LU$（其中 $L$ 为单位下三角阵、$U$ 为对角元非零的上三角阵），则因子对 $(L, U)$ 及对应的 $(L, D, \tilde{U})$ **唯一确定**。
+3. **带行交换的普适分解 $PA = LU$**：对**任意可逆方阵** $A \in \mathbb{R}^{n\times n}$（即便中途出现 $0$ 主元位需行交换），总存在至少一个**置换矩阵（Permutation Matrix）** $P \in \mathbb{R}^{n\times n}$（由单位阵重排行所得），使得事先重排行序后的矩阵 $PA$ 无需再做行交换即可分解为：
+
+$$
+P A = L U
+$$
+</TheoremCard>
+
+<ProofCollapse title="展开严格代数证明：为什么外积内积正交性彻底消灭了 L 中的交叉项，且分解唯一？">
+1. **无交叉项的代数本质**：记第 $j$ 列整列一步消元算子的逆为 $L_j := \prod_{i=j+1}^n (I_n + \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T) = I_n + \mathbf{m}_j \mathbf{e}_j^T$，其中向量 $\mathbf{m}_j = (0, \dots, 0, \ell_{j+1,j}, \dots, \ell_{nj})^T$ 的前 $j$ 个分量**全为 $0$**！
+   现在考察相邻两列因子按 $j < k$ 顺序相乘（例如 $L_1 L_2$）：
+
+$$
+(I_n + \mathbf{m}_j \mathbf{e}_j^T)(I_n + \mathbf{m}_k \mathbf{e}_k^T)
+= I_n + \mathbf{m}_j \mathbf{e}_j^T + \mathbf{m}_k \mathbf{e}_k^T + \mathbf{m}_j (\underbrace{\mathbf{e}_j^T \mathbf{m}_k}_{= 0 !}) \mathbf{e}_k^T
+$$
+
+   为什么中间标量内积 $\mathbf{e}_j^T \mathbf{m}_k$ 严格等于 $0$？因为 $j < k$，而 $\mathbf{m}_k$ 只在第 $k+1$ 行及以下才有非零元，其第 $j$ 个分量必为 $0$！归纳即证 $L_1 L_2 \cdots L_{n-1} = I_n + \sum_{j=1}^{n-1} \mathbf{m}_j \mathbf{e}_j^T$，所有交叉乘积项全部归零！（反之若反过来算 $E_k E_j$，会出现 $\mathbf{e}_k^T \mathbf{m}_j = \ell_{kj} \neq 0$，这就是正向 $E$ 产生交叉污染的精确代数根源！）
+
+2. **证明唯一性**：假设可逆阵 $A = L_1 U_1 = L_2 U_2$，其中 $L_1, L_2$ 为单位下三角阵，$U_1, U_2$ 为可逆上三角阵。两边左乘 $L_2^{-1}$、右乘 $U_1^{-1}$ 得：
+
+$$
+L_2^{-1} L_1 = U_2 U_1^{-1}
+$$
+
+   等式左边是两个**单位下三角阵**的乘积（仍为单位下三角阵，主对角线全为 $1$、上三角全为 $0$）；等式右边是两个**上三角阵**的乘积（仍为上三角阵，下三角全为 $0$）。一个既上三角又单位下三角的矩阵只能是单位矩阵 $I_n$！故 $L_2^{-1}L_1 = I_n \implies L_1 = L_2$，且 $U_2 U_1^{-1} = I_n \implies U_1 = U_2$。
+</ProofCollapse>
+
+---
+
+## 二、一旦拿到 $PA = LU$，原矩阵 $A$ 就可以彻底扔进回收站了！
+
+在实际工程（如电网潮流分析、有限元结构力学、天气预报偏微分方程求解）中，我们经常面对**同一个系数矩阵 $A$，却要连续求解成百上千个不同右侧载荷向量 $\mathbf{b}^{(1)}, \mathbf{b}^{(2)}, \dots, \mathbf{b}^{(K)}$**！
+
+如果你每次都拿增广矩阵 $[A \mid \mathbf{b}^{(k)}]$ 重头消元，纯属巨大的算力浪费。有了 $PA = LU$，原始矩阵 $A$ 的全部信息已经被无损封装进了三角阵 $L, U$ 与行号表 $P$ 中，求解任意新的 $A\mathbf{x} = \mathbf{b}$ 只需两步极其轻巧的三角代入（连 $A$ 的内存都可以直接覆写释放）：
+
+1. **前向代入（Forward Substitution）**：先令 $\mathbf{c} = U\mathbf{x}$，自上而下解下三角方程
+
+$$
+L \mathbf{c} = P \mathbf{b}
+$$
+
+2. **回代求解（Back Substitution）**：再自下而上解上三角方程
+
+$$
+U \mathbf{x} = \mathbf{c}
+$$
+
+检验无误：$A\mathbf{x} = P^{-1}(LU\mathbf{x}) = P^{-1}(L\mathbf{c}) = P^{-1}(P\mathbf{b}) = \mathbf{b}$！
+
+---
+
+## 三、算法复杂度黄金分野：为什么矩阵分解是 $\frac{1}{3}n^3$，而求解只需 $n^2$？
+
+Strang 教授在第 04 讲后半程算了一笔每位理工科学生都必须刻进骨子里的计算复杂度账（以一次“1 次乘法 + 1 次减法”计为 1 次基本乘加运算）：
+
+1. **对矩阵 $A \in \mathbb{R}^{n\times n}$ 做 $LU$ 分解需要多少次运算？**
+   - 第 1 列主元消元时，要更新右下角 $(n-1)\times(n-1)$ 整块子矩阵（严谨计入乘数计算共约 $n^2$ 量级，精确主项为 $(n-1)^2$ 次乘加）；
+   - 第 2 列主元消元时，工作区缩小为 $(n-2)\times(n-2)$ 面板，约 $(n-2)^2$ 次；
+   - ……依此类推直到最后 $1^2$。总运算次数等于平方和（类比积分 $\int_0^n x^2\,dx = \frac{1}{3}n^3$）：
+
+$$
+\text{Cost}(A \to LU) = \sum_{k=1}^{n-1} k^2 \approx \sum_{k=1}^{n} k^2 = \frac{n(n+1)(2n+1)}{6} \approx \frac{1}{3} n^3
+$$
+
+2. **对单个右侧向量 $\mathbf{b} \in \mathbb{R}^n$ 执行前代 $L\mathbf{c}=P\mathbf{b}$ + 回代 $U\mathbf{x}=\mathbf{c}$ 需要多少次运算？**
+   - 解 $L\mathbf{c} = P\mathbf{b}$ 时：第 1 行 $0$ 次，第 2 行 $1$ 次，……，第 $n$ 行 $n-1$ 次，合计 $1 + 2 + \cdots + (n-1) \approx \frac{1}{2}n^2$；
+   - 解 $U\mathbf{x} = \mathbf{c}$ 时：对称地再花 $\frac{1}{2}n^2$ 次。两者相加**精确为 $n^2$**！
+
+<LUComplexityPyramidDiagram />
+
+<InteractiveCanvasSlot
+  id="l04-lu-pyramid-cost"
+  title="PA = LU 无填充分解与 ⅓n³ 金字塔复杂度透视镜"
+  description="二期交互预留：输入自定义矩阵或带状稀疏矩阵，逐步动画演示乘数 $\ell_{ij}$ 如何零干扰落入 $L$，并拖动维度滑块 $n \in [10, 2000]$ 直观对比一次性分解开销 $\frac{1}{3}n^3$ 与多右侧向量 $n^2$ 求解的悬殊耗时比。"
+/>
+
+让我们感受一下当 $n = 1000$ 时的震撼差距：
+- 做一次 $A = LU$ 分解需要约 $\frac{1}{3}(1000)^3 \approx 3.33 \times 10^8$（**3.3 亿次**）运算；
+- 而随后每换一个新的右侧向量 $\mathbf{b}$，仅需 $(1000)^2 = 10^6$（**100 万次**）运算——**整整快了 333 倍！**
+- 顺带一提：如果你蠢蠢欲动想先算出显式逆矩阵 $A^{-1}$（相当于对单位阵的 $n$ 列分别回代，总开销 $\frac{1}{3}n^3 + n\cdot(\text{三角变换}) = n^3$，足足是 $LU$ 分解的 **3 倍贵**！），然后再算 $A^{-1}\mathbf{b}$，不仅白花三倍时间，还会把原本优美的稀疏带状矩阵变成全稠密矩阵、放大浮点舍入误差！这就是数值线性代数的第一天条：**永远用 `LU` 分解加回代解 $A\mathbf{x}=\mathbf{b}$，绝不要显式求 $A^{-1}$ 来乘 $\mathbf{b}$！**
+
+<PitfallAlert title="常见直觉陷阱与网传笔记三大勘误">
+1. **误区一：往 $L$ 里填乘数时误加负号，写成 $-\ell_{ij}$！**
+   记住最容易混淆的符号对比：在消元动作 $R_2 \leftarrow R_2 - 3R_1$ 中，左边的初等矩阵 $E_{21}$ 填的是 **$-3$**；但移到右边求逆变成 $A = LU$ 时，负号已经翻正，$L$ 的 $(2,1)$ 位填的是**正数 $+3$**！口诀：**“从第 $i$ 行减去什么倍数，就把那个倍数原原本本抄进 $L_{ij}$！”**
+2. **误区二：忽略“可逆”前提，宣称“任何方阵的 $LU$ 分解都唯一”**
+   定理 4.1 的唯一性严格依赖 $U$ 的对角主元非零（即 $A$ 可逆）！若 $A$ 奇异，例如零矩阵 $A = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}$，对**任意**实数 $c \in \mathbb{R}$，都有 $\begin{bmatrix} 1 & 0 \\ c & 1 \end{bmatrix}\begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} = A$，单位下三角因子 $L$ 有无穷多种取法！
+3. **误区三：解方程 $A\mathbf{x} = \mathbf{b}$ 时习惯先调用 `inv(A) * b`**
+   求显式逆矩阵 $A^{-1}$ 耗费 $\approx n^3$ 运算（是 $LU$ 分解 $\frac{1}{3}n^3$ 的 3 倍），且对于三对角矩阵（$LU$ 仅需 $O(n)$ 时间和内存！），它的逆矩阵 $A^{-1}$ 却是 $n\times n$ 全满稠密矩阵！工程与科研中请永远优先使用三角分解求解器。
+</PitfallAlert>
+
+<KeyTakeaways
+  items={[
+    "无需行交换时，高斯消元直接等价于矩阵分解 $A = LU = L D \\tilde{U}$，其中单位下三角阵 $L = E^{-1}$ 的下三角位置 $L_{ij}$ **原封不动存放每步消元乘数 $+\\ell_{ij}$，零交叉污染**。",
+    "若消元途中遇到零主元需要行交换，任意可逆方阵均存在置换矩阵 $P$ 使得 $PA = LU$（共 $n!$ 种可能的置换重排）。",
+    "拿到 $PA = LU$ 后求解 $A\\mathbf{x} = \\mathbf{b}$ 只需两步三角扫描：先解下三角 $L\\mathbf{c} = P\\mathbf{b}$，再解上三角 $U\\mathbf{x} = \\mathbf{c}$。",
+    "复杂度铁律：分解 $A \\to LU$ 耗费四棱锥体积 $\\approx \\frac{1}{3}n^3$，而每个右侧向量 $\\mathbf{b}$ 的前后代仅耗费薄片面积 $n^2$；切勿显式计算 $A^{-1}\\mathbf{b}$。"
+  ]}
+/>
+
+<ProblemSet>
+
+<ExerciseCard id="l04-ex1" tier="L1" title="零返工手算：同步写出 A = LU 与 LDU 并用两步三角法解方程">
+给定无需行交换的 $3\times 3$ 对称矩阵 $A$ 与右侧向量 $\mathbf{b}$：
+
+$$
+A = \begin{bmatrix}
+2 & 4 & -2 \\
+4 & 9 & -3 \\
+-2 & -3 & 7
+\end{bmatrix}, \qquad
+\mathbf{b} = \begin{bmatrix}
+2 \\ 8 \\ 10
+\end{bmatrix}
+$$
+
+1. 在对 $A$ 执行消元化为 $U$ 的同时，把三个消元乘数 $\ell_{21}, \ell_{31}, \ell_{32}$ 直接填入单位下三角阵 $L$，写出 $A = LU$ 与 $A = L D \tilde{U}$（观察对称矩阵的 $\tilde{U}$ 与 $L^T$ 有什么惊人关系！）；
+2. **完全不再触碰原矩阵 $A$**，仅用 $L\mathbf{c} = \mathbf{b}$ 与 $U\mathbf{x} = \mathbf{c}$ 解出 $\mathbf{x}$。
+
+<ProgressiveHint
+  hints={[
+    "第 1 列主元为 $2$：消去 $(2,1)$ 的 $4$ 用乘数 $\\ell_{21} = 4/2 = 2$；消去 $(3,1)$ 的 $-2$ 用乘数 $\\ell_{31} = (-2)/2 = -1$（即 $R_3 - (-1)R_1 = R_3 + R_1$，填入 $L_{31}$ 的是 $-1$！）。",
+    "再看第 2 列新主元位 $(2,2)$ 是 $9 - 2(4) = 1$，第 3 行 $(3,2)$ 变成了 $-3 + 4 = 1$，所以 $\\ell_{32} = 1/1 = 1$！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. 跟着消元顺手抄录乘数即可，连逆矩阵都不用算：
+   - 第 2 行减 **$2$** 倍第 1 行 $\implies L_{21} = 2$；
+   - 第 3 行减 **$-1$** 倍第 1 行（即加 1 倍第 1 行）$\implies L_{31} = -1$；
+   - 新第 3 行减 **$1$** 倍新第 2 行 $\implies L_{32} = 1$！
+   更惊喜的是，提出主元 $D = \operatorname{diag}(2, 1, 4)$ 后，右边剩下的单位上三角阵 $\tilde{U}$ 居然**分毫不差就是 $L^T$**！对称矩阵 $A = A^T$ 自动诞生对称分解 $A = L D L^T$（第 05 讲马上揭晓原因）！
+2. 前代 $L\mathbf{c} = \mathbf{b}$ 和回代 $U\mathbf{x} = \mathbf{c}$ 全是一元一次心算，十秒钟直达 $\mathbf{x} = (-1, 2, 2)^T$！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **计算 $L, U$ 与 $L D \tilde{U}$**：
+   - $\ell_{21} = 2,\; \ell_{31} = -1$：执行 $R_2 - 2R_1$ 与 $R_3 - (-1)R_1$ 得中间矩阵 $\begin{bmatrix} 2 & 4 & -2 \\ 0 & 1 & 1 \\ 0 & 1 & 5 \end{bmatrix}$；
+   - $\ell_{32} = 1$：执行 $R_3 - 1R_2$ 得 $U$，乘数直接归位入 $L$：
+
+$$
+L = \begin{bmatrix}
+1 & 0 & 0 \\
+2 & 1 & 0 \\
+-1 & 1 & 1
+\end{bmatrix}, \quad
+U = \begin{bmatrix}
+2 & 4 & -2 \\
+0 & 1 & 1 \\
+0 & 0 & 4
+\end{bmatrix}
+$$
+
+   提取主元对角阵 $D = \operatorname{diag}(2, 1, 4)$：
+
+$$
+A = L D \tilde{U} =
+\begin{bmatrix}
+1 & 0 & 0 \\
+2 & 1 & 0 \\
+-1 & 1 & 1
+\end{bmatrix}
+\begin{bmatrix}
+2 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & 0 & 4
+\end{bmatrix}
+\begin{bmatrix}
+1 & 2 & -1 \\
+0 & 1 & 1 \\
+0 & 0 & 1
+\end{bmatrix}
+= L D L^T
+$$
+
+2. **两步三角求解**：
+   - 前向代入 $L\mathbf{c} = \mathbf{b}$：
+     - $c_1 = 2$
+     - $2c_1 + c_2 = 8 \implies c_2 = 4$
+     - $-c_1 + c_2 + c_3 = 10 \implies -2 + 4 + c_3 = 10 \implies c_3 = 8$，即 $\mathbf{c} = (2, 4, 8)^T$。
+   - 回代求解 $U\mathbf{x} = \mathbf{c}$：
+     - $4x_3 = 8 \implies x_3 = 2$
+     - $x_2 + x_3 = 4 \implies x_2 = 2$
+     - $2x_1 + 4x_2 - 2x_3 = 2 \implies 2x_1 + 8 - 4 = 2 \implies x_1 = -1$。
+   唯一解为 $\mathbf{x} = (-1, 2, 2)^T$。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l04-ex2" tier="L2" title="概念辨析：任何可逆方阵都能不换行的写成 A = LU 吗？">
+判断下列命题真伪：
+
+> **命题**：只要实方阵 $A \in \mathbb{R}^{n\times n}$ 可逆（非奇异），就一定存在下三角矩阵 $L$ 和上三角矩阵 $U$ 使得 $A = LU$（完全无需引入置换矩阵 $P$）。
+
+<TrueFalseInteractive
+  id="l04-tf1"
+  correct={false}
+  quickFeedback="命题为假（False）！最简单的 $2\times 2$ 行交换矩阵 $A = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$ 显然可逆，但任何下三角乘上三角的左上角 $(1,1)$ 元素都是 $L_{11} U_{11}$——若 $L_{11}U_{11} = 0$，则 $L$ 或 $U$ 必有一个对角元为 $0$ 而变成奇异矩阵，绝不可能乘出可逆的 $A$！"
+/>
+
+<ProgressiveHint
+  hints={[
+    "直接检验 $2\\times 2$ 置换矩阵 $A = \\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix}$！设 $A = \\begin{bmatrix} l_{11} & 0 \\\\ l_{21} & l_{22} \\end{bmatrix} \\begin{bmatrix} u_{11} & u_{12} \\\\ 0 & u_{22} \\end{bmatrix}$，看看 $(1,1)$ 位置等式 $l_{11} u_{11} = 0$ 会引发什么灾难！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+下三角阵 $L$ 的第 1 行是 $[l_{11}, 0]$，上三角阵 $U$ 的第 1 列是 $[u_{11}, 0]^T$，所以乘积 $LU$ 的左上角 $(1,1)$ 元素只能是孤零零的 $l_{11} u_{11}$！如果可逆矩阵 $A$ 的左上角偏偏是 $0$，那就逼着 $l_{11}=0$ 或 $u_{11}=0$；而三角矩阵一旦对角线上出现 $0$（丢失主元）就当场奇异，奇异矩阵的乘积永远不可能还原出可逆矩阵 $A$！这就是为什么普适定理必须写成 $PA = LU$。
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+构造最简 $2\times 2$ 反例：取可逆矩阵 $A = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$。假设存在下三角矩阵 $L = \begin{bmatrix} l_{11} & 0 \\ l_{21} & l_{22} \end{bmatrix}$ 与上三角矩阵 $U = \begin{bmatrix} u_{11} & u_{12} \\ 0 & u_{22} \end{bmatrix}$ 使得 $A = LU$：
+
+$$
+\begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+=
+\begin{bmatrix}
+l_{11} u_{11} & l_{11} u_{12} \\
+l_{21} u_{11} & l_{21} u_{12} + l_{22} u_{22}
+\end{bmatrix}
+$$
+
+由 $(1,1)$ 位得 $l_{11} u_{11} = 0$：
+- 若 $l_{11} = 0$，则 $(1,2)$ 位 $l_{11} u_{12} = 0 \neq 1$，矛盾！
+- 若 $u_{11} = 0$，则 $(2,1)$ 位 $l_{21} u_{11} = 0 \neq 1$，同样矛盾！
+
+故 $A = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$ 不存在任何（哪怕不要求 $L$ 对角线为 $1$ 的）无置换 $LU$ 分解。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l04-ex3" tier="L2" title="概念辨析：用正向乘积 E = E₃₂E₂₁ 和逆乘积 L = E₂₁⁻¹E₃₂⁻¹ 的非零稀疏结构完全一样吗？">
+判断下列命题真伪：
+
+> **命题**：在对无需行交换的 $4\times 4$ 三对角矩阵（仅主对角线及其上下相邻两条次对角线非零）做消元时，单位下三角因子 $L$ 只有紧邻主对角线下方的次对角线非零（双对角稀疏），而正向总消元矩阵 $E = L^{-1}$ 的下三角区域也会保持同样的双对角稀疏结构。
+
+<TrueFalseInteractive
+  id="l04-tf2"
+  correct={false}
+  quickFeedback="命题为假（False）！这正是 $A = LU$ 最核心的优势所在：三对角矩阵的 $L$ 确实只有次对角线 $\ell_{21}, \ell_{32}, \ell_{43}$ 非零（零填充！），但正向矩阵 $E = L^{-1} = E_{43}E_{32}E_{21}$ 会把交叉乘积层层传递，导致整个下三角区域全部被非零数填满（稠密化）！"
+/>
+
+<ProgressiveHint
+  hints={[
+    "回忆本讲配图或第 03 讲习题 `l03-ex4`！当 $L$ 只在次对角线上有非零元 $a, b, c$ 时，它的逆矩阵 $E = L^{-1}$ 下三角所有格子是不是全都冒出了 $ab, bc, abc$？"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+在三对角矩阵中，第 $i$ 行本来只和第 $i-1$ 行直接耦合（所以 $L$ 极度稀疏，只有 $n-1$ 个非零乘数）。但正向总消元矩阵 $E = L^{-1}$ 记录的是“最终第 $n$ 行累计混入了多少原始第 $1$ 行”——就像传话筒一样，$1 \to 2 \to 3 \to \cdots \to n$ 一路传递下来，最后一行沾染了前面每一行的痕迹，$E$ 的下三角变成实心稠密三角！这也是大型科学计算只存 $L$ 绝不存 $E = L^{-1}$ 的根本原因！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+构造具体 $3\times 3$ 三对角消元反例：设各步次对角乘数均为 $1$（而 $\ell_{31} = 0$），则 $L$ 为稀疏双对角阵：
+
+$$
+L = E_{21}^{-1} E_{32}^{-1} = \begin{bmatrix}
+1 & 0 & 0 \\
+1 & 1 & 0 \\
+0 & 1 & 1
+\end{bmatrix} \quad (\text{位置 }(3,1)\text{ 严格为 }0)
+$$
+
+而正向总消元矩阵 $E = L^{-1} = E_{32} E_{21}$ 为：
+
+$$
+E = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & -1 & 1 \end{bmatrix}
+\begin{bmatrix} 1 & 0 & 0 \\ -1 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}
+= \begin{bmatrix}
+1 & 0 & 0 \\
+-1 & 1 & 0 \\
+\mathbf{1} & -1 & 1
+\end{bmatrix}
+$$
+
+原本为 $0$ 的 $(3,1)$ 位在 $E$ 中变成了非零元 $+1$（推广到 $n\times n$ 时整个下三角 $\frac{n(n-1)}{2}$ 个位置全部非零），故命题不成立。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l04-ex4" tier="L3" title="复杂度量级直觉推理：网格翻倍与多右侧载荷的真实耗时">
+某大型结构仿真软件在超级计算机上对一个 $n \times n$ 稠密可逆刚度矩阵 $A$ 执行了一次完整的 $PA = LU$ 分解，测得**纯分解耗时恰好为 $8$ 秒**（忽略内存通信常数波动，假设运行时间严格按主导浮点运算次数成正比）：
+1. 如果工程师将空间采样分辨率加密，使得未知数规模扩大为原来的 $2$ 倍（变成 $2n \times 2n$ 稠密矩阵），新的 $LU$ 分解大约需要多少秒？
+2. 回到原来的 $n \times n$ 规模（已知分解耗时 $8$ 秒），如果现在已经存好了 $P, L, U$，接下来需要针对 **$k = \frac{n}{3}$ 个完全不同的风载向量** $\mathbf{b}^{(1)}, \dots, \mathbf{b}^{(k)}$ 逐一求解 $A\mathbf{x}^{(j)} = \mathbf{b}^{(j)}$，这 $k$ 次前后代求解合起来一共大约需要多少秒？
+
+<ProgressiveHint
+  hints={[
+    "第一问：$LU$ 分解复杂度与 $\\frac{1}{3}n^3$ 成正比！当 $n \\to 2n$ 时，$(2n)^3 / n^3$ 放大了多少倍？",
+    "第二问：分解一次耗时对应 $\\frac{1}{3}n^3$ 次运算（$= 8$ 秒）；而单次前后代求解耗时对应 $n^2$ 次运算。那么连续算 $k = \\frac{n}{3}$ 个右侧向量，总运算次数是 $k \\cdot n^2 = \\frac{1}{3}n^3$——跟刚才那次分解比是多少比多少？"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. 立方增长的威力（也是数值计算的诅咒）：维度仅翻 $2$ 倍，四棱锥的长、宽、高同时翻 $2$ 倍，体积膨胀为 $2^3 = 8$ 倍！所以分解时间从 $8$ 秒直接暴涨到 **$64$ 秒**！
+2. 平方级回代的红利：解**一个**右侧向量只需 $n^2$ 次运算，所以一口气解 **$\frac{n}{3}$ 个**不同右侧向量的总工作量是 $\frac{n}{3} \cdot n^2 = \frac{1}{3}n^3$——居然**分毫不差正好等于做那 1 次 $LU$ 分解的工作量**！因此解这整整 $\frac{n}{3}$ 个方程组加起来也只需要 **$8$ 秒**！（试想若每次重头消元，要花 $\frac{n}{3} \times 8$ 秒，当 $n = 3000$ 时就是 $8000$ 秒 vs $8$ 秒的天壤之别！）
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+设机器每秒可执行 $C$ 次基本乘加运算，已知 $\frac{1}{3C} n^3 \approx 8\text{ s}$：
+
+1. 当矩阵阶数变为 $N = 2n$ 时：
+
+$$
+T_{\text{decomp}}(2n) \approx \frac{1}{3C}(2n)^3 = 8 \cdot \left(\frac{1}{3C} n^3\right) \approx 8 \times 8 = 64\text{ 秒}
+$$
+
+2. 对已分解的 $n\times n$ 矩阵，单次求解 $L\mathbf{c} = P\mathbf{b}$ 与 $U\mathbf{x} = \mathbf{c}$ 共需 $n^2$ 次基本运算，故连续求解 $k = \frac{n}{3}$ 个右侧向量的总耗时为：
+
+$$
+T_{\text{solve}}\!\left(k = \frac{n}{3}\right) \approx \frac{1}{C} \left(\frac{n}{3} \cdot n^2\right) = \frac{1}{3C} n^3 \approx 8\text{ 秒}
+$$
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l04-ex5" tier="L4" title="MIT 18.06 考题级挑战：带状无填充定理与 PA = LU 置换逆向破译">
+本题包含两个相互辉映的 MIT 18.06 期中核心考点：
+1. **外积视角看 $LU$（呼应第 03 讲视角 ④）**：已知某 $4\times 4$ 矩阵 $A = LU$，其中 $L$ 的第 1 列为 $(1, 2, 0, -1)^T$，$U$ 的第 1 行为 $[3, 0, -2, 1]$。如果只把 $A$ 减去外积矩阵 $\mathbf{l}_1 \mathbf{u}_1^T$（即 $L$ 的第 1 列乘 $U$ 的第 1 行），证明剩余矩阵 $A - \mathbf{l}_1 \mathbf{u}_1^T$ 的**第 1 行与第 1 列必然全为 $0$**！这揭示了高斯消元第一步的什么外积本质？
+2. **破译 $PA = LU$**：已知某 $3\times 3$ 可逆矩阵 $A$ 经行置换后的分解等式为
+
+$$
+P A = L U =
+\begin{bmatrix}
+1 & 0 & 0 \\
+2 & 1 & 0 \\
+-1 & 3 & 1
+\end{bmatrix}
+\begin{bmatrix}
+1 & 1 & 2 \\
+0 & 2 & -1 \\
+0 & 0 & 5
+\end{bmatrix}, \qquad
+\text{且已知原矩阵 } A \text{ 的第 1 列为 }
+\begin{bmatrix} -1 \\ 1 \\ 2 \end{bmatrix}
+$$
+
+请**不算出完整乘积矩阵**，仅凭第 1 列信息唯一倒推出置换矩阵 $P$，并求原矩阵 $A$ 的三个主元！
+
+<ProgressiveHint
+  hints={[
+    "第 1 问：按第 03 讲视角 ④ 展开 $LU = \\mathbf{l}_1\\mathbf{u}_1^T + \\mathbf{l}_2\\mathbf{u}_2^T + \\mathbf{l}_3\\mathbf{u}_3^T + \\mathbf{l}_4\\mathbf{u}_4^T$！注意对于 $k \\ge 2$，$\\mathbf{l}_k$ 的第 1 个分量和 $\\mathbf{u}_k^T$ 的第 1 个分量全都是 $0$！",
+    "第 2 问：用矩阵乘法列视角算 $(LU)$ 的第 1 列：$(LU)\\mathbf{e}_1 = L(U\\mathbf{e}_1) = L(1, 0, 0)^T$，正好就是 $L$ 的第 1 列 $(1, 2, -1)^T$！对比 $P A$ 的第 1 列 $(1, 2, -1)^T$ 与 $A$ 的第 1 列 $(-1, 1, 2)^T$，看看行是怎么重排的！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. **高斯消元的外积灵魂**：把 $LU$ 写成 4 张秩 1 切片之和 $\sum_{k=1}^4 \mathbf{l}_k \mathbf{u}_k^T$。由于 $L$ 下三角、$U$ 上三角，后三张切片（$k=2,3,4$）根本触碰不到第 1 行和第 1 列！所以原矩阵 $A$ 的第 1 行和第 1 列 100% 由第一张切片 $\mathbf{l}_1\mathbf{u}_1^T$ 独自包揽——**高斯消元的第一步，在代数上等价于从 $A$ 中剥离掉第一张秩 1 外积切片 $\mathbf{l}_1\mathbf{u}_1^T$！**
+2. **一眼锁定 $P$**：因为 $U$ 的第 1 列是 $(1, 0, 0)^T$，所以 $LU$ 的第 1 列就是 $1$ 倍 $L$ 的第 1 列 $(1, 2, -1)^T$！既然 $PA$ 的第 1 列是 $(1, 2, -1)^T$，而 $A$ 本来的第 1 列是 $(-1, 1, 2)^T$，说明 $P$ 把原第 2 行搬到了第 1 行、原第 3 行搬到了第 2 行、原第 1 行搬到了第 3 行！主元则直接躺在 $U$ 的对角线上：$1, 2, 5$！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **证明外积剥离性质**：按第 03 讲列×行外积展开 $A = LU = \sum_{k=1}^4 \mathbf{l}_k \mathbf{u}_k^T$，移项得：
+
+$$
+A - \mathbf{l}_1 \mathbf{u}_1^T = \sum_{k=2}^4 \mathbf{l}_k \mathbf{u}_k^T
+$$
+
+   对任意 $k \in \{2, 3, 4\}$，因 $L$ 为下三角矩阵，列向量 $\mathbf{l}_k$ 的第 1 分量 $(\mathbf{l}_k)_1 = L_{1k} = 0$；因 $U$ 为上三角矩阵，行向量 $\mathbf{u}_k^T$ 的第 1 分量 $(\mathbf{u}_k^T)_1 = U_{k1} = 0$。故每张外积切片 $\mathbf{l}_k \mathbf{u}_k^T$ 的第 1 行与第 1 列恒全为 $0$，求和后 $A - \mathbf{l}_1\mathbf{u}_1^T$ 的第 1 行与第 1 列必全为 $0$（右下角 $3\times 3$ 非零子块正是第一步消元后的归约子矩阵 / Schur 补！）。
+
+2. **唯一确定 $P$ 与主元**：取等式 $PA = LU$ 两边的第 1 列（右乘 $\mathbf{e}_1$）：
+
+$$
+P (A\mathbf{e}_1) = L (U\mathbf{e}_1) = L \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \\ -1 \end{bmatrix}
+$$
+
+   已知 $A\mathbf{e}_1 = (-1, 1, 2)^T$（三个分量互不相同），要使 $P(-1, 1, 2)^T = (1, 2, -1)^T$，置换矩阵 $P$ 唯一确定为：
+
+$$
+P = \begin{bmatrix}
+0 & 1 & 0 \\
+0 & 0 & 1 \\
+1 & 0 & 0
+\end{bmatrix}
+$$
+
+   在行重排 $PA$ 下产生的三个主元直接为 $U$ 的主对角元：**$1, 2, 5$**。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>

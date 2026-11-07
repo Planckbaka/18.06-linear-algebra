@@ -24,7 +24,13 @@ import {
   RowVsColumn2DDiagram,
   SingularColumn2DDiagram,
 } from '@/components/diagrams/lecture-01-diagrams';
+import { EliminationPipelineDiagram } from '@/components/diagrams/lecture-02-diagrams';
 import { MatrixMultFiveViewsDiagram } from '@/components/diagrams/lecture-03-diagrams';
+import {
+  LUMultiplierNoFillDiagram,
+  LUComplexityPyramidDiagram,
+} from '@/components/diagrams/lecture-04-diagrams';
+import { SubspacesOfR2AndImpostorsDiagram } from '@/components/diagrams/lecture-05-diagrams';
 import {
   ProblemSet,
   ExerciseCard,
@@ -104,7 +110,11 @@ const MDX_COMPONENTS = {
   InteractiveCanvasSlot,
   RowVsColumn2DDiagram,
   SingularColumn2DDiagram,
+  EliminationPipelineDiagram,
   MatrixMultFiveViewsDiagram,
+  LUMultiplierNoFillDiagram,
+  LUComplexityPyramidDiagram,
+  SubspacesOfR2AndImpostorsDiagram,
   ProblemSet,
   ExerciseCard,
   TrueFalseInteractive,
