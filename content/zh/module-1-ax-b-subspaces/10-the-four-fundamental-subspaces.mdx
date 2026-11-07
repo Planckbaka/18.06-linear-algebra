@@ -1,0 +1,447 @@
+---
+title: "第 10 讲：四个基本子空间"
+ocwId: "L10"
+videoEpisode: "P10"
+textbookRef: "§3.5"
+---
+
+如果整门 MIT 18.06 只允许在墙上挂一幅画，Gilbert Strang 教授一定会毫不犹豫地挂上本讲诞生的**“四个基本子空间全景图（The Big Picture of Linear Algebra）”**。
+
+在前几讲中，我们已经熟悉了列空间 $\operatorname{Col}(A)$ 与零空间 $\operatorname{Null}(A)$；今天进入第 10 讲，我们将矩阵 $A$ 与它的转置 $A^T$ 合璧，一次性点亮由任意实矩阵 $A \in \mathbb{R}^{m\times n}$ 统帅的**四个基本子空间（The Four Fundamental Subspaces）**，完整证明被 Strang 誉为**“线性代数基本定理第一部分（Fundamental Theorem of Linear Algebra, Part I）”**的维数守恒定律，并手把手给出全部四个子空间标准基的精确提取法！
+
+---
+
+## 一、四大主角齐聚：它们分别住在哪里？维数各是多少？
+
+给定任意长方矩阵 $A \in \mathbb{R}^{m\times n}$（$m$ 行 $n$ 列，消元主元个数即秩为 $r = \operatorname{rank}(A)$），它天生连接着两个欧氏空间：**输入空间 $\mathbb{R}^n$**（行向量的长度是 $n$）与**输出空间 $\mathbb{R}^m$**（列向量的长度是 $m$）。在这两个世界里，各住着一对生死相依的子空间：
+
+### 1.1 住在输入空间 $\mathbb{R}^n$ 里的两兄弟（维数之和 $= r + (n - r) = n$）
+
+1. **行空间（Row Space）$\operatorname{Row}(A) := \operatorname{Col}(A^T) \subseteq \mathbb{R}^n$**：
+   由 $A$ 的各行向量的所有线性组合张成。因为我们习惯统一把向量写成竖直的**列向量**，把 $A$ 的每一行竖起来正好就是转置矩阵 $A^T \in \mathbb{R}^{n\times m}$ 的每一列！所以行空间最规范的代数记号就是 **$\operatorname{Col}(A^T)$**。它的维数是多少？惊人地**与列空间分毫不差，也是 $r$**！
+2. **零空间（Nullspace）$\operatorname{Null}(A) \subseteq \mathbb{R}^n$**：
+   满足 $A\mathbf{x} = \mathbf{0}$ 的全体解向量，第 09 讲已证其维数为自由变量个数 **$n - r$**。
+
+### 1.2 住在输出空间 $\mathbb{R}^m$ 里的两兄弟（维数之和 $= r + (m - r) = m$）
+
+3. **列空间（Column Space）$\operatorname{Col}(A) \subseteq \mathbb{R}^m$**：
+   由 $A$ 的各列向量的所有线性组合张成，第 09 讲已证其维数为 **$r$**。
+4. **左零空间（Left Nullspace）$\operatorname{Null}(A^T) \subseteq \mathbb{R}^m$**：
+   即转置矩阵 $A^T$ 的零空间——满足 $A^T \mathbf{y} = \mathbf{0}$ 的全体向量 $\mathbf{y} \in \mathbb{R}^m$！
+   - **为什么偏偏给它起名叫“左”零空间？** 把等式 $A^T\mathbf{y} = \mathbf{0}$ 两边整体做一次转置，利用反序律立刻变成：
+
+$$
+(A^T \mathbf{y})^T = \mathbf{0}^T \quad \Longleftrightarrow \quad \mathbf{y}^T A = \mathbf{0}^T
+$$
+
+   真相大白！普通零空间是拿列向量 $\mathbf{x}$ 在 $A$ 的**右边**乘出零（$A\mathbf{x} = \mathbf{0}$，寻找压扁**列**的组合权重）；而左零空间则是拿行向量 $\mathbf{y}^T$ 在 $A$ 的**左边**乘出零（$\mathbf{y}^T A = \mathbf{0}^T$，寻找**把 $A$ 的各行线性组合抵消成全零行**的权重）！由于 $A^T \in \mathbb{R}^{n\times m}$ 有 $m$ 列且秩同样为 $r$，它的自由变量个数自然就是 **$m - r$**！
+
+<FourSubspacesBigPictureDiagram />
+
+<InteractiveCanvasSlot
+  id="l10-four-subspaces-cross"
+  title="四个基本子空间维数天平与双射透视沙盒"
+  description="二期交互预留：调节矩阵尺寸 $m \times n$ 与秩滑块 $r \le \min(m,n)$，实时观察左右两侧维数块 $r + (n-r) = n$ 与 $r + (m-r) = m$ 的消长；点击任意输入向量 $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$ 追踪行空间分量如何一一映射到列空间，而零空间分量归零。"
+/>
+
+---
+
+## 二、一鱼四吃实战：用增广 $[A \mid I_m] \to [R \mid E]$ 一次性提取全部四个子空间的基！
+
+维数背熟了还不够，真正考验功力的是：**随便甩给你一个长方矩阵 $A$，怎么用一套动作把四个子空间各自的一组基（Basis）干净利落地全找出来？**
+
+让我们用第 07–09 讲的老朋友 $3\times 4$ 矩阵 $A$，仿照第 03 讲 Gauss-Jordan 求逆的方法，在 $A$ 的右侧拼上 $3\times 3$ 单位阵 $I_3$（用来忠实记录每一步行变换的脚印！），一路化简到 $R = \operatorname{rref}(A)$：
+
+$$
+\left[\begin{array}{cccc|ccc}
+1 & 2 & 2 & 2 & 1 & 0 & 0 \\
+2 & 4 & 6 & 8 & 0 & 1 & 0 \\
+3 & 6 & 8 & 10 & 0 & 0 & 1
+\end{array}\right]
+\xrightarrow{\text{前向 + 向上消元}}
+\underbrace{\left[\begin{array}{cccc|ccc}
+\mathbf{1} & 2 & \mathbf{0} & -2 & -2 & 1 & 0 \\
+\mathbf{0} & 0 & \mathbf{1} & 2 & -1 & 1/2 & 0 \\
+0 & 0 & 0 & 0 & \mathbf{-1} & \mathbf{-1} & \mathbf{1}
+\end{array}\right]}_{[R \;\mid\; E], \;\;\text{满足 } EA = R}
+$$
+
+（口算核验右半边记录矩阵 $E$ 的最后一行 $[-1, -1, 1]$：拿它左乘原矩阵 $A$，即 $-1(\text{row }1) - 1(\text{row }2) + 1(\text{row }3)$，分毫不差正好把 $A$ 消成了 $R$ 底部的全零行 $[0, 0, 0, 0]$！）
+
+现在睁大眼睛，从这张 $[R \mid E]$ 表上按图索骥，**十秒钟集齐全部四个子空间的标准基**：
+
+1. **列空间 $\operatorname{Col}(A)$ 的基（$\dim = r = 2$）**：
+   看 $R$ 主元在第 1、3 列，**务必回到原始矩阵 $A$** 提取第 1、3 列（绝不能抄 $R$ 的列！）：
+
+$$
+\mathcal{B}_{\text{Col}(A)} = \left\{ \begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix}, \begin{bmatrix} 2 \\ 6 \\ 8 \end{bmatrix} \right\} \subseteq \mathbb{R}^3
+$$
+
+2. **零空间 $\operatorname{Null}(A)$ 的基（$\dim = n - r = 2$）**：
+   因为 $\operatorname{Null}(A) = \operatorname{Null}(R)$，直接从 $R$ 读出对应自由变量 $(x_2, x_4)$ 的两个特解：
+
+$$
+\mathcal{B}_{\text{Null}(A)} = \left\{ \begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} 2 \\ 0 \\ -2 \\ 1 \end{bmatrix} \right\} \subseteq \mathbb{R}^4
+$$
+
+3. **行空间 $\operatorname{Row}(A) = \operatorname{Col}(A^T)$ 的基（$\dim = r = 2$）——最省心的惊喜！**：
+   初等行变换虽然破坏了列空间，但它本来就是在对 $A$ 的各行做可逆线性组合，所以**初等行变换 100% 保持行空间不变：$\operatorname{Row}(R) = \operatorname{Row}(A)$**！因此根本不用回原矩阵纠结哪几行无关，**直接抄 $R$ 的前 $r$ 个非零行（转写成列向量）**就是最干净的基：
+
+$$
+\mathcal{B}_{\text{Row}(A)} = \left\{ \begin{bmatrix} 1 \\ 2 \\ 0 \\ -2 \end{bmatrix}, \begin{bmatrix} 0 \\ 0 \\ 1 \\ 2 \end{bmatrix} \right\} \subseteq \mathbb{R}^4
+$$
+
+4. **左零空间 $\operatorname{Null}(A^T)$ 的基（$\dim = m - r = 3 - 2 = 1$）——点睛之笔！**：
+   我们要找所有满足 $\mathbf{y}^T A = \mathbf{0}^T$ 的行组合系数。看分块等式 $E A = R$！既然 $R$ 的**最底下 $m - r = 1$ 行是全零行**，那就说明**记录矩阵 $E$ 的最底下 $m - r = 1$ 行左乘 $A$ 严格等于全零行**！又因为 $E$ 本身可逆，它的行天生线性无关！于是直接把 $E$ 最底下的 $m - r$ 行拎出来转写成列向量，当场拿到左零空间的基：
+
+$$
+\mathcal{B}_{\text{Null}(A^T)} = \left\{ \begin{bmatrix} -1 \\ -1 \\ 1 \end{bmatrix} \right\} \subseteq \mathbb{R}^3
+$$
+
+---
+
+## 三、教材级严密立卡：线性代数基本定理（第一部分）
+
+为什么任意高矮胖瘦的矩阵，它的“行秩（行空间维数）”总与“列秩（列空间维数）”相等？下面我们在定理框与折叠证明中完成严密闭环。
+
+<DefinitionCard
+  label="Definition 10.1"
+  title="矩阵的四个基本子空间"
+  termEn="The Four Fundamental Subspaces of a Matrix"
+>
+对任意实矩阵 $A \in \mathbb{R}^{m\times n}$：
+
+1. **列空间（Column Space）**：$\operatorname{Col}(A) = \{A\mathbf{x} : \mathbf{x} \in \mathbb{R}^n\} \subseteq \mathbb{R}^m$；
+2. **零空间（Nullspace）**：$\operatorname{Null}(A) = \{\mathbf{x} \in \mathbb{R}^n : A\mathbf{x} = \mathbf{0}\} \subseteq \mathbb{R}^n$；
+3. **行空间（Row Space）**：$\operatorname{Row}(A) := \operatorname{Col}(A^T) = \{A^T\mathbf{y} : \mathbf{y} \in \mathbb{R}^m\} \subseteq \mathbb{R}^n$；
+4. **左零空间（Left Nullspace）**：$\operatorname{Null}(A^T) = \{\mathbf{y} \in \mathbb{R}^m : A^T\mathbf{y} = \mathbf{0} \iff \mathbf{y}^T A = \mathbf{0}^T\} \subseteq \mathbb{R}^m$。
+</DefinitionCard>
+
+<TheoremCard
+  label="Theorem 10.1"
+  title="线性代数基本定理（第一部分：四个基本子空间的维数与标准基）"
+  termEn="Fundamental Theorem of Linear Algebra, Part I"
+>
+设实矩阵 $A \in \mathbb{R}^{m\times n}$ 经可逆行变换矩阵 $E \in \mathbb{R}^{m\times m}$ 化为简化行阶梯形 $EA = R = \operatorname{rref}(A)$，其主元个数（秩）为 $r = \operatorname{rank}(A)$。则：
+
+1. **行秩等于列秩定理**：$\operatorname{rank}(A^T) = \operatorname{rank}(A) = r$，即行空间与列空间拥有**完全相同的维数**：
+
+$$
+\dim \operatorname{Row}(A) = \dim \operatorname{Col}(A) = r
+$$
+
+2. **左右两界维数守恒**：
+   - 在 $\mathbb{R}^n$ 中：$\dim \operatorname{Row}(A) = r$，$\dim \operatorname{Null}(A) = n - r$，满足 $r + (n - r) = n$；
+   - 在 $\mathbb{R}^m$ 中：$\dim \operatorname{Col}(A) = r$，$\dim \operatorname{Null}(A^T) = m - r$，满足 $r + (m - r) = m$。
+3. **初等行变换下的变与不变及标准基总表**：
+   - **保持不变的两个输入子空间**：$\operatorname{Row}(R) = \operatorname{Row}(A)$（$R$ 的前 $r$ 个非零行构成 $\operatorname{Row}(A)$ 的基），$\operatorname{Null}(R) = \operatorname{Null}(A)$（$R$ 的 $n-r$ 个特解构成 $\operatorname{Null}(A)$ 的基）；
+   - **发生改变但可回溯的两个输出子空间**：$\operatorname{Col}(A)$ 的基由**原矩阵 $A$ 的 $r$ 个主列**构成；左零空间 $\operatorname{Null}(A^T)$ 的基由 **$E$ 的最后 $m - r$ 行**（转置为列向量）构成。
+</TheoremCard>
+
+<ProofCollapse title="展开严格代数证明：为什么 dim Row(A) = dim Col(A) = r，且 E 的底部 m−r 行恰好张成 Null(Aᵀ)？">
+1. **证明 $\operatorname{Row}(A) = \operatorname{Row}(R)$ 且 $\dim\operatorname{Row}(A) = r$**：
+   因 $R = EA$ 且 $E$ 可逆（$A = E^{-1}R$），由第 03 讲定理 3.1 第 2 条（乘积行空间包含于右因子）：
+   - $R = EA \implies \operatorname{Row}(R) \subseteq \operatorname{Row}(A)$；
+   - $A = E^{-1}R \implies \operatorname{Row}(A) \subseteq \operatorname{Row}(R)$。
+   故 $\operatorname{Row}(A) = \operatorname{Row}(R)$！现在看 $R$ 的前 $r$ 个非零行 $\mathbf{r}_1^T, \dots, \mathbf{r}_r^T$（其余 $m-r$ 行为零向量）：显然它们张成 $\operatorname{Row}(R)$；又因为在 $r$ 个主列下标 $j_1 < \cdots < j_r$ 上，第 $k$ 行在第 $j_k$ 分量为 $1$ 而其余 $r-1$ 行在该分量为 $0$，若 $\sum_{k=1}^r c_k \mathbf{r}_k = \mathbf{0}$，逐一查看第 $j_k$ 分量立得 $c_1 = \cdots = c_r = 0$！故前 $r$ 行线性无关，构成 $\operatorname{Row}(A)$ 的一组基，从而 $\dim\operatorname{Col}(A^T) = \dim\operatorname{Row}(A) = r = \dim\operatorname{Col}(A)$！
+   （顺水推舟：因 $\operatorname{rank}(A^T) = \dim\operatorname{Col}(A^T) = r$，直接对矩阵 $A^T \in \mathbb{R}^{n\times m}$ 应用第 09 讲秩—零化度定理，立得 $\dim\operatorname{Null}(A^T) = m - \operatorname{rank}(A^T) = m - r$！）
+
+2. **证明 $E$ 的最后 $m - r$ 行构成 $\operatorname{Null}(A^T)$ 的基**：
+   将可逆矩阵 $E \in \mathbb{R}^{m\times m}$ 的各行记为 $\mathbf{e}'^T_1, \dots, \mathbf{e}'^T_m$。
+   - 因 $EA = R$ 的最后 $m - r$ 行为全零行，对每个 $i = r+1, \dots, m$ 均有 $\mathbf{e}'^T_i A = \mathbf{0}^T \iff A^T \mathbf{e}'_i = \mathbf{0}$，故 $\{\mathbf{e}'_{r+1}, \dots, \mathbf{e}'_m\} \subseteq \operatorname{Null}(A^T)$。
+   - 因 $E$ 可逆，其全部 $m$ 行线性无关，故其子集 $\{\mathbf{e}'_{r+1}, \dots, \mathbf{e}'_m\}$（共 $m - r$ 个向量）必线性无关！
+   - 已知 $\dim\operatorname{Null}(A^T) = m - r$，在 $m - r$ 维子空间中找到恰好 $m - r$ 个线性无关向量（习题 `l09-ex3` 卡位定理），自动构成 $\operatorname{Null}(A^T)$ 的一组基！
+</ProofCollapse>
+
+<PitfallAlert title="常见直觉陷阱与网传笔记三大勘误">
+1. **误区一：混淆哪两个子空间可以用 $R$ 直接读基、哪两个不能用 $R$！（考前必背对照表）**
+   - **能直接从 $R$ 读基的（都在 $\mathbb{R}^n$ 输入侧！）**：$\operatorname{Row}(A) = \operatorname{Row}(R)$（抄 $R$ 非零行）、$\operatorname{Null}(A) = \operatorname{Null}(R)$（抄 $R$ 特解）；
+   - **绝对不能用 $R$ 冒充的（都在 $\mathbb{R}^m$ 输出侧！）**：$\operatorname{Col}(A) \neq \operatorname{Col}(R)$（必须回原矩阵 $A$ 抄主列！），$\operatorname{Null}(A^T) \neq \operatorname{Null}(R^T)$（$R^T$ 的零空间只是平凡的后 $m-r$ 个单位基 $\mathbf{e}_{r+1},\dots,\mathbf{e}_m$，而真正的 $\operatorname{Null}(A^T)$ 是行变换记录阵 $E$ 的后 $m-r$ 行！）。
+2. **误区二：看到 $\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A) = r$，就误以为“行空间等于列空间”**
+   **维数相等绝不代表两个空间相等！** 当 $m \neq n$ 时（例如 $3\times 4$ 矩阵），$\operatorname{Row}(A)$ 住在 $\mathbb{R}^4$，而 $\operatorname{Col}(A)$ 住在 $\mathbb{R}^3$，连环境维度都不同！即便 $m = n$ 是方阵，例如 $A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}$，$\operatorname{Row}(A)$ 是 $y$ 轴 $\operatorname{span}\{(0,1)^T\}$，而 $\operatorname{Col}(A)$ 是 $x$ 轴 $\operatorname{span}\{(1,0)^T\}$，两者甚至互相垂直！（仅当 $A$ 是对称矩阵 $A^T=A$ 时才有 $\operatorname{Row}(A) = \operatorname{Col}(A)$。）
+3. **误区三：把行空间里的向量横着写，和列向量混加**
+   在本站与 Strang 教材规范中，为了保持四个基本子空间全部作为标准欧氏空间 $\mathbb{R}^n$ 或 $\mathbb{R}^m$ 的子空间，谈及行空间基向量时一律转置竖写为列向量 $\in \mathbb{R}^n$（即统一视为 $\operatorname{Col}(A^T)$）。
+</PitfallAlert>
+
+<KeyTakeaways
+  items={[
+    "任意 $m\\times n$ 矩阵 $A$ 的行秩恒等于列秩：$\\dim\\operatorname{Row}(A) = \\dim\\operatorname{Col}(A) = r$。",
+    "**输入侧 $\\mathbb{R}^n$ 双子空间**：行空间 $\\operatorname{Row}(A)$（$\\dim = r$，基为 $R$ 的前 $r$ 行）与零空间 $\\operatorname{Null}(A)$（$\\dim = n - r$，基为 $n-r$ 个特解），满足 $r + (n-r) = n$。",
+    "**输出侧 $\\mathbb{R}^m$ 双子空间**：列空间 $\\operatorname{Col}(A)$（$\\dim = r$，基为原矩阵 $A$ 的 $r$ 个主列）与左零空间 $\\operatorname{Null}(A^T)$（$\\dim = m - r$，基为 $EA=R$ 中 $E$ 的底部 $m-r$ 行），满足 $r + (m-r) = m$。",
+    "初等行变换完整保持输入侧的 $\\operatorname{Row}(A)$ 与 $\\operatorname{Null}(A)$，但同步旋转/剪切了输出侧的 $\\operatorname{Col}(A)$ 与 $\\operatorname{Null}(A^T)$。"
+  ]}
+/>
+
+
+<ProblemSet description="本练习集聚焦四个基本子空间的维数账本、$[A\mid I_m]\to[R\mid E]$ 四合一标准基提取法、初等变换下的子空间不变性辨析，以及矩阵作为行空间到列空间一一映射的核武器定理。">
+
+  <ExerciseCard
+    id="l10-ex1"
+    tier="L1"
+    title="增广 Gauss-Jordan 四合一解剖：一次性写出全部四个基本子空间的维数与标准基"
+  >
+    设 $3\times 4$ 实矩阵 $A$ 与单位矩阵拼成增广矩阵 $[A \mid I_3]$ 后，经 Gauss-Jordan 行变换化为如下简化行阶梯形 $[R \mid E]$：
+
+    $$
+    A = \begin{bmatrix} 1 & 2 & 0 & 3 \\ 2 & 4 & 1 & 8 \\ 1 & 2 & 1 & 5 \end{bmatrix}, \qquad [R \mid E] = \left[\begin{array}{cccc|ccc} 1 & 2 & 0 & 3 & 1 & 0 & 0 \\ 0 & 0 & 1 & 2 & -2 & 1 & 0 \\ 0 & 0 & 0 & 0 & 1 & -1 & 1 \end{array}\right]
+    $$
+
+    请直接根据 $A$ 与 $[R \mid E]$ 写出 $\operatorname{Row}(A)$、$\operatorname{Null}(A)$、$\operatorname{Col}(A)$ 与 $\operatorname{Null}(A^T)$ 各自所在的欧氏空间、维数以及一组标准基（全部竖写为列向量），并现场验算左零空间基向量确实满足 $A^T\mathbf{y}=\mathbf{0}$。
+
+    <ProgressiveHint
+      hints={[
+        "先数 $R$ 中主元个数得到秩 $r = 2$，主列下标为第 $1, 3$ 列，自由列下标为第 $2, 4$ 列；环境空间分别为输入侧 $\\mathbb{R}^4$（$n=4$）与输出侧 $\\mathbb{R}^3$（$m=3$）。",
+        "输入侧两个子空间直接读 $R$：$\\operatorname{Row}(A)$ 抄 $R$ 的前 $2$ 个非零行（转置为列向量），$\\operatorname{Null}(A)$ 分别令自由变量 $(x_2,x_4)=(1,0)$ 与 $(0,1)$ 写出 $2$ 个特解。",
+        "输出侧两个子空间看 $A$ 与 $E$：$\\operatorname{Col}(A)$ 必须回**原矩阵 $A$** 抄第 $1, 3$ 主列！$\\operatorname{Null}(A^T)$ 直接抄右侧记录阵 $E$ 的第 $3$ 行（对应 $R$ 的全零行）！"
+      ]}
+    />
+
+    <DualSolution>
+      <SolutionIntuition>
+
+        矩阵 $A \in \mathbb{R}^{3\times 4}$ 有 $r = 2$ 个主元（位于第 $1, 3$ 列）。按照线性代数基本定理第一部分的“输入/输出双侧维数天平”：
+        - **输入侧 $\mathbb{R}^4$（$2 + 2 = 4$）**：行变换不改行空间和零空间，直接读 $R$ 即可拿到最干净的基；
+        - **输出侧 $\mathbb{R}^3$（$2 + 1 = 3$）**：行变换扭曲了列空间，因此列空间基必须回老家 $A$ 取第 $1, 3$ 列；而 $E$ 的最后一行 $(1, -1, 1)$ 正是把 $A$ 的三行组合出全零行的精确配方（$\text{row}_1 - \text{row}_2 + \text{row}_3 = \mathbf{0}^T$）！
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        由 $R$ 有 $r = 2$ 个主元（主列 $j \in \{1, 3\}$，自由列 $j \in \{2, 4\}$），四个基本子空间的完整清单如下：
+
+        1. **行空间 $\operatorname{Row}(A) \subseteq \mathbb{R}^4$**：$\dim\operatorname{Row}(A) = r = 2$。取 $R$ 的前 $2$ 个非零行转置得基：
+
+           $$
+           \mathcal{B}_{\text{row}} = \left\{ \begin{bmatrix} 1 \\ 2 \\ 0 \\ 3 \end{bmatrix}, \, \begin{bmatrix} 0 \\ 0 \\ 1 \\ 2 \end{bmatrix} \right\}
+           $$
+
+        2. **零空间 $\operatorname{Null}(A) \subseteq \mathbb{R}^4$**：$\dim\operatorname{Null}(A) = n - r = 4 - 2 = 2$。由 $R\mathbf{x}=\mathbf{0}$ 即 $x_1 = -2x_2 - 3x_4,\; x_3 = -2x_4$，令 $(x_2,x_4)=(1,0)$ 与 $(0,1)$ 得特解基：
+
+           $$
+           \mathcal{B}_{\text{null}} = \left\{ \begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix}, \, \begin{bmatrix} -3 \\ 0 \\ -2 \\ 1 \end{bmatrix} \right\}
+           $$
+
+        3. **列空间 $\operatorname{Col}(A) \subseteq \mathbb{R}^3$**：$\dim\operatorname{Col}(A) = r = 2$。回原矩阵 $A$ 提取第 $1, 3$ 主列得基：
+
+           $$
+           \mathcal{B}_{\text{col}} = \left\{ \begin{bmatrix} 1 \\ 2 \\ 1 \end{bmatrix}, \, \begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix} \right\}
+           $$
+
+        4. **左零空间 $\operatorname{Null}(A^T) \subseteq \mathbb{R}^3$**：$\dim\operatorname{Null}(A^T) = m - r = 3 - 2 = 1$。提取 $E$ 的底部 $m - r = 1$ 行转置得基：
+
+           $$
+           \mathcal{B}_{\text{left-null}} = \left\{ \mathbf{y}_1 = \begin{bmatrix} 1 \\ -1 \\ 1 \end{bmatrix} \right\}
+           $$
+
+        **现场核验**：计算 $A^T \mathbf{y}_1 = \begin{bmatrix} 1 & 2 & 1 \\ 2 & 4 & 2 \\ 0 & 1 & 1 \\ 3 & 8 & 5 \end{bmatrix} \begin{bmatrix} 1 \\ -1 \\ 1 \end{bmatrix} = \begin{bmatrix} 1-2+1 \\ 2-4+2 \\ 0-1+1 \\ 3-8+5 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ 0 \\ 0 \end{bmatrix} = \mathbf{0}$，严丝合缝！
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l10-ex2"
+    tier="L2"
+    title="概念陷阱辨析（一）：方阵的行空间与列空间一定相等吗？"
+  >
+    判断下列命题真伪：
+
+    > **命题**：设 $A$ 是任意 $n \times n$ 实方阵。既然 $\operatorname{Row}(A)$ 与 $\operatorname{Col}(A)$ 都住在同一个欧氏空间 $\mathbb{R}^n$ 中，且它们的维数恒相等（$\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A) = r$），那么必有子空间恒等式 $\operatorname{Row}(A) = \operatorname{Col}(A)$。
+
+    <TrueFalseInteractive
+      id="l10-tf1"
+      correct={false}
+      quickFeedback="维数相同且住在同一个 $\mathbb{R}^n$ 里，绝不意味着是同一个子空间！想象 $\mathbb{R}^2$ 里的 $x$ 轴和 $y$ 轴：它们都是 $\mathbb{R}^2$ 中的 $1$ 维子空间，但它们截然不同！取极简非对称阵 $A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}$ 立破。"
+    />
+
+    请给出一个 $2 \times 2$ 矩阵的具体反例使得 $\operatorname{Row}(A) \cap \operatorname{Col}(A) = \{\mathbf{0}\}$（两空间除了零向量外完全不相交！），并回答：当 $n\times n$ 方阵 $A$ 满足什么特殊条件（例如可逆，或者对称）时，$\operatorname{Row}(A) = \operatorname{Col}(A)$ 一定成立？
+
+    <ProgressiveHint
+      hints={[
+        "想让 $\\mathbb{R}^2$ 中的两个 $1$ 维子空间只交于原点，只需让列空间落在 $x$ 轴 $\\operatorname{span}\\{(1,0)^T\\}$，而行空间落在 $y$ 轴 $\\operatorname{span}\\{(0,1)^T\\}$！",
+        "把 $(0,1)$ 放在第一行、第二行全放 $0$，写出这个 $2\\times 2$ 矩阵并检查它的列空间与行空间。",
+        "再思考两个充分条件：① 若 $A$ 可逆（$r = n$），两个 $n$ 维子空间在 $\\mathbb{R}^n$ 中还能不相等吗？② 若 $A$ 对称（$A^T = A$），$\\operatorname{Row}(A) = \\operatorname{Col}(A^T)$ 等于什么？"
+      ]}
+    />
+
+    <DualSolution>
+      <SolutionIntuition>
+
+        在平面 $\mathbb{R}^2$ 中，“$1$ 维子空间”有无穷多条过原点的直线！维数相等只保证它们都是直线，绝不保证它们指向同一个方向。矩阵 $A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}$ 把一切列输出都压在水平 $x$ 轴上，但它的行向量却沿着竖直 $y$ 轴，两条直线互相垂直，交集只有原点！
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        **命题为假**。
+
+        1. **$2\times 2$ 极简反例**：取秩 $1$ 幂零矩阵
+
+           $$
+           A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}
+           $$
+
+           则列空间 $\operatorname{Col}(A) = \operatorname{span}\!\left\{\begin{bmatrix} 1 \\ 0 \end{bmatrix}\right\}$（$x$ 轴），而行空间 $\operatorname{Row}(A) = \operatorname{Col}(A^T) = \operatorname{span}\!\left\{\begin{bmatrix} 0 \\ 1 \end{bmatrix}\right\}$（$y$ 轴）。两者同为 $\mathbb{R}^2$ 的 $1$ 维子空间，但 $\operatorname{Row}(A) \neq \operatorname{Col}(A)$，且 $\operatorname{Row}(A) \cap \operatorname{Col}(A) = \{\mathbf{0}\}$。
+
+        2. **保证 $\operatorname{Row}(A) = \operatorname{Col}(A)$ 的常见充分条件**：
+           - **条件一：$A$ 可逆（$\operatorname{rank}(A) = n$）**。此时 $\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A) = n$，故 $\operatorname{Row}(A) = \mathbb{R}^n = \operatorname{Col}(A)$。
+           - **条件二：$A$ 为对称矩阵（$A^T = A$）或反对称矩阵（$A^T = -A$）**。此时 $\operatorname{Row}(A) = \operatorname{Col}(A^T) = \operatorname{Col}(\pm A) = \operatorname{Col}(A)$。（注：更一般地，一切正规矩阵 $A^T A = A A^T$ 也满足 $\operatorname{Row}(A) = \operatorname{Col}(A)$。）
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l10-ex3"
+    tier="L2"
+    title="概念陷阱辨析（二）：初等列变换会保持和改变哪几个基本子空间？"
+  >
+    判断下列命题真伪：
+
+    > **命题**：对 $m \times n$ 矩阵 $A$ 施行可逆的初等列变换（即右乘 $n \times n$ 可逆矩阵 $Q$ 得到 $B = AQ$），矩阵的零空间保持不变（$\operatorname{Null}(AQ) = \operatorname{Null}(A)$），而列空间发生改变。
+
+    <TrueFalseInteractive
+      id="l10-tf2"
+      correct={false}
+      quickFeedback="恰好说反了！左乘可逆阵 $EA$（行变换）保 $\operatorname{Row}$ 与 $\operatorname{Null}$；根据转置对偶性，右乘可逆阵 $AQ$（列变换）恰恰保持输出侧的**列空间 $\operatorname{Col}$** 与**左零空间 $\operatorname{Null}(A^T)$** 不变，但扭曲了输入侧的**行空间**与**零空间**！"
+    />
+
+    设 $Q \in \mathbb{R}^{n\times n}$ 可逆，$B = AQ$。请严格证明：① $\operatorname{Col}(B) = \operatorname{Col}(A)$ 且 $\operatorname{Null}(B^T) = \operatorname{Null}(A^T)$；② 零空间如何随 $Q$ 发生精确变换（写出 $\operatorname{Null}(AQ)$ 与 $\operatorname{Null}(A)$ 之间的线性同构关系）？
+
+    <ProgressiveHint
+      hints={[
+        "证明①直接取转置令 $B^T = Q^T A^T$：由于 $Q^T$ 可逆，$B^T$ 就是对 $A^T$ 做了可逆行变换！直接套用正文对 $EA$ 已经证过的结论即可一行秒杀。",
+        "对于②：向量 $\\mathbf{z} \\in \\operatorname{Null}(AQ) \\iff A(Q\\mathbf{z}) = \\mathbf{0} \\iff Q\\mathbf{z} \\in \\operatorname{Null}(A)$。把 $Q$ 乘过去到右边！"
+      ]}
+    />
+
+    <DualSolution>
+      <SolutionIntuition>
+
+        右乘可逆矩阵 $Q$ 是在对 $A$ 的各个**列向量**做可逆的线性组合（比如把第 1 列加到第 2 列，或者交换两列）。用同一批积木互相加减重排，能搭出来的输出大厦 $\operatorname{Col}(A)$ 当然纹丝不动！但既然你调换了列积木的顺序或配方，要想拼出零向量所需的输入权重 $\mathbf{x}$ 自然跟着做相反的坐标变换 $\mathbf{z} = Q^{-1}\mathbf{x}$！
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        **命题为假**。严格证明如下：
+
+        1. **输出侧双子空间完全不变**：
+           - 因 $B = AQ$ 且 $A = BQ^{-1}$，由乘积列空间包含关系（第 03 讲定理 3.1）有 $\operatorname{Col}(B) \subseteq \operatorname{Col}(A)$ 且 $\operatorname{Col}(A) \subseteq \operatorname{Col}(B)$，故 $\operatorname{Col}(AQ) = \operatorname{Col}(A)$。
+           - 对左零空间：$\mathbf{y} \in \operatorname{Null}(B^T) \iff Q^T (A^T \mathbf{y}) = \mathbf{0}$。因 $Q^T$ 可逆（零空间平凡），此式等价于 $A^T \mathbf{y} = \mathbf{0} \iff \mathbf{y} \in \operatorname{Null}(A^T)$。故 $\operatorname{Null}((AQ)^T) = \operatorname{Null}(A^T)$。
+
+        2. **输入侧零空间的精确坐标变换**：
+           对任意 $\mathbf{z} \in \mathbb{R}^n$：
+
+           $$
+           \mathbf{z} \in \operatorname{Null}(AQ) \iff A(Q\mathbf{z}) = \mathbf{0} \iff Q\mathbf{z} \in \operatorname{Null}(A) \iff \mathbf{z} \in Q^{-1}\operatorname{Null}(A)
+           $$
+
+           即 $\operatorname{Null}(AQ) = Q^{-1}\operatorname{Null}(A)$（维数仍为 $n - r$，但子空间本身一般改变；例如 $A = \begin{bmatrix} 1 & 0 \end{bmatrix}$、列交换阵 $Q = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$，则 $\operatorname{Null}(A) = \operatorname{span}\{(0,1)^T\} \neq \operatorname{span}\{(1,0)^T\} = \operatorname{Null}(AQ)$）。
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l10-ex4"
+    tier="L3"
+    title="逆向工程大考题：按指定的四个子空间可否造出矩阵 $A$？"
+  >
+    这是 Gilbert Strang 在 MIT 18.06 Quiz 1 中最偏爱的“无计算子空间构造与判伪题”。请分别判断下列两项工程需求是否存在对应的实矩阵 $A$；若存在请直接构造出一个具体矩阵 $A$，若不存在请用线性代数基本定理给出三行以内的致命否决证明：
+    1. **需求甲**：构造一个 $3 \times 3$ 矩阵 $A$，使其列空间 $\operatorname{Col}(A)$ 包含向量 $(1, 1, 0)^T$ 与 $(0, 1, 1)^T$，且其零空间 $\operatorname{Null}(A)$ 包含向量 $(1, 0, 1)^T$ 与 $(0, 1, 1)^T$。
+    2. **需求乙**：构造一个矩阵 $A$，使其列空间由 $\begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix}$ 张成，而其行空间由 $\begin{bmatrix} 1 \\ 0 \end{bmatrix}$ 与 $\begin{bmatrix} 0 \\ 1 \end{bmatrix}$ 共同张成。
+    3. **需求丙**：构造一个 $3 \times 3$ 矩阵 $A$，使其列空间 $\operatorname{Col}(A) = \operatorname{span}\!\left\{\begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix}\right\}$，且行空间 $\operatorname{Row}(A) = \operatorname{span}\!\left\{\begin{bmatrix} 1 \\ -1 \\ 2 \end{bmatrix}\right\}$。
+
+    <ProgressiveHint
+      hints={[
+        "对每项需求，第一时间拿出维数卡尺检查两条铁律：① $\\dim\\operatorname{Col}(A) + \\dim\\operatorname{Null}(A) = n$；② $\\dim\\operatorname{Col}(A) = \\dim\\operatorname{Row}(A) = r$！",
+        "需求甲中，$\\operatorname{Col}(A)$ 里已知有两个线性无关向量（故 $r \\ge 2$），$\\operatorname{Null}(A)$ 里也已知有两个线性无关向量（故 $n - r \\ge 2$）。加起来 $n$ 至少是多少？题目给的 $n=3$ 装得下吗？",
+        "需求乙检查行秩与列秩是否相等；需求丙中 $r = 1$ 两边匹配，回想第 03 讲的**秩 1 外积 $\\mathbf{u}\\mathbf{v}^T$** 即可一秒钟徒手写出 $A$！"
+      ]}
+    />
+
+    <DualSolution>
+      <SolutionIntuition>
+
+        线性代数基本定理就是一切矩阵构造题的“能量守恒定律”：
+        - 需求甲想往 $n = 3$ 维输入空间里塞进至少 $2$ 维秩和至少 $2$ 维零空间，$2 + 2 = 4 \gt 3$，容量直接爆炸，绝对不可能！
+        - 需求乙要求列空间是 $1$ 维直线、行空间却是 $2$ 维平面，违背了“行秩必等于列秩”的铁律，同样不可能！
+        - 需求丙两边都是 $1$ 维直线（$r = 1$），直接拿列向量左乘行向量做成外积 $\mathbf{u}\mathbf{v}^T$，一秒钟完工！
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        1. **需求甲：不存在！**
+           因为 $(1,1,0)^T$ 与 $(0,1,1)^T$ 线性无关，故 $r = \dim\operatorname{Col}(A) \ge 2$；同时 $(1,0,1)^T$ 与 $(0,1,1)^T$ 也线性无关，故 $\dim\operatorname{Null}(A) \ge 2$。由秩—零化度定理，矩阵列数必须满足
+
+           $$
+           n = \dim\operatorname{Col}(A) + \dim\operatorname{Null}(A) \ge 2 + 2 = 4 \gt 3
+           $$
+
+           与 $A$ 为 $3\times 3$ 矩阵（$n = 3$）矛盾！
+
+        2. **需求乙：不存在！**
+           由题意 $\dim\operatorname{Col}(A) = 1$，而 $(1,0)^T$ 与 $(0,1)^T$ 线性无关故 $\dim\operatorname{Row}(A) = 2$。这与线性代数基本定理 $\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A)$ 直接矛盾！
+
+        3. **需求丙：存在！**
+           令 $\mathbf{u} = \begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix},\; \mathbf{v} = \begin{bmatrix} 1 \\ -1 \\ 2 \end{bmatrix}$，直接构造秩 $1$ 外积矩阵：
+
+           $$
+           A = \mathbf{u}\mathbf{v}^T = \begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix} \begin{bmatrix} 1 & -1 & 2 \end{bmatrix} = \begin{bmatrix} 1 & -1 & 2 \\ 2 & -2 & 4 \\ 3 & -3 & 6 \end{bmatrix}
+           $$
+
+           其每一列均为 $\mathbf{u}$ 的非零倍数（故 $\operatorname{Col}(A) = \operatorname{span}\{\mathbf{u}\}$），每一行均为 $\mathbf{v}^T$ 的非零倍数（故 $\operatorname{Row}(A) = \operatorname{span}\{\mathbf{v}\}$），完美满足要求。
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l10-ex5"
+    tier="L4"
+    title="灵魂升华挑战：证明矩阵 $A$ 在其行空间与列空间之间建立完美的一一双射！"
+  >
+    对一般 $m \times n$ 矩阵 $A$（秩 $r \lt \min(m, n)$），线性映射 $\mathbf{x} \mapsto A\mathbf{x}$ 从整个 $\mathbb{R}^n$ 到 $\mathbb{R}^m$ 既不是单射（零空间非平凡），也不是满射（列空间未铺满 $\mathbb{R}^m$）。
+    然而，如果我们把定义域限制在**行空间 $\operatorname{Row}(A)$**、把到达域限制在**列空间 $\operatorname{Col}(A)$**，奇迹就会发生！假设已知**行空间与零空间仅交于零向量**（即 $\operatorname{Row}(A) \cap \operatorname{Null}(A) = \{\mathbf{0}\}$，在实数域 $\mathbb{R}^n$ 上：若 $\mathbf{z} \in \operatorname{Row}(A) \cap \operatorname{Null}(A)$，则 $\mathbf{z} = A^T\mathbf{w}$ 且 $A\mathbf{z}=\mathbf{0}$，故 $\mathbf{z}^T\mathbf{z} = \mathbf{w}^T A \mathbf{z} = 0 \implies \mathbf{z}=\mathbf{0}$！）：
+    1. **证明满射性（Surjectivity）**：对任意 $\mathbf{b} \in \operatorname{Col}(A)$，为什么方程 $A\mathbf{x}_r = \mathbf{b}$ 在行空间 $\operatorname{Row}(A)$ 内部**必有解**？（提示：先对整个 $\mathbb{R}^n$ 中的任一解 $\mathbf{x}$ 利用 $\dim\operatorname{Row}(A) + \dim\operatorname{Null}(A) = n$ 及零交集性质把 $\mathbf{x}$ 唯一分解为 $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$！）
+    2. **证明单射性（Injectivity）**：若 $\mathbf{x}_r, \mathbf{y}_r \in \operatorname{Row}(A)$ 满足 $A\mathbf{x}_r = A\mathbf{y}_r$，证明必有 $\mathbf{x}_r = \mathbf{y}_r$！这说明每个可达目标 $\mathbf{b} \in \operatorname{Col}(A)$ 在行空间 $\operatorname{Row}(A)$ 中都拥有**全宇宙唯一**的生成源 $\mathbf{x}_r$！
+
+    <ProgressiveHint
+      hints={[
+        "先看为什么任意 $\\mathbf{x} \\in \\mathbb{R}^n$ 都能拆成 $\\mathbf{x}_r + \\mathbf{x}_n$：取 $\\operatorname{Row}(A)$ 的一组基（$r$ 个向量）和 $\\operatorname{Null}(A)$ 的一组基（$n-r$ 个向量），因为 $\\operatorname{Row}(A) \\cap \\operatorname{Null}(A) = \\{\\mathbf{0}\\}$，合起来的 $n$ 个向量在 $\\mathbb{R}^n$ 中必定线性无关，从而构成整个 $\\mathbb{R}^n$ 的基！",
+        "对任意 $\\mathbf{b} \\in \\operatorname{Col}(A)$，先取 $\\mathbb{R}^n$ 中的某个解 $\\mathbf{x}$ 使 $A\\mathbf{x} = \\mathbf{b}$，拆成 $\\mathbf{x} = \\mathbf{x}_r + \\mathbf{x}_n$ 后两边同乘 $A$，$A\\mathbf{x}_n$ 变成了什么？",
+        "单射性只需考察差向量 $\\mathbf{d} = \\mathbf{x}_r - \\mathbf{y}_r$：它同时属于哪两个子空间？利用交集为 $\\{\\mathbf{0}\\}$ 一锤定音！"
+      ]}
+    />
+
+    <DualSolution>
+      <SolutionIntuition>
+
+        这道题提前揭开了第二模块（正交性）与第四模块（奇异值分解 SVD 与伪逆 $A^+$）最震撼的皇冠全景！
+        整个输入空间 $\mathbb{R}^n$ 里之所以会出现无穷多解，纯粹是因为零空间 $\operatorname{Null}(A)$ 在旁边添乱。一旦我们把零空间滤掉、只站在行空间 $\operatorname{Row}(A)$ 这块 $r$ 维净土上，一切冗余瞬间清零：$r$ 维行空间里的每一个向量 $\mathbf{x}_r$，都被矩阵 $A$ 一对一、不重不漏地精准投射成 $r$ 维列空间里的一个向量 $\mathbf{b} = A\mathbf{x}_r$！在两个 $r$ 维子空间之间，**任何矩阵 $A$ 本质上都是“可逆”的**！
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        **预备引理（$\mathbb{R}^n = \operatorname{Row}(A) \oplus \operatorname{Null}(A)$ 直和分解）**：
+        设 $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ 为 $\operatorname{Row}(A)$ 的基，$\{\mathbf{z}_1, \dots, \mathbf{z}_{n-r}\}$ 为 $\operatorname{Null}(A)$ 的基。若 $\sum_{i=1}^r \alpha_i \mathbf{v}_i + \sum_{j=1}^{n-r} \beta_j \mathbf{z}_j = \mathbf{0}$，令 $\mathbf{w} = \sum_{i=1}^r \alpha_i \mathbf{v}_i = -\sum_{j=1}^{n-r} \beta_j \mathbf{z}_j$，则 $\mathbf{w} \in \operatorname{Row}(A) \cap \operatorname{Null}(A) = \{\mathbf{0}\}$，故 $\mathbf{w} = \mathbf{0}$。由两组基各自的线性无关性立得全部 $\alpha_i = 0, \beta_j = 0$。这 $r + (n-r) = n$ 个线性无关向量构成 $\mathbb{R}^n$ 的基，故任意 $\mathbf{x} \in \mathbb{R}^n$ 均可唯一分解为 $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$（其中 $\mathbf{x}_r \in \operatorname{Row}(A),\; \mathbf{x}_n \in \operatorname{Null}(A)$）。
+
+        1. **满射性（存在性）证明**：
+           任取 $\mathbf{b} \in \operatorname{Col}(A)$，由列空间定义存在 $\mathbf{x} \in \mathbb{R}^n$ 使得 $A\mathbf{x} = \mathbf{b}$。将其分解为 $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$（$\mathbf{x}_r \in \operatorname{Row}(A), \mathbf{x}_n \in \operatorname{Null}(A)$），两边左乘 $A$：
+
+           $$
+           \mathbf{b} = A\mathbf{x} = A(\mathbf{x}_r + \mathbf{x}_n) = A\mathbf{x}_r + \mathbf{0} = A\mathbf{x}_r
+           $$
+
+           故行空间内必存在 $\mathbf{x}_r \in \operatorname{Row}(A)$ 映射至 $\mathbf{b}$！
+
+        2. **单射性（唯一性）证明**：
+           设 $\mathbf{x}_r, \mathbf{y}_r \in \operatorname{Row}(A)$ 满足 $A\mathbf{x}_r = A\mathbf{y}_r$。考察差向量 $\mathbf{d} = \mathbf{x}_r - \mathbf{y}_r$：
+           - 因 $\operatorname{Row}(A)$ 是子空间（对减法封闭），有 $\mathbf{d} \in \operatorname{Row}(A)$；
+           - 因 $A\mathbf{d} = A\mathbf{x}_r - A\mathbf{y}_r = \mathbf{0}$，有 $\mathbf{d} \in \operatorname{Null}(A)$。
+           于是 $\mathbf{d} \in \operatorname{Row}(A) \cap \operatorname{Null}(A) = \{\mathbf{0}\}$，即 $\mathbf{x}_r - \mathbf{y}_r = \mathbf{0} \implies \mathbf{x}_r = \mathbf{y}_r$！
+           综上，限制映射 $\left.A\right|_{\operatorname{Row}(A)} : \operatorname{Row}(A) \xrightarrow{\;\sim\;} \operatorname{Col}(A)$ 是两个 $r$ 维子空间之间的线性同构（双射）！
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+</ProblemSet>

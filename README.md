@@ -47,9 +47,9 @@ This project bridges both worlds with four strict design pillars:
 | **06** | L06 | P06 | Column Space and Nullspace | ✅ Live | 🗓️ Planned | **[AI-02]** Overparameterized Layers, Activation Manifolds & Linear Probing |
 | **07** | L07 | P07 | Solving $Ax = \mathbf{0}$: Pivot Variables, Special Solutions ($R$) | ✅ Live | 🗓️ Planned | — |
 | **08** | L08 | P08 | Solving $Ax = \mathbf{b}$: Row Reduced Form $R$ ($x_p + x_n$) | ✅ Live | 🗓️ Planned | **[AI-03]** Nullspace Knowledge Editing in LLMs (AlphaEdit) |
-| **09** | L09 | P09 | Independence, Basis, and Dimension | 🗓️ Planned | 🗓️ Planned | — |
-| **10** | L10 | P10 | The Four Fundamental Subspaces | 🗓️ Planned | 🗓️ Planned | — |
-| **11** | L11 | P11 | Matrix Spaces; Rank 1 ($\mathbf{u}\mathbf{v}^T$); Small World Graphs | 🗓️ Planned | 🗓️ Planned | **[AI-04]** LoRA ($\Delta W = BA = \sum \mathbf{b}_i\mathbf{a}_i^T$) Low-Rank Subspace Adaptation |
+| **09** | L09 | P09 | Independence, Basis, and Dimension | ✅ Live | 🗓️ Planned | — |
+| **10** | L10 | P10 | The Four Fundamental Subspaces | ✅ Live | 🗓️ Planned | — |
+| **11** | L11 | P11 | Matrix Spaces; Rank 1 ($\mathbf{u}\mathbf{v}^T$); Small World Graphs | ✅ Live | 🗓️ Planned | **[AI-04]** LoRA ($\Delta W = BA = \sum \mathbf{b}_i\mathbf{a}_i^T$) Low-Rank Subspace Adaptation |
 | **12** | L12 | P12 | Graphs, Networks, Incidence Matrices | 🗓️ Planned | 🗓️ Planned | **[AI-05]** Graph Neural Networks (GNNs) & Incidence/Laplacian Operators |
 | **13** | L13 | P13 | Quiz 1 Review (Module I Synthesis) | 🗓️ Planned | 🗓️ Planned | — |
 

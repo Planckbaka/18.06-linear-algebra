@@ -34,6 +34,9 @@ import { SubspacesOfR2AndImpostorsDiagram } from '@/components/diagrams/lecture-
 import { ColSpaceVsNullspaceAmbientDiagram } from '@/components/diagrams/lecture-06-diagrams';
 import { RrefNullspaceBlockDiagram } from '@/components/diagrams/lecture-07-diagrams';
 import { AffineSolutionAndFourRankCasesDiagram } from '@/components/diagrams/lecture-08-diagrams';
+import { BasisGoldilocksDiagram } from '@/components/diagrams/lecture-09-diagrams';
+import { FourSubspacesBigPictureDiagram } from '@/components/diagrams/lecture-10-diagrams';
+import { MatrixSubspacesAndRank1BlocksDiagram } from '@/components/diagrams/lecture-11-diagrams';
 import {
   ProblemSet,
   ExerciseCard,
@@ -121,6 +124,9 @@ const MDX_COMPONENTS = {
   ColSpaceVsNullspaceAmbientDiagram,
   RrefNullspaceBlockDiagram,
   AffineSolutionAndFourRankCasesDiagram,
+  BasisGoldilocksDiagram,
+  FourSubspacesBigPictureDiagram,
+  MatrixSubspacesAndRank1BlocksDiagram,
   ProblemSet,
   ExerciseCard,
   TrueFalseInteractive,

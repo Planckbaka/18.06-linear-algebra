@@ -230,7 +230,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Independence, Basis, and Dimension',
     focusZh: '零空间平凡性与列向量线性无关的等价关系、Steinitz 替换引理直觉与子空间维数唯一性证明。',
     focusEn: 'Equivalence between Null(A)={0} and column independence, spanning vs. minimal sets, and invariance of dimension.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -244,7 +244,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'The Four Fundamental Subspaces',
     focusZh: '线性代数基本定理第一部分：ℝⁿ 与 ℝᵐ 中的维数守恒（r 与 n-r、r 与 m-r）及各子空间标准基的提取法。',
     focusEn: 'Fundamental Theorem of Linear Algebra Part I: dimensions and bases of Col(A), Null(A), Row(A), and Null(Aᵀ).',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -258,7 +258,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Matrix Spaces; Rank 1; Small World Graphs',
     focusZh: '抽象矩阵空间 M_{m×n} 的基与维数，以及秩 1 外积矩阵 uvᵀ 作为一切秩 r 矩阵分解的原子积木。',
     focusEn: 'Subspaces of matrices (symmetric, upper-triangular), dimension formulas, and rank-1 matrices uvᵀ as building blocks.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-04',
