@@ -1,0 +1,467 @@
+---
+title: "第 07 讲：求解 Ax = 0（主变量、特解与 RREF）"
+ocwId: "L07"
+videoEpisode: "P07"
+textbookRef: "§3.2"
+---
+
+在第 06 讲中，我们从概念上定义了零空间 $\operatorname{Null}(A) = \{\mathbf{x} \in \mathbb{R}^n : A\mathbf{x} = \mathbf{0}\}$；但面对一个一般的 $m\times n$ 长方矩阵（可能既不是方阵、里面又混杂着冗余的行和冗余的列），**究竟该用怎样一套万无一失的系统算法，把整个零空间里的无穷多个向量一网打尽地表达出来？**
+
+在 MIT 18.06 第 07 讲中，Gilbert Strang 教授给出了贯穿整门课程的计算脊梁：对长方矩阵继续消元直至**简化行阶梯形（Reduced Row Echelon Form, RREF）** $R = \operatorname{rref}(A)$，精准清点矩阵的灵魂数字——**秩（Rank）** $r$，并用 $n - r$ 个**自由变量（Free Variables）**一键读取零空间的全部**特解（Special Solutions）**！
+
+---
+
+## 一、跟随 Strang 黑板经典算例：对 3×4 长方矩阵做到底的消元
+
+抛开抽象符号，直接解剖 Strang 教授在课堂上亲手演算的 $3\times 4$ 矩阵 $A \in \mathbb{R}^{3\times 4}$：
+
+$$
+A = \begin{bmatrix}
+1 & 2 & 2 & 2 \\
+2 & 4 & 6 & 8 \\
+3 & 6 & 8 & 10
+\end{bmatrix}
+$$
+
+（敏锐的你一眼就能看出两处端倪：第 2 列正好是第 1 列的 $2$ 倍；第 3 行正好等于第 1 行加第 2 行！让我们看看高斯消元如何诚实地把这两处相关性全部暴露出来。）
+
+### 1.1 第一阶段：前向消元至阶梯形 $U$，锁定主列与秩 $r$
+
+1. **第 1 个主元**：左上角 $(1,1)$ 位为 $\boxed{1} \neq 0$。执行 $R_2 \leftarrow R_2 - 2R_1$ 与 $R_3 \leftarrow R_3 - 3R_1$ 清空第 1 列下方：
+
+$$
+A \longrightarrow
+\begin{bmatrix}
+\mathbf{1} & 2 & 2 & 2 \\
+0 & \mathbf{0} & 2 & 4 \\
+0 & \mathbf{0} & 2 & 4
+\end{bmatrix}
+$$
+
+2. **寻找第 2 个主元（关键跨列跳跃！）**：按惯例先看 $(2,2)$ 位——撞上了 $0$！先别慌，按第 02 讲规矩往下看 $(3,2)$ 位试图行交换——居然还是 $0$！
+   在方阵时代，这意味着奇异崩溃；但在长方矩阵 $A\mathbf{x} = \mathbf{0}$ 求解中，**这列没有主元完全不妨碍我们继续向右迈进**！把第 2 列标记为无主元的**自由列（Free Column）**，目光直接向右移到第 3 列的 $(2,3)$ 位置——这里躺着响亮的非零数 $\boxed{2}$！它就是我们的**第 2 个主元**！
+3. 用第 2 个主元执行 $R_3 \leftarrow R_3 - 1R_2$，第 3 行整行归零，得到**行阶梯形（Row Echelon Form）** $U$：
+
+$$
+U = \begin{bmatrix}
+\boxed{1} & 2 & 2 & 2 \\
+0 & 0 & \boxed{2} & 4 \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+$$
+
+现在清点战果：整张矩阵一共只产生了 **$r = 2$ 个主元**（分别位于**第 1 列**和**第 3 列**）。这个数字 $r$ 就是线性代数中最重要的单一指标——矩阵 $A$ 的**秩（Rank）**，记作 $\operatorname{rank}(A) = 2$！
+
+### 1.2 从 $U\mathbf{x} = \mathbf{0}$ 构造 $n - r = 2$ 个特解（Special Solutions）
+
+由第 02 讲同解定理，$A\mathbf{x} = \mathbf{0} \iff U\mathbf{x} = \mathbf{0}$，展开就是两个有效方程配四个未知数：
+
+$$
+\begin{cases}
+x_1 + 2x_2 + 2x_3 + 2x_4 = 0 \\
+\phantom{x_1 + 2x_2 + {}} 2x_3 + 4x_4 = 0
+\end{cases}
+$$
+
+四个未知数自然分裂为两大阵营：
+- **主变量（Pivot Variables）**：含主元的列对应的变量 **$x_1, x_3$**（共 $r = 2$ 个，受方程严格锁定）；
+- **自由变量（Free Variables）**：不含主元的列对应的变量 **$x_2, x_4$**（共 $n - r = 4 - 2 = 2$ 个，可以赋予**任意实数值**，一旦赋定，主变量便由回代唯一解出！）。
+
+为了最干净地张成整个零空间，我们不乱赋杂数，而是让两个自由变量 $(x_2, x_4)$ **轮流取标准单位组合 $(1, 0)$ 与 $(0, 1)$**：
+
+- **第 1 个特解 $\mathbf{s}_1$（令 $x_2 = 1,\; x_4 = 0$）**：
+  由第 2 式 $2x_3 + 0 = 0 \implies x_3 = 0$；代入第 1 式 $x_1 + 2(1) + 0 + 0 = 0 \implies x_1 = -2$。得：
+
+$$
+\mathbf{s}_1 = \begin{bmatrix} -2 \\ \mathbf{1} \\ 0 \\ \mathbf{0} \end{bmatrix}
+\quad \text{（几何意义：第 2 列恰好等于 } 2 \text{ 倍第 1 列！）}
+$$
+
+- **第 2 个特解 $\mathbf{s}_2$（令 $x_2 = 0,\; x_4 = 1$）**：
+  由第 2 式 $2x_3 + 4(1) = 0 \implies x_3 = -2$；代入第 1 式 $x_1 + 0 + 2(-2) + 2(1) = 0 \implies x_1 = 2$。得：
+
+$$
+\mathbf{s}_2 = \begin{bmatrix} 2 \\ \mathbf{0} \\ -2 \\ \mathbf{1} \end{bmatrix}
+\quad \text{（几何意义：第 4 列等于 } -2 \text{ 倍第 1 列加 } 2 \text{ 倍第 3 列！）}
+$$
+
+于是，$A\mathbf{x} = \mathbf{0}$ 的通解（即整个零空间 $\operatorname{Null}(A) \subseteq \mathbb{R}^4$）就是这两个特解的所有线性组合：
+
+$$
+\mathbf{x} = x_2 \begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix}
++ x_4 \begin{bmatrix} 2 \\ 0 \\ -2 \\ 1 \end{bmatrix}
+\quad (x_2, x_4 \in \mathbb{R})
+$$
+
+---
+
+## 二、更进一步：简化行阶梯形 $R = \operatorname{rref}(A)$ 与零空间矩阵 $N$
+
+刚才从 $U$ 求特解还要动笔回代两步；如果我们对 $U$ 再多花一点点力气做**向上消元**与**主元化 $1$**，就能把特解直接“印在矩阵脸上”，一眼免算抄出来！
+
+对 $U$ 继续执行两步初等行变换：① 第 2 行除以主元 $2$ 得 $[0, 0, 1, 2]$；② 从第 1 行减去 $2$ 倍新第 2 行清掉第 2 个主元正上方的 $2$：
+
+$$
+U = \begin{bmatrix}
+1 & 2 & 2 & 2 \\
+0 & 0 & 2 & 4 \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+\xrightarrow{R_2 \leftarrow \frac{1}{2}R_2}
+\begin{bmatrix}
+1 & 2 & 2 & 2 \\
+0 & 0 & 1 & 2 \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+\xrightarrow{R_1 \leftarrow R_1 - 2R_2}
+R = \begin{bmatrix}
+\mathbf{1} & \underline{2} & \mathbf{0} & \underline{-2} \\
+\mathbf{0} & \underline{0} & \mathbf{1} & \underline{2} \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+$$
+
+这就是矩阵 $A$ 唯一确定的终极最简形态——**简化行阶梯形（Reduced Row Echelon Form, RREF）** $R = \operatorname{rref}(A)$！请对照刚才手算的两个特解 $\mathbf{s}_1 = (-2, 1, 0, 0)^T$ 与 $\mathbf{s}_2 = (2, 0, -2, 1)^T$，再看看 $R$ 里带下划线的两个自由列 $\begin{bmatrix} 2 \\ 0 \end{bmatrix}$ 与 $\begin{bmatrix} -2 \\ 2 \end{bmatrix}$：
+
+**特解里主变量的数值 $(-2, 0)$ 与 $(2, -2)$，分毫不差就是 $R$ 中自由列元素直接添上负号！**
+
+为什么会有如此工整的符号反转？假设我们通过列重排（右乘列置换矩阵 $P_{\text{col}}$），把 $R$ 的 $r$ 个主列排在左半边、$n - r$ 个自由列排在右半边，那么 $R$ 必然呈现出教科书般纯净的分块形式：
+
+$$
+R_{\text{sorted}} = \begin{bmatrix}
+I_r & F \\
+0 & 0
+\end{bmatrix} \in \mathbb{R}^{m\times n}
+$$
+
+把未知向量也相应分块为 $\mathbf{x} = \begin{bmatrix} \mathbf{x}_{\text{pivot}} \\ \mathbf{x}_{\text{free}} \end{bmatrix}$，方程 $R_{\text{sorted}}\mathbf{x} = \mathbf{0}$ 一行破译：
+
+$$
+I_r \mathbf{x}_{\text{pivot}} + F \mathbf{x}_{\text{free}} = \mathbf{0}
+\quad \Longleftrightarrow \quad
+\mathbf{x}_{\text{pivot}} = -F \mathbf{x}_{\text{free}}
+$$
+
+令自由变量向量 $\mathbf{x}_{\text{free}}$ 依次取单位矩阵 $I_{n-r}$ 的各列，把全部 $n - r$ 个特解并排拼成一张 $n \times (n - r)$ 的**零空间矩阵（Nullspace Matrix）** $N$，就诞生了本讲最著名的分块公式：
+
+$$
+N = \begin{bmatrix}
+-F \\
+I_{n-r}
+\end{bmatrix} \in \mathbb{R}^{n \times (n-r)}
+\quad \Longrightarrow \quad
+R_{\text{sorted}} N = \begin{bmatrix} I_r & F \\ 0 & 0 \end{bmatrix} \begin{bmatrix} -F \\ I_{n-r} \end{bmatrix} = \begin{bmatrix} -F + F \\ 0 \end{bmatrix} = 0
+$$
+
+<RrefNullspaceBlockDiagram />
+
+<InteractiveCanvasSlot
+  id="l07-rref-special-solutions"
+  title="R = rref(A) 主列/自由列提取与特解自动生成器"
+  description="二期交互预留：对任意 3×4 或 4×5 整数矩阵逐步展示前向消元 $A \to U$ 与向上回消 $U \to R$，高亮主列单位阵 $I_r$ 与自由子块 $F$，动态翻转符号映射生成 $n-r$ 个特解向量。"
+/>
+
+<DefinitionCard
+  label="Definition 7.1"
+  title="矩阵的秩、简化行阶梯形（RREF）与特解"
+  termEn="Rank, Reduced Row Echelon Form (RREF), and Special Solutions"
+>
+设实矩阵 $A \in \mathbb{R}^{m\times n}$：
+
+1. **简化行阶梯形 $R = \operatorname{rref}(A)$**：满足以下四条规范条件的行阶梯形矩阵（对每个给定矩阵 $A$，其 $R$ **唯一确定**）：
+   - 全零行（若存在）全部位于矩阵最底部；
+   - 每个非零行的首个非零元素（**主元 Pivot**）严格等于 $1$，且下一行主元的列号严格大于上一行主元的列号（阶梯严格向右下方延伸）；
+   - 每个主元所在的**主列（Pivot Column）**中，除该主元 $1$ 之外，其**上方与下方所有其余元素全为 $0$**。
+2. **矩阵的秩（Rank）**：矩阵消元产生的非零主元总个数称为 $A$ 的**秩**，记作 $r = \operatorname{rank}(A)$。显然恒有边界不等式：
+
+$$
+0 \le \operatorname{rank}(A) \le \min(m, n)
+$$
+
+3. **零空间特解（Special Solutions）**：在 $n$ 个未知数中，$r$ 个主列对应**主变量**，其余 $n - r$ 个自由列对应**自由变量**。依次令第 $k$ 个自由变量等于 $1$、其余 $n - r - 1$ 个自由变量全部等于 $0$（$k = 1, \dots, n - r$）所唯一解出的 $n - r$ 个零空间向量 $\mathbf{s}_1, \dots, \mathbf{s}_{n-r} \in \operatorname{Null}(A)$，称为 $A$ 的**特解**。
+</DefinitionCard>
+
+<TheoremCard
+  label="Theorem 7.1"
+  title="零空间特解表示定理与宽矩阵非平凡零空间推论"
+  termEn="Nullspace Basis via Special Solutions & Wide-Matrix Corollary"
+>
+设矩阵 $A \in \mathbb{R}^{m\times n}$ 的秩为 $\operatorname{rank}(A) = r$：
+
+1. **零空间恒等与特解张成**：初等行变换不改变零空间，即 $\operatorname{Null}(A) = \operatorname{Null}(U) = \operatorname{Null}(R)$；当 $n - r \gt 0$ 时，$A$ 恰有 $n - r$ 个线性无关的特解 $\mathbf{s}_1, \dots, \mathbf{s}_{n-r}$，且整个零空间精确等于它们的线性组合：
+
+$$
+\operatorname{Null}(A) = \left\{ c_1 \mathbf{s}_1 + c_2 \mathbf{s}_2 + \cdots + c_{n-r} \mathbf{s}_{n-r} : c_1, \dots, c_{n-r} \in \mathbb{R} \right\}
+$$
+
+   若 $r = n$（无自由变量），则没有特解，$\operatorname{Null}(A) = \{\mathbf{0}\}$。
+2. **矮胖矩阵必有非零零空间解（方程少、未知数多定理）**：若**列数严格大于行数**（$n \gt m$），则由于 $r \le m \lt n$，自由变量个数满足 $n - r \ge n - m \ge 1$，故齐次方程 $A\mathbf{x} = \mathbf{0}$ **必定存在无穷多个非零解**！
+</TheoremCard>
+
+<ProofCollapse title="展开严格代数证明：为什么任意零空间向量都能唯一写成这 n−r 个特解的线性组合？">
+不妨经列标号重排使前 $r$ 列为主列、后 $n-r$ 列为自由列，此时 $R = \begin{bmatrix} I_r & F \\ 0 & 0 \end{bmatrix}$，且第 $k$ 个特解为 $\mathbf{s}_k = \begin{bmatrix} -\mathbf{f}_k \\ \mathbf{e}_k \end{bmatrix}$（其中 $\mathbf{f}_k$ 为 $F$ 的第 $k$ 列，$\mathbf{e}_k \in \mathbb{R}^{n-r}$ 为标准基）。
+1. **任意解均可表出（张成性）**：任取 $\mathbf{x} = \begin{bmatrix} \mathbf{u} \\ \mathbf{v} \end{bmatrix} \in \operatorname{Null}(A) = \operatorname{Null}(R)$，其中 $\mathbf{u} \in \mathbb{R}^r,\; \mathbf{v} = (v_1, \dots, v_{n-r})^T \in \mathbb{R}^{n-r}$。由 $R\mathbf{x} = \mathbf{0}$ 得 $\mathbf{u} + F\mathbf{v} = \mathbf{0} \implies \mathbf{u} = -F\mathbf{v} = -\sum_{k=1}^{n-r} v_k \mathbf{f}_k$。因此：
+
+$$
+\mathbf{x} = \begin{bmatrix} -\sum_{k=1}^{n-r} v_k \mathbf{f}_k \\ \sum_{k=1}^{n-r} v_k \mathbf{e}_k \end{bmatrix} = \sum_{k=1}^{n-r} v_k \begin{bmatrix} -\mathbf{f}_k \\ \mathbf{e}_k \end{bmatrix} = \sum_{k=1}^{n-r} v_k \mathbf{s}_k
+$$
+
+2. **系数唯一（线性无关性）**：若 $c_1\mathbf{s}_1 + \cdots + c_{n-r}\mathbf{s}_{n-r} = \mathbf{0}$，只看下半块最后 $n - r$ 个自由变量分量，它直接等于 $I_{n-r} \mathbf{c} = (c_1, \dots, c_{n-r})^T = \mathbf{0}$，瞬间迫使 $c_1 = \cdots = c_{n-r} = 0$！这证明 $n - r$ 个特解天生线性无关！
+</ProofCollapse>
+
+<PitfallAlert title="常见直觉陷阱与网传笔记三大勘误">
+1. **误区一：主列与自由列交错排列时，盲目套用上下硬拼公式 $\begin{bmatrix} -F \\ I \end{bmatrix}$ 导致坐标错位！（极高频惨案！）**
+   公式 $N = \begin{bmatrix} -F \\ I_{n-r} \end{bmatrix}$ **仅当所有主列刚好排在前 $r$ 列、所有自由列刚好排在后 $n-r$ 列时**才能上下直接拼写！在实战中（如本讲算例主列在 **1, 3 列**，自由列在 **2, 4 列**），**千万不要生搬上下分块**，而应先把自由变量 $(x_2, x_4)$ 填进第 2、4 个槽位 $(1,0)$ 和 $(0,1)$，再把 $-F$ 的元素对号入座填回主变量第 1、3 个槽位，得到 $(-2, \mathbf{1}, 0, \mathbf{0})^T$ 与 $(2, \mathbf{0}, -2, \mathbf{1})^T$！写完务必花 3 秒钟心算 $R\mathbf{s}_k = \mathbf{0}$ 验算符号！
+2. **误区二：抄特解时忘了给自由块 $F$ 变负号！**
+   方程是 $I_r \mathbf{x}_{\text{pivot}} \mathbf{+} F \mathbf{x}_{\text{free}} = \mathbf{0}$，把 $F\mathbf{x}_{\text{free}}$ 移到等号右边求主变量时**必须变负号**（$\mathbf{x}_{\text{pivot}} = -F\mathbf{x}_{\text{free}}$）！漏变负号是期末考卷上排名第一的失分点。
+3. **误区三：混淆第 07 讲的“零空间特解（Special Solutions to $A\mathbf{x}=\mathbf{0}$）”与第 08 讲的“非齐次特解（Particular Solution $\mathbf{x}_p$ to $A\mathbf{x}=\mathbf{b}$）”**
+   中文里两者常都被简译为“特解”，但在英文原著中泾渭分明：**Special Solutions** 特指齐次方程 $A\mathbf{x}=\mathbf{0}$ 令自由变量轮流取 $1$ 得到的 $n - r$ 个零空间基向量；而下一讲的 **Particular Solution** $\mathbf{x}_p$ 是满足非齐次方程 $A\mathbf{x}_p = \mathbf{b}$ 的某一个具体解。阅读时请留心区分！
+</PitfallAlert>
+
+<KeyTakeaways
+  items={[
+    "矩阵的**秩 $r = \\operatorname{rank}(A)$** 等于消元产生的**主元个数**，恒满足 $0 \\le r \\le \\min(m, n)$。",
+    "在 $A\\mathbf{x} = \\mathbf{0}$ 的 $n$ 个未知数中，有 **$r$ 个主变量**与 **$n - r$ 个自由变量**；令自由变量轮流取 $(1,0,\\dots)$ 可唯一生成 $n-r$ 个线性无关的零空间**特解**。",
+    "简化行阶梯形 $R = \\operatorname{rref}(A)$ 将主列化为单位阵各列：若列按主列在前重排为 $R = \\begin{bmatrix} I_r & F \\\\ 0 & 0 \\end{bmatrix}$，则零空间矩阵为 $N = \\begin{bmatrix} -F \\\\ I_{n-r} \\end{bmatrix}$；若主列与自由列交错，务必按各自变量槽位对号填入。",
+    "只要未知数多于方程数（**宽矩阵 $n \\gt m$**），必有至少 $n - m \\ge 1$ 个自由变量，$A\\mathbf{x} = \\mathbf{0}$ 必有无穷多非零解。"
+  ]}
+/>
+
+<ProblemSet>
+
+<ExerciseCard id="l07-ex1" tier="L1" title="交错主列实战：化简 RREF 并精准对槽位提取特解">
+给定 $3\times 5$ 矩阵 $A$ 已经过前向消元化为阶梯形 $U$：
+
+$$
+U = \begin{bmatrix}
+0 & 2 & 4 & 2 & -6 \\
+0 & 0 & 0 & 1 & 3 \\
+0 & 0 & 0 & 0 & 0
+\end{bmatrix}
+$$
+
+1. 指出该矩阵的秩 $r$、主列是哪几列、自由列是哪几列？（特别注意第 1 列全为 $0$！）
+2. 将 $U$ 继续向上消元并归一化为 $R = \operatorname{rref}(U)$；
+3. 按正确的变量槽位写出全部 $n - r$ 个零空间特解，并用 $R\mathbf{s}_k = \mathbf{0}$ 逐一验算！
+
+<ProgressiveHint
+  hints={[
+    "第 1 列全是 $0$，没有主元！所以第 1 列本身就是一个**自由列**（$x_1$ 是自由变量）！两个主元分别在第 2 列（值为 $2$）和第 4 列（值为 $1$），故秩 $r = 2$，共有 $5 - 2 = 3$ 个自由变量 $x_1, x_3, x_5$！",
+    "化为 $R$：先把第 1 行除以 $2$ 得 $[0, 1, 2, 1, -3]$，再减去第 2 行清掉 $(1,4)$ 位的 $1$，得 $R$ 的第 1 行为 $[0, 1, 2, 0, -6]$！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+这道题专门治愈“默认第 1 列一定是主列”的思维定势！
+- 第 1 列全零，意味着你给 $x_1$ 乘一万倍都是 $0$，丝毫不影响等式——所以 $x_1 = 1$ 且其余全取 $0$ 的标准基向量 $\mathbf{s}_1 = (1, 0, 0, 0, 0)^T$ 当场白送一个特解！
+- 化出 $R$ 后只看 $x_2, x_4$ 两个主槽位，把自由变量 $x_3 = 1$ 和 $x_5 = 1$ 依次填进去反号配平，三支特解清清楚楚！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. 两个非零主元位于第 **2 列**与第 **4 列**，故秩 $r = \mathbf{2}$；主变量为 $x_2, x_4$；自由列为第 **1、3、5 列**（共 $5 - 2 = 3$ 个自由变量 $x_1, x_3, x_5$）。
+2. 先令 $R_1 \leftarrow \frac{1}{2}R_1$ 得 $[0, 1, 2, 1, -3]$，再令 $R_1 \leftarrow R_1 - R_2$ 清空第 4 列上方元素，得到唯一简化行阶梯形：
+
+$$
+R = \begin{bmatrix}
+0 & \mathbf{1} & 2 & \mathbf{0} & -6 \\
+0 & \mathbf{0} & 0 & \mathbf{1} & 3 \\
+0 & 0 & 0 & 0 & 0
+\end{bmatrix}
+\quad \Longleftrightarrow \quad
+\begin{cases}
+x_2 = -2x_3 + 6x_5 \\
+x_4 = -3x_5
+\end{cases}
+$$
+
+3. 令三个自由变量 $(x_1, x_3, x_5)$ 依次取 $(1,0,0)$、$(0,1,0)$、$(0,0,1)$，得到 $3$ 个线性无关特解：
+
+$$
+\mathbf{s}_1 = \begin{bmatrix} \mathbf{1} \\ 0 \\ \mathbf{0} \\ 0 \\ \mathbf{0} \end{bmatrix}, \qquad
+\mathbf{s}_2 = \begin{bmatrix} \mathbf{0} \\ -2 \\ \mathbf{1} \\ 0 \\ \mathbf{0} \end{bmatrix}, \qquad
+\mathbf{s}_3 = \begin{bmatrix} \mathbf{0} \\ 6 \\ \mathbf{0} \\ -3 \\ \mathbf{1} \end{bmatrix}
+$$
+
+   口算核验：$R\mathbf{s}_1 = \mathbf{0}$，$R\mathbf{s}_2 = (-2+2,\; 0,\; 0)^T = \mathbf{0}$，$R\mathbf{s}_3 = (6-6,\; -3+3,\; 0)^T = \mathbf{0}$，全部精确归零！
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l07-ex2" tier="L2" title="概念辨析：转置矩阵 Aᵀ 与原矩阵 A 的自由变量个数总是相等吗？">
+判断下列命题真伪：
+
+> **命题**：设长方矩阵 $A \in \mathbb{R}^{3\times 5}$ 的秩为 $r = 2$。由于转置不改变秩（将在后续严格证明 $\operatorname{rank}(A^T) = \operatorname{rank}(A) = 2$），因此 $A^T\mathbf{y} = \mathbf{0}$ 与 $A\mathbf{x} = \mathbf{0}$ 拥有相同个数的自由变量。
+
+<TrueFalseInteractive
+  id="l07-tf1"
+  correct={false}
+  quickFeedback="命题为假（False）！虽然秩相同（$r = 2$），但自由变量个数等于『各自矩阵的列数减去秩』：$A \in \mathbb{R}^{3\times 5}$ 有 $5$ 列，自由变量有 $5 - 2 = 3$ 个；而 $A^T \in \mathbb{R}^{5\times 3}$ 只有 $3$ 列，自由变量只有 $3 - 2 = 1$ 个！"
+/>
+
+<ProgressiveHint
+  hints={[
+    "数清两个矩阵各自的**列数**！$A$ 是 $3\\times 5$（$5$ 个未知数），而 $A^T$ 是 $5\\times 3$（只有 $3$ 个未知数）！",
+    "用公式『自由变量数 = 列数 - $r$』分别算一下 $5 - 2$ 和 $3 - 2$！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+主变量个数（秩 $r=2$）确实两边一样多，但总未知数池子不一样大啊！$A\mathbf{x}=\mathbf{0}$ 在 $\mathbb{R}^5$ 里找解，$5$ 个变量扣掉 $2$ 个主变量剩 **$3$ 个自由度**；$A^T\mathbf{y}=\mathbf{0}$ 在 $\mathbb{R}^3$ 里找解，$3$ 个变量扣掉 $2$ 个主变量只剩 **$1$ 个自由度**！（这正是第 10 讲四个基本子空间维数公式 $n-r$ vs $m-r$ 的前奏！）
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+对 $A \in \mathbb{R}^{3\times 5}$ 且 $\operatorname{rank}(A) = 2$：
+- $A$ 的列数为 $n = 5$，故 $A\mathbf{x} = \mathbf{0}$ 的自由变量个数为 $n - r = 5 - 2 = \mathbf{3}$；
+- $A^T \in \mathbb{R}^{5\times 3}$ 的列数为 $m = 3$，且 $\operatorname{rank}(A^T) = 2$，故 $A^T\mathbf{y} = \mathbf{0}$ 的自由变量个数为 $m - r = 3 - 2 = \mathbf{1} \neq 3$。
+
+具体例子：取 $A = \begin{bmatrix} 1 & 0 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 & 0 \end{bmatrix}$，显然 $\operatorname{Null}(A)$ 有 $3$ 个特解，而 $\operatorname{Null}(A^T)$ 仅有 $1$ 个特解 $(0, 0, 1)^T$。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l07-ex3" tier="L2" title="概念辨析：任何 3×4 齐次线性方程组都一定有无穷多非零解吗？">
+判断下列命题真伪：
+
+> **命题**：对**任意** $3\times 4$ 实矩阵 $A \in \mathbb{R}^{3\times 4}$（哪怕是全零矩阵或随机填满的矩阵），齐次线性方程组 $A\mathbf{x} = \mathbf{0}$ 都必定存在无穷多个非零解。
+
+<TrueFalseInteractive
+  id="l07-tf2"
+  correct={true}
+  quickFeedback="命题为真（True）！这是定理 7.1 第 2 条的铁律：因 $m = 3, n = 4$，主元个数至多不超过行数（$r \le 3$），故自由变量个数 $n - r = 4 - r \ge 4 - 3 = 1$！至少存在 1 个自由变量意味着至少存在 1 个非零特解 $\mathbf{s}_1$，其全体实数倍 $c\mathbf{s}_1$ 给出了无穷多个非零解！"
+/>
+
+<ProgressiveHint
+  hints={[
+    "每行最多只能出 $1$ 个主元！一共只有 $3$ 行，主元个数 $r$ 最大能超过 $3$ 吗？",
+    "四个未知数里最多只有 $3$ 个主变量，至少剩下 $4 - 3 = 1$ 个自由变量可以随便取任意实数 $c \\in \\mathbb{R}$！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+3 把线性锁（3 个方程）永远锁不死 4 个自由度（4 个未知数）！哪怕这 3 把锁全都独立有效（$r=3$），也至少漏掉 1 个自由旋钮可以拧到任意非零刻度；要是锁还有重复坏掉的（$r < 3$），自由旋钮就更多了！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+对任意 $A \in \mathbb{R}^{3\times 4}$，由于每行至多含有一个主元，其秩满足 $0 \le r = \operatorname{rank}(A) \le 3$。因此自由变量个数满足：
+
+$$
+n - r = 4 - r \ge 4 - 3 = 1
+$$
+
+由定理 7.1 第 1 条，至少存在一个非零特解 $\mathbf{s}_1 \in \operatorname{Null}(A) \setminus \{\mathbf{0}\}$（其首个自由变量分量为 $1 \neq 0$）。于是对任意非零实数 $c \in \mathbb{R} \setminus \{0\}$，$c\mathbf{s}_1$ 均为互不相同的非零解，故必有无穷多个非零解。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l07-ex4" tier="L3" title="从零空间逆向工程反推 RREF：唯一重构矩阵 R">
+（MIT 18.06 经典逆向思维题）已知某个 $3\times 4$ 简化行阶梯形矩阵 $R = \operatorname{rref}(A)$ 的零空间 $\operatorname{Null}(R)$ 恰好由以下两个向量张成：
+
+$$
+\mathbf{s}_1 = \begin{bmatrix} 2 \\ 1 \\ 0 \\ 0 \end{bmatrix}, \qquad
+\mathbf{s}_2 = \begin{bmatrix} -3 \\ 0 \\ 4 \\ 1 \end{bmatrix}
+$$
+
+请**不设 12 个未知元素解方程**，仅通过观察 $\mathbf{s}_1, \mathbf{s}_2$ 中 $(1, 0)$ 与 $(0, 1)$ 所在的位置：
+1. 立即锁定哪两列是自由列、哪两列是主列，并直接写出**唯一可能**的 $3\times 4$ 简化行阶梯形矩阵 $R$！
+2. 问：原 $3\times 4$ 矩阵 $A$ 本身也是唯一确定的吗？如果不是，怎样从 $R$ 造出所有拥有同一个零空间的 $3\times 4$ 矩阵 $A$？
+
+<ProgressiveHint
+  hints={[
+    "盯着 $\\mathbf{s}_1$ 和 $\\mathbf{s}_2$ 里出现『一个为 $1$、另一个为 $0$』的那两个槽位：看第 2 个分量 $(1, 0)$ 和第 4 个分量 $(0, 1)$！这直接暴露了第 **2 列**和第 **4 列**是自由列，从而第 **1 列**和第 **3 列**必然是主列！",
+    "既然第 1、3 列是主列，它们在 $R$ 里就必须是单位阵的两列 $(1,0,0)^T$ 和 $(0,1,0)^T$；再把特解里的主变量分量反号填回第 2、4 列！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. 破案过程快如闪电：
+   - 看 $\mathbf{s}_1, \mathbf{s}_2$ 的第 2 行是 $(1, 0)$、第 4 行是 $(0, 1)$，破案了：**第 2、4 列是自由列，第 1、3 列是主列（秩 $r=2$，第 3 行为全零行）**！
+   - 主列第 1、3 列直接填标准单位列 $(1,0,0)^T$ 与 $(0,1,0)^T$；
+   - 由 $R\mathbf{s}_1 = \mathbf{0}$ 知第 2 列必须填 $-2$ 倍第 1 列，即 $(-2, 0, 0)^T$；由 $R\mathbf{s}_2 = \mathbf{0}$ 知第 4 列必须填 $+3$ 倍第 1 列减 $4$ 倍第 3 列，即 $(3, -4, 0)^T$！整张 $R$ 唯一水落石出！
+2. $R$ 是唯一的，但原矩阵 $A$ 有无穷多个！只要拿**任意 $3\times 3$ 可逆矩阵 $E^{-1}$** 左乘在 $R$ 左边（$A = E^{-1} R$，即把 $R$ 的行随便做可逆线性组合打乱），零空间半点不变！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **证明 $R$ 的唯一性并显式构造**：
+   - 因 $\operatorname{Null}(R) = \operatorname{span}\{\mathbf{s}_1, \mathbf{s}_2\}$ 有 $2$ 个线性无关基向量，故 $4 - r = 2 \implies r = 2$，$R$ 的第 3 行必为全零行 $[0, 0, 0, 0]$。
+   - 若第 1 列全零，则 $(1,0,0,0)^T \in \operatorname{Null}(R)$，但 $(1,0,0,0)^T \notin \operatorname{span}\{\mathbf{s}_1, \mathbf{s}_2\}$（因后者的第 2、4 分量为零迫使系数为零），故第 1 列必含第 1 个主元 $\implies R$ 的第 1 列为 $(1, 0, 0)^T$。
+   - 由 $R\mathbf{s}_1 = 2\mathbf{r}_1 + 1\mathbf{r}_2 = \mathbf{0}$，得第 2 列 $\mathbf{r}_2 = -2\mathbf{r}_1 = (-2, 0, 0)^T$（非主列，自由列）。
+   - 若第 3 列也是自由列，则前 3 列秩仅为 $1$，第 4 列才出第 2 主元会导致 $\mathbf{s}_2$ 中第 3 分量为自由、第 4 分量为 $0$，与 $\mathbf{s}_2 = (-3, 0, 4, 1)^T$ 矛盾（或直接检验 $(0,0,1,0)^T \notin \operatorname{Null}(R)$），故第 2 个主元必在第 3 列 $\implies \mathbf{r}_3 = (0, 1, 0)^T$。
+   - 最后由 $R\mathbf{s}_2 = -3\mathbf{r}_1 + 4\mathbf{r}_3 + \mathbf{r}_4 = \mathbf{0}$，唯一解出 $\mathbf{r}_4 = 3\mathbf{r}_1 - 4\mathbf{r}_3 = (3, -4, 0)^T$。综上：
+
+$$
+R = \begin{bmatrix}
+1 & -2 & 0 & 3 \\
+0 & 0 & 1 & -4 \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+$$
+
+2. **原矩阵族参数化**：$A$ 不唯一；对任意可逆矩阵 $M \in \mathbb{R}^{3\times 3}$，令 $A = M R$，均有 $\operatorname{rref}(A) = R$ 且 $\operatorname{Null}(A) = \operatorname{Null}(R)$。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l07-ex5" tier="L4" title="MIT 18.06 考题级挑战：秩 1 外积矩阵 uvᵀ 的 RREF 与超平面零空间">
+设 $\mathbf{u} = (u_1, u_2, \dots, u_m)^T \in \mathbb{R}^m$ 与 $\mathbf{v} = (v_1, v_2, \dots, v_n)^T \in \mathbb{R}^n$ 均为非零列向量，且为简化讨论设各自首个分量非零：$u_1 \neq 0,\; v_1 \neq 0$。考察秩 1 外积矩阵 $A = \mathbf{u}\mathbf{v}^T \in \mathbb{R}^{m\times n}$：
+1. **一行写出 $R = \operatorname{rref}(\mathbf{u}\mathbf{v}^T)$**（用 $v_1, \dots, v_n$ 表示，看看 $\mathbf{u}$ 的所有信息在 $R$ 里去哪儿了？！）；
+2. 求 $A = \mathbf{u}\mathbf{v}^T$ 的秩 $r$、自由变量个数，并写出它的全部 $n - 1$ 个特解 $\mathbf{s}_1, \dots, \mathbf{s}_{n-1}$；从内积几何角度解释 $A\mathbf{x} = \mathbf{0}$ 为什么等价于单一方程 $\mathbf{v}^T \mathbf{x} = 0$！
+
+<ProgressiveHint
+  hints={[
+    "$A = \\mathbf{u}\\mathbf{v}^T$ 的第 $i$ 行是 $u_i \\mathbf{v}^T$，每一行全都是第 1 行 $u_1 \\mathbf{v}^T$ 的倍数！消元一步就把第 $2 \\sim m$ 行全部清零了，再把第 1 行除以首元 $u_1 v_1$ 即可得到 $R$！",
+    "用结合律看 $(\\mathbf{u}\\mathbf{v}^T)\\mathbf{x} = \\mathbf{u}(\\mathbf{v}^T\\mathbf{x})$：因为 $\\mathbf{u} \\neq \\mathbf{0}$，非零向量乘标量等于零向量当且仅当那个标量 $\\mathbf{v}^T\\mathbf{x} = 0$！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. 震撼发现：在 $\mathbf{u}\mathbf{v}^T$ 中，列向量 $\mathbf{u}$ 只负责控制各行之间的缩放倍数；一旦做完行化简变成 $R = \operatorname{rref}(\mathbf{u}\mathbf{v}^T)$，第 $2$ 到第 $m$ 行全变成 $0$，第 $1$ 行除以 $u_1 v_1$ 后**列向量 $\mathbf{u}$ 的痕迹被擦得一干二净**，只剩下归一化后的行向量 $\frac{1}{v_1}\mathbf{v}^T$！这再次铁证了“行化简抹去了列空间方向 $\mathbf{u}$，只保留了行空间与零空间结构 $\mathbf{v}^T$”！
+2. $(\mathbf{u}\mathbf{v}^T)\mathbf{x} = \mathbf{u}(\mathbf{v}^T\mathbf{x}) = \mathbf{0} \iff \mathbf{v}^T\mathbf{x} = 0$：秩 1 矩阵的零空间就是 $\mathbb{R}^n$ 中与 $\mathbf{v}$ 垂直的 **$n-1$ 维超平面**！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. $A = \mathbf{u}\mathbf{v}^T$ 的第 $i$ 行为 $u_i [v_1, v_2, \dots, v_n]$。因 $u_1 \neq 0$，对 $i = 2, \dots, m$ 执行 $R_i \leftarrow R_i - \frac{u_i}{u_1} R_1$ 将第 $2$ 至 $m$ 行全部化为零行；又因 $v_1 \neq 0$，执行 $R_1 \leftarrow \frac{1}{u_1 v_1} R_1$，立即得到唯一简化行阶梯形：
+
+$$
+R = \operatorname{rref}(\mathbf{u}\mathbf{v}^T) =
+\begin{bmatrix}
+1 & \dfrac{v_2}{v_1} & \dfrac{v_3}{v_1} & \cdots & \dfrac{v_n}{v_1} \\
+0 & 0 & 0 & \cdots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+0 & 0 & 0 & \cdots & 0
+\end{bmatrix} \in \mathbb{R}^{m\times n}
+$$
+
+2. 主元仅有 $(1,1)$ 处 $1$ 个，故秩 $r = \operatorname{rank}(\mathbf{u}\mathbf{v}^T) = \mathbf{1}$，自由变量有 **$n - 1$ 个**（$x_2, \dots, x_n$）。此时 $F = \begin{bmatrix} \frac{v_2}{v_1} & \cdots & \frac{v_n}{v_1} \end{bmatrix} \in \mathbb{R}^{1\times(n-1)}$，对应的 $n - 1$ 个特解为：
+
+$$
+\mathbf{s}_1 = \begin{bmatrix} -v_2 / v_1 \\ 1 \\ 0 \\ \vdots \\ 0 \end{bmatrix}, \quad
+\mathbf{s}_2 = \begin{bmatrix} -v_3 / v_1 \\ 0 \\ 1 \\ \vdots \\ 0 \end{bmatrix}, \quad \dots, \quad
+\mathbf{s}_{n-1} = \begin{bmatrix} -v_n / v_1 \\ 0 \\ 0 \\ \vdots \\ 1 \end{bmatrix}
+$$
+
+   由结合律，$A\mathbf{x} = (\mathbf{u}\mathbf{v}^T)\mathbf{x} = (\mathbf{v}^T\mathbf{x})\mathbf{u}$。因 $\mathbf{u} \neq \mathbf{0}$，标量倍数 $(\mathbf{v}^T\mathbf{x})\mathbf{u} = \mathbf{0} \iff \mathbf{v}^T\mathbf{x} = 0$，即零空间精确为法向量 $\mathbf{v}$ 定义的过原点超平面。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>

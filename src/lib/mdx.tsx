@@ -31,6 +31,9 @@ import {
   LUComplexityPyramidDiagram,
 } from '@/components/diagrams/lecture-04-diagrams';
 import { SubspacesOfR2AndImpostorsDiagram } from '@/components/diagrams/lecture-05-diagrams';
+import { ColSpaceVsNullspaceAmbientDiagram } from '@/components/diagrams/lecture-06-diagrams';
+import { RrefNullspaceBlockDiagram } from '@/components/diagrams/lecture-07-diagrams';
+import { AffineSolutionAndFourRankCasesDiagram } from '@/components/diagrams/lecture-08-diagrams';
 import {
   ProblemSet,
   ExerciseCard,
@@ -115,6 +118,9 @@ const MDX_COMPONENTS = {
   LUMultiplierNoFillDiagram,
   LUComplexityPyramidDiagram,
   SubspacesOfR2AndImpostorsDiagram,
+  ColSpaceVsNullspaceAmbientDiagram,
+  RrefNullspaceBlockDiagram,
+  AffineSolutionAndFourRankCasesDiagram,
   ProblemSet,
   ExerciseCard,
   TrueFalseInteractive,

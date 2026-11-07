@@ -168,7 +168,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Column Space and Nullspace',
     focusZh: '子空间并集与交集辨析、列空间 Col(A)（决定 Ax=b 何时有解）与零空间 Null(A)（决定解的冗余自由度）。',
     focusEn: 'Subspace intersections vs. unions, Col(A) in ℝᵐ (solvability of Ax=b), and Null(A) in ℝⁿ (uniqueness of solutions).',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-02',
@@ -192,7 +192,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Solving Ax = 0: Pivot Variables, Special Solutions',
     focusZh: '简化行阶梯形 R = rref(A) 的分块结构 [I  F; 0  0] 与零空间矩阵 N = [-F; I] 的系统构造。',
     focusEn: 'Block structure of R = rref(A), rank r, n - r free variables, and the nullspace basis matrix N = [-F; I].',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -206,7 +206,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Solving Ax = b: Row Reduced Form R',
     focusZh: '通解 x = x_p + x_n 的仿射几何（非子空间！），以及列满秩、行满秩、双满秩、秩亏缺四类矩阵全景表。',
     focusEn: 'Complete solution x = x_p + x_n as a shifted nullspace (affine flat) and the four rank cases of m×n matrices.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-03',

@@ -44,9 +44,9 @@ This project bridges both worlds with four strict design pillars:
 | **03** | L03 | P03 | Multiplication (5 Views) and Inverse Matrices | ✅ Live | 🗓️ Planned | **[AI-01]** Transformer Attention $QK^TV$, Block FlashAttention & KV Cache |
 | **04** | L04 | P04 | Factorization into $A = LU$ | ✅ Live | 🗓️ Planned | — |
 | **05** | L05 | P05 | Transposes, Permutations, Spaces $\mathbb{R}^n$ | ✅ Live | 🗓️ Planned | — |
-| **06** | L06 | P06 | Column Space and Nullspace | 🗓️ Planned | 🗓️ Planned | **[AI-02]** Overparameterized Layers, Activation Manifolds & Linear Probing |
-| **07** | L07 | P07 | Solving $Ax = \mathbf{0}$: Pivot Variables, Special Solutions ($R$) | 🗓️ Planned | 🗓️ Planned | — |
-| **08** | L08 | P08 | Solving $Ax = \mathbf{b}$: Row Reduced Form $R$ ($x_p + x_n$) | 🗓️ Planned | 🗓️ Planned | **[AI-03]** Nullspace Knowledge Editing in LLMs (AlphaEdit) |
+| **06** | L06 | P06 | Column Space and Nullspace | ✅ Live | 🗓️ Planned | **[AI-02]** Overparameterized Layers, Activation Manifolds & Linear Probing |
+| **07** | L07 | P07 | Solving $Ax = \mathbf{0}$: Pivot Variables, Special Solutions ($R$) | ✅ Live | 🗓️ Planned | — |
+| **08** | L08 | P08 | Solving $Ax = \mathbf{b}$: Row Reduced Form $R$ ($x_p + x_n$) | ✅ Live | 🗓️ Planned | **[AI-03]** Nullspace Knowledge Editing in LLMs (AlphaEdit) |
 | **09** | L09 | P09 | Independence, Basis, and Dimension | 🗓️ Planned | 🗓️ Planned | — |
 | **10** | L10 | P10 | The Four Fundamental Subspaces | 🗓️ Planned | 🗓️ Planned | — |
 | **11** | L11 | P11 | Matrix Spaces; Rank 1 ($\mathbf{u}\mathbf{v}^T$); Small World Graphs | 🗓️ Planned | 🗓️ Planned | **[AI-04]** LoRA ($\Delta W = BA = \sum \mathbf{b}_i\mathbf{a}_i^T$) Low-Rank Subspace Adaptation |

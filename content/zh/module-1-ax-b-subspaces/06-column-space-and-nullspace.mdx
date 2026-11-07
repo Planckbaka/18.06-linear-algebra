@@ -1,0 +1,448 @@
+---
+title: "第 06 讲：列空间与零空间"
+ocwId: "L06"
+videoEpisode: "P06"
+textbookRef: "§3.1–3.2"
+---
+
+在第 05 讲末尾，我们确立了子空间的黄金检验法则——**包含原点 $\mathbf{0}$ 且对任意线性组合封闭**。进入 MIT 18.06 第 06 讲，Gilbert Strang 教授先用一道极具迷惑性的几何热身题拆穿了“子空间并集”的直觉假象，随后隆重请出线性代数四大基本子空间中最先登场的男女主角——**列空间（Column Space, $\operatorname{Col}(A)$）**与**零空间（Nullspace, $\operatorname{Null}(A)$）**。
+
+从今天起，你面对任何矩阵方程 $A\mathbf{x} = \mathbf{b}$ 都将自动开启双宇宙透视眼：**在输出宇宙 $\mathbb{R}^m$ 里用列空间判断“方程有没有解”，在输入宇宙 $\mathbb{R}^n$ 里用零空间判断“解是不是唯一”！**
+
+---
+
+## 一、子空间的运算试金石：为什么并集 $S \cup T$ 失败，而交集 $S \cap T$ 永恒成立？
+
+假设在三维空间 $\mathbb{R}^3$ 中，你手里有两个货真价实的子空间：一张过原点的二维平面 $P$，以及一条不在该平面内、同样过原点的直线 $L$。现在提出两个最自然的集合运算问题：
+
+1. **并集 $P \cup L$（既包含平面上的所有向量，也包含直线上的所有向量）是 $\mathbb{R}^3$ 的子空间吗？**
+   **坚决不是！** 尽管平面和直线各自都过原点、各自内部封闭，但一旦你从平面 $P$ 上挑一个非零向量 $\mathbf{p} \notin L$，再从直线 $L$ 上挑一个非零向量 $\mathbf{l} \notin P$，把两者相加得到对角线向量 $\mathbf{p} + \mathbf{l}$——它既飞出了平面 $P$，也偏离了直线 $L$，直接掉进了两者的半空夹缝里（$\mathbf{p} + \mathbf{l} \notin P \cup L$）！（注：只有当其中一个子空间完全包含另一个，即 $S \subseteq T$ 或 $T \subseteq S$ 时，$S \cup T$ 才侥幸仍是子空间；若想把两个子空间合起来造出最小的新子空间，必须取它们的**和空间（Sum of Subspaces）** $S + T := \{\mathbf{s} + \mathbf{t} : \mathbf{s} \in S,\; \mathbf{t} \in T\}$！）
+
+2. **交集 $S \cap T$（同时属于子空间 $S$ 和子空间 $T$ 的公共向量集合）是 $\mathbb{R}^n$ 的子空间吗？**
+   **100% 永远是子空间！** 哪怕推广到任意多个子空间的交集也绝无例外：
+   - 首先，$\mathbf{0} \in S$ 且 $\mathbf{0} \in T \implies \mathbf{0} \in S \cap T$（交集绝不为空，本例中 $P \cap L = \{\mathbf{0}\}$ 就是合法的零维子空间！）；
+   - 其次，任取两个公共向量 $\mathbf{v}, \mathbf{w} \in S \cap T$ 及任意实数 $c, d \in \mathbb{R}$：因为 $\mathbf{v}, \mathbf{w}$ 都在 $S$ 里且 $S$ 封闭，故 $c\mathbf{v} + d\mathbf{w} \in S$；同理因为 $\mathbf{v}, \mathbf{w}$ 也都在 $T$ 里且 $T$ 封闭，故 $c\mathbf{v} + d\mathbf{w} \in T$。既然两边都在，自然 $c\mathbf{v} + d\mathbf{w} \in S \cap T$！
+
+---
+
+## 二、输出空间 $\mathbb{R}^m$ 中的主角：列空间 $\operatorname{Col}(A)$
+
+现在考察一个具体的 $4\times 3$ 高瘦矩阵 $A \in \mathbb{R}^{4\times 3}$：
+
+$$
+A = \begin{bmatrix}
+1 & 1 & 2 \\
+2 & 1 & 3 \\
+3 & 1 & 4 \\
+4 & 1 & 5
+\end{bmatrix}
+$$
+
+首先回答最基础的定位问题：**$A$ 的列空间 $\operatorname{Col}(A)$（Strang 亦记为 $C(A)$）住在几维空间里？**
+数一数每一列有几个分量：每列都是 $4\times 1$ 向量，所以 **$\operatorname{Col}(A)$ 是四维空间 $\mathbb{R}^4$ 的一个子空间**（$\operatorname{Col}(A) \subseteq \mathbb{R}^4$）！
+
+紧接着追问：这 $3$ 列的所有线性组合能填满整个 $\mathbb{R}^4$ 吗？
+- 第一层拦截：只有 $3$ 个列向量，哪怕彼此完全独立，也绝无可能铺满 $4$ 维空间 $\mathbb{R}^4$；
+- 第二层惊奇发现：仔细看第 3 列 $\mathbf{a}_3 = (2, 3, 4, 5)^T$——它分毫不差等于前两列直接相加 **$\mathbf{a}_3 = \mathbf{a}_1 + \mathbf{a}_2$**！
+
+这意味着第 3 列是一个纯属搭便车的“冗余列”：任何用到 $\mathbf{a}_3$ 的线性组合 $x_1\mathbf{a}_1 + x_2\mathbf{a}_2 + x_3(\mathbf{a}_1 + \mathbf{a}_2) = (x_1+x_3)\mathbf{a}_1 + (x_2+x_3)\mathbf{a}_2$，原本只靠前两列 $\mathbf{a}_1, \mathbf{a}_2$ 就早已能拼出来！把第 3 列直接划掉，$\operatorname{Col}(A)$ 的大小半点不缩水——它在四维宇宙 $\mathbb{R}^4$ 里其实只是一张过原点的**二维薄平面**！
+
+这也彻底回答了方程组 $A\mathbf{x} = \mathbf{b}$ 何时有解：
+- 当 $\mathbf{b} = (1, 2, 3, 4)^T$ 时，它就是第 1 列本身，$\mathbf{b} \in \operatorname{Col}(A)$，有解（甚至不止一个解：$\mathbf{x} = (1, 0, 0)^T$ 是解，$(0, -1, 1)^T$ 也是解！）；
+- 当 $\mathbf{b} = (1, 0, 0, 0)^T$ 时，前两列不管怎么组合都保持等差梯度，绝拼不出 $(1,0,0,0)^T$，$\mathbf{b} \notin \operatorname{Col}(A)$，无解！
+
+---
+
+## 三、输入空间 $\mathbb{R}^n$ 中的主角：零空间 $\operatorname{Null}(A)$
+
+刚才在观察 $\mathbf{a}_1 + \mathbf{a}_2 - \mathbf{a}_3 = \mathbf{0}$ 时，我们已经一头撞进了矩阵的第二个基本子空间——**零空间（Nullspace，在纯数学文献中亦称核 Kernel）**，记作 $\operatorname{Null}(A)$（或 $N(A)$）。
+
+继续沿用上面同一个 $4\times 3$ 矩阵 $A$：
+- **$\operatorname{Null}(A)$ 住在哪个空间里？** 我们寻找的是满足 $A\mathbf{x} = \mathbf{0}$ 的未知向量 $\mathbf{x} = (x_1, x_2, x_3)^T$！未知数有 $n = 3$ 个，因此 **$\operatorname{Null}(A)$ 是三维输入空间 $\mathbb{R}^3$ 的子空间**（$\operatorname{Null}(A) \subseteq \mathbb{R}^3$）——千万不要把它和住在 $\mathbb{R}^4$ 里的列空间混为一谈！
+- **求出本例的完整零空间**：由于 $\mathbf{a}_1 + \mathbf{a}_2 - \mathbf{a}_3 = \mathbf{0}$，显然 $\mathbf{s} = (1, 1, -1)^T$ 满足 $A\mathbf{s} = \mathbf{0}$；将它乘上任意实数 $c \in \mathbb{R}$，向量 $c(1, 1, -1)^T$ 依然让组合归零（且由于前两列不共线，不存在其他独立方向）。因此，该矩阵的零空间精确是 $\mathbb{R}^3$ 中穿过原点 $(0,0,0)^T$ 和 $(1,1,-1)^T$ 的**一条一维直线**：
+
+$$
+\operatorname{Null}(A) = \left\{ c \begin{bmatrix} 1 \\ 1 \\ -1 \end{bmatrix} : c \in \mathbb{R} \right\} \subseteq \mathbb{R}^3
+$$
+
+<ColSpaceVsNullspaceAmbientDiagram />
+
+<InteractiveCanvasSlot
+  id="l06-col-null-dual-spaces"
+  title="输入空间 Null(A) ⊆ ℝⁿ 与输出空间 Col(A) ⊆ ℝᵐ 双视窗联动台"
+  description="二期交互预留：左侧拖拽输入向量 $\mathbf{x} \in \mathbb{R}^n$ 观察右侧输出像 $A\mathbf{x} \in \operatorname{Col}(A)$ 的实时落点；当 $\mathbf{x}$ 滑入绿色零空间直线 $\operatorname{Null}(A)$ 时，右侧输出箭头瞬间收缩坍塌至原点 $\mathbf{0}$。"
+/>
+
+下面我们将两个核心子空间的严格定义、子空间封闭性证明，以及非齐次解集为何**不是**子空间的关键对比完整立卡：
+
+<DefinitionCard
+  label="Definition 6.1"
+  title="矩阵的列空间与零空间"
+  termEn="Column Space Col(A) & Nullspace Null(A)"
+>
+设实矩阵 $A \in \mathbb{R}^{m\times n}$（$m$ 行 $n$ 列）：
+
+1. **列空间（Column Space）** $\operatorname{Col}(A)$ 是**输出空间 $\mathbb{R}^m$** 的子集，由 $A$ 的 $n$ 个列向量的全体实线性组合构成：
+
+$$
+\operatorname{Col}(A) := \left\{ A\mathbf{x} \in \mathbb{R}^m : \mathbf{x} \in \mathbb{R}^n \right\} \subseteq \mathbb{R}^m
+$$
+
+2. **零空间（Nullspace / Kernel）** $\operatorname{Null}(A)$ 是**输入空间 $\mathbb{R}^n$** 的子集，由齐次线性方程组 $A\mathbf{x} = \mathbf{0}$ 的全体解向量构成：
+
+$$
+\operatorname{Null}(A) := \left\{ \mathbf{x} \in \mathbb{R}^n : A\mathbf{x} = \mathbf{0} \right\} \subseteq \mathbb{R}^n
+$$
+</DefinitionCard>
+
+<TheoremCard
+  label="Theorem 6.1"
+  title="子空间交集封闭定理、零空间子空间定理与齐次/非齐次分界"
+  termEn="Intersection of Subspaces, Subspace Property of Null(A), and Non-Homogeneous Failure"
+>
+1. **任意交集必为子空间**：若 $S, T \subseteq \mathbb{R}^n$ 均为 $\mathbb{R}^n$ 的子空间，则交集 $S \cap T$ 必为 $\mathbb{R}^n$ 的子空间；而并集 $S \cup T$ 为子空间**当且仅当** $S \subseteq T$ 或 $T \subseteq S$。
+2. **列空间与零空间均为合法子空间**：对任意 $A \in \mathbb{R}^{m\times n}$，$\operatorname{Col}(A)$ 恒为 $\mathbb{R}^m$ 的子空间，$\operatorname{Null}(A)$ 恒为 $\mathbb{R}^n$ 的子空间。
+3. **非齐次解集绝非子空间**：只要右侧向量 $\mathbf{b} \neq \mathbf{0}$，方程 $A\mathbf{x} = \mathbf{b}$ 的解集 $K_{\mathbf{b}} := \{\mathbf{x} \in \mathbb{R}^n : A\mathbf{x} = \mathbf{b}\}$ **永远不是** $\mathbb{R}^n$ 的子空间（若无解则为空集 $\varnothing$；若有解则因 $A\mathbf{0} = \mathbf{0} \neq \mathbf{b}$ 而不含零向量 $\mathbf{0}$）。
+4. **零空间平凡性与列线性无关**：$\operatorname{Null}(A) = \{\mathbf{0}\} \iff A$ 的 $n$ 个列向量彼此线性无关 $\iff$ 对任意可解的 $\mathbf{b} \in \operatorname{Col}(A)$，方程 $A\mathbf{x} = \mathbf{b}$ 的解**唯一**。
+</TheoremCard>
+
+<ProofCollapse title="展开严格代数证明（两行证完 Null(A) 封闭性 + 并集充要条件严格反证）">
+1. **两行证明 $\operatorname{Null}(A)$ 是 $\mathbb{R}^n$ 的子空间**：
+   - 非空性：$A\mathbf{0} = \mathbf{0} \implies \mathbf{0} \in \operatorname{Null}(A)$。
+   - 线性组合封闭性：任取 $\mathbf{v}, \mathbf{w} \in \operatorname{Null}(A)$（即 $A\mathbf{v} = \mathbf{0},\; A\mathbf{w} = \mathbf{0}$）及任意标量 $c, d \in \mathbb{R}$，由矩阵乘法的线性分配律：
+
+$$
+A(c\mathbf{v} + d\mathbf{w}) = c(A\mathbf{v}) + d(A\mathbf{w}) = c\mathbf{0} + d\mathbf{0} = \mathbf{0}
+$$
+
+     故 $c\mathbf{v} + d\mathbf{w} \in \operatorname{Null}(A)$！注意这段证明甚至没有写出一行矩阵坐标或消元，100% 纯靠算子线性性一步封神！
+
+2. **证明“$S \cup T$ 是子空间 $\iff S \subseteq T$ 或 $T \subseteq S$”**：
+   - $(\impliedby)$ 若 $S \subseteq T$，则 $S \cup T = T$ 本身就是子空间；同理 $T \subseteq S$ 时亦然。
+   - $(\implies)$ 用反证法：假设 $S \cup T$ 是子空间，但既非 $S \subseteq T$ 亦非 $T \subseteq S$。则存在 $\mathbf{s} \in S \setminus T$ 且存在 $\mathbf{t} \in T \setminus S$。因 $\mathbf{s}, \mathbf{t} \in S \cup T$ 且 $S \cup T$ 对加法封闭，必有和向量 $\mathbf{u} := \mathbf{s} + \mathbf{t} \in S \cup T$。
+     - 若 $\mathbf{u} \in S$，则因 $\mathbf{s} \in S$ 且 $S$ 是子空间，必有 $\mathbf{t} = \mathbf{u} - \mathbf{s} \in S$，与 $\mathbf{t} \notin S$ 矛盾！
+     - 若 $\mathbf{u} \in T$，则因 $\mathbf{t} \in T$ 且 $T$ 是子空间，必有 $\mathbf{s} = \mathbf{u} - \mathbf{t} \in T$，与 $\mathbf{s} \notin T$ 矛盾！
+     故假设不成立，必有 $S \subseteq T$ 或 $T \subseteq S$。
+</ProofCollapse>
+
+<PitfallAlert title="常见直觉陷阱与网传笔记三大勘误">
+1. **误区一：把 $\operatorname{Col}(A)$ 和 $\operatorname{Null}(A)$ 画在同一个坐标系里！（维度越界事故）**
+   对于 $m\times n$ 长方矩阵（比如 $4\times 3$ 矩阵），$\operatorname{Col}(A)$ 里的向量长 $4$ 截（住在 $\mathbb{R}^4$），而 $\operatorname{Null}(A)$ 里的向量长 $3$ 截（住在 $\mathbb{R}^3$）！连分量个数都不一样，绝对不能对它们求交集或画在同一张图里！（哪怕 $m=n$ 是方阵，输入空间与输出空间在概念上也应分开审视。）
+2. **误区二：把“零空间里只有零向量”误写成 $\operatorname{Null}(A) = \varnothing$ 或 $\operatorname{Null}(A) = 0$**
+   当列向量线性无关（无非零解）时，齐次方程 $A\mathbf{x}=\mathbf{0}$ 仍然有唯一解 $\mathbf{x}=\mathbf{0}$！规范集合记法必须是 **$\operatorname{Null}(A) = \{\mathbf{0}\}$**（含有一个零向量的零维子空间），绝不是空集 $\varnothing$！
+3. **误区三：误以为“解方程 $A\mathbf{x} = \mathbf{b}$ 得到的解向量构成子空间”**
+   只要 $\mathbf{b} \neq \mathbf{0}$，两个解 $\mathbf{x}_1, \mathbf{x}_2$ 相加满足 $A(\mathbf{x}_1 + \mathbf{x}_2) = \mathbf{b} + \mathbf{b} = 2\mathbf{b} \neq \mathbf{b}$！两个解相加根本不再是原方程的解（而它们的**差** $\mathbf{x}_1 - \mathbf{x}_2$ 倒确实掉回零空间 $\operatorname{Null}(A)$ 里，因为 $A(\mathbf{x}_1 - \mathbf{x}_2) = \mathbf{b} - \mathbf{b} = \mathbf{0}$！）。
+</PitfallAlert>
+
+<KeyTakeaways
+  items={[
+    "对 $m\\times n$ 矩阵 $A$，永远先报户口：**列空间 $\\operatorname{Col}(A) \\subseteq \\mathbb{R}^m$**（看行数 $m$），**零空间 $\\operatorname{Null}(A) \\subseteq \\mathbb{R}^n$**（看列数 $n$）。",
+    "两个子空间的**交集 $S \\cap T$** 恒为子空间；**并集 $S \\cup T$** 除非互相包含否则绝不是子空间；把两者张在一起的最小子空间是**和空间 $S + T$**。",
+    "齐次方程解集 $\\operatorname{Null}(A)$ 永远是子空间；非齐次方程 $A\\mathbf{x} = \\mathbf{b}$（$\\mathbf{b} \\neq \\mathbf{0}$）的解集永远**不是**子空间（不含 $\\mathbf{0}$）。",
+    "$A\\mathbf{x} = \\mathbf{b}$ 解的**存在性**归 $\\operatorname{Col}(A)$ 管（$\\mathbf{b} \\in \\operatorname{Col}(A)$）；解的**唯一性**归 $\\operatorname{Null}(A)$ 管（$\\operatorname{Null}(A) = \\{\\mathbf{0}\\}$）。"
+  ]}
+/>
+
+<ProblemSet>
+
+<ExerciseCard id="l06-ex1" tier="L1" title="双空间定位实战：一眼读出 2×4 矩阵的列空间与零空间">
+给定 $2\times 4$ 矮胖矩阵 $A \in \mathbb{R}^{2\times 4}$：
+
+$$
+A = \begin{bmatrix}
+1 & 0 & 2 & -1 \\
+0 & 1 & -3 & 4
+\end{bmatrix}
+$$
+
+1. 明确指出 $\operatorname{Col}(A)$ 是 $\mathbb{R}^?$ 的子空间，$\operatorname{Null}(A)$ 是 $\mathbb{R}^?$ 的子空间；
+2. 观察 $A$ 的前两列已经是什么特殊向量？由此直接说出 $\operatorname{Col}(A)$ 等于什么空间，以及对任意 $\mathbf{b} \in \mathbb{R}^2$ 方程 $A\mathbf{x} = \mathbf{b}$ 是否一定有解；
+3. 找出两个方向不共线的非零向量 $\mathbf{s}_1, \mathbf{s}_2 \in \operatorname{Null}(A)$（提示：分别令后两个分量取 $(1, 0)$ 与 $(0, 1)$！）。
+
+<ProgressiveHint
+  hints={[
+    "矩阵是 $2$ 行 $4$ 列：列向量的长度是 $2$（故 $\\operatorname{Col}(A) \\subseteq \\mathbb{R}^2$），乘在右边的未知向量 $\\mathbf{x}$ 长度是 $4$（故 $\\operatorname{Null}(A) \\subseteq \\mathbb{R}^4$）！",
+    "前两列就是 $\\mathbb{R}^2$ 的标准基 $\\mathbf{e}_1 = (1,0)^T, \\mathbf{e}_2 = (0,1)^T$，光靠前两列就能拼出整个 $\\mathbb{R}^2$！而要凑 $A\\mathbf{x}=\\mathbf{0}$，第 3 列 $(2,-3)^T$ 只需配前两列 $(-2, +3)$ 抵消！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. 户口本一秒分清：$\operatorname{Col}(A) \subseteq \mathbb{R}^2$，$\operatorname{Null}(A) \subseteq \mathbb{R}^4$！
+2. 前两列就是二维坐标轴单位向量 $(1,0)^T$ 和 $(0,1)^T$，光靠它俩就能抵达平面上任何一个点，所以 **$\operatorname{Col}(A) = \mathbb{R}^2$**，对天下所有 $\mathbf{b} \in \mathbb{R}^2$ 100% 有解！
+3. 第 3 列是 $(2, -3)^T$，那就用 $-2$ 倍第 1 列加 $3$ 倍第 2 列把它抵消，得 $\mathbf{s}_1 = (-2, 3, 1, 0)^T$；第 4 列是 $(-1, 4)^T$，用 $+1$ 倍第 1 列减 $4$ 倍第 2 列抵消，得 $\mathbf{s}_2 = (1, -4, 0, 1)^T$！（这就是下一讲将系统推广的“特解构造法”！）
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. 因 $A \in \mathbb{R}^{2\times 4}$，有 $\operatorname{Col}(A) \subseteq \mathbb{R}^2$，$\operatorname{Null}(A) \subseteq \mathbb{R}^4$。
+2. 对任意 $\mathbf{b} = (b_1, b_2)^T \in \mathbb{R}^2$，取 $\mathbf{x} = (b_1, b_2, 0, 0)^T \in \mathbb{R}^4$ 即有 $A\mathbf{x} = b_1\mathbf{e}_1 + b_2\mathbf{e}_2 = \mathbf{b}$，故 $\operatorname{Col}(A) = \mathbb{R}^2$，对一切 $\mathbf{b} \in \mathbb{R}^2$ 恒有解。
+3. 解齐次方程 $A\mathbf{x} = \mathbf{0}$：
+
+$$
+\begin{cases}
+x_1 + 2x_3 - x_4 = 0 \\
+x_2 - 3x_3 + 4x_4 = 0
+\end{cases}
+\iff
+\begin{bmatrix} x_1 \\ x_2 \\ x_3 \\ x_4 \end{bmatrix}
+= x_3 \underbrace{\begin{bmatrix} -2 \\ 3 \\ 1 \\ 0 \end{bmatrix}}_{\mathbf{s}_1}
++ x_4 \underbrace{\begin{bmatrix} 1 \\ -4 \\ 0 \\ 1 \end{bmatrix}}_{\mathbf{s}_2}
+$$
+
+   因 $\mathbf{s}_1, \mathbf{s}_2$ 的第 3、4 分量分别为 $(1,0)$ 与 $(0,1)$，两者严格不共线，完整张成二维零空间平面 $\operatorname{Null}(A) = \operatorname{span}\{\mathbf{s}_1, \mathbf{s}_2\} \subseteq \mathbb{R}^4$。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l06-ex2" tier="L2" title="概念辨析：两个过原点平面的并集与交集谁是子空间？">
+判断下列命题真伪：
+
+> **命题**：在三维空间 $\mathbb{R}^3$ 中，设 $P_1$ 与 $P_2$ 是两张不重合但都穿过原点 $\mathbf{0}$ 的平面，则它们的**交集 $P_1 \cap P_2$** 是一条穿过原点的直线（子空间），而它们的**并集 $P_1 \cup P_2$** 同样包含原点且对标量数乘封闭，因此 $P_1 \cup P_2$ 也是 $\mathbb{R}^3$ 的子空间。
+
+<TrueFalseInteractive
+  id="l06-tf1"
+  correct={false}
+  quickFeedback="命题为假（False）！前半句正确（$P_1 \cap P_2$ 是过原点的交线子空间），但后半句经典踩坑：因两平面不重合，既非 $P_1 \subseteq P_2$ 亦非 $P_2 \subseteq P_1$，从两张平面各取一个不在交线上的向量相加，必飞出两平面并集之外！"
+/>
+
+<ProgressiveHint
+  hints={[
+    "取最直观的两张坐标平面：$P_1$ 为 $xy$ 平面（$z=0$），$P_2$ 为 $yz$ 平面（$x=0$）。分别抓 $(1, 0, 0)^T \\in P_1$ 和 $(0, 0, 1)^T \\in P_2$ 相加试试！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+把两张过原点的平面想象成旋转门交叉的两扇玻璃叶片：交集就是中间那根竖直转轴（一条过原点的直线，完美封闭）；但并集只是两片单薄的十字玻璃片，从左叶片抓一支箭头、从前叶片抓一支箭头，平行四边形对角线直接指向两扇玻璃中间的空气区，当场破界！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+构造具体反例：令
+
+$$
+P_1 = \{(x, y, 0)^T : x, y \in \mathbb{R}\}, \qquad
+P_2 = \{(0, y, z)^T : y, z \in \mathbb{R}\}
+$$
+
+两者均为 $\mathbb{R}^3$ 中过原点的二维子空间且互不包含（交集 $P_1 \cap P_2 = \{(0, y, 0)^T : y \in \mathbb{R}\}$ 为 $y$ 轴子空间）。取 $\mathbf{u} = (1, 0, 0)^T \in P_1 \subseteq P_1 \cup P_2$ 与 $\mathbf{v} = (0, 0, 1)^T \in P_2 \subseteq P_1 \cup P_2$，其和向量 $\mathbf{u} + \mathbf{v} = (1, 0, 1)^T$ 既不满足 $z=0$ 也不满足 $x=0$，故 $\mathbf{u} + \mathbf{v} \notin P_1 \cup P_2$，并集不是子空间。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l06-ex3" tier="L2" title="概念辨析：往矩阵右侧多拼一列会让列空间变小或零空间变小吗？">
+判断下列命题真伪：
+
+> **命题**：设矩阵 $A \in \mathbb{R}^{m\times n}$，在其右侧新拼接一列向量 $\mathbf{b} \in \mathbb{R}^m$ 形成增广矩阵 $B = \begin{bmatrix} A & \mathbf{b} \end{bmatrix} \in \mathbb{R}^{m\times(n+1)}$。若 $\operatorname{Col}(B) = \operatorname{Col}(A)$（即新列没有扩大列空间），则必有方程 $A\mathbf{x} = \mathbf{b}$ 有解，且 $B$ 的零空间一定包含非零向量！
+
+<TrueFalseInteractive
+  id="l06-tf2"
+  correct={true}
+  quickFeedback="命题为真（True）！这是贯通列空间与零空间的神级等价判据：$\operatorname{Col}([A\;\mathbf{b}]) = \operatorname{Col}(A) \iff \mathbf{b}$ 本身就已经躺在 $\operatorname{Col}(A)$ 里 $\iff \exists \mathbf{x}_0$ 使 $A\mathbf{x}_0 = \mathbf{b} \iff B \begin{bmatrix} \mathbf{x}_0 \\ -1 \end{bmatrix} = A\mathbf{x}_0 - \mathbf{b} = \mathbf{0} \neq$ 零向量输入！"
+/>
+
+<ProgressiveHint
+  hints={[
+    "往积木箱里多塞一块新积木 $\\mathbf{b}$，什么时候拼出来的图形范围 $\\operatorname{Col}([A\\;\\mathbf{b}])$ 一点都没变大？当然当且仅当 $\\mathbf{b}$ 本来就能用旧积木 $A$ 拼出来（即 $\\mathbf{b} = A\\mathbf{x}_0$）！",
+    "一旦 $\\mathbf{b} = A\\mathbf{x}_0$，把长度为 $n+1$ 的非零向量 $(\\mathbf{x}_0^T, -1)^T$ 喂给 $B = [A\\;\\mathbf{b}]$，算出来等于什么？"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+这道题是 MIT 18.06 考卷里的常青树！新列 $\mathbf{b}$ 没能让列空间长大半寸，唯有一种可能：$\mathbf{b}$ 早就住在 $\operatorname{Col}(A)$ 里面了！既然 $\mathbf{b}$ 能写成旧列的组合 $A\mathbf{x}_0 = \mathbf{b}$，移项就是 $A\mathbf{x}_0 - 1\cdot\mathbf{b} = \mathbf{0}$——看，末尾挂着 $-1$ 的长向量 $(\mathbf{x}_0, -1)$ 绝不可能是零向量，它稳稳落在了增广矩阵 $B$ 的零空间里！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. 因 $\mathbf{b} = B\mathbf{e}_{n+1} \in \operatorname{Col}(B)$，若 $\operatorname{Col}(B) = \operatorname{Col}(A)$，则必有 $\mathbf{b} \in \operatorname{Col}(A)$。
+2. 由列空间定义，存在 $\mathbf{x}_0 \in \mathbb{R}^n$ 使得 $A\mathbf{x}_0 = \mathbf{b}$（即方程 $A\mathbf{x} = \mathbf{b}$ 有解）。
+3. 构造向量 $\mathbf{z} = \begin{bmatrix} \mathbf{x}_0 \\ -1 \end{bmatrix} \in \mathbb{R}^{n+1}$。因最后一分量为 $-1 \neq 0$，必有 $\mathbf{z} \neq \mathbf{0}$；用分块矩阵乘法计算：
+
+$$
+B \mathbf{z} = \begin{bmatrix} A & \mathbf{b} \end{bmatrix} \begin{bmatrix} \mathbf{x}_0 \\ -1 \end{bmatrix} = A\mathbf{x}_0 - \mathbf{b} = \mathbf{0}
+$$
+
+   故 $\mathbf{z} \in \operatorname{Null}(B) \setminus \{\mathbf{0}\}$，$B$ 的零空间必含非零向量，原命题严格成立。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l06-ex4" tier="L3" title="逆向构造训练：按指定列空间与零空间定制矩阵 A">
+（Gilbert Strang 最偏爱的“反着出题”直觉测验——如果只会顺着算消元，遇到这种题就会卡壳；如果懂子空间结构，十秒钟写完！）
+1. 请直接构造一个 $3\times 3$ 矩阵 $A$，使其**列空间 $\operatorname{Col}(A)$** 包含向量 $(1, 1, 0)^T$ 和 $(0, 1, 1)^T$，但**零空间 $\operatorname{Null}(A)$** 同时包含非零向量 $(1, 0, 1)^T$！此时 $\operatorname{Col}(A)$ 还能是整个 $\mathbb{R}^3$ 吗？
+2. 请判断：**是否存在**一个 $3\times 3$ 矩阵 $M$，使得它的列空间 $\operatorname{Col}(M) = \mathbb{R}^3$，同时它的零空间 $\operatorname{Null}(M)$ 包含非零向量 $(1, 1, 1)^T$？一句话给出不可撼动的理由！
+
+<ProgressiveHint
+  hints={[
+    "第 1 问：想让 $(1, 1, 0)^T$ 和 $(0, 1, 1)^T$ 躺在 $\\operatorname{Col}(A)$ 里，最省事的办法就是直接让它俩当 $A$ 的第 1 列和第 2 列！然后再利用 $(1, 0, 1)^T \\in \\operatorname{Null}(A)$（即 $1\\cdot\\mathbf{a}_1 + 0\\cdot\\mathbf{a}_2 + 1\\cdot\\mathbf{a}_3 = \\mathbf{0}$）反推出第 3 列 $\\mathbf{a}_3$ 该填什么！",
+    "第 2 问：直接调用第 01 讲定理 1.1（或本讲定理 6.1）——对于 $3\\times 3$ **方阵**，『列满空间 $\\operatorname{Col}(M)=\\mathbb{R}^3$』与『$M\\mathbf{x}=\\mathbf{0}$ 仅有零解』是什么关系？"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. 构造矩阵就像搭乐高：
+   - 直接把 $(1, 1, 0)^T$ 放进第 1 列，把 $(0, 1, 1)^T$ 放进第 2 列，保证它俩稳稳属于 $\operatorname{Col}(A)$；
+   - 要求 $(1, 0, 1)^T$ 被 $A$ 压成零，意思就是“第 1 列 + 第 3 列 = $\mathbf{0}$”，那第 3 列直接填第 1 列的相反数 $(-1, -1, 0)^T$ 就大功告成了！此时有效独立列只有两列，$\operatorname{Col}(A)$ 只是一张二维平面，绝不可能是整个 $\mathbb{R}^3$！
+2. **绝对不存在！** 对于 $3\times 3$ 方阵，一旦零空间里有非零向量 $(1, 1, 1)^T$，说明三支列向量加起来归零（共面冗余），区区两支独立向量怎么可能撑满三维空间 $\mathbb{R}^3$？！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. 令 $\mathbf{a}_1 = (1, 1, 0)^T,\; \mathbf{a}_2 = (0, 1, 1)^T$。为使 $A(1, 0, 1)^T = \mathbf{a}_1 + \mathbf{a}_3 = \mathbf{0}$，取 $\mathbf{a}_3 = -\mathbf{a}_1 = (-1, -1, 0)^T$，即得满足全部要求的矩阵：
+
+$$
+A = \begin{bmatrix}
+1 & 0 & -1 \\
+1 & 1 & -1 \\
+0 & 1 & 0
+\end{bmatrix}
+$$
+
+   核验：$A\mathbf{e}_1 = (1,1,0)^T \in \operatorname{Col}(A)$，$A\mathbf{e}_2 = (0,1,1)^T \in \operatorname{Col}(A)$，且 $A(1,0,1)^T = \mathbf{0}$。由于 $\operatorname{Col}(A) = \operatorname{span}\{\mathbf{a}_1, \mathbf{a}_2\}$（例如 $(1, 0, 0)^T \notin \operatorname{Col}(A)$），$\operatorname{Col}(A) \neq \mathbb{R}^3$。
+
+2. **严格证明不存在**：假设存在 $M \in \mathbb{R}^{3\times 3}$ 满足 $(1, 1, 1)^T \in \operatorname{Null}(M)$。由定理 3.2 第 2 条知方阵 $M$ 奇异（不可逆）；再由第 01 讲定理 1.1（方阵可逆 $\iff \operatorname{Col}(M) = \mathbb{R}^3$），必有 $\operatorname{Col}(M) \subsetneq \mathbb{R}^3$，矛盾！故这样的 $3\times 3$ 矩阵绝不存在。（注：若允许 $3\times 4$ 矮胖矩阵，如 $\begin{bmatrix} I_3 & -I_3\mathbf{1} \end{bmatrix}$，则两者可兼得！）
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l06-ex5" tier="L4" title="MIT 18.06 考题级挑战：乘积 AB = 0 的子空间几何互锁与幂等分裂">
+设非零矩阵 $A \in \mathbb{R}^{m\times n}$ 与非零矩阵 $B \in \mathbb{R}^{n\times p}$：
+1. **核心等价刻画**：证明矩阵乘积等于全零矩阵（$AB = 0 \in \mathbb{R}^{m\times p}$）**当且仅当**右矩阵 $B$ 的整个列空间完全躺进左矩阵 $A$ 的零空间内部：
+
+$$
+AB = 0 \quad \Longleftrightarrow \quad \operatorname{Col}(B) \subseteq \operatorname{Null}(A)
+$$
+
+2. **投影算子直觉预演**：设方阵 $P \in \mathbb{R}^{n\times n}$ 满足幂等律 **$P^2 = P$**（例如平面投影）。记 $Q := I_n - P$：
+   - 利用第 1 问证明 $\operatorname{Col}(Q) \subseteq \operatorname{Null}(P)$，进而证明一个更强的相等关系：**$\operatorname{Col}(I_n - P) = \operatorname{Null}(P)$**！
+   - 证明输入空间 $\mathbb{R}^n$ 中任意向量 $\mathbf{x}$ 都能唯一拆分为 $\mathbf{x} = \mathbf{u} + \mathbf{v}$（其中 $\mathbf{u} \in \operatorname{Col}(P),\; \mathbf{v} \in \operatorname{Null}(P)$），且两个子空间的交集 $\operatorname{Col}(P) \cap \operatorname{Null}(P) = \{\mathbf{0}\}$！
+
+<ProgressiveHint
+  hints={[
+    "第 1 问：按列看 $AB = [A\\mathbf{b}_1, \\dots, A\\mathbf{b}_p] = 0$！每一列 $\\mathbf{b}_j$ 都满足 $A\\mathbf{b}_j = \\mathbf{0}$ 意味着什么？它们的任意线性组合 $B\\mathbf{x}$ 呢？",
+    "第 2 问：因为 $P(I_n - P) = P - P^2 = 0$，由第 1 问立得 $\\operatorname{Col}(I_n - P) \\subseteq \\operatorname{Null}(P)$！反过来，任取 $\\mathbf{z} \\in \\operatorname{Null}(P)$（即 $P\\mathbf{z}=\\mathbf{0}$），算一下 $(I_n - P)\\mathbf{z}$ 等于什么？！直接等于 $\\mathbf{z}$ 本身！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+1. 两个非零矩阵为什么乘起来能全军覆没变成 $0$？把 $B$ 看成发射器，它射出的所有子弹都落在靶场 $\operatorname{Col}(B)$ 里；而 $A$ 的黑洞吞噬区正是 $\operatorname{Null}(A)$。只要发射器的整个落点区 $\operatorname{Col}(B)$ 100% 掉进了 $A$ 的黑洞 $\operatorname{Null}(A)$ 里，不管喂什么输入 $\mathbf{x}$，先变成 $B\mathbf{x} \in \operatorname{Null}(A)$，再经过 $A$ 必然化为乌有 $\mathbf{0}$！
+2. 对幂等矩阵 $P^2 = P$，恒等分解 $\mathbf{x} = P\mathbf{x} + (I_n - P)\mathbf{x}$ 简直像变魔术：第一项 $P\mathbf{x}$ 天生在 $\operatorname{Col}(P)$ 里，而给第二项 $(I_n - P)\mathbf{x}$ 左乘 $P$ 得到 $(P - P^2)\mathbf{x} = \mathbf{0}$，天生在 $\operatorname{Null}(P)$ 里！如果某个向量既在 $\operatorname{Col}(P)$ 里（被 $P$ 保持不变：$P\mathbf{w} = \mathbf{w}$）又在 $\operatorname{Null}(P)$ 里（被 $P$ 杀成零：$P\mathbf{w} = \mathbf{0}$），那它只能是零向量 $\mathbf{w} = \mathbf{0}$！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **证明 $AB = 0 \iff \operatorname{Col}(B) \subseteq \operatorname{Null}(A)$**：
+   - $(\implies)$ 若 $AB = 0$，任取 $\mathbf{y} \in \operatorname{Col}(B)$，存在 $\mathbf{x} \in \mathbb{R}^p$ 使 $\mathbf{y} = B\mathbf{x}$。则 $A\mathbf{y} = A(B\mathbf{x}) = (AB)\mathbf{x} = 0\mathbf{x} = \mathbf{0} \implies \mathbf{y} \in \operatorname{Null}(A)$，故 $\operatorname{Col}(B) \subseteq \operatorname{Null}(A)$。
+   - $(\impliedby)$ 若 $\operatorname{Col}(B) \subseteq \operatorname{Null}(A)$，对 $B$ 的每一列 $\mathbf{b}_j = B\mathbf{e}_j \in \operatorname{Col}(B)$（$j = 1, \dots, p$），均有 $\mathbf{b}_j \in \operatorname{Null}(A) \implies A\mathbf{b}_j = \mathbf{0}$，故 $AB = \begin{bmatrix} A\mathbf{b}_1 & \cdots & A\mathbf{b}_p \end{bmatrix} = 0$。
+
+2. **证明幂等矩阵子空间直和分解**：
+   - 因 $P(I_n - P) = P - P^2 = 0$，由第 1 问得 $\operatorname{Col}(I_n - P) \subseteq \operatorname{Null}(P)$。反之，任取 $\mathbf{z} \in \operatorname{Null}(P)$，有 $P\mathbf{z} = \mathbf{0}$，于是 $\mathbf{z} = \mathbf{z} - P\mathbf{z} = (I_n - P)\mathbf{z} \in \operatorname{Col}(I_n - P)$，故 $\operatorname{Null}(P) \subseteq \operatorname{Col}(I_n - P)$。双向包含证得 **$\operatorname{Col}(I_n - P) = \operatorname{Null}(P)$**。
+   - **交集平凡**：任取 $\mathbf{w} \in \operatorname{Col}(P) \cap \operatorname{Null}(P)$。因 $\mathbf{w} \in \operatorname{Col}(P)$，存在 $\mathbf{y}$ 使 $\mathbf{w} = P\mathbf{y}$，故 $P\mathbf{w} = P^2\mathbf{y} = P\mathbf{y} = \mathbf{w}$；又因 $\mathbf{w} \in \operatorname{Null}(P)$，有 $P\mathbf{w} = \mathbf{0}$。两式联立立得 $\mathbf{w} = \mathbf{0}$，即 $\operatorname{Col}(P) \cap \operatorname{Null}(P) = \{\mathbf{0}\}$。
+   - **存在唯一分解**：对任意 $\mathbf{x} \in \mathbb{R}^n$，令 $\mathbf{u} = P\mathbf{x} \in \operatorname{Col}(P)$，$\mathbf{v} = (I_n - P)\mathbf{x} \in \operatorname{Null}(P)$，显然 $\mathbf{x} = \mathbf{u} + \mathbf{v}$。若另有 $\mathbf{x} = \mathbf{u}' + \mathbf{v}'$，相减得 $\mathbf{u} - \mathbf{u}' = \mathbf{v}' - \mathbf{v} \in \operatorname{Col}(P) \cap \operatorname{Null}(P) = \{\mathbf{0}\}$（子空间封闭性），故 $\mathbf{u}' = \mathbf{u},\; \mathbf{v}' = \mathbf{v}$。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>
+
+<FrontierAIReading
+  id="AI-02"
+  title="高维表征子空间与线性探针（Linear Probing）：神经网络隐层究竟张成了什么列空间？"
+  paperRef="Alain & Bengio (ICLR 2017 Workshop) Understanding Intermediate Layers Using Linear Classifier Probes · Elhage et al. (2022) Toy Models of Superposition"
+>
+
+在现代深度学习与大语言模型可解释性（Mechanistic Interpretability）研究中，核心理论支柱被称为**线性表示假说（Linear Representation Hypothesis）**：神经网络会将高层语义概念（如词性、真假判断、地理位置、代码语法角色）编码为高维隐空间 $\mathbb{R}^d$ 中的**一维直线方向或低维线性子空间**。而检验这一假说的标准实验武器——**线性探针（Linear Probing）**，在数学上 100% 等价于第 06 讲关于**列空间包含关系 $\mathbf{y} \in \operatorname{Col}(H)$** 与**权重零空间静默方向 $\operatorname{Null}(W)$** 的直接推演！
+
+### 1. 激活矩阵 $H$ 的列空间：线性探针何时能解码目标属性？
+
+设我们将 $N$ 个样本（例如 $N = 10{,}000$ 句自然语言文本）输入一个冻结参数的预训练 Transformer，提取出第 $\ell$ 层的隐状态向量 $\mathbf{h}_1, \dots, \mathbf{h}_N \in \mathbb{R}^d$（例如 $d = 4096$），按行堆叠成**样本—特征激活矩阵**：
+
+$$
+H = \begin{bmatrix}
+\mathbf{h}_1^T \\
+\mathbf{h}_2^T \\
+\vdots \\
+\mathbf{h}_N^T
+\end{bmatrix} \in \mathbb{R}^{N \times d}
+$$
+
+所谓训练一个无偏置**线性探针**去预测某个目标标量属性 $\mathbf{y} = (y_1, \dots, y_N)^T \in \mathbb{R}^N$（例如情感极性得分或世界坐标），就是冻结 $H$ 不变，仅寻找一个探针权重向量 $\mathbf{w} \in \mathbb{R}^d$ 求解线性方程组：
+
+$$
+H \mathbf{w} = \mathbf{y}
+$$
+
+直接套用本讲**定义 6.1** 与可解性判据，两层高维几何真相瞬间水落石出：
+
+1. **完美线性可解码的充要条件是 $\mathbf{y} \in \operatorname{Col}(H) \subseteq \mathbb{R}^N$**：
+   在高达 $N$ 维的样本结果空间 $\mathbb{R}^N$ 中（通常 $N \gg d$，即 $H$ 是高瘦矩阵！），矩阵 $H$ 仅有 $d$ 列特征通道，其列空间 $\operatorname{Col}(H)$ 至多只是 $\mathbb{R}^N$ 中一个 $d$ 维的极薄子空间切片！
+   - 如果浅层网络尚未将非线性纠缠的特征“展开拉平”，目标向量 $\mathbf{y}$ 就会远远飘在 $\operatorname{Col}(H)$ 之外，任何线性探针都束手无策；
+   - 随着层数加深，Transformer 的注意力与 MLP 不断对空间做非线性折叠与重排，最终将目标语义向量 $\mathbf{y}$ 精准拉入深层激活矩阵的列空间 $\operatorname{Col}(H^{(L)})$ 内部，使得线性探针准确率跃升！
+
+2. **过参数化探针陷阱（当 $d \gt N$ 时）**：
+   反过来，如果在小样本实验（例如仅采 $N = 512$ 个探测句，而隐层宽度 $d = 4096 \gt N$）中训练线性探针，此时 $H \in \mathbb{R}^{512 \times 4096}$ 变成了**矮胖矩阵**（类似本讲习题 `l06-ex1`）！只要激活向量没有极端退化，它的 $4096$ 列几乎必然张满整个 $\mathbb{R}^{512}$（$\operatorname{Col}(H) = \mathbb{R}^{512}$）——这意味着**哪怕 $\mathbf{y}$ 是完全随机掷骰子生成的纯噪声标签，方程 $H\mathbf{w} = \mathbf{y}$ 也 100% 存在精确解（而且有无穷多解，零空间 $\operatorname{Null}(H) \subseteq \mathbb{R}^{4096}$ 至少有 $4096 - 512 = 3584$ 维自由度）**！这从纯线性代数角度严厉警示了 AI 研究者：当特征维度 $d \ge N$ 时，训练集上 100% 的探针拟合度毫无意义，必须引入正则化并在独立测试集上核验泛化！
+
+---
+
+### 2. 线性层权重矩阵 $W$ 的零空间 $\operatorname{Null}(W)$：“静默扰动”与特征叠加
+
+再看神经网络内部任意一层线性映射 $\mathbf{z} = W \mathbf{h}$，其中权重矩阵 $W \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}$（例如 Transformer FFN 下投影层从 $4d$ 压回 $d$，即 $W_{\text{down}} \in \mathbb{R}^{d \times 4d}$）：
+
+- 这里列数 $4d$ 远大于行数 $d$，根据零空间定义，输入空间 $\mathbb{R}^{4d}$ 中必定存在一个极其庞大的**零空间子空间 $\operatorname{Null}(W_{\text{down}}) \subseteq \mathbb{R}^{4d}$**（至少 $3d$ 维！）。
+- **零空间的物理意义——对下游彻底隐身的“静默子空间”**：对任意非零扰动向量 $\boldsymbol{\delta} \in \operatorname{Null}(W)$，无论其幅度多大，经过该层后都有：
+
+$$
+W(\mathbf{h} + \boldsymbol{\delta}) = W\mathbf{h} + W\boldsymbol{\delta} = W\mathbf{h} + \mathbf{0} = W\mathbf{h}
+$$
+
+  换言之，线性层 $W$ 对躺在 $\operatorname{Null}(W)$ 里的所有激活分量**完全失明（Blind）**！在特征叠加（Superposition）与激活干预（Activation Steering）实验中，如果你向大模型注入的控制向量恰好落在了下游线性投影的零空间附近，哪怕中间层范数剧烈变化，模型最终输出的 Logits 也会纹丝不动！
+
+<CollapsibleCode title="展开 PyTorch 张量维度对照核验（验证 d > N 探针必完美过拟合随机噪声，及 Null(W) 静默扰动零影响）">
+
+```python
+import torch
+
+torch.manual_seed(0)
+
+# 1. 验证过参数化线性探针陷阱：N=64 样本 < d=256 隐层维度时，Col(H) = R^N 必精确拟合纯随机标签!
+N, d = 64, 256
+H = torch.randn(N, d)                  # (64, 256) 矮胖激活矩阵
+y_random_noise = torch.randn(N, 1)     # 完全随机的无意义标签 y ∈ R^64
+
+# 求解 H w = y：因为 y ∈ Col(H) = R^64，残差严格为 0!
+w_probe = torch.linalg.lstsq(H, y_random_noise).solution
+residual = torch.norm(H @ w_probe - y_random_noise).item()
+assert residual < 1e-5, f"Expected zero residual, got {residual}"
+
+# 2. 验证 FFN 下投影 W_down ∈ R^(64 x 256) 的零空间静默扰动：W(h + delta) == W h
+W_down = torch.randn(64, 256)
+# 用 SVD 提取 W_down 零空间中的正交方向（右奇异向量第 64..255 列满足 W v = 0）
+_, _, Vh = torch.linalg.svd(W_down, full_matrices=True)
+null_basis = Vh[64:, :].T              # (256, 192)，张成 192 维 Null(W_down)
+
+h = torch.randn(256, 1)
+delta_in_null = null_basis @ torch.randn(192, 1) * 100.0  # 幅度放大 100 倍的巨幅扰动!
+
+out_clean = W_down @ h
+out_perturbed = W_down @ (h + delta_in_null)
+assert torch.allclose(out_clean, out_perturbed, atol=1e-4)
+print("Verified: Col(H)=R^N fits arbitrary noise & Null(W_down) perturbations are 100% silent!")
+```
+
+</CollapsibleCode>
+
+</FrontierAIReading>
