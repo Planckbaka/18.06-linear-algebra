@@ -1,0 +1,1136 @@
+---
+title: "第 24 讲：马尔可夫矩阵与傅里叶级数"
+ocwId: "L24"
+videoEpisode: "P24"
+textbookRef: "§10.3, §4.4"
+---
+
+在前面数讲中，我们建立并深入探讨了特征值与特征向量的代数机制（$A\mathbf{x} = \lambda \mathbf{x}$）以及矩阵对角化在离散差分方程 $\mathbf{u}_{k+1} = A\mathbf{u}_k$ 中的应用。在本讲中，Gilbert Strang 教授将我们带入线性代数的两个崇高应用高峰：
+
+1. **马尔可夫矩阵（Markov Matrix / Transition Matrix）**：控制离散随机游走、人口迁徙与现代搜索引擎/扩散模型的转移矩阵。我们将利用四大基本子空间的行秩列秩定理，揭示为什么其最大特征值 $\lambda_1 = 1$ 必然恒成立，以及为什么稳态（Steady State）主导了系统的长期极限。
+2. **傅里叶级数（Fourier Series）**：将有限维欧氏空间 $\mathbb{R}^n$ 中的正交投影（Lecture 17）无缝拓展至无穷维连续函数空间 $L^2([0, 2\pi])$。令人惊叹的是，大学微积分中繁琐的傅里叶系数公式，本质上只是正交基投影公式在函数内积空间中的自然镜像！
+
+---
+
+## 一、马尔可夫矩阵与概率质量守恒
+
+在概率论、动力系统与运筹学中，我们经常研究由一系列互斥状态组成的离散马尔可夫链。在每个离散时间步 $k \to k+1$，系统状态向量 $\mathbf{u}_k$ 按照线性递推关系演化：
+
+$$
+\mathbf{u}_{k+1} = A \mathbf{u}_k
+$$
+
+为了保证每一时刻的状态向量 $\mathbf{u}_k$ 都具有合法的概率分布意义，矩阵 $A$ 必须满足严格的结构约束。
+
+<DefinitionCard title="马尔可夫矩阵（列随机矩阵）" termEn="Markov Matrix / Column-Stochastic Matrix">
+
+设方阵 $A \in \mathbb{R}^{n \times n}$。若 $A$ 同时满足以下两个条件，则称 $A$ 为一个**马尔可夫矩阵（Markov Matrix）**（或**列随机矩阵（Column-Stochastic Matrix）**）：
+
+1. **非负性（Non-negativity）**：矩阵中的所有元素非负，即对任意 $1 \le i, j \le n$，均有：
+   $$
+   a_{ij} \ge 0
+   $$
+2. **列和归一性（Column-Stochasticity）**：每一列的所有元素之和恒等于 $1$，即对任意列指标 $j \in \{1, 2, \dots, n\}$，均有：
+   $$
+   \sum_{i=1}^n a_{ij} = 1
+   $$
+
+用全 $1$ 行向量 $\mathbf{1}^T = [1, 1, \dots, 1] \in \mathbb{R}^{1 \times n}$ 可以紧凑地表示为：
+
+$$
+\mathbf{1}^T A = \mathbf{1}^T
+$$
+
+</DefinitionCard>
+
+为什么列和归一性是概率系统的生命线？设 $\mathbf{u}_k \in \mathbb{R}^n$ 为时刻 $k$ 的概率分布向量，满足每个分量非负且总概率质量为 1，即 $\mathbf{1}^T \mathbf{u}_k = \sum_{i=1}^n u_{i, k} = 1$。根据矩阵乘法的结合律：
+
+$$
+\mathbf{1}^T \mathbf{u}_{k+1} = \mathbf{1}^T (A \mathbf{u}_k) = (\mathbf{1}^T A) \mathbf{u}_k = \mathbf{1}^T \mathbf{u}_k = 1
+$$
+
+这证明了**概率质量在时间演化中绝对守恒**！状态点 $\mathbf{u}_k$ 将始终受限于 $(n-1)$ 维的标准概率单形（Probability Simplex）$\Delta^{n-1} = \{\mathbf{u} \in \mathbb{R}^n \mid \mathbf{1}^T \mathbf{u} = 1, u_i \ge 0\}$ 内。
+
+---
+
+## 二、三大核心谱定理与四大子空间证明
+
+马尔可夫矩阵之所以拥有无与伦比的优雅数学性质，完全源于其特殊的谱结构。
+
+<TheoremCard title="马尔可夫矩阵的核心谱性质定理" termEn="Spectral Properties of Markov Matrices">
+
+设 $A \in \mathbb{R}^{n \times n}$ 为列随机马尔可夫矩阵，则：
+
+1. **稳态特征值恒存在**：$\lambda_1 = 1$ 必定是 $A$ 的一个特征值；
+2. **谱半径有界**：$A$ 的所有特征值在复平面上的模长均不超过 1，即对任意特征值 $\lambda_i$，有：
+   $$
+   |\lambda_i| \le 1
+   $$
+3. **瞬态特征向量零和律**：若 $\lambda \ne 1$ 是 $A$ 的一个特征值，且 $\mathbf{x}$ 为对应的右特征向量（$A\mathbf{x} = \lambda \mathbf{x}$），则 $\mathbf{x}$ 的所有分量之和必严格为零：
+   $$
+   \mathbf{1}^T \mathbf{x} = 0
+   $$
+4. **佩龙-弗罗贝尼乌斯定理（Perron-Frobenius Theorem）**：若 $A$ 是正矩阵（对所有元素有 $a_{ij} \gt 0$）或本原矩阵（存在正整数 $m$ 使得 $A^m \gt 0$），则特征值 $\lambda_1 = 1$ 是代数重数与几何重数均为 1 的简单主特征值，其余所有特征值严格满足 $|\lambda_i| \lt 1$（$i \ge 2$）。此时存在严格正的归一化稳态向量 $\mathbf{u}_\infty \gt \mathbf{0}$，使得对任意初始概率分布 $\mathbf{u}_0 \in \Delta^{n-1}$，均有：
+   $$
+   \lim_{k \to \infty} A^k \mathbf{u}_0 = \mathbf{u}_\infty
+   $$
+
+</TheoremCard>
+
+让我们欣赏 Gilbert Strang 教授如何运用四大基本子空间定理，对上述性质给出极为纯粹、震撼的代数证明。
+
+<ProofCollapse title="定理 1 的四大子空间证明（为什么 \\lambda_1 = 1 恒成立？）">
+
+**证明思路：**
+
+我们要证明存在非零向量 $\mathbf{x}_1 \ne \mathbf{0}$ 满足 $(A - I)\mathbf{x}_1 = \mathbf{0}$，这等价于证明矩阵 $A - I$ 的零空间非平凡，即 $\dim \operatorname{Null}(A - I) \ge 1$。
+
+**第 1 步（列和归一性等价于转置特征向量）：**
+根据列和等于 1 的条件：
+
+$$
+\mathbf{1}^T A = \mathbf{1}^T \iff \mathbf{1}^T A - \mathbf{1}^T I = \mathbf{0}^T \iff \mathbf{1}^T (A - I) = \mathbf{0}^T
+$$
+
+两端取矩阵转置：
+
+$$
+(A - I)^T \mathbf{1} = \mathbf{0} \iff (A^T - I) \mathbf{1} = \mathbf{0}
+$$
+
+这说明全 $1$ 向量 $\mathbf{1} = [1, 1, \dots, 1]^T$ 是转置矩阵 $A^T$ 对应特征值 $\lambda = 1$ 的右特征向量！
+
+**第 2 步（零空间非平凡性）：**
+上式说明全 $1$ 向量落在矩阵 $A^T - I$ 的零空间（即矩阵 $A - I$ 的左零空间）中：
+
+$$
+\mathbf{1} \in \operatorname{Null}(A^T - I)
+$$
+
+由于 $\mathbf{1} \ne \mathbf{0}$，该子空间至少包含一条直线，因此：
+
+$$
+\dim \operatorname{Null}(A^T - I) \ge 1
+$$
+
+**第 3 步（利用四大子空间行秩等于列秩）：**
+根据线性代数基本定理（四大基本子空间维数定理），任意矩阵的行空间维数等于列空间维数（即行秩等于列秩）：
+
+$$
+\operatorname{rank}(A - I) = \operatorname{rank}((A - I)^T) = r
+$$
+
+根据秩-零度定理（Rank-Nullity Theorem）：
+
+$$
+\dim \operatorname{Null}(A - I) = n - r = \dim \operatorname{Null}(A^T - I) \ge 1
+$$
+
+**第 4 步（结论落地）：**
+由于 $\dim \operatorname{Null}(A - I) \ge 1$，零空间中必存在非平凡非零解 $\mathbf{x}_1 \ne \mathbf{0}$，使得：
+
+$$
+(A - I)\mathbf{x}_1 = \mathbf{0} \iff A \mathbf{x}_1 = 1 \cdot \mathbf{x}_1
+$$
+
+证毕！全 1 向量是 $A^T$ 的特征向量，由四大子空间维数守恒，直接锁定了 $A$ 必然拥有特征值 $\lambda_1 = 1$。
+
+</ProofCollapse>
+
+<ProofCollapse title="定理 2 与定理 3 证明（谱界 |\\lambda| \\le 1 与零和分量 \\mathbf{1}^T \\mathbf{x} = 0）">
+
+**证明零和律（定理 3）：**
+
+设 $\lambda \ne 1$ 是 $A$ 的特征值，$\mathbf{x}$ 为对应的右特征向量，即 $A \mathbf{x} = \lambda \mathbf{x}$。
+在等式两边同时左乘全 $1$ 行向量 $\mathbf{1}^T$：
+
+$$
+\mathbf{1}^T (A \mathbf{x}) = \mathbf{1}^T (\lambda \mathbf{x})
+$$
+
+利用结合律与 $\mathbf{1}^T A = \mathbf{1}^T$：
+
+$$
+(\mathbf{1}^T A) \mathbf{x} = \lambda (\mathbf{1}^T \mathbf{x}) \implies \mathbf{1}^T \mathbf{x} = \lambda (\mathbf{1}^T \mathbf{x})
+$$
+
+移项提取公因式：
+
+$$
+(1 - \lambda)(\mathbf{1}^T \mathbf{x}) = 0
+$$
+
+由于已知 $\lambda \ne 1$，即 $1 - \lambda \ne 0$，两端除以 $1 - \lambda$ 立即得到：
+
+$$
+\mathbf{1}^T \mathbf{x} = 0
+$$
+
+**几何与物理含义**：所有衰减瞬态模式的特征向量，分量之和必须恒等于 0！这代表状态之间的**净概率守恒流动**（某些分量增加，必然有等量的分量减少），绝不会从系统外部凭空创造或消灭概率质量。
+
+**证明谱半径 $|\lambda| \le 1$（定理 2）：**
+
+因为矩阵 $A$ 与其转置 $A^T$ 具有相同的特征多项式 $\det(A - \lambda I) = \det((A - \lambda I)^T) = \det(A^T - \lambda I)$，它们的所有特征值完全相同。
+设 $\lambda \in \mathbb{C}$ 为 $A^T$ 的任意特征值，$\mathbf{y} \ne \mathbf{0}$ 为对应特征向量：
+
+$$
+A^T \mathbf{y} = \lambda \mathbf{y}
+$$
+
+考察 $\mathbf{y}$ 中模长最大的分量 $y_m$，满足 $|y_m| = \|\mathbf{y}\|_\infty = \max_{1 \le i \le n} |y_i| \gt 0$。
+考察特征方程第 $m$ 个分量标量展开：
+
+$$
+\lambda y_m = (A^T \mathbf{y})_m = \sum_{j=1}^n (A^T)_{mj} y_j = \sum_{j=1}^n a_{jm} y_j
+$$
+
+两端取复数模长，并利用三角不等式以及 $A$ 的非负性（$a_{jm} \ge 0$）：
+
+$$
+|\lambda| |y_m| = \left| \sum_{j=1}^n a_{jm} y_j \right| \le \sum_{j=1}^n a_{jm} |y_j| \le \sum_{j=1}^n a_{jm} |y_m| = \left( \sum_{j=1}^n a_{jm} \right) |y_m|
+$$
+
+由于 $A$ 的每一列元素之和等于 1，即 $\sum_{j=1}^n a_{jm} = 1$：
+
+$$
+|\lambda| |y_m| \le 1 \cdot |y_m|
+$$
+
+两端除以 $|y_m| \gt 0$，立即得到：
+
+$$
+|\lambda| \le 1
+$$
+
+证毕！任何马尔可夫矩阵的谱半径绝不可能超过 1。
+
+</ProofCollapse>
+
+---
+
+## 三、经典 $2 \times 2$ 迁徙模型与收敛动态
+
+为了把抽象的代数理论具象化，我们考察两城市（例如波士顿与加州）之间的人口年迁徙模型。
+
+设转移矩阵为：
+
+$$
+A = \begin{bmatrix} 0.9 & 0.2 \\ 0.1 & 0.8 \end{bmatrix}
+$$
+
+第 1 列表示波士顿人口每年有 $90\%$ 留存、$10\%$ 迁往加州；第 2 列表示加州人口每年有 $20\%$ 迁往波士顿、$80\%$ 留存。每一列元素之和均为 1，且全部严格大于 0（正矩阵）。
+
+### 1. 求解特征值与特征向量
+
+利用迹与行列式的捷径：
+矩阵的迹为 $\operatorname{tr}(A) = 0.9 + 0.8 = 1.7$。已知马尔可夫矩阵必有 $\lambda_1 = 1$：
+
+$$
+\lambda_1 + \lambda_2 = \operatorname{tr}(A) = 1.7 \implies \lambda_2 = 1.7 - 1 = 0.7
+$$
+
+验算行列式：$\det(A) = 0.9 \times 0.8 - 0.2 \times 0.1 = 0.72 - 0.02 = 0.70 = \lambda_1 \lambda_2$，完全吻合！
+
+对于稳态特征值 $\lambda_1 = 1$：
+
+$$
+(A - I)\mathbf{x}_1 = \begin{bmatrix} -0.1 & 0.2 \\ 0.1 & -0.2 \end{bmatrix}\mathbf{x}_1 = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies \mathbf{x}_1 = \begin{bmatrix} 2 \\ 1 \end{bmatrix}
+$$
+
+将其归一化为总概率和为 1 的稳态向量：
+
+$$
+\mathbf{u}_\infty = \begin{bmatrix} 2/3 \\ 1/3 \end{bmatrix}
+$$
+
+对于瞬态衰减特征值 $\lambda_2 = 0.7$：
+
+$$
+(A - 0.7 I)\mathbf{x}_2 = \begin{bmatrix} 0.2 & 0.2 \\ 0.1 & 0.1 \end{bmatrix}\mathbf{x}_2 = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+清晰可见：$\mathbf{1}^T \mathbf{x}_2 = 1 + (-1) = 0$，分量之和严格为零！
+
+### 2. 状态轨迹沿概率单形的收敛
+
+假设初始时所有人都在波士顿，即 $\mathbf{u}_0 = \begin{bmatrix} 1 \\ 0 \end{bmatrix}$。将 $\mathbf{u}_0$ 在特征基底 $\{\mathbf{u}_\infty, \mathbf{x}_2\}$ 上展开：
+
+$$
+\begin{bmatrix} 1 \\ 0 \end{bmatrix} = c_1 \begin{bmatrix} 2/3 \\ 1/3 \end{bmatrix} + c_2 \begin{bmatrix} 1 \\ -1 \end{bmatrix} \implies c_1 = 1, \quad c_2 = \frac{1}{3}
+$$
+
+时刻 $k$ 的状态向量为：
+
+$$
+\mathbf{u}_k = A^k \mathbf{u}_0 = 1 \cdot (1)^k \begin{bmatrix} 2/3 \\ 1/3 \end{bmatrix} + \frac{1}{3} (0.7)^k \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+当 $k \to \infty$ 时，几何衰减项 $(0.7)^k \to 0$：
+
+$$
+\lim_{k \to \infty} \mathbf{u}_k = \mathbf{u}_\infty = \begin{bmatrix} 2/3 \\ 1/3 \end{bmatrix}
+$$
+
+不论初始人口分布如何分配，最终波士顿将稳定维持总人口的 $\frac{2}{3}$，加州维持 $\frac{1}{3}$。
+
+<MarkovSteadyStateSimplexDiagram />
+
+---
+
+## 四、从 $\mathbb{R}^n$ 到无穷维函数空间：傅里叶级数
+
+现在，我们将视野提升到一个更加广阔的数学空间。Gilbert Strang 教授在此展现了线性代数最宏伟的跨学科统一：**正交投影理论不仅适用于有限维空间 $\mathbb{R}^n$，更直接支配了无穷维函数分析！**
+
+### 1. 向量点积与连续函数内积的对应
+
+在有限维欧氏空间 $\mathbb{R}^n$ 中，两个向量 $\mathbf{f} = [f_1, \dots, f_n]^T$ 与 $\mathbf{g} = [g_1, \dots, g_n]^T$ 的点积为：
+
+$$
+\mathbf{f}^T \mathbf{g} = \sum_{i=1}^n f_i g_i
+$$
+
+若我们让维数 $n \to \infty$，将离散指标 $i \in \{1, \dots, n\}$ 替换为连续区间 $[0, 2\pi]$ 上的实数自变量 $x$，将向量分量 $f_i$ 替换为函数值 $f(x)$，离散求和便自然演变为黎曼积分。在实平方可积函数空间 $L^2([0, 2\pi])$ 中，两个函数的**连续内积（Continuous Inner Product）**定义为：
+
+$$
+\langle f, g \rangle = \int_0^{2\pi} f(x) g(x)\,dx
+$$
+
+对应的函数长度平方（范数平方）即为信号的总能量：
+
+$$
+\|f\|^2 = \langle f, f \rangle = \int_0^{2\pi} f(x)^2\,dx
+$$
+
+两个函数正交的几何条件与几何向量毫无二致：若 $\langle f, g \rangle = 0$，则称函数 $f$ 与 $g$ 正交！
+
+### 2. 三角函数系的正交性与基向量长度
+
+<TheoremCard title="三角函数系的正交性与基底范数定理" termEn="Orthogonality of the Trigonometric Basis">
+
+在函数内积空间 $L^2([0, 2\pi])$ 中，标准三角函数系：
+
+$$
+\mathcal{B} = \{1, \cos x, \sin x, \cos 2x, \sin 2x, \dots, \cos kx, \sin kx, \dots\}
+$$
+
+构成相互正交的基底函数族。其内积与基向量长度满足：
+
+1. **常数基底的范数平方**：
+   $$
+   \|1\|^2 = \langle 1, 1 \rangle = \int_0^{2\pi} 1^2\,dx = 2\pi
+   $$
+2. **正弦与余弦基底的范数平方**：对任意正整数 $k \ge 1$，均有：
+   $$
+   \|\cos kx\|^2 = \int_0^{2\pi} \cos^2(kx)\,dx = \pi, \qquad \|\sin kx\|^2 = \int_0^{2\pi} \sin^2(kx)\,dx = \pi
+   $$
+3. **两两正交性**：对于所有不同基函数，内积严格为 0：
+   $$
+   \langle 1, \cos kx \rangle = 0, \quad \langle 1, \sin kx \rangle = 0
+   $$
+   $$
+   \langle \cos kx, \sin mx \rangle = 0 \quad (\forall k, m \ge 1)
+   $$
+   $$
+   \langle \cos kx, \cos mx \rangle = 0, \quad \langle \sin kx, \sin mx \rangle = 0 \quad (k \ne m)
+   $$
+
+</TheoremCard>
+
+<ProofCollapse title="三角函数系正交性积分证明">
+
+利用积化和差三角恒等式：
+
+$$
+\cos(kx)\cos(mx) = \frac{1}{2}\left[\cos((k-m)x) + \cos((k+m)x)\right]
+$$
+
+$$
+\sin(kx)\sin(mx) = \frac{1}{2}\left[\cos((k-m)x) - \cos((k+m)x)\right]
+$$
+
+$$
+\sin(kx)\cos(mx) = \frac{1}{2}\left[\sin((k+m)x) + \sin((k-m)x)\right]
+$$
+
+当 $k \ne m$ 时，$k-m \ne 0$ 且 $k+m \ne 0$。由于正弦和余弦函数在周期 $[0, 2\pi]$ 上的整数倍周期积分为零：
+
+$$
+\int_0^{2\pi} \cos(nx)\,dx = 0, \quad \int_0^{2\pi} \sin(nx)\,dx = 0 \quad (\forall n \in \mathbb{Z}, n \ne 0)
+$$
+
+因此上述所有积化和差项在 $[0, 2\pi]$ 上的积分全部为零，证明了正交性。
+
+当 $k = m \ge 1$ 时，$\cos((k-m)x) = \cos(0) = 1$：
+
+$$
+\|\cos kx\|^2 = \int_0^{2\pi} \cos^2(kx)\,dx = \frac{1}{2}\int_0^{2\pi}(1 + \cos(2kx))\,dx = \frac{1}{2}(2\pi) + 0 = \pi
+$$
+
+$$
+\|\sin kx\|^2 = \int_0^{2\pi} \sin^2(kx)\,dx = \frac{1}{2}\int_0^{2\pi}(1 - \cos(2kx))\,dx = \frac{1}{2}(2\pi) - 0 = \pi
+$$
+
+常数函数自身内积：$\langle 1, 1 \rangle = \int_0^{2\pi} 1\,dx = 2\pi$。证毕！
+
+</ProofCollapse>
+
+### 3. 傅里叶级数本质：第 17 讲正交投影公式的无穷维复现
+
+回顾第 17 讲中的核心结论：如果 $\{\mathbf{q}_1, \dots, \mathbf{q}_n\}$ 是一组**正交基**（无需单位化），那么任意向量 $\mathbf{v}$ 可以展开为基向量的线性组合 $\mathbf{v} = \sum c_i \mathbf{q}_i$。欲求系数 $c_i$，只需在两端对 $\mathbf{q}_i$ 作内积：
+
+$$
+\mathbf{q}_i^T \mathbf{v} = c_i (\mathbf{q}_i^T \mathbf{q}_i) \implies c_i = \frac{\mathbf{q}_i^T \mathbf{v}}{\mathbf{q}_i^T \mathbf{q}_i} = \frac{\mathbf{q}_i^T \mathbf{v}}{\|\mathbf{q}_i\|^2}
+$$
+
+现在将函数 $f(x)$ 展开为三角正交基的级数：
+
+$$
+f(x) = a_0 \cdot 1 + \sum_{k=1}^\infty (a_k \cos kx + b_k \sin kx)
+$$
+
+运用**完全相同的正交投影公式**（分子是目标向量与基向量的内积，分母是基向量自身的范数平方）：
+
+1. **直流分量（向常数基底 1 投影）**：
+   $$
+   a_0 = \frac{\langle f, 1 \rangle}{\|1\|^2} = \frac{\int_0^{2\pi} f(x) \cdot 1\,dx}{2\pi} = \frac{1}{2\pi} \int_0^{2\pi} f(x)\,dx
+   $$
+   这正是函数在区间 $[0, 2\pi]$ 上的平均值！
+2. **余弦分量（向 $\cos kx$ 投影）**：
+   $$
+   a_k = \frac{\langle f, \cos kx \rangle}{\|\cos kx\|^2} = \frac{\int_0^{2\pi} f(x)\cos(kx)\,dx}{\pi} = \frac{1}{\pi} \int_0^{2\pi} f(x)\cos(kx)\,dx
+   $$
+3. **正弦分量（向 $\sin kx$ 投影）**：
+   $$
+   b_k = \frac{\langle f, \sin kx \rangle}{\|\sin kx\|^2} = \frac{\int_0^{2\pi} f(x)\sin(kx)\,dx}{\pi} = \frac{1}{\pi} \int_0^{2\pi} f(x)\sin(kx)\,dx
+   $$
+
+这就是微积分教科书中背诵的傅里叶系数公式的全部真相！**它根本不是某种天外来客的微积分技巧，它就是正交投影在函数空间中的逐分量展开。**
+
+### 4. 帕塞瓦尔恒等式：无穷维勾股定理
+
+在有限维正交展开中，我们有勾股定理 $\|\mathbf{v}\|^2 = \sum c_i^2 \|\mathbf{q}_i\|^2$。在无穷维函数空间中，完全相同的能量守恒给出了著名的**帕塞瓦尔恒等式（Parseval's Identity）**：
+
+$$
+\|f\|^2 = \langle f, f \rangle = a_0^2 \|1\|^2 + \sum_{k=1}^\infty \left( a_k^2 \|\cos kx\|^2 + b_k^2 \|\sin kx\|^2 \right)
+$$
+
+将各基底的范数平方代入：
+
+$$
+\int_0^{2\pi} f(x)^2\,dx = 2\pi a_0^2 + \pi \sum_{k=1}^\infty (a_k^2 + b_k^2)
+$$
+
+这证明了：时域中连续信号的总物理能量，精准等于频域各谐波正交投影分量的能量之和。
+
+<FourierFunctionSpaceProjectionDiagram />
+
+---
+
+## 五、方波展开与巴塞尔问题秒解
+
+为了切身体会这一优美框架，我们计算工程中最典型的标准方波信号。设 $f(x)$ 是周期为 $2\pi$ 的方波，在区间 $[0, 2\pi]$ 上定义为：
+
+$$
+f(x) = \begin{cases} 1, & 0 \le x \lt \pi \\ -1, & \pi \le x \lt 2\pi \end{cases}
+$$
+
+### 1. 计算傅里叶正交投影系数
+
+1. **直流项**：信号在上下半周期对称，平均值为零：
+   $$
+   a_0 = \frac{1}{2\pi}\left( \int_0^\pi 1\,dx + \int_\pi^{2\pi} (-1)\,dx \right) = \frac{\pi - \pi}{2\pi} = 0
+   $$
+2. **余弦项**：由于 $f(x)$ 具有奇对称性，所有余弦正交投影均为零：
+   $$
+   a_k = \frac{1}{\pi}\left( \int_0^\pi \cos kx\,dx - \int_\pi^{2\pi} \cos kx\,dx \right) = \frac{1}{\pi k}\left( [\sin kx]_0^\pi - [\sin kx]_\pi^{2\pi} \right) = 0
+   $$
+3. **正弦项**：
+   $$
+   b_k = \frac{1}{\pi}\left( \int_0^\pi \sin kx\,dx - \int_\pi^{2\pi} \sin kx\,dx \right) = \frac{1}{\pi k}\left( [-\cos kx]_0^\pi - [-\cos kx]_\pi^{2\pi} \right)
+   $$
+   $$
+   = \frac{1}{\pi k}\left( (1 - \cos k\pi) - (\cos 2k\pi - \cos k\pi) \right) = \frac{2}{\pi k}(1 - \cos k\pi)
+   $$
+   当 $k$ 为偶数时，$\cos k\pi = 1 \implies b_k = 0$；
+   当 $k$ 为奇数时，$\cos k\pi = -1 \implies b_k = \frac{4}{\pi k}$。
+
+因此，方波的傅里叶正交级数展开为：
+
+$$
+f(x) \sim \frac{4}{\pi}\left( \sin x + \frac{1}{3}\sin 3x + \frac{1}{5}\sin 5x + \frac{1}{7}\sin 7x + \dots \right)
+$$
+
+### 2. 勾股定理求解巴塞尔奇数倒数平方和
+
+计算方波信号自身的范数平方：
+
+$$
+\|f\|^2 = \int_0^{2\pi} f(x)^2\,dx = \int_0^{2\pi} (\pm 1)^2\,dx = 2\pi
+$$
+
+将系数代入帕塞瓦尔能量恒等式（右端余弦与直流全为 0）：
+
+$$
+\|f\|^2 = \pi \sum_{m=0}^\infty b_{2m+1}^2 = \pi \sum_{m=0}^\infty \left( \frac{4}{\pi(2m+1)} \right)^2 = \frac{16}{\pi} \sum_{m=0}^\infty \frac{1}{(2m+1)^2}
+$$
+
+令左端等于右端：
+
+$$
+2\pi = \frac{16}{\pi} \sum_{m=0}^\infty \frac{1}{(2m+1)^2} \implies \sum_{m=0}^\infty \frac{1}{(2m+1)^2} = \frac{2\pi^2}{16} = \frac{\pi^2}{8}
+$$
+
+利用几何向量投影的勾股定理，我们在几行之内严格推导出了数论中著名的奇数倒数平方和 $\frac{1}{1^2} + \frac{1}{3^2} + \frac{1}{5^2} + \dots = \frac{\pi^2}{8}$！
+
+---
+
+<PitfallAlert title="易错陷阱与经典误区">
+
+### 1. 列随机（Column-Stochastic）与行随机（Row-Stochastic）的定义冲突
+Gilbert Strang 教授在 MIT 18.06 中统一使用**列随机矩阵**（状态写为列向量 $\mathbf{u}_k$，递推式为 $\mathbf{u}_{k+1} = A\mathbf{u}_k$，列元素和为 1，即 $\mathbf{1}^T A = \mathbf{1}^T$）。此时稳态是矩阵 $A$ 的**右特征向量**（$A\mathbf{u}_\infty = \mathbf{u}_\infty$）。
+然而，在计算机科学、PageRank 原始论文、强化学习与离散扩散模型（D3PM）中，学者们常习惯使用**行随机转移矩阵** $P = A^T$（状态写为行向量 $\boldsymbol{\pi}_k^T$，递推式为 $\boldsymbol{\pi}_{k+1}^T = \boldsymbol{\pi}_k^T P$，行元素和为 1，即 $P\mathbf{1} = \mathbf{1}$）。此时稳态对应的是 $P$ 的**左特征向量**（$\boldsymbol{\pi}_\infty^T P = \boldsymbol{\pi}_\infty^T$）。读者在阅读不同文献时务必首先检查其随机约定，避免将左、右特征向量混淆！
+
+### 2. 特征值 $\lambda_1 = 1$ 不等于系统必然收敛到唯一稳态！
+虽然任何非负列和为 1 的矩阵必有 $\lambda_1 = 1$，但这绝不意味着任意马尔可夫链都会收敛到唯一的稳态：
+- **周期性振荡（Periodic）**：置换矩阵 $P = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$，特征值为 $\lambda_1 = 1, \lambda_2 = -1$。由于存在模长为 1 的非 1 特征值，系统状态在单形两端永久交替振荡，绝不收敛。
+- **可约多重稳态（Reducible）**：单位矩阵 $I_2$ 是合法的马尔可夫矩阵，但其特征值为双重根 $\lambda_1 = \lambda_2 = 1$。单形上的任何点都是稳态，最终状态完全依赖初值。
+只有满足佩龙-弗罗贝尼乌斯定理条件（矩阵本原，即存在某步幂 $A^m \gt 0$ 全为正）时，才能严格保证其余 $|\lambda_i| \lt 1$ 且稳态唯一！
+
+### 3. 傅里叶常数项系数 $a_0$ 丢失 $\frac{1}{2}$ 因子
+许多学生疑惑为什么某些微积分教材写 $f(x) = \frac{a_0}{2} + \sum \dots$，而另一些教材写 $f(x) = a_0 \cdot 1 + \sum \dots$？
+根本原因在于常数基底的范数平方 $\|1\|^2 = 2\pi$，而正弦余弦基底的范数平方 $\|\cos kx\|^2 = \pi$。正交投影公式分母是基向量自身的范数平方。若定义 $a_0 = \frac{1}{\pi}\int_0^{2\pi} f(x)\,dx$（分母强行借用 $\pi$），则级数展开式必须补上 $\frac{a_0}{2}$；若严格按照线性代数正交投影定义 $a_0 = \frac{\langle f, 1 \rangle}{\|1\|^2}$，则分母就是 $2\pi$。两种记号在数学上等价，但后者具有完全自洽的正交投影几何意义！
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l24-markov-fourier-sandbox"
+  title="马尔可夫单形收敛与傅里叶逐级逼近交互演示"
+  description="观察不同次特征值比率下概率向量沿单形滑向稳态的指数收敛历程，以及三角正交基投影逼近方波时的吉布斯现象与均方误差单调下降。"
+/>
+
+---
+
+<KeyTakeaways items={[
+  "马尔可夫矩阵的代数本质：所有元素非负且列和为 1（\\mathbf{1}^T A = \\mathbf{1}^T），保证演化过程中总概率质量 \\mathbf{1}^T \\mathbf{u}_k = 1 严格守恒，状态轨迹受限于概率单形。",
+  "四大子空间证明 \\lambda_1 = 1：由 (A^T - I)\\mathbf{1} = \\mathbf{0} 知 \\mathbf{1} \\in \\operatorname{Null}(A^T - I)，由行秩等于列秩得 \\dim \\operatorname{Null}(A - I) = \\dim \\operatorname{Null}(A^T - I) \\ge 1，必存在非零右特征向量 A\\mathbf{x}_1 = \\mathbf{x}_1。",
+  "零和瞬态模式：对任意特征值 \\lambda \\ne 1，其右特征向量必满足 \\mathbf{1}^T \\mathbf{x} = 0，代表概率在不同状态之间的纯质量交换，不会破坏总概率守恒。",
+  "佩龙-弗罗贝尼乌斯定理：正马尔可夫矩阵（A > 0）的其余所有特征值严格满足 |\\lambda_i| < 1，保证任意初始概率分布最终均以几何级数收敛到唯一的正稳态分布。",
+  "无穷维函数空间内积：将区间 [0, 2\\pi] 视为无限维向量，定义连续内积 \\langle f, g \\rangle = \\int_0^{2\\pi} f(x)g(x)dx 与能量范数 \\|f\\|^2 = \\int_0^{2\\pi} f(x)^2 dx。",
+  "傅里叶级数即正交基投影：三角基底相互正交，傅里叶系数 a_k, b_k 无非是 Lecture 17 正交投影公式 c_i = \\frac{\\langle \\mathbf{v}, \\mathbf{q}_i \\rangle}{\\|\\mathbf{q}_i\\|^2} 在 L^2([0, 2\\pi]) 中的直接体现，帕塞瓦尔恒等式即无穷维勾股定理。"
+]} />
+
+---
+
+## 六、课后习题集
+
+<ProblemSet title="第 24 讲 课后习题集" description="涵盖马尔可夫矩阵特征分解、单形收敛动态、谱半径界、乘积封闭性与傅里叶正交投影误差最小化。">
+
+<ExerciseCard id="l24-ex1" tier="L1" title="2x2 马尔可夫矩阵的稳态与矩阵幂显式解">
+
+设马尔可夫矩阵为：
+
+$$
+A = \begin{bmatrix} 0.8 & 0.3 \\ 0.2 & 0.7 \end{bmatrix}
+$$
+
+1. 求矩阵 $A$ 的特征值 $\lambda_1, \lambda_2$ 以及对应的特征向量 $\mathbf{x}_1, \mathbf{x}_2$；
+2. 求满足 $\mathbf{1}^T \mathbf{u}_\infty = 1$ 的归一化稳态向量 $\mathbf{u}_\infty$；
+3. 利用特征值分解 $A = S \Lambda S^{-1}$，写出矩阵幂 $A^k$ 的显式解析表达式，并计算极限矩阵 $\lim_{k \to \infty} A^k$。
+
+<ProgressiveHint hints={[
+  "利用马尔可夫矩阵性质，已知 \\lambda_1 = 1。再利用矩阵的迹 \\operatorname{tr}(A) = \\lambda_1 + \\lambda_2，即可直接求出 \\lambda_2。",
+  "对应 \\lambda_2 的特征向量必然满足分量之和为零，即 \\mathbf{1}^T \\mathbf{x}_2 = 0。",
+  "矩阵幂可写为 A^k = S \\Lambda^k S^{-1}。当 k \\to \\infty 时，\\lambda_2^k \\to 0，极限矩阵的各列均等于稳态向量 \\mathbf{u}_\\infty。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+根据迹的性质，$\operatorname{tr}(A) = 0.8 + 0.7 = 1.5$。因为马尔可夫矩阵必有 $\lambda_1 = 1$，另一特征值立即可得 $\lambda_2 = 1.5 - 1 = 0.5$。由于 $|\lambda_2| = 0.5 \lt 1$，瞬态模式将以每步减半的速度指数消亡。稳态向量由方程 $(A - I)\mathbf{x}_1 = \mathbf{0}$ 确定，经过两列交叉抵消即可解出比例。
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 步：求解特征值与特征向量**
+特征方程：
+
+$$
+\det(A - \lambda I) = (0.8 - \lambda)(0.7 - \lambda) - 0.06 = \lambda^2 - 1.5\lambda + 0.5 = (\lambda - 1)(\lambda - 0.5) = 0
+$$
+
+得特征值为 $\lambda_1 = 1, \lambda_2 = 0.5$。
+
+对于 $\lambda_1 = 1$：
+
+$$
+(A - I)\mathbf{x}_1 = \begin{bmatrix} -0.2 & 0.3 \\ 0.2 & -0.3 \end{bmatrix} \begin{bmatrix} x_{11} \\ x_{21} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies 2x_{11} = 3x_{21} \implies \mathbf{x}_1 = \begin{bmatrix} 3 \\ 2 \end{bmatrix}
+$$
+
+对于 $\lambda_2 = 0.5$：
+
+$$
+(A - 0.5 I)\mathbf{x}_2 = \begin{bmatrix} 0.3 & 0.3 \\ 0.2 & 0.2 \end{bmatrix} \begin{bmatrix} x_{12} \\ x_{22} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_{12} + x_{22} = 0 \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+**第 2 步：归一化稳态向量**
+将 $\mathbf{x}_1$ 归一化使得分量和为 1：
+
+$$
+\mathbf{u}_\infty = \frac{1}{3 + 2} \begin{bmatrix} 3 \\ 2 \end{bmatrix} = \begin{bmatrix} 3/5 \\ 2/5 \end{bmatrix} = \begin{bmatrix} 0.6 \\ 0.4 \end{bmatrix}
+$$
+
+**第 3 步：对角化与矩阵幂**
+构造特征向量矩阵 $S$ 及其逆矩阵 $S^{-1}$：
+
+$$
+S = \begin{bmatrix} 3 & 1 \\ 2 & -1 \end{bmatrix}, \quad \det(S) = -3 - 2 = -5
+$$
+
+$$
+S^{-1} = -\frac{1}{5} \begin{bmatrix} -1 & -1 \\ -2 & 3 \end{bmatrix} = \begin{bmatrix} 1/5 & 1/5 \\ 2/5 & -3/5 \end{bmatrix}
+$$
+
+因此：
+
+$$
+A^k = S \begin{bmatrix} 1^k & 0 \\ 0 & (0.5)^k \end{bmatrix} S^{-1} = \begin{bmatrix} 3 & 1 \\ 2 & -1 \end{bmatrix} \begin{bmatrix} 1/5 & 1/5 \\ (0.5)^k (2/5) & -(0.5)^k (3/5) \end{bmatrix}
+$$
+
+$$
+A^k = \begin{bmatrix} \frac{3}{5} + \frac{2}{5}(0.5)^k & \frac{3}{5} - \frac{3}{5}(0.5)^k \\ \frac{2}{5} - \frac{2}{5}(0.5)^k & \frac{2}{5} + \frac{3}{5}(0.5)^k \end{bmatrix}
+$$
+
+当 $k \to \infty$ 时，$(0.5)^k \to 0$：
+
+$$
+\lim_{k \to \infty} A^k = \begin{bmatrix} 3/5 & 3/5 \\ 2/5 & 2/5 \end{bmatrix} = \begin{bmatrix} 0.6 & 0.6 \\ 0.4 & 0.4 \end{bmatrix} = [\mathbf{u}_\infty \;\; \mathbf{u}_\infty]
+$$
+
+极限矩阵的秩为 1，每一列完全退化为相同的稳态向量！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l24-ex2" tier="L2" title="判别题：马尔可夫矩阵幂序列的唯一收敛性">
+
+判断下述命题是否正确：
+
+"任何满足非负性且列和为 1 的马尔可夫矩阵 $A \in \mathbb{R}^{n \times n}$，其矩阵幂序列 $A^k$ 在 $k \to \infty$ 时必定收敛到一个各列均相等的秩 1 常数稳态矩阵。"
+
+<TrueFalseInteractive
+  id="l24-tf1"
+  correct={false}
+  quickFeedback="错误！若马尔可夫矩阵存在周期性（如置换矩阵 [0 1; 1 0]，特征值为 1 和 -1）则幂序列交替振荡永不收敛；若矩阵可约（如单位矩阵 I_2），极限矩阵秩为 2 且各列不相等。必须满足佩龙-弗罗贝尼乌斯定理条件（正矩阵或本原矩阵）才能保证收敛至唯一秩 1 矩阵。"
+/>
+
+<ProgressiveHint hints={[
+  "考虑反例：置换矩阵 P = \\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix}，它的列和全为 1，但 P^k 是什么？",
+  "再考虑另一个反例：单位矩阵 A = I_2，它也是马尔可夫矩阵，它的极限存在吗？它的秩是 1 吗？"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+并非所有马尔可夫矩阵都会收敛，更不一定会收敛到秩 1 矩阵。置换矩阵会在单形顶点之间来回跳跃，产生周期性振荡；单位矩阵每个点都是稳态，根本不会混合不同状态。只有满足严格正性或本原性（所有状态之间充分连通连通且非周期），系统才会彻底忘记初始状态，退化为唯一的秩 1 极限吸引子。
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**错误**。反例如下：
+
+**反例 1（周期振荡，极限不存在）：**
+取置换矩阵 $P = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$。其所有元素非负，列和为 1，是合法的马尔可夫矩阵。其特征值为 $\lambda_1 = 1, \lambda_2 = -1$。其矩阵幂为：
+
+$$
+P^k = \begin{cases} \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}, & k \text{ 为偶数} \\ \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}, & k \text{ 为奇数} \end{cases}
+$$
+
+当 $k \to \infty$ 时，$P^k$ 在两个矩阵之间周期性交替振荡，极限根本不存在。
+
+**反例 2（可约矩阵，收敛但极限矩阵秩为 2）：**
+取单位矩阵 $A = I_2 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$。其非负且列和为 1。对任意 $k$，均有 $A^k = I_2$，故极限存在，但极限矩阵 $\operatorname{rank}(I_2) = 2 \ne 1$，且两列不相等。
+
+**结论**：只有在佩龙-弗罗贝尼乌斯定理的前提下（存在 $m \ge 1$ 使得 $A^m \gt 0$，即本原矩阵），除 $\lambda_1 = 1$ 外的所有特征值才满足 $|\lambda_i| \lt 1$，从而保证 $A^k$ 收敛到唯一的秩 1 矩阵 $[\mathbf{u}_\infty \;\; \dots \;\; \mathbf{u}_\infty]$。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l24-ex3" tier="L2" title="判别题：非 1 特征值的特征向量零和律">
+
+判断下述命题是否正确：
+
+"设 $A \in \mathbb{R}^{n \times n}$ 为列随机马尔可夫矩阵，若 $\lambda \ne 1$ 是 $A$ 的一个特征值，且 $\mathbf{x}$ 是对应的右特征向量（$A\mathbf{x} = \lambda \mathbf{x}$），则 $\mathbf{x}$ 的所有分量之和必严格为 0，即 $\mathbf{1}^T \mathbf{x} = 0$。"
+
+<TrueFalseInteractive
+  id="l24-tf2"
+  correct={true}
+  quickFeedback="正确！在特征方程 Ax = \\lambda x 两边左乘 1^T，由 1^T A = 1^T 得 1^T x = \\lambda (1^T x)，移项得 (1 - \\lambda)(1^T x) = 0。因为 \\lambda \\ne 1，必有 1^T x = 0。"
+/>
+
+<ProgressiveHint hints={[
+  "将列随机性质写成向量形式：\\mathbf{1}^T A = \\mathbf{1}^T。",
+  "在特征方程 A\\mathbf{x} = \\lambda \\mathbf{x} 两端同时左乘 \\mathbf{1}^T，利用乘法结合律展开。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+马尔可夫矩阵乘法保持向量分量总和不变。如果一个向量在矩阵作用后各分量按比例缩放了 $\lambda$ 倍，那么它的总和也必须缩放 $\lambda$ 倍。但在马尔可夫作用下总和必须等于原总和。唯一能满足 $S = \lambda S$ 且 $\lambda \ne 1$ 的数只有 $S = 0$！
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**正确**。证明过程极其凝练严谨：
+
+由 $A$ 是列随机马尔可夫矩阵，每一列的元素和为 1，故有：
+
+$$
+\mathbf{1}^T A = \mathbf{1}^T
+$$
+
+已知 $\mathbf{x}$ 是对应特征值 $\lambda$ 的右特征向量，即：
+
+$$
+A \mathbf{x} = \lambda \mathbf{x}
+$$
+
+在等式两边同时左乘全 $1$ 行向量 $\mathbf{1}^T$：
+
+$$
+\mathbf{1}^T (A \mathbf{x}) = \mathbf{1}^T (\lambda \mathbf{x})
+$$
+
+由矩阵乘法的结合律与标量提取性质：
+
+$$
+(\mathbf{1}^T A) \mathbf{x} = \lambda (\mathbf{1}^T \mathbf{x})
+$$
+
+将 $\mathbf{1}^T A = \mathbf{1}^T$ 代入左端：
+
+$$
+\mathbf{1}^T \mathbf{x} = \lambda (\mathbf{1}^T \mathbf{x})
+$$
+
+移项整理：
+
+$$
+(1 - \lambda)(\mathbf{1}^T \mathbf{x}) = 0
+$$
+
+因为题设给定 $\lambda \ne 1$，即 $1 - \lambda \ne 0$，两端除以 $1 - \lambda$ 立即得出：
+
+$$
+\mathbf{1}^T \mathbf{x} = 0
+$$
+
+即特征向量 $\mathbf{x}$ 的所有分量之和严格为零。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l24-ex4" tier="L3" title="马尔可夫行列式与矩阵乘积封闭性证明">
+
+设 $A, B \in \mathbb{R}^{n \times n}$ 均为列随机马尔可夫矩阵。
+
+1. 运用行列式与转置的性质，严格证明：
+   $$
+   \det(A - I_n) = 0
+   $$
+2. 证明矩阵乘积 $AB$ 仍然是一个合法的列随机马尔可夫矩阵。
+
+<ProgressiveHint hints={[
+  "第 1 问：利用 \\det(M) = \\det(M^T)，考察矩阵 (A - I_n)^T 的每一列或每一行之和。",
+  "第 2 问：验证马尔可夫矩阵的两大条件：非负性与列和归一性（\\mathbf{1}^T (AB) = \\mathbf{1}^T）。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+第 1 问：矩阵 $A - I$ 的每一列元素之和等于 $1 - 1 = 0$。如果把它的所有行加到第 1 行，第 1 行就会全部变成 0，行列式显然为零！
+第 2 问：非负数的乘积和依然是非负数；而全 1 向量连乘 $\mathbf{1}^T (AB) = (\mathbf{1}^T A) B = \mathbf{1}^T B = \mathbf{1}^T$，列和条件自然保持。
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问证明：**
+考虑矩阵 $A - I_n$ 的第 $j$ 列向量 $\mathbf{c}_j$。由于 $A$ 的列和为 1：
+
+$$
+\sum_{i=1}^n (A - I_n)_{ij} = \sum_{i=1}^n a_{ij} - 1 = 1 - 1 = 0
+$$
+
+这意味着矩阵 $A - I_n$ 的所有行向量之和为零行向量：
+
+$$
+\sum_{i=1}^n \mathbf{r}_i = \mathbf{0}^T
+$$
+
+其中 $\mathbf{r}_i$ 为 $A - I_n$ 的第 $i$ 行。
+这表明矩阵 $A - I_n$ 的行向量组线性相关（存在非全零系数 $c_1 = \dots = c_n = 1$ 使得 $\sum c_i \mathbf{r}_i = \mathbf{0}^T$）。
+或者利用转置：$(A - I_n)^T \mathbf{1} = \mathbf{0}$，全 1 向量非零，故转置矩阵不可逆。由行列式性质：
+
+$$
+\det(A - I_n) = \det((A - I_n)^T) = 0
+$$
+
+这从行列式角度再次印证了 $\lambda = 1$ 是特征多项式 $\det(A - \lambda I) = 0$ 的根。
+
+**第 2 问证明：**
+需验证矩阵 $C = AB$ 满足马尔可夫矩阵的两个公理：
+
+1. **非负性**：设 $A = [a_{ik}]$, $B = [b_{kj}]$。其乘积矩阵元素为：
+   $$
+   c_{ij} = \sum_{k=1}^n a_{ik} b_{kj}
+   $$
+   由于 $A, B$ 均为马尔可夫矩阵，对所有 $i, j, k$，均有 $a_{ik} \ge 0$ 且 $b_{kj} \ge 0$。两个非负数之积非负，有限个非负数之和亦非负，因此对任意 $i, j$：
+   $$
+   c_{ij} \ge 0
+   $$
+2. **列和归一性**：计算全 1 行向量与矩阵乘积的点积：
+   $$
+   \mathbf{1}^T C = \mathbf{1}^T (AB)
+   $$
+   根据矩阵乘法的结合律：
+   $$
+   \mathbf{1}^T (AB) = (\mathbf{1}^T A) B
+   $$
+   因为 $A$ 为列随机矩阵，$\mathbf{1}^T A = \mathbf{1}^T$：
+   $$
+   (\mathbf{1}^T A) B = \mathbf{1}^T B
+   $$
+   又因为 $B$ 为列随机矩阵，$\mathbf{1}^T B = \mathbf{1}^T$：
+   $$
+   \mathbf{1}^T B = \mathbf{1}^T
+   $$
+   因此 $\mathbf{1}^T (AB) = \mathbf{1}^T$，即矩阵 $AB$ 的每一列元素之和恒等于 1。
+
+综上所述，$AB$ 依然是严格合法的列随机马尔可夫矩阵。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l24-ex5" tier="L4" title="综合挑战：PageRank 吸收态与傅里叶最佳平方逼近">
+
+本题探讨马尔可夫稳态与傅里叶正交投影在现代科学中的两大深远应用：
+
+1. **Google PageRank 的死胡同吸收态与阻尼矩阵**：
+   考虑三节点网络的简易转移矩阵：
+   $$
+   A = \begin{bmatrix} 0 & 1/2 & 0 \\ 1 & 0 & 0 \\ 0 & 1/2 & 1 \end{bmatrix}
+   $$
+   (a) 验证 $A$ 是列随机马尔可夫矩阵，计算其特征值，并求出稳态向量 $\mathbf{u}_\infty$；解释为什么节点 3 是一个"黑洞"（吸收态）；
+   (b) 为解决网络死胡同问题，Google 创始人引入阻尼因子 $\alpha \in (0, 1)$（通常取 $\alpha = 0.85$），构造修正后的 Google 矩阵：
+   $$
+   G = \alpha A + \frac{1 - \alpha}{3} \mathbf{1} \mathbf{1}^T
+   $$
+   证明 $G$ 是严格正马尔可夫矩阵，并说明佩龙-弗罗贝尼乌斯定理如何保证 PageRank 稳态的存在性、唯一性与幂法迭代收敛性。
+
+2. **傅里叶级数的最佳平方逼近定理（无限维最小二乘）**：
+   在 $L^2([0, 2\pi])$ 中，给定函数 $f(x)$。设 $S_N(x)$ 为任意 $N$ 阶三角多项式：
+   $$
+   S_N(x) = c_0 + \sum_{k=1}^N (c_k \cos kx + d_k \sin kx)
+   $$
+   利用正交性证明：当且仅当系数取傅里叶正交投影系数（即 $c_0 = a_0, c_k = a_k, d_k = b_k$）时，均方逼近误差：
+   $$
+   E(c_0, \{c_k\}, \{d_k\}) = \|f - S_N\|^2 = \int_0^{2\pi} (f(x) - S_N(x))^2\,dx
+   $$
+   达到全局唯一极小值！
+
+<ProgressiveHint hints={[
+  "第 1 问 (a)：对于下三角块矩阵，可以直接看对角块的特征值。节点 3 的自环为 1，流入的概率无法逃逸。",
+  "第 1 问 (b)：验证 \\mathbf{1}^T G = \\mathbf{1}^T。由于 (1-\\alpha)/3 > 0 且 \\alpha > 0，所有元素严格大于 0，适用佩龙-弗罗贝尼乌斯定理。",
+  "第 2 问：将 \\|f - S_N\\|^2 展开为 \\|f\\|^2 - 2\\langle f, S_N \\rangle + \\|S_N\\|^2，利用三角函数正交性配方为 \\sum \\pi (c_k - a_k)^2 形式。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+PageRank 的核心痛点是网络中的吸收态（没有出度的死胡同）会吸干所有 PageRank 分数。通过给每个网页增加一个微小的随机跳转概率（均匀矩阵 $\frac{1}{3}\mathbf{1}\mathbf{1}^T$），原本存在零元素的稀疏图瞬间变成了全正矩阵，佩龙-弗罗贝尼乌斯定理瞬间生效，使得系统具有唯一且容易收敛的全局稳态。
+在函数逼近中，傅里叶级数正是 Lecture 15 最小二乘投影在无穷维空间的完美重现：距离最短的点永远是正交投影点，任何其他系数只会给误差增加勾股定理的直角边长度！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问（PageRank 分析）：**
+
+**(a) 特征值与稳态计算：**
+观察矩阵 $A$：各列元素之和分别为 $0+1+0=1$，$1/2+0+1/2=1$，$0+0+1=1$，非负且列和为 1，是合法马尔可夫矩阵。
+计算特征方程 $\det(A - \lambda I) = 0$：
+按第 3 列展开（只有对角线元素 $1 - \lambda$）：
+
+$$
+\det(A - \lambda I) = (1 - \lambda) \det \begin{bmatrix} -\lambda & 1/2 \\ 1 & -\lambda \end{bmatrix} = (1 - \lambda)\left(\lambda^2 - \frac{1}{2}\right) = 0
+$$
+
+特征值为：
+
+$$
+\lambda_1 = 1, \quad \lambda_2 = \frac{\sqrt{2}}{2} \approx 0.707, \quad \lambda_3 = -\frac{\sqrt{2}}{2} \approx -0.707
+$$
+
+对于 $\lambda_1 = 1$，求解 $(A - I)\mathbf{x} = \mathbf{0}$：
+
+$$
+\begin{bmatrix} -1 & 1/2 & 0 \\ 1 & -1 & 0 \\ 0 & 1/2 & 0 \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \\ x_3 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}
+$$
+
+由第 3 行知 $x_2 / 2 = 0 \implies x_2 = 0$；
+代入第 1 行知 $-x_1 + 0 = 0 \implies x_1 = 0$；
+$x_3$ 为自由变量。因此归一化稳态向量为：
+
+$$
+\mathbf{u}_\infty = \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}
+$$
+
+物理机制解释：节点 3 的第 3 列为 $[0, 0, 1]^T$，表示一旦随机游走者访问节点 3，其所有转移概率全部流回节点 3（无外向链接）。而节点 1 和节点 2 每次转移均有概率泄漏至节点 3。经过长时间演化，所有概率质量最终被节点 3 彻底吞噬（吸收态），导致网页排名失去区分度。
+
+**(b) Google 矩阵性质与收敛保证：**
+检验列和归一性：
+
+$$
+\mathbf{1}^T G = \alpha (\mathbf{1}^T A) + \frac{1 - \alpha}{3} (\mathbf{1}^T \mathbf{1}) \mathbf{1}^T
+$$
+
+因为 $\mathbf{1}^T A = \mathbf{1}^T$，且 $\mathbf{1}^T \mathbf{1} = 3$：
+
+$$
+\mathbf{1}^T G = \alpha \mathbf{1}^T + \frac{1 - \alpha}{3} \cdot 3 \mathbf{1}^T = \alpha \mathbf{1}^T + (1 - \alpha)\mathbf{1}^T = \mathbf{1}^T
+$$
+
+故 $G$ 保持列和为 1。
+再看元素符号：因为 $a_{ij} \ge 0$，且对任意 $i, j$ 均有 $\frac{1 - \alpha}{3} \gt 0$（因 $\alpha \in (0, 1)$），故：
+
+$$
+G_{ij} = \alpha a_{ij} + \frac{1 - \alpha}{3} \ge \frac{1 - \alpha}{3} \gt 0
+$$
+
+即 $G$ 的每一个元素均严格大于 0（正矩阵）。
+根据**佩龙-弗罗贝尼乌斯定理**：
+1. 存在唯一的正稳态分布向量 $\mathbf{r} \gt \mathbf{0}$（$\sum r_i = 1$），满足 $G\mathbf{r} = \mathbf{r}$；
+2. 主特征值 $\lambda_1 = 1$ 严格为单重根，其余所有特征值严格满足 $|\lambda_i| \le \alpha \lt 1$；
+3. 对任意非负初始权重向量 $\mathbf{u}_0$，幂法迭代序列 $\mathbf{u}_k = G^k \mathbf{u}_0$ 必定以指数速率 $\mathcal{O}(\alpha^k)$ 快速收敛至唯一真实的 PageRank 向量 $\mathbf{r}$，彻底消除了死胡同黑洞！
+
+---
+
+**第 2 问（最佳平方逼近定理证明）：**
+
+展开均方误差范数平方：
+
+$$
+E = \|f - S_N\|^2 = \langle f - S_N, f - S_N \rangle = \|f\|^2 - 2\langle f, S_N \rangle + \|S_N\|^2
+$$
+
+代入 $S_N(x) = c_0 \cdot 1 + \sum_{k=1}^N (c_k \cos kx + d_k \sin kx)$。
+利用内积的双线性性质：
+
+$$
+\langle f, S_N \rangle = c_0 \langle f, 1 \rangle + \sum_{k=1}^N \left( c_k \langle f, \cos kx \rangle + d_k \langle f, \sin kx \rangle \right)
+$$
+
+利用三角基底的两两正交性，交叉积为零：
+
+$$
+\|S_N\|^2 = c_0^2 \|1\|^2 + \sum_{k=1}^N \left( c_k^2 \|\cos kx\|^2 + d_k^2 \|\sin kx\|^2 \right) = 2\pi c_0^2 + \pi \sum_{k=1}^N (c_k^2 + d_k^2)
+$$
+
+根据傅里叶系数定义，有 $\langle f, 1 \rangle = 2\pi a_0$，$\langle f, \cos kx \rangle = \pi a_k$，$\langle f, \sin kx \rangle = \pi b_k$。
+将它们代入误差表达式 $E$：
+
+$$
+E = \|f\|^2 - 2\left[ 2\pi a_0 c_0 + \pi \sum_{k=1}^N (a_k c_k + b_k d_k) \right] + 2\pi c_0^2 + \pi \sum_{k=1}^N (c_k^2 + d_k^2)
+$$
+
+对每一项分别进行配方（Complete the Square）：
+
+$$
+E = \|f\|^2 + 2\pi (c_0^2 - 2a_0 c_0) + \pi \sum_{k=1}^N \left[ (c_k^2 - 2a_k c_k) + (d_k^2 - 2b_k d_k) \right]
+$$
+
+$$
+E = \|f\|^2 - 2\pi a_0^2 - \pi \sum_{k=1}^N (a_k^2 + b_k^2) + 2\pi (c_0 - a_0)^2 + \pi \sum_{k=1}^N \left[ (c_k - a_k)^2 + (d_k - b_k)^2 \right]
+$$
+
+分析上述表达式：
+- 第一部分 $\|f\|^2 - 2\pi a_0^2 - \pi \sum_{k=1}^N (a_k^2 + b_k^2)$ 与所选系数 $c_0, c_k, d_k$ 完全无关，是一个确定的常数；
+- 第二部分包含全为平方的非负项：$2\pi (c_0 - a_0)^2 \ge 0$，$\pi (c_k - a_k)^2 \ge 0$，$\pi (d_k - b_k)^2 \ge 0$。
+
+平方项总和非负，其全局最小值为 0，当且仅当每一项均为 0，即：
+
+$$
+c_0 = a_0, \quad c_k = a_k, \quad d_k = b_k \quad (\forall 1 \le k \le N)
+$$
+
+此时最小残差平方为：
+
+$$
+\min E = \|f\|^2 - 2\pi a_0^2 - \pi \sum_{k=1}^N (a_k^2 + b_k^2)
+$$
+
+证毕！傅里叶级数系数就是令均方逼近误差达到全局唯一的最小二乘正交投影系数。这再次证明：**傅里叶级数正是函数空间中的正交投影**。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>
+
+---
+
+<FrontierAIReading
+  id="AI-11"
+  title="扩散模型（DDPM 与离散扩散 D3PM）前向马尔可夫加噪链：转移矩阵幂与稳态噪声极限"
+  paperRef="Ho et al. (NeurIPS 2020) DDPM · Austin et al. (NeurIPS 2021) Structured Denoising Diffusion Models in Discrete State-Spaces (D3PM)"
+>
+
+### 1. 生成式 AI 的前向加噪过程是一个时间非齐次马尔可夫链
+
+在以稳定扩散（Stable Diffusion）、Sora 为代表的现代生成扩散模型中，核心思想分为两步：
+1. **前向过程（Forward Process）**：向纯净数据逐步添加微小扰动，将其转变成无信息的稳态随机噪声；
+2. **反向过程（Reverse Denoising Process）**：训练神经网络学习消除噪声，从随机噪声中逆向生成逼真数据。
+
+在离散状态空间扩散模型（Structured Denoising Diffusion Models in Discrete State-Spaces, **D3PM**，以及现代离散语言生成模型 MDLM）中，数据 $x$ 取值于离散词表 $\{1, 2, \dots, K\}$（例如文本 Token，词表大小 $K$ 可达数万）。
+
+在时刻 $t-1 \to t$，数据以行随机转移矩阵 $Q_t \in \mathbb{R}^{K \times K}$ 进行前向马尔可夫跃迁（注意：机器学习文献习惯使用行随机约定 $Q_t = A_t^T$，$Q_t \mathbf{1} = \mathbf{1}$，状态用行向量表示）：
+
+$$
+q(\mathbf{x}_t \mid \mathbf{x}_{t-1}) = \mathbf{x}_{t-1}^T Q_t
+$$
+
+从纯净输入 $\mathbf{x}_0$ 经过 $t$ 步连续加噪，条件分布即为转移矩阵的**累积矩阵连乘积**：
+
+$$
+q(\mathbf{x}_t \mid \mathbf{x}_0) = \mathbf{x}_0^T Q_1 Q_2 \dots Q_t = \mathbf{x}_0^T \bar{Q}_t
+$$
+
+其中 $\bar{Q}_t = \prod_{s=1}^t Q_s$。
+
+### 2. 均匀转移核（Uniform Kernel）的谱分解与 $O(1)$ 闭式跳步
+
+在经典 D3PM 中，最基础的加噪核是**均匀转移核（Uniform Transition Kernel）**。在时间步 $s$，矩阵形式为：
+
+$$
+Q_s = (1 - \beta_s) I_K + \frac{\beta_s}{K} \mathbf{1} \mathbf{1}^T
+$$
+
+其中 $\beta_s \in (0, 1)$ 为加噪调度超参数。这是一个完美的实对称马尔可夫矩阵！我们对它进行谱分解分析：
+
+1. **稳态特征值与特征向量**：
+   $$
+   Q_s \mathbf{1} = (1 - \beta_s)\mathbf{1} + \frac{\beta_s}{K} \mathbf{1} (\mathbf{1}^T \mathbf{1}) = (1 - \beta_s)\mathbf{1} + \frac{\beta_s}{K} \mathbf{1} (K) = \mathbf{1}
+   $$
+   因此 $\lambda_1 = 1$ 是特征值，对应的特征向量是全 $1$ 向量 $\mathbf{1}$。归一化后的稳态分布就是词表上的**完全均匀分布** $\mathbf{u}_\infty = \frac{1}{K}\mathbf{1}^T$！
+2. **瞬态特征值与零和特征子空间**：
+   对于任意满足 $\mathbf{1}^T \mathbf{v} = 0$ 的非零向量 $\mathbf{v} \in \mathbf{1}^\perp$（即分量和为 0 的扰动子空间，维数为 $K-1$）：
+   $$
+   Q_s \mathbf{v} = (1 - \beta_s)\mathbf{v} + \frac{\beta_s}{K} \mathbf{1} (\mathbf{1}^T \mathbf{v}) = (1 - \beta_s)\mathbf{v} + \mathbf{0} = (1 - \beta_s)\mathbf{v}
+   $$
+   因此，其余 $K-1$ 个特征值全部简并且严格小于 1：
+   $$
+   \lambda_2 = \lambda_3 = \dots = \lambda_K = 1 - \beta_s \lt 1
+   $$
+3. **矩阵幂闭式解与直接采样**：
+   关键洞察：在所有时间步 $s$，矩阵 $Q_s$ 的特征向量基是完全相同的（即一维的 $\mathbf{1}$ 与 $(K-1)$ 维的 $\mathbf{1}^\perp$）！
+   因为它们具有同一组正交特征向量基，所以所有的 $Q_s$ 彼此可对角化并可交换。累积矩阵 $\bar{Q}_t$ 在特征基上的作用为：
+   - 在稳态方向 $\mathbf{1}$ 上，特征值为 $1 \times 1 \times \dots \times 1 = 1$；
+   - 在任意正交方向 $\mathbf{v} \in \mathbf{1}^\perp$ 上，特征值为 $\prod_{s=1}^t (1 - \beta_s)$。
+
+记累积衰减因子 $\bar{\alpha}_t = \prod_{s=1}^t (1 - \beta_s)$。根据谱展开定理，累积矩阵拥有极其精妙的**解析封闭形式**：
+
+$$
+\bar{Q}_t = \prod_{s=1}^t Q_s = \bar{\alpha}_t I_K + (1 - \bar{\alpha}_t) \frac{1}{K} \mathbf{1}\mathbf{1}^T
+$$
+
+**工程落地的关键价值**：在训练扩散模型时，我们需要随机抽取时间步 $t \in [1, T]$ 并对样本加噪。若没有特征分解得出的解析式，我们需要执行 $t$ 次循环矩阵乘法（计算复杂度为 $\mathcal{O}(t K^3)$）；而借助此闭式解，可以在 $\mathcal{O}(1)$ 常数时间直接写出加噪分布：
+
+$$
+q(\mathbf{x}_t \mid \mathbf{x}_0) = \bar{\alpha}_t \mathbf{x}_0^T + (1 - \bar{\alpha}_t) \frac{1}{K}\mathbf{1}^T
+$$
+
+当加噪步数 $t$ 很大时，$\bar{\alpha}_t \to 0$，初始语义信息 $\mathbf{x}_0$ 指数级衰减归零，分布完全收敛至最大熵的均匀稳态噪声极限！
+
+### 3. 掩码转移核（Masked Diffusion）与连续高斯 DDPM 的统一视角
+
+除均匀噪声外，现代离散文本生成（如 MDLM）更常用**掩码吸收态转移核（Mask Transition Kernel）**：
+
+$$
+Q_s = (1 - \beta_s) I + \beta_s \mathbf{e}_{\text{mask}} \mathbf{1}^T
+$$
+
+其中所有 Token 都有概率转移到特殊的 `[MASK]` 吸收态标记。其特征值同样由稳态 1 与衰减特征值 $1 - \beta_s$ 组成，这是 BERT 填空预测在连续时间马尔可夫扩散上的完美推广。
+
+而在连续扩散模型 DDPM（Ho et al., 2020）中，状态空间从离散词表扩展到了连续欧氏空间 $\mathbb{R}^d$，离散转移矩阵推广为 Ornstein-Uhlenbeck 连续马尔可夫扩散随机过程：
+
+$$
+\mathbf{x}_t = \sqrt{1 - \beta_t}\,\mathbf{x}_{t-1} + \sqrt{\beta_t}\,\boldsymbol{\epsilon}_t \implies \mathbf{x}_t = \sqrt{\bar{\alpha}_t}\,\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t}\,\boldsymbol{\epsilon}
+$$
+
+其稳态吸引子就是高斯白噪声分布 $\mathcal{N}(\mathbf{0}, I)$。不论是离散还是连续，无论是文本还是图像，生成式扩散模型的基石全部建立在马尔可夫矩阵的谱衰减与稳态极限之上！
+
+<CollapsibleCode language="python" title="d3pm_markov_spectral_decay.py">
+```python
+"""
+D3PM 离散状态扩散模型转移矩阵谱衰减与直接采样闭式解验证
+演示马尔可夫矩阵幂累乘与解析解的一致性，以及向均匀分布的稳态收敛
+"""
+import torch
+
+def verify_d3pm_markov_dynamics():
+    # 设定词表大小 K=5，加噪步数 T=30
+    K = 5
+    T = 30
+    torch.manual_seed(42)
+
+    # 构造随时间线性递增的加噪调度 beta_t (从 0.02 到 0.20)
+    betas = torch.linspace(0.02, 0.20, T)
+    alphas = 1.0 - betas
+    alpha_bars = torch.cumprod(alphas, dim=0)
+
+    # 1. 验证单步转移矩阵 Q_t 的特征值结构
+    t_test = 0
+    beta_0 = betas[t_test].item()
+    ones = torch.ones(K, K)
+    I = torch.eye(K)
+    # 行随机矩阵：每行和为 1
+    Q_0 = (1.0 - beta_0) * I + (beta_0 / K) * ones
+
+    # 计算特征值
+    eigenvalues = torch.linalg.eigvals(Q_0)
+    print("=" * 60)
+    print(f"时刻 t=1 转移矩阵 Q_1 特征值计算 (理论值: 1 个 1.0, {K-1} 个 {1.0 - beta_0:.4f}):")
+    for idx, ev in enumerate(sorted(eigenvalues.real, reverse=True)):
+        print(f"  lambda_{idx+1}: {ev.item():.6f}")
+
+    # 2. 验证多步矩阵连乘 product(Q_s) 与闭式解析解的一致性
+    Q_bar_iterative = torch.eye(K)
+    for s in range(T):
+        beta_s = betas[s].item()
+        Q_s = (1.0 - beta_s) * I + (beta_s / K) * ones
+        Q_bar_iterative = Q_bar_iterative @ Q_s
+
+    # 利用谱分析导出的闭式解析解直接计算 Q_bar_T
+    alpha_bar_T = alpha_bars[-1].item()
+    Q_bar_analytical = alpha_bar_T * I + (1.0 - alpha_bar_T) * (1.0 / K) * ones
+
+    # 计算两种方式的绝对误差
+    diff = torch.norm(Q_bar_iterative - Q_bar_analytical).item()
+    print("\n" + "=" * 60)
+    print(f"T={T} 步矩阵累乘 Q_bar 与闭式解析解对比:")
+    print(f"  累积特征值衰减因子 alpha_bar_T = {alpha_bar_T:.6f}")
+    print(f"  矩阵 Frobenius 范数误差: {diff:.2e} (完全在浮点精度范围内严格吻合!)")
+
+    # 3. 模拟纯净状态向稳态均匀分布的演化
+    # 初始状态：确定性取 token 0 (one-hot 行向量)
+    x_0 = torch.zeros(1, K)
+    x_0[0, 0] = 1.0
+
+    print("\n" + "=" * 60)
+    print("初始状态 x_0 = [1, 0, 0, 0, 0] 在马尔可夫加噪链下的概率演化:")
+    print(f"  t=0 : {x_0.squeeze().tolist()}")
+    for step in [5, 10, 20, 30]:
+        ab = alpha_bars[step-1].item()
+        # 利用闭式解直接计算 q(x_t | x_0) = x_0 @ Q_bar_t
+        prob_t = ab * x_0 + (1.0 - ab) * (1.0 / K) * torch.ones(1, K)
+        probs_formatted = [round(p, 4) for p in prob_t.squeeze().tolist()]
+        print(f"  t={step:2d} (alpha_bar={ab:.4f}) : {probs_formatted}")
+
+    print("\n稳态极限 (t -> inf): 均匀分布 [0.2, 0.2, 0.2, 0.2, 0.2]")
+    print("=" * 60)
+
+if __name__ == '__main__':
+    verify_d3pm_markov_dynamics()
+```
+</CollapsibleCode>
+
+</FrontierAIReading>

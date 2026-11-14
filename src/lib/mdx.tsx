@@ -56,6 +56,35 @@ import {
   OrthonormalProjectionDiagram,
 } from '@/components/diagrams/lecture-17-diagrams';
 import {
+  DeterminantRowLinearityDiagram,
+  DeterminantTenPropertiesFlowDiagram,
+} from '@/components/diagrams/lecture-18-diagrams';
+import {
+  BigFormulaPermutationsDiagram,
+  CofactorTridiagonalDiagram,
+} from '@/components/diagrams/lecture-19-diagrams';
+import {
+  AdjugateInverseStructureDiagram,
+  CramersRuleAndVolumeDiagram,
+} from '@/components/diagrams/lecture-20-diagrams';
+import {
+  EigenvalueInvariantDirectionsDiagram,
+  GeometricEigenSpectraDiagram,
+} from '@/components/diagrams/lecture-21-diagrams';
+import {
+  DiagonalizationPipelineDiagram,
+  MultiplicityVsDefectiveDiagram,
+} from '@/components/diagrams/lecture-22-diagrams';
+import {
+  TraceDeterminantStabilityPlaneDiagram,
+  MatrixExponentialDecouplingDiagram,
+} from '@/components/diagrams/lecture-23-diagrams';
+import {
+  MarkovSteadyStateSimplexDiagram,
+  FourierFunctionSpaceProjectionDiagram,
+} from '@/components/diagrams/lecture-24-diagrams';
+import { Module2And3SynthesisMapDiagram } from '@/components/diagrams/lecture-25-diagrams';
+import {
   ProblemSet,
   ExerciseCard,
   TrueFalseInteractive,
@@ -155,6 +184,21 @@ const MDX_COMPONENTS = {
   OrthogonalDecompositionPythagorasDiagram,
   GramSchmidtAndQRDiagram,
   OrthonormalProjectionDiagram,
+  DeterminantRowLinearityDiagram,
+  DeterminantTenPropertiesFlowDiagram,
+  BigFormulaPermutationsDiagram,
+  CofactorTridiagonalDiagram,
+  AdjugateInverseStructureDiagram,
+  CramersRuleAndVolumeDiagram,
+  EigenvalueInvariantDirectionsDiagram,
+  GeometricEigenSpectraDiagram,
+  DiagonalizationPipelineDiagram,
+  MultiplicityVsDefectiveDiagram,
+  TraceDeterminantStabilityPlaneDiagram,
+  MatrixExponentialDecouplingDiagram,
+  MarkovSteadyStateSimplexDiagram,
+  FourierFunctionSpaceProjectionDiagram,
+  Module2And3SynthesisMapDiagram,
   ProblemSet,
   ExerciseCard,
   TrueFalseInteractive,

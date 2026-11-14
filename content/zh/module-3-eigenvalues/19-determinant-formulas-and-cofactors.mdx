@@ -1,0 +1,906 @@
+---
+title: "第 19 讲：行列式大公式与代数余子式"
+ocwId: "L19"
+videoEpisode: "P19"
+textbookRef: "§5.2"
+---
+
+# 第 19 讲：行列式大公式与代数余子式
+
+## 课前衔接与核心问题
+
+在第 18 讲中，我们建立了行列式的 3 条基本公理（单位矩阵行列式为 1、行交换改变符号、各行具有单行线性性），并推导出了 7 条深刻的几何与代数性质。由此，我们得到了在数值计算上最为高效的算法——**高斯消元法（Gaussian Elimination）**：
+$$
+\det(A) = (\pm 1) \prod_{i=1}^n d_i
+$$
+其中 $d_i$ 是消元得到的主元（Pivots），前置符号取决于行交换次数的奇偶性。
+
+然而，数值消元法面对**符号矩阵（Symbolic Matrices）**时存在致命的缺陷。在后续的特征值问题中，我们需要求解特征方程：
+$$
+\det(A - \lambda I) = 0
+$$
+此时矩阵各元素均包含未知数 $\lambda$。若强行使用消元法，主元将不可避免地出现形如 $a_{11}(\lambda)$ 的分母，不仅除法运算极其繁复，而且一旦某处出现除以零（即当未知数取特定根时主元为零），整个消元流程就会崩溃。
+
+我们迫切需要一种**纯代数、显式闭合的公式（Explicit Closed-Form Formula）**：
+- 它只包含矩阵元素之间的加法与乘法，完全不涉及任何除法；
+- 它能直接将行列式表达为矩阵元素构成的多项式。
+
+本讲将从公理 3 的单行线性性出发，推导出包含全部 $n!$ 个排列的**行列式大公式（The Big Formula for Determinants）**，随后通过同类项归并引出**代数余子式（Cofactor）**与**拉普拉斯展开定理（Laplace Expansion Theorem）**，最终揭示三对角矩阵的递推奇迹。
+
+---
+
+## 1. 拆分每一行：从公理 3 到行列式大公式
+
+### 1.1 2 阶行列式的单行完全拆分
+
+为了看清“大公式”的几何与代数本质，我们先以最简单的 $2\times 2$ 矩阵为例：
+$$
+A = \begin{bmatrix} a_{11} & a_{12} \\ a_{21} & a_{22} \end{bmatrix}
+$$
+
+将第一行向量拆分为标准坐标基向量的线性组合：
+$$
+\begin{bmatrix} a_{11} & a_{12} \end{bmatrix} = \begin{bmatrix} a_{11} & 0 \end{bmatrix} + \begin{bmatrix} 0 & a_{12} \end{bmatrix}
+$$
+由公理 3（各行的单行线性性），行列式可以无损拆分为两个行列式之和：
+$$
+\det \begin{bmatrix} a_{11} & a_{12} \\ a_{21} & a_{22} \end{bmatrix} = \det \begin{bmatrix} a_{11} & 0 \\ a_{21} & a_{22} \end{bmatrix} + \det \begin{bmatrix} 0 & a_{12} \\ a_{21} & a_{22} \end{bmatrix}
+$$
+
+接着，对这两个行列式的第二行分别执行相同的拆分：
+$$
+\begin{bmatrix} a_{21} & a_{22} \end{bmatrix} = \begin{bmatrix} a_{21} & 0 \end{bmatrix} + \begin{bmatrix} 0 & a_{22} \end{bmatrix}
+$$
+整个 $2\times 2$ 行列式被彻底拆解为 $2^2 = 4$ 个极其单纯的行列式之和：
+$$
+\det(A) = \det \begin{bmatrix} a_{11} & 0 \\ a_{21} & 0 \end{bmatrix} + \det \begin{bmatrix} a_{11} & 0 \\ 0 & a_{22} \end{bmatrix} + \det \begin{bmatrix} 0 & a_{12} \\ a_{21} & 0 \end{bmatrix} + \det \begin{bmatrix} 0 & a_{12} \\ 0 & a_{22} \end{bmatrix}
+$$
+
+仔细审视这 4 项：
+1. **第 1 项**：第二列全为 $\mathbf{0}$，矩阵显然奇异，行列式为 $0$。
+2. **第 4 项**：第一列全为 $\mathbf{0}$，行列式同样为 $0$。
+3. **第 2 项**：每行每列恰有 1 个非零元素，提取系数得到主对角线乘积：
+   $$
+   a_{11} a_{22} \det \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = + a_{11} a_{22} \det(I) = a_{11} a_{22}
+   $$
+4. **第 3 项**：每行每列恰有 1 个非零元素，提取系数后交换两行得到单位矩阵：
+   $$
+   a_{12} a_{21} \det \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} = a_{12} a_{21} \left( -\det \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} \right) = - a_{12} a_{21}
+   $$
+
+在全部 $2^2 = 4$ 项中，有 $4 - 2 = 2$ 项因列冲突（Repeated Columns）而自然湮灭，仅存 $2! = 2$ 项，从而严格导出了初等公式：
+$$
+\det(A) = a_{11} a_{22} - a_{12} a_{21}
+$$
+
+---
+
+### 1.2 推广到 $n$ 阶：从 $n^n$ 项到 $n!$ 项幸存
+
+我们将上述拆分思想推广到一般的 $n\times n$ 矩阵 $A \in \mathbb{R}^{n\times n}$。
+每一行向量 $\mathbf{r}_i$ 都可以沿 $n$ 个标准基向量展开：
+$$
+\mathbf{r}_i = \sum_{j=1}^n a_{ij} \mathbf{e}_j^T
+$$
+将所有 $n$ 行全部展开，根据多重线性性（Multilinearity），原行列式被拆解为 $n^n$ 个单项矩阵的行列式之和：
+$$
+\det(A) = \sum_{j_1=1}^n \sum_{j_2=1}^n \cdots \sum_{j_n=1}^n a_{1, j_1} a_{2, j_2} \cdots a_{n, j_n} \det \begin{bmatrix} \mathbf{e}_{j_1}^T \\ \mathbf{e}_{j_2}^T \\ \vdots \\ \mathbf{e}_{j_n}^T \end{bmatrix}
+$$
+
+这 $n^n$ 个矩阵中，绝大多数行列式都等于零：
+- 若指标序列 $(j_1, j_2, \dots, j_n)$ 中存在任意两个指标相等（即 $j_p = j_q$，两行选取了相同的列），则该矩阵包含两条完全相同的行向量，由公理 2 的衍生性质，其行列式必为 $0$！
+- 唯有当所有列指标 $(j_1, j_2, \dots, j_n)$ 互不相同、各取 $\{1, 2, \dots, n\}$ 中的一个时，行列式才不为零！
+
+这正是国际象棋棋盘上的**车互不攻击排布（Non-attacking Rooks）**：每行恰放一个车，每列恰放一个车。
+这样的列指标序列恰好构成了集合 $\{1, 2, \dots, n\}$ 的一个**全排列（Permutation）** $\sigma$：
+$$
+(\sigma(1), \sigma(2), \dots, \sigma(n))
+$$
+因此，在庞大的 $n^n$ 项中，幸存下来的项数从 $n^n$ 骤减至 $n!$ 项！
+
+每一个幸存项所对应的矩阵都是一个**置换矩阵（Permutation Matrix）** $P_\sigma$：
+$$
+P_\sigma = \begin{bmatrix} \mathbf{e}_{\sigma(1)}^T \\ \mathbf{e}_{\sigma(2)}^T \\ \vdots \\ \mathbf{e}_{\sigma(n)}^T \end{bmatrix}
+$$
+其行列式 $\det(P_\sigma)$ 仅由行交换次数决定，取值为 $+1$ 或 $-1$。
+
+---
+
+### 1.3 置换与符号函数
+
+<DefinitionCard title="置换与符号函数" termEn="Permutation and Sign Function">
+
+设 $S_n$ 为集合 $\{1, 2, \dots, n\}$ 上的**对称群（Symmetric Group）**，其中的元素 $\sigma \in S_n$ 称为一个 **$n$ 元置换（Permutation）**。
+
+1. **逆序数（Number of Inversions）**：置换 $\sigma$ 中满足 $i \lt j$ 且 $\sigma(i) \gt \sigma(j)$ 的二元对 $(i, j)$ 的总数，记作 $\operatorname{inv}(\sigma)$。
+2. **符号函数（Sign / Parity of Permutation）**：
+   $$
+   \operatorname{sgn}(\sigma) = (-1)^{\operatorname{inv}(\sigma)} = \begin{cases} +1, & \text{当 } \sigma \text{ 为偶置换（Even Permutation）} \\ -1, & \text{当 } \sigma \text{ 为奇置换（Odd Permutation）} \end{cases}
+   $$
+3. **置换矩阵的行列式**：对应置换矩阵 $P_\sigma$ 满足 $\det(P_\sigma) = \operatorname{sgn}(\sigma)$。
+
+</DefinitionCard>
+
+---
+
+### 1.4 行列式大公式定理与严格推导
+
+<TheoremCard title="行列式大公式（莱布尼茨全展开公式）" termEn="The Big Formula for Determinants / Leibniz Formula">
+
+设 $\mathbb{F}$ 为任意数域（$\mathbb{R}$ 或 $\mathbb{C}$），方阵 $A = [a_{ij}] \in \mathbb{F}^{n\times n}$。则 $A$ 的行列式由其全部 $n!$ 个置换项的代数和显式给出：
+$$
+\det(A) = \sum_{\sigma \in S_n} \operatorname{sgn}(\sigma) a_{1,\sigma(1)} a_{2,\sigma(2)} \cdots a_{n,\sigma(n)}
+$$
+其中每一项均为矩阵中不同行、不同列的 $n$ 个元素的乘积，符号取决于置换 $\sigma$ 的奇偶性。
+
+</TheoremCard>
+
+<ProofCollapse title="基于多重线性性与行消去律的严格代数推导">
+
+我们将矩阵 $A$ 的每一行表达为基向量的线性组合并代入行列式函数 $D(A) = \det(A)$：
+$$
+\det(A) = D\left(\sum_{j_1=1}^n a_{1, j_1} \mathbf{e}_{j_1}^T, \sum_{j_2=1}^n a_{2, j_2} \mathbf{e}_{j_2}^T, \dots, \sum_{j_n=1}^n a_{n, j_n} \mathbf{e}_{j_n}^T\right)
+$$
+
+由于 $D$ 是关于每一行的多重线性函数（公理 3），我们可以将所有求和符号依次提到外层：
+$$
+\det(A) = \sum_{j_1=1}^n \sum_{j_2=1}^n \cdots \sum_{j_n=1}^n a_{1, j_1} a_{2, j_2} \cdots a_{n, j_n} D(\mathbf{e}_{j_1}^T, \mathbf{e}_{j_2}^T, \dots, \mathbf{e}_{j_n}^T)
+$$
+
+根据公理 2（交错性，Alternating Property）：
+1. 若存在 $p \neq q$ 使得 $j_p = j_q$，则向量组中包含相同的行向量，故 $D(\mathbf{e}_{j_1}^T, \dots, \mathbf{e}_{j_n}^T) = 0$。
+2. 只有当序列 $(j_1, j_2, \dots, j_n)$ 是 $(1, 2, \dots, n)$ 的一个置换 $\sigma$ 时，$D(\mathbf{e}_{\sigma(1)}^T, \dots, \mathbf{e}_{\sigma(n)}^T) \neq 0$。
+
+此时矩阵正是置换矩阵 $P_\sigma$。通过连续执行相邻行对换，将 $P_\sigma$ 还原为单位矩阵 $I_n$。每一次相邻行对换恰好消去一个逆序对，总对换次数等于置换的逆序数 $\operatorname{inv}(\sigma)$。由公理 2：
+$$
+D(\mathbf{e}_{\sigma(1)}^T, \dots, \mathbf{e}_{\sigma(n)}^T) = (-1)^{\operatorname{inv}(\sigma)} D(\mathbf{e}_1^T, \dots, \mathbf{e}_n^T) = \operatorname{sgn}(\sigma) \det(I_n) = \operatorname{sgn}(\sigma)
+$$
+
+将此结果代回求和式，非零项的指标求和转化为对称群 $S_n$ 上的求和：
+$$
+\det(A) = \sum_{\sigma \in S_n} \operatorname{sgn}(\sigma) a_{1,\sigma(1)} a_{2,\sigma(2)} \cdots a_{n,\sigma(n)}
+$$
+证毕。
+
+</ProofCollapse>
+
+---
+
+### 1.5 3 阶行列式实战与 Sarrus 对角线法则的局限
+
+对于 $3\times 3$ 矩阵，全排列总数为 $3! = 6$ 项，其中 3 个为偶置换（符号为 $+1$），3 个为奇置换（符号为 $-1$）：
+
+1. **偶置换（3 项，$\operatorname{sgn}(\sigma) = +1$）**：
+   - $(1, 2, 3)$：逆序数 $0 \implies + a_{11} a_{22} a_{33}$（主对角线）
+   - $(2, 3, 1)$：逆序数 $2 \implies + a_{12} a_{23} a_{31}$（对角线循环右移）
+   - $(3, 1, 2)$：逆序数 $2 \implies + a_{13} a_{21} a_{32}$（对角线循环左移）
+2. **奇置换（3 项，$\operatorname{sgn}(\sigma) = -1$）**：
+   - $(1, 3, 2)$：逆序数 $1 \implies - a_{11} a_{23} a_{32}$（交换列 2, 3）
+   - $(2, 1, 3)$：逆序数 $1 \implies - a_{12} a_{21} a_{33}$（交换列 1, 2）
+   - $(3, 2, 1)$：逆序数 $3 \implies - a_{13} a_{22} a_{31}$（反对角线）
+
+<BigFormulaPermutationsDiagram />
+
+这 6 项在几何上恰好对应中学生熟知的 **Sarrus 对角线法则（Sarrus' Rule）**：从左上往右下画 3 条正对角线，从右上往左下画 3 条反对角线。
+
+但这仅仅是 $n=2$ 和 $n=3$ 的**低维巧合**！
+一旦升至 $4\times 4$ 矩阵：
+- 大公式包含 $4! = 24$ 项；
+- 仿照 Sarrus 画对角线（主对角线 4 条，反对角线 4 条）最多只能提取 $4 + 4 = 8$ 项；
+- **遗漏了整整 $24 - 8 = 16$ 项**（例如形如 $a_{11} a_{22} a_{34} a_{43}$ 这样在局部发生对换的项根本不在任何贯通对角线上）！
+
+---
+
+## 2. 同类项归并：代数余子式与拉普拉斯展开
+
+### 2.1 从大公式到分治降阶
+
+大公式虽然在理论上完全解决了行列式的显式表达，但在实际计算中面临组合爆炸：$n=10$ 时有 $10! = 3\,628\,800$ 项；$n=20$ 时 $20! \approx 2.43 \times 10^{18}$ 项。
+
+为了驯服这种计算量，我们可以采用**分治法（Divide and Conquer）**：将大公式中的 $n!$ 项按照第一行的元素 $a_{11}, a_{12}, \dots, a_{1n}$ 提取公因式：
+$$
+\det(A) = a_{11} C_{11} + a_{12} C_{12} + \dots + a_{1n} C_{1n} = \sum_{j=1}^n a_{1j} C_{1j}
+$$
+其中系数 $C_{1j}$ 被称为元素 $a_{1j}$ 的**代数余子式（Cofactor）**。它吸收了包含 $a_{1j}$ 的全部 $(n-1)!$ 个置换项。
+
+---
+
+### 2.2 余子式与代数余子式的定义
+
+<DefinitionCard title="余子式与代数余子式" termEn="Minor and Cofactor">
+
+设 $A = [a_{ij}] \in \mathbb{F}^{n\times n}$ 为 $n$ 阶方阵。
+1. **余子矩阵（Submatrix）**：划去 $A$ 中元素 $a_{ij}$ 所在的第 $i$ 行与第 $j$ 列后，剩余的 $(n-1)\times(n-1)$ 阶子矩阵记作 $M'_{ij} \in \mathbb{F}^{(n-1)\times(n-1)}$。
+2. **余子式（Minor）**：子矩阵 $M'_{ij}$ 的行列式称为元素 $a_{ij}$ 的余子式，记作：
+   $$
+   M_{ij} = \det(M'_{ij})
+   $$
+3. **代数余子式（Cofactor）**：附带位置符号 $(-1)^{i+j}$ 的余子式称为元素 $a_{ij}$ 的代数余子式，记作：
+   $$
+   C_{ij} = (-1)^{i+j} M_{ij}
+   $$
+
+</DefinitionCard>
+
+位置符号 $(-1)^{i+j}$ 构成著名的**棋盘符号法则（Checkerboard Sign Pattern）**：
+$$
+\begin{bmatrix}
++ & - & + & - & \cdots \\
+- & + & - & + & \cdots \\
++ & - & + & - & \cdots \\
+- & + & - & + & \cdots \\
+\vdots & \vdots & \vdots & \vdots & \ddots
+\end{bmatrix}
+$$
+
+---
+
+### 2.3 拉普拉斯展开定理及其证明
+
+<TheoremCard title="拉普拉斯展开定理（按行/按列余子式展开）" termEn="Laplace Expansion Theorem">
+
+设 $A \in \mathbb{F}^{n\times n}$。矩阵 $A$ 的行列式可以沿任意指定的第 $i$ 行展开：
+$$
+\det(A) = \sum_{j=1}^n a_{ij} C_{ij} = \sum_{j=1}^n (-1)^{i+j} a_{ij} M_{ij} \quad (\forall i \in \{1, 2, \dots, n\})
+$$
+亦可沿任意指定的第 $j$ 列展开：
+$$
+\det(A) = \sum_{i=1}^n a_{ij} C_{ij} = \sum_{i=1}^n (-1)^{i+j} a_{ij} M_{ij} \quad (\forall j \in \{1, 2, \dots, n\})
+$$
+
+</TheoremCard>
+
+<ProofCollapse title="余子式符号 (-1)^{i+j} 与大公式项归并的完整推导">
+
+**第一步：证明第 1 行第 1 列元素 $a_{11}$ 的系数为 $M_{11}$。**
+
+考察大公式中所有包含 $a_{11}$ 的项：
+$$
+\sum_{\substack{\sigma \in S_n \\ \sigma(1) = 1}} \operatorname{sgn}(\sigma) a_{11} a_{2,\sigma(2)} \cdots a_{n,\sigma(n)} = a_{11} \sum_{\tau \in S_{n-1}} \operatorname{sgn}(\tau) a_{2, \tau(2)} \cdots a_{n, \tau(n)}
+$$
+由于 $\sigma(1) = 1$，元素 1 不与后面的任何元素形成逆序对，因此置换 $\sigma$ 的逆序数完全等于其在剩余下标 $\{2, 3, \dots, n\}$ 上诱导的置换 $\tau$ 的逆序数，即 $\operatorname{sgn}(\sigma) = \operatorname{sgn}(\tau)$。
+括号内的求和项正是由剩余 $(n-1)$ 行和 $(n-1)$ 列构成的子矩阵 $M'_{11}$ 的行列式大公式！因此：
+$$
+C_{11} = M_{11} = (-1)^{1+1} M_{11}
+$$
+
+**第二步：通过行与列的相邻对换，将位置 $(i, j)$ 移到 $(1, 1)$。**
+
+对于一般位置 $(i, j)$，我们要把第 $i$ 行移动到第 1 行，需要将第 $i$ 行与上方的相邻行连续对换 $i-1$ 次；
+接着，要把第 $j$ 列移动到第 1 列，需要将第 $j$ 列与左侧的相邻列连续对换 $j-1$ 次。
+总对换次数为：
+$$
+N = (i - 1) + (j - 1) = i + j - 2
+$$
+每一次相邻对换都导致行列式变号，因此移动后的新矩阵 $\tilde{A}$ 满足：
+$$
+\det(A) = (-1)^{i+j-2} \det(\tilde{A}) = (-1)^{i+j} \det(\tilde{A})
+$$
+
+在新矩阵 $\tilde{A}$ 中，原先的元素 $a_{ij}$ 恰好处在第 1 行第 1 列位置，而划去第 1 行第 1 列后的子矩阵恰好保持了原先划去第 $i$ 行第 $j$ 列后的相对顺序，其行列式正是 $M_{ij}$！
+结合第一步的结论：
+$$
+\tilde{A} \text{ 中 } a_{ij} \text{ 的系数为 } M_{ij}
+$$
+还原到原矩阵 $A$，其对应的代数余子式为：
+$$
+C_{ij} = (-1)^{i+j} M_{ij}
+$$
+对所有列指标 $j$ 求和，即得按第 $i$ 行展开的公式。由 $\det(A) = \det(A^T)$，按列展开同理成立。证毕。
+
+</ProofCollapse>
+
+---
+
+### 2.4 算法复杂度大对比：消元法 vs 余子式展开
+
+| 方法 | 稠密矩阵计算复杂度 | 计算 $n=10$ 所需运算量 | 计算 $n=20$ 所需时间（假设 $10^9$ 次运算/秒） | 最佳适用场景 |
+| :--- | :--- | :--- | :--- | :--- |
+| **余子式递归展开** | $\mathcal{O}(n!)$ | $\approx 3.6 \times 10^6$ 次 | $\approx 2.43 \times 10^{18}$ 次 $\approx 77$ 年！ | 稀疏矩阵、带参数的符号矩阵、三对角递推 |
+| **高斯消元法（$PA = LU$）** | $\mathcal{O}\left(\frac{1}{3}n^3\right)$ | $\approx 333$ 次 | $\approx 2\,667$ 次 $\approx 2.7$ 微秒 | 稠密数值矩阵、大型工程求解器底层 |
+
+> **核心洞察**：数值计算软件（如 NumPy, SciPy, MATLAB）在底层求解实数行列式时，100% 采用高斯消元法（LU 分解）。代数余子式的真正威力在于处理**高度稀疏的结构矩阵**与**理论证明**。
+
+---
+
+## 3. 三对角矩阵的递推奇迹
+
+在连续介质力学、偏微分方程离散化（如泊松方程）以及马尔可夫链中，我们频繁遇到主对角线及其相邻两条次对角线非零、其余位置全为零的**三对角矩阵（Tridiagonal Matrix）**。代数余子式展开在此展现出奇迹般的威力。
+
+考虑一般的 $n$ 阶常对角线三对角矩阵：
+$$
+T_n = \begin{bmatrix}
+a & b & 0 & \cdots & 0 \\
+c & a & b & \cdots & 0 \\
+0 & c & a & \ddots & \vdots \\
+\vdots & \vdots & \ddots & \ddots & b \\
+0 & 0 & \cdots & c & a
+\end{bmatrix}_{n\times n}
+$$
+记其行列式为 $D_n = \det(T_n)$。
+
+我们沿第一行执行代数余子式展开：第一行仅有前两个元素 $a$ 和 $b$ 非零：
+$$
+D_n = a C_{11} + b C_{12} = a D_{n-1} + b (-1)^{1+2} M_{12} = a D_{n-1} - b M_{12}
+$$
+观察余子式 $M_{12}$ 对应的子矩阵：
+$$
+M'_{12} = \begin{bmatrix}
+c & b & 0 & \cdots & 0 \\
+0 & a & b & \cdots & 0 \\
+0 & c & a & \ddots & \vdots \\
+\vdots & \vdots & \ddots & \ddots & b \\
+0 & 0 & \cdots & c & a
+\end{bmatrix}_{(n-1)\times(n-1)}
+$$
+该子矩阵的第一列仅有第一个元素 $c$ 非零！我们沿其第一列再次展开：
+$$
+M_{12} = c (-1)^{1+1} D_{n-2} = c D_{n-2}
+$$
+将 $M_{12}$ 带回原式，立刻得到了极其优美的**二阶线性齐次递推关系（Second-Order Linear Recurrence）**：
+$$
+D_n = a D_{n-1} - b c D_{n-2}
+$$
+
+---
+
+### 3.1 经典案例 A：二阶差分矩阵 $K_n$（主对角线 2，次对角线 -1）
+
+微分方程 $-u''(x) = f(x)$ 经二阶中心差分离散后，核心矩阵为主对角线为 2、次对角线为 $-1$ 的 $K_n$：
+$$
+K_n = \begin{bmatrix}
+2 & -1 & 0 & \cdots & 0 \\
+-1 & 2 & -1 & \cdots & 0 \\
+0 & -1 & 2 & \ddots & \vdots \\
+\vdots & \vdots & \ddots & \ddots & -1 \\
+0 & 0 & \cdots & -1 & 2
+\end{bmatrix}_{n\times n}
+$$
+此时参数为 $a = 2, b = -1, c = -1 \implies bc = 1$。
+递推公式为：
+$$
+D_n = 2 D_{n-1} - (-1)(-1) D_{n-2} = 2 D_{n-1} - D_{n-2}
+$$
+移项后发现一阶差分守恒：
+$$
+D_n - D_{n-1} = D_{n-1} - D_{n-2}
+$$
+计算初值：
+- $D_1 = \det[2] = 2$
+- $D_2 = \det \begin{bmatrix} 2 & -1 \\ -1 & 2 \end{bmatrix} = 4 - 1 = 3$
+
+公差为 $D_2 - D_1 = 3 - 2 = 1$ 的等差数列！通项公式为：
+$$
+D_n = n + 1
+$$
+
+> **数学意义**：对所有 $n \ge 1$，$D_n = n + 1 \gt 0$ 恒成立。这意味着二阶差分矩阵 $K_n$ 恒可逆，并且我们将在第 23 讲证明它所有主子式全为正，因而是**对称正定矩阵（Symmetric Positive Definite Matrix）**。
+
+---
+
+### 3.2 经典案例 B：Strang 的全 1 三对角矩阵 $T_n$（周期为 6 的奇异性振荡）
+
+Gilbert Strang 教授在 MIT 课堂上提出了一个著名的例子：主对角线与次对角线全为 1 的矩阵：
+$$
+T_n = \begin{bmatrix}
+1 & 1 & 0 & \cdots & 0 \\
+1 & 1 & 1 & \cdots & 0 \\
+0 & 1 & 1 & \ddots & \vdots \\
+\vdots & \vdots & \ddots & \ddots & 1 \\
+0 & 0 & \cdots & 1 & 1
+\end{bmatrix}_{n\times n}
+$$
+此时 $a = 1, b = 1, c = 1 \implies bc = 1$。
+递推公式为：
+$$
+D_n = D_{n-1} - D_{n-2}
+$$
+计算初值：
+- $D_1 = \det[1] = 1$
+- $D_2 = \det \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix} = 1 - 1 = 0$
+
+利用递推方程依次计算前几项：
+$$
+\begin{aligned}
+D_3 &= D_2 - D_1 = 0 - 1 = -1 \\
+D_4 &= D_3 - D_2 = -1 - 0 = -1 \\
+D_5 &= D_4 - D_3 = -1 - (-1) = 0 \\
+D_6 &= D_5 - D_4 = 0 - (-1) = 1 \\
+D_7 &= D_6 - D_5 = 1 - 0 = 1 = D_1 \\
+D_8 &= D_7 - D_6 = 1 - 1 = 0 = D_2
+\end{aligned}
+$$
+行列式呈现出严格的**以 6 为周期的振荡循环**：
+$$
+1, 0, -1, -1, 0, 1, \quad 1, 0, -1, -1, 0, 1, \dots
+$$
+
+<CofactorTridiagonalDiagram />
+
+> **奇异性周期**：当且仅当 $n \equiv 2 \pmod 3$（即 $n = 2, 5, 8, 11, \dots$）时，$D_n = 0$。在这些维度下，$T_n$ 的列向量线性相关，矩阵不可逆！从特征方程的视角看，递推式特征方程为 $\lambda^2 - \lambda + 1 = 0$，其特征根为 $e^{\pm i \pi/3}$（单位圆上的 6 次单位根），这从根本上解释了周期 6 的数学根源。
+
+---
+
+## 4. 避坑指南（Pitfall Alerts）
+
+<PitfallAlert title="对角线乘积法则（Sarrus 法则）的致命失效边界">
+
+许多初学者容易产生一种习惯性错觉：以为 4 阶甚至更高阶的行列式也能像 3 阶那样，通过沿着对角线及其平行线相乘再相加减来计算。
+
+**这是完全错误的！**
+- $3\times 3$ 矩阵的置换数为 $3! = 6$ 项，恰好与 6 条对角线吻合；
+- $4\times 4$ 矩阵的置换数为 $4! = 24$ 项，而划对角线法最多只能捕捉 $4 + 4 = 8$ 项，遗漏了整整 16 项（占比高达 $66.7\%$）！
+- 例如，项 $+ a_{11} a_{22} a_{34} a_{43}$ 对应置换 $(1, 2, 4, 3)$（偶置换），它选取了左上角 $2\times 2$ 的对角线和右下角 $2\times 2$ 的反对角线，根本不在任何贯通的大对角线上！
+
+**规则**：对所有 $n \ge 4$ 的矩阵，严禁使用任何形式的划对角线乘积法则！
+
+</PitfallAlert>
+
+<PitfallAlert title="余子式与代数余子式的符号遗漏">
+
+线性代数考试与工程手算中最常见的低级错误是忘记代数余子式的正负符号：
+$$
+C_{ij} = (-1)^{i+j} M_{ij}
+$$
+余子式 $M_{ij}$ 是纯几何的子矩阵行列式，符号永远为 $+1$ 倍的子行列式；而代数余子式 $C_{ij}$ 必须乘上棋盘符号 $(-1)^{i+j}$。
+特别是当 $i+j$ 为奇数时（如 $C_{12}, C_{21}, C_{23}, C_{32}$ 等），$C_{ij} = -M_{ij}$。若在此处遗漏负号，后续构造伴随矩阵 $A^*$ 时将全盘崩溃。
+
+</PitfallAlert>
+
+<PitfallAlert title="在密集数值计算中滥用余子式展开">
+
+在编写数值程序或手算密集矩阵时，切勿盲目使用按行展开。
+- 对于无规律的稠密矩阵，余子式递归的时间复杂度是超指数级的 $\mathcal{O}(n!)$。当 $n=25$ 时，$25! \approx 1.55 \times 10^{25}$，即使全球算力总和也无法在有生之年算完！
+- 正确做法：数值矩阵始终先用高斯消元法化为上三角矩阵（复杂度仅 $\mathcal{O}(n^3/3)$），再求对角线乘积；只有在矩阵包含大量零元素（如某行只有一个非零元）或求解带符号未知数的递推关系时，才使用代数余子式展开。
+
+</PitfallAlert>
+
+---
+
+## 5. 交互沙盒（Interactive Canvas Slot）
+
+<InteractiveCanvasSlot
+  id="l19-cofactor-expansion-sandbox"
+  title="余子式展开与稀疏降阶交互沙盒"
+  description="选择不同行或列进行拉普拉斯展开，动态对比消元法与代数余子式在不同稀疏结构下的计算量。"
+/>
+
+---
+
+## 6. 本讲精要（Key Takeaways）
+
+<KeyTakeaways
+  items={[
+    "行列式大公式基于各行的单行线性性（公理 3），将 n 阶行列式拆解为 n! 个置换项之和：\\det(A) = \\sum_{\\sigma \\in S_n} \\operatorname{sgn}(\\sigma) a_{1,\\sigma(1)} \\cdots a_{n,\\sigma(n)}。",
+    "Sarrus 对角线法则仅在 n=2 和 n=3 时巧合成立；对于 n \\ge 4，对角线只能提取 8 项，严重遗漏 24 - 8 = 16 项，绝对不可使用。",
+    "代数余子式 C_{ij} = (-1)^{i+j} M_{ij} 将大公式中含有 a_{ij} 的 (n-1)! 项打包，拉普拉斯展开定理允许沿任意单行或单列降阶求解。",
+    "算法复杂度两极分化：稠密数值矩阵余子式展开为 O(n!)，高斯消元法为 O(n^3/3)；余子式专用于稀疏矩阵、符号推导与递推关系。",
+    "常对角线三对角矩阵通过连续两次余子式展开，可精确转化为二阶常系数齐次线性递推方程 D_n = a D_{n-1} - bc D_{n-2}。",
+    "二阶差分矩阵 K_n 的行列式为等差数列 D_n = n+1，恒大于 0；全 1 三对角矩阵 T_n 的行列式呈现周期为 6 的奇异性振荡循环。"
+  ]}
+/>
+
+---
+
+## 7. 深度习题集（Problem Set）
+
+<ProblemSet
+  title="第 19 讲 习题集：大公式、代数余子式与递推行列式"
+  description="涵盖稀疏矩阵余子式优选展开、Sarrus 失效机理、置换奇偶性、范德蒙德行列式证明及斐波那契三对角矩阵递推。"
+>
+
+### 习题 1（L1 级）：稀疏 $4\times 4$ 矩阵的余子式巧算
+
+<ExerciseCard
+  id="l19-ex1"
+  tier="L1"
+  title="选择零最多的行/列进行极速降阶"
+>
+
+计算如下 $4\times 4$ 稀疏矩阵的行列式：
+$$
+A = \begin{bmatrix}
+2 & 0 & 0 & 3 \\
+1 & 4 & 0 & 0 \\
+0 & 5 & 1 & 0 \\
+0 & 0 & 2 & 1
+\end{bmatrix}
+$$
+
+<ProgressiveHint
+  hints={[
+    "观察第一行或第一列，只有两个非零元素。沿第一行展开可以将其拆分为两个 3 阶行列式。",
+    "拆分出的两个 3 阶子矩阵具有非常简单的三角结构或可以再次单元素展开。"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+第一行只有 $a_{11} = 2$ 和 $a_{14} = 3$ 两个非零元素。沿第一行展开，原行列式直接变成两个 $3\times 3$ 行列式：
+$$
+\det(A) = 2 \cdot C_{11} + 3 \cdot C_{14} = 2 \cdot (+1) \cdot M_{11} + 3 \cdot (-1)^{1+4} \cdot M_{14}
+$$
+其中 $M_{11}$ 对应的 $3\times 3$ 矩阵是一个下三角矩阵，行列式就是对角线之积 $4 \times 1 \times 1 = 4$。
+$M_{14}$ 对应的 $3\times 3$ 矩阵也是一个下三角矩阵，对角线之积为 $1 \times 5 \times 2 = 10$。
+</SolutionIntuition>
+
+<SolutionRigorous>
+**第一步：沿第 1 行进行拉普拉斯展开：**
+$$
+\det(A) = a_{11} C_{11} + a_{14} C_{14} = 2 (-1)^{1+1} M_{11} + 3 (-1)^{1+4} M_{14} = 2 M_{11} - 3 M_{14}
+$$
+
+**第二步：计算余子式 $M_{11}$：**
+划去第 1 行与第 1 列后：
+$$
+M'_{11} = \begin{bmatrix}
+4 & 0 & 0 \\
+5 & 1 & 0 \\
+0 & 2 & 1
+\end{bmatrix}
+$$
+该矩阵为主对角线下方的下三角矩阵，其行列式等于主对角线元素之乘积：
+$$
+M_{11} = 4 \times 1 \times 1 = 4
+$$
+
+**第三步：计算余子式 $M_{14}$：**
+划去第 1 行与第 4 列后：
+$$
+M'_{14} = \begin{bmatrix}
+1 & 4 & 0 \\
+0 & 5 & 1 \\
+0 & 0 & 2
+\end{bmatrix}
+$$
+该矩阵为主对角线上方的上三角矩阵，其行列式等于主对角线元素之乘积：
+$$
+M_{14} = 1 \times 5 \times 2 = 10
+$$
+
+**第四步：代入求和：**
+$$
+\det(A) = 2(4) - 3(10) = 8 - 30 = -22
+$$
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+---
+
+### 习题 2（L2 级）：Sarrus 对角线法则的维度边界
+
+<ExerciseCard
+  id="l19-ex2"
+  tier="L2"
+  title="关于对角线乘积法在 4 阶矩阵中的真伪辨析"
+>
+
+判断正误：对于任意 $4\times 4$ 矩阵 $A$，可以通过将前三列抄写在右侧，然后计算 4 条从左上到右下的对角线乘积之和减去 4 条从右上到左下的对角线乘积之和来得到 $\det(A)$。
+
+<TrueFalseInteractive
+  id="l19-tf1"
+  correct={false}
+  quickFeedback="4 阶行列式包含 4! = 24 个非零置换项，而对角线划线法最多只能提取 8 项，遗漏了 16 项（如 a_{11}a_{22}a_{34}a_{43}），因此 Sarrus 法则对 4 阶及以上矩阵完全失效。"
+/>
+
+<DualSolution>
+<SolutionIntuition>
+大公式的核心是全排列。4 阶方阵的对称群 $S_4$ 共有 $4! = 24$ 个置换，每一项都对应行列式多项式中的一个非零单项式。
+划对角线法最多产生 4 条正对角线和 4 条反对角线，共计 8 项。
+它整整遗漏了 $24 - 8 = 16$ 项，因此在逻辑上绝无可能等于真正的行列式。
+</SolutionIntuition>
+
+<SolutionRigorous>
+**反例证明：**
+构造对角块矩阵：
+$$
+A = \begin{bmatrix}
+1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 1 \\
+0 & 0 & 1 & 0
+\end{bmatrix}
+$$
+显然，该矩阵由单位矩阵交换第 3、4 行得到，其行列式为 $\det(A) = -1$。
+大公式中唯一的非零项对应置换 $\sigma = (1, 2, 4, 3)$，为奇置换，积为 $- a_{11} a_{22} a_{34} a_{43} = -1$。
+
+然而，若尝试使用 Sarrus 对角线划线法：
+- 主对角线上的元素乘积为 $1 \times 1 \times 0 \times 0 = 0$；
+- 其余 3 条平行正对角线均包含至少一个零元素，乘积均为 0；
+- 4 条反对角线同样全包含零元素，乘积全为 0。
+对角线法则计算出的结果为 $0 - 0 = 0 \neq -1$。命题错误。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+---
+
+### 习题 3（L2 级）：行交换与余子式符号机制
+
+<ExerciseCard
+  id="l19-ex3"
+  tier="L2"
+  title="矩阵行交换对余子式与代数余子式的影响"
+>
+
+判断正误：设 $A \in \mathbb{R}^{n\times n}$（$n \ge 3$），将 $A$ 的第 1 行与第 2 行交换得到矩阵 $B$。则对于 $A$ 中原本位于位置 $(1, 1)$ 的元素 $a_{11}$（在 $B$ 中位于位置 $(2, 1)$，即 $b_{21} = a_{11}$），其对应的代数余子式满足 $C_{21}(B) = C_{11}(A)$。
+
+<TrueFalseInteractive
+  id="l19-tf2"
+  correct={false}
+  quickFeedback="划去对应行列后的子矩阵完全相同（M_{21}(B) = M_{11}(A)），但代数余子式的位置符号从 (-1)^{1+1}=+1 变成了 (-1)^{2+1}=-1，因此代数余子式互为相反数（C_{21}(B) = -C_{11}(A)），原命题断言相等是错误的。"
+/>
+
+<DualSolution>
+<SolutionIntuition>
+代数余子式由两部分构成：子矩阵行列式（余子式 $M_{ij}$）和位置符号 $(-1)^{i+j}$。
+划去矩阵 $B$ 的第 2 行第 1 列，与划去原矩阵 $A$ 的第 1 行第 1 列，保留下来的行与列完全相同（均为 $A$ 的第 2 至第 $n$ 行、第 2 至第 $n$ 列），因此余子式绝对值不变：$M_{21}(B) = M_{11}(A)$。
+但元素在新矩阵中的行号变了：从第 1 行变为第 2 行，位置符号从 $(-1)^{1+1} = +1$ 变成了 $(-1)^{2+1} = -1$。因此代数余子式严格互为相反数：$C_{21}(B) = -C_{11}(A)$。命题断言相等，因而是错误的。
+</SolutionIntuition>
+
+<SolutionRigorous>
+**第一步：分析划去行列后的子矩阵结构**
+
+在矩阵 $B$ 中划去第 2 行第 1 列后得到的子矩阵 $M'_{21}(B)$：
+它所包含的行是原矩阵 $A$ 的第 2 行、第 3 行、……、第 $n$ 行，包含的列是第 2 列至第 $n$ 列。
+而在矩阵 $A$ 中划去第 1 行第 1 列后得到的子矩阵 $M'_{11}(A)$：
+它所包含的行也是原矩阵 $A$ 的第 2 行、第 3 行、……、第 $n$ 行，包含的列同样是第 2 列至第 $n$ 列。
+这两者作为矩阵完全是同一个矩阵：
+$$
+M'_{21}(B) = M'_{11}(A) \implies M_{21}(B) = M_{11}(A)
+$$
+
+**第二步：计算代数余子式的位置符号**
+
+根据代数余子式的定义：
+$$
+C_{21}(B) = (-1)^{2+1} M_{21}(B) = - M_{21}(B) = - M_{11}(A)
+$$
+而元素 $a_{11}$ 在原矩阵 $A$ 中的代数余子式为：
+$$
+C_{11}(A) = (-1)^{1+1} M_{11}(A) = + M_{11}(A)
+$$
+因此两者严格互为相反数：
+$$
+C_{21}(B) = - C_{11}(A)
+$$
+原命题断言 $C_{21}(B) = C_{11}(A)$，遗漏了行号变化带来的正负号反转，故命题为**假**。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+---
+
+### 习题 4（L3 级）：范德蒙德行列式（Vandermonde Determinant）的余子式与多项式证明
+
+<ExerciseCard
+  id="l19-ex4"
+  tier="L3"
+  title="3 阶与 n 阶范德蒙德行列式的解析推导"
+>
+
+设 $x_1, x_2, \dots, x_n \in \mathbb{R}$。
+1. 计算 3 阶范德蒙德行列式：
+   $$
+   V_3 = \det \begin{bmatrix}
+   1 & x_1 & x_1^2 \\
+   1 & x_2 & x_2^2 \\
+   1 & x_3 & x_3^2
+   \end{bmatrix}
+   $$
+2. 利用代数余子式与多项式根的方法，推导一般 $n$ 阶范德蒙德行列式的闭合分解式：
+   $$
+   V_n = \prod_{1 \le i \lt j \le n} (x_j - x_i)
+   $$
+
+<ProgressiveHint
+  hints={[
+    "对于 3 阶，先用初等行变换消去第一列的 1：第 2 行减第 1 行，第 3 行减第 1 行。",
+    "将最后一行看作未知变量 x，展开后得到一个关于 x 的多项式 P(x)。根据行列式性质，当 x = x_i 时有相同行，因此 x_i 必为该多项式的根！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+范德蒙德行列式是一个非常漂亮的结果。如果任意两行相等（即 $x_i = x_j$），矩阵有两行相同，行列式为 0。根据因式定理，行列式必定包含因子 $(x_j - x_i)$。
+对 $n$ 阶而言，所有可能的不等对一共有 $\binom{n}{2}$ 个，乘起来的总次数刚好等于大公式对角线项的次数 $0 + 1 + 2 + \dots + (n-1) = \frac{n(n-1)}{2}$，因此只需确定首项系数即可！
+</SolutionIntuition>
+
+<SolutionRigorous>
+**第一部分：3 阶范德蒙德行列式的消元与余子式计算**
+
+执行行变换（不改变行列式）：
+- $r_2 \leftarrow r_2 - r_1$
+- $r_3 \leftarrow r_3 - r_1$
+
+$$
+V_3 = \det \begin{bmatrix}
+1 & x_1 & x_1^2 \\
+0 & x_2 - x_1 & x_2^2 - x_1^2 \\
+0 & x_3 - x_1 & x_3^2 - x_1^2
+\end{bmatrix}
+$$
+提取第二行的公因式 $(x_2 - x_1)$ 与第三行的公因式 $(x_3 - x_1)$：
+$$
+V_3 = (x_2 - x_1)(x_3 - x_1) \det \begin{bmatrix}
+1 & x_1 & x_1^2 \\
+0 & 1 & x_2 + x_1 \\
+0 & 1 & x_3 + x_1
+\end{bmatrix}
+$$
+沿第一列展开（仅第一项非零）：
+$$
+V_3 = (x_2 - x_1)(x_3 - x_1) \det \begin{bmatrix}
+1 & x_2 + x_1 \\
+1 & x_3 + x_1
+\end{bmatrix}
+$$
+计算该 $2\times 2$ 行列式：
+$$
+(x_3 + x_1) - (x_2 + x_1) = x_3 - x_2
+$$
+整理得到：
+$$
+V_3 = (x_2 - x_1)(x_3 - x_1)(x_3 - x_2)
+$$
+
+---
+
+**第二部分：$n$ 阶范德蒙德行列式的多项式根法与数学归纳法**
+
+我们将第 $n$ 行的变量替换为连续变量 $x$：
+$$
+f(x) = \det \begin{bmatrix}
+1 & x_1 & x_1^2 & \cdots & x_1^{n-1} \\
+1 & x_2 & x_2^2 & \cdots & x_2^{n-1} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+1 & x_{n-1} & x_{n-1}^2 & \cdots & x_{n-1}^{n-1} \\
+1 & x & x^2 & \cdots & x^{n-1}
+\end{bmatrix}
+$$
+沿最后一行按代数余子式展开：
+$$
+f(x) = C_{n, 1} \cdot 1 + C_{n, 2} \cdot x + \dots + C_{n, n} \cdot x^{n-1}
+$$
+这显然是一个关于 $x$ 的最高次不超过 $n-1$ 次的多项式，且最高次项 $x^{n-1}$ 的系数为代数余子式：
+$$
+C_{n, n} = (-1)^{n+n} M_{nn} = V_{n-1}(x_1, x_2, \dots, x_{n-1})
+$$
+
+由行列式性质，当令 $x = x_1, x_2, \dots, x_{n-1}$ 时，矩阵最后一行与前面的某一行完全相同，行列式为 0：
+$$
+f(x_1) = f(x_2) = \dots = f(x_{n-1}) = 0
+$$
+因此，多项式 $f(x)$ 拥有 $n-1$ 个相异的单根 $x_1, \dots, x_{n-1}$。
+由代数基本定理，多项式可完全因式分解为：
+$$
+f(x) = C_{n, n} \prod_{i=1}^{n-1} (x - x_i) = V_{n-1} \prod_{i=1}^{n-1} (x - x_i)
+$$
+将 $x = x_n$ 代回：
+$$
+V_n = V_{n-1} \prod_{i=1}^{n-1} (x_n - x_i)
+$$
+由数学归纳法，反复递推可得：
+$$
+V_n = \prod_{1 \le i \lt j \le n} (x_j - x_i)
+$$
+证毕。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+---
+
+### 习题 5（L4 级）：斐波那契三对角矩阵的递推证明
+
+<ExerciseCard
+  id="l19-ex5"
+  tier="L4"
+  title="斐波那契数列的三对角行列式表示定理"
+>
+
+定义 $n\times n$ 三对角矩阵 $F_n$，其主对角线全为 1，超对角线（右上相邻）全为 1，次对角线（左下相邻）全为 $-1$：
+$$
+F_n = \begin{bmatrix}
+1 & 1 & 0 & 0 & \cdots & 0 \\
+-1 & 1 & 1 & 0 & \cdots & 0 \\
+0 & -1 & 1 & 1 & \cdots & 0 \\
+0 & 0 & -1 & 1 & \ddots & \vdots \\
+\vdots & \vdots & \ddots & \ddots & \ddots & 1 \\
+0 & 0 & \cdots & 0 & -1 & 1
+\end{bmatrix}_{n\times n}
+$$
+1. 利用代数余子式展开，推导其行列式 $D_n = \det(F_n)$ 所满足的递推关系式。
+2. 证明：$D_n = f_{n+1}$，其中 $f_k$ 为标准斐波那契数列（$f_1 = 1, f_2 = 1, f_3 = 2, f_4 = 3, f_5 = 5, f_6 = 8, \dots$）。
+
+<ProgressiveHint
+  hints={[
+    "代入三对角通用递推式 D_n = a D_{n-1} - bc D_{n-2}，此时主对角元 a = 1，副对角元分别为 b = 1, c = -1。",
+    "注意乘积 bc = (1)(-1) = -1，观察负负得正后的递推符号！"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+斐波那契数列的递推法则为 $f_{n+1} = f_n + f_{n-1}$。
+通常的二阶差分三对角矩阵递推公式中带有负号：$D_n = a D_{n-1} - bc D_{n-2}$。
+如果我们巧妙地设计次对角线为 $-1$，超对角线为 $1$，那么 $bc = -1$。
+公式中的减法正好变成加法：$-bc = -(-1) = +1$！
+这使得行列式递推关系完全等价于斐波那契递推方程。
+</SolutionIntuition>
+
+<SolutionRigorous>
+**第一部分：推导递推关系式**
+
+沿矩阵 $F_n$ 的第一行展开代数余子式：
+$$
+D_n = 1 \cdot C_{11} + 1 \cdot C_{12} = (-1)^{1+1} M_{11} + (-1)^{1+2} M_{12} = M_{11} - M_{12}
+$$
+划去第 1 行与第 1 列后，剩余的 $(n-1)\times(n-1)$ 矩阵结构与原矩阵完全一致，故：
+$$
+M_{11} = D_{n-1}
+$$
+
+考察余子式 $M_{12}$ 对应的 $(n-1)\times(n-1)$ 子矩阵：
+$$
+M'_{12} = \begin{bmatrix}
+-1 & 1 & 0 & \cdots & 0 \\
+0 & 1 & 1 & \cdots & 0 \\
+0 & -1 & 1 & \ddots & \vdots \\
+\vdots & \vdots & \ddots & \ddots & 1 \\
+0 & 0 & \cdots & -1 & 1
+\end{bmatrix}
+$$
+该子矩阵的第一列仅有第一个元素 $-1$ 非零。沿其第一列展开：
+$$
+M_{12} = (-1) \cdot (-1)^{1+1} \det(F_{n-2}) = - D_{n-2}
+$$
+代回展开式：
+$$
+D_n = D_{n-1} - (-D_{n-2}) = D_{n-1} + D_{n-2}
+$$
+至此，严格导出了二阶递推方程：
+$$
+D_n = D_{n-1} + D_{n-2} \quad (n \ge 3)
+$$
+
+---
+
+**第二部分：验证初值并完成归纳**
+
+计算 $n=1$ 与 $n=2$ 的初始行列式：
+- $n = 1$：
+  $$
+  D_1 = \det[1] = 1
+  $$
+  对比斐波那契数：$f_2 = 1$，满足 $D_1 = f_2$。
+- $n = 2$：
+  $$
+  D_2 = \det \begin{bmatrix} 1 & 1 \\ -1 & 1 \end{bmatrix} = 1(1) - (1)(-1) = 1 + 1 = 2
+  $$
+  对比斐波那契数：$f_3 = 2$，满足 $D_2 = f_3$。
+
+**归纳假设**：设对所有 $k \lt n$，均有 $D_k = f_{k+1}$。
+则当 $k = n$ 时：
+$$
+D_n = D_{n-1} + D_{n-2} = f_n + f_{n-1}
+$$
+根据斐波那契数列的唯一定义 $f_{n+1} = f_n + f_{n-1}$，直接得出：
+$$
+D_n = f_{n+1}
+$$
+定理获证。例如：
+$$
+D_3 = f_4 = 3, \quad D_4 = f_5 = 5, \quad D_5 = f_6 = 8, \dots
+$$
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>

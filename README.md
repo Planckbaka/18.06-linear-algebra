@@ -61,17 +61,17 @@ This project bridges both worlds with four strict design pillars:
 | **16** | L16 | P16 | Projection Matrices and Least Squares ($A^TA\hat{\mathbf{x}} = A^T\mathbf{b}$) | ✅ Live | 🗓️ Planned | — |
 | **17** | L17 | P17 | Orthogonal Matrices and Gram-Schmidt ($A = QR$) | ✅ Live | 🗓️ Planned | **[AI-07]** RoPE (Rotary Position Embedding) & Norm-Preserving Orthogonal Init |
 
-### Module III: Determinants, Eigenvalues & Dynamical Systems
+### Module III: Determinants, Eigenvalues & Dynamical Systems (8 / 8 `zh` Complete ✅)
 | Session | OCW # | Video P# | Topic | `zh` Status | `en` Status | Isolated Frontier AI Reading |
 | :---: | :---: | :---: | :--- | :---: | :---: | :--- |
-| **18** | L18 | P18 | Properties of Determinants | 🗓️ Planned | 🗓️ Planned | — |
-| **19** | L19 | P19 | Determinant Formulas and Cofactors | 🗓️ Planned | 🗓️ Planned | — |
-| **20** | L20 | P20 | Cramer's Rule, Inverse Matrix, and Oriented Volume | 🗓️ Planned | 🗓️ Planned | **[AI-08]** Normalizing Flows & Flow Matching: Jacobian Volume $\lvert\det J\rvert$ |
-| **21** | L21 | P21 | Eigenvalues and Eigenvectors ($\operatorname{tr}(A)$ & $\det(A)$) | 🗓️ Planned | 🗓️ Planned | — |
-| **22** | L22 | P22 | Diagonalization and Powers of $A$ ($A = S\Lambda S^{-1}$) | 🗓️ Planned | 🗓️ Planned | **[AI-09]** Spectral Radius $\lvert\lambda_{\max}\rvert$, Gradient Stability & Spectral Norm |
-| **23** | L23 | P23 | Differential Equations and $\exp(At)$ | 🗓️ Planned | 🗓️ Planned | **[AI-10]** Structured State Space Models (SSM / HiPPO / Mamba) & $\bar{A} = e^{\Delta A}$ |
-| **24** | L24 | P24 | Markov Matrices; Fourier Series | 🗓️ Planned | 🗓️ Planned | **[AI-11]** Diffusion Forward Markov Chains (DDPM / D3PM) & Stationary Noise |
-| **25** | L24b | P25 | Quiz 2 Review (Modules II & III Synthesis) | 🗓️ Planned | 🗓️ Planned | — |
+| **18** | L18 | P18 | Properties of Determinants | ✅ Live | 🗓️ Planned | — |
+| **19** | L19 | P19 | Determinant Formulas and Cofactors | ✅ Live | 🗓️ Planned | — |
+| **20** | L20 | P20 | Cramer's Rule, Inverse Matrix, and Oriented Volume | ✅ Live | 🗓️ Planned | **[AI-08]** Normalizing Flows & Flow Matching: Jacobian Volume $\lvert\det J\rvert$ |
+| **21** | L21 | P21 | Eigenvalues and Eigenvectors ($\operatorname{tr}(A)$ & $\det(A)$) | ✅ Live | 🗓️ Planned | — |
+| **22** | L22 | P22 | Diagonalization and Powers of $A$ ($A = S\Lambda S^{-1}$) | ✅ Live | 🗓️ Planned | **[AI-09]** Spectral Radius $\lvert\lambda_{\max}\rvert$, Gradient Stability & Spectral Norm |
+| **23** | L23 | P23 | Differential Equations and $\exp(At)$ | ✅ Live | 🗓️ Planned | **[AI-10]** Structured State Space Models (SSM / HiPPO / Mamba) & $\bar{A} = e^{\Delta A}$ |
+| **24** | L24 | P24 | Markov Matrices; Fourier Series | ✅ Live | 🗓️ Planned | **[AI-11]** Diffusion Forward Markov Chains (DDPM / D3PM) & Stationary Noise |
+| **25** | L24b | P25 | Quiz 2 Review (Modules II & III Synthesis) | ✅ Live | 🗓️ Planned | — |
 
 ### Module IV: Positive Definite Matrices, SVD & Linear Transformations
 | Session | OCW # | Video P# | Topic | `zh` Status | `en` Status | Isolated Frontier AI Reading |

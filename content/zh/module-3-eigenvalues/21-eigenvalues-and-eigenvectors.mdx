@@ -1,0 +1,603 @@
+---
+title: "第 21 讲：特征值与特征向量"
+ocwId: "L21"
+videoEpisode: "P21"
+textbookRef: "§6.1"
+---
+
+# 第 21 讲：特征值与特征向量
+
+## 引入：从静态方程到动态系统的飞跃
+
+在前两个模块中，我们的视线始终聚焦于**静态线性系统**：求解线性方程组 $A\mathbf{x} = \mathbf{b}$、高斯消元法（Gaussian Elimination）$A = LU$、最小二乘投影（Least Squares Projection）$A^T A \hat{\mathbf{x}} = A^T \mathbf{b}$ 以及正交化分解 $A = QR$。在这些问题中，输入向量 $\mathbf{x}$ 与输出向量 $\mathbf{b}$ 往往生活在不同的空间中，或者我们只关心一次性求出满足约束的平衡态。
+
+然而，自然科学与现代工程的本质是**动态演化**（Dynamics）。当我们转向第三模块时，核心问题变成了：
+1. **离散动力系统（Discrete Dynamical Systems）**：矩阵反复迭代作用，研究状态序列 $\mathbf{u}_k = A^k \mathbf{u}_0$ 在 $k \to \infty$ 时的渐近行为（如马尔可夫链状态转移、种群迭代增长、斐波那契数列等）。
+2. **连续动力系统（Continuous Dynamical Systems）**：一阶线性常微分方程组 $\frac{d\mathbf{u}}{dt} = A\mathbf{u}(t)$，系统状态在时间轴上连续演变（如机械振动、电路振荡、热传导与波动方程）。
+
+面对此类动态演化问题，前两章无往不利的高斯消元法彻底失效了！初等行变换 $E_{ij}A$ 会改变矩阵与向量的作用方式：消元虽保持方程组的解空间 $\operatorname{Null}(A)$ 和行列式（按倍数变化），但它**彻底摧毁了矩阵自身的特征动力学**。
+
+为了揭示一个方阵 $A \in \mathbb{R}^{n \times n}$ 内部最纯粹的"基因（DNA）"，我们必须寻找那些在矩阵变换下**方向保持绝对不变**的特殊向量——这就是**特征向量（Eigenvector）**；其拉伸或收缩的标量倍数，正是**特征值（Eigenvalue）**。
+
+---
+
+## 几何与代数基础：特征值与特征向量
+
+当一个 $n \times n$ 矩阵 $A$ 作用于普通向量 $\mathbf{v}$ 时，输出向量 $A\mathbf{v}$ 通常既改变了长度，又偏离了原有的方向。但对某些极为特殊的非零向量 $\mathbf{x}$ 而言，矩阵乘法的作用效果竟然等价于**纯粹的标量乘法**！
+
+<DefinitionCard title="特征值、特征向量与特征子空间" termEn="Eigenvalues, Eigenvectors, and Eigenspaces">
+
+设 $A \in \mathbb{C}^{n \times n}$ 为 $n$ 阶方阵。若存在复数标量 $\lambda \in \mathbb{C}$ 以及**非零向量** $\mathbf{x} \in \mathbb{C}^n$（$\mathbf{x} \neq \mathbf{0}$），使得：
+
+$$
+A\mathbf{x} = \lambda \mathbf{x}
+$$
+
+则称标量 $\lambda$ 为矩阵 $A$ 的一个**特征值（Eigenvalue）**，非零向量 $\mathbf{x}$ 称为矩阵 $A$ 对应于特征值 $\lambda$ 的一个**特征向量（Eigenvector）**。
+
+**数域的重要说明**：即便实方阵 $A \in \mathbb{R}^{n \times n}$ 的所有元素均为实数，其特征值 $\lambda$ 与特征向量 $\mathbf{x}$ 依然可能属于复数域 $\mathbb{C}$。
+
+对应于特征值 $\lambda$ 的所有特征向量构成的集合，与零向量 $\mathbf{0}$ 一同构成向量空间 $\mathbb{C}^n$ 的一个子空间，称为**特征子空间（Eigenspace）**，记作 $E_\lambda$：
+
+$$
+E_\lambda = \operatorname{Null}(A - \lambda I_n) = \{\mathbf{x} \in \mathbb{C}^n : (A - \lambda I_n)\mathbf{x} = \mathbf{0}\}
+$$
+
+该子空间的维数称为特征值 $\lambda$ 的**几何重数（Geometric Multiplicity）**：
+
+$$
+\operatorname{geom\_mult}(\lambda) = \dim(E_\lambda) = n - \operatorname{rank}(A - \lambda I_n) \ge 1
+$$
+
+</DefinitionCard>
+
+<EigenvalueInvariantDirectionsDiagram />
+
+### 代数核心：为什么要令行列式为零？
+
+方程 $A\mathbf{x} = \lambda \mathbf{x}$ 可以通过移项重写为齐次线性方程组：
+
+$$
+(A - \lambda I_n)\mathbf{x} = \mathbf{0}
+$$
+
+这里 $I_n$ 是 $n \times n$ 的单位矩阵。这是理解特征值代数机制最关键的一步桥梁：
+- 如果矩阵算子 $(A - \lambda I_n)$ 是**可逆的（Invertible）**，那么方程两侧左乘逆矩阵，将得到唯一解 $\mathbf{x} = (A - \lambda I_n)^{-1}\mathbf{0} = \mathbf{0}$。
+- 但是，根据定义，特征向量必须是**非零向量**（$\mathbf{x} \neq \mathbf{0}$）！
+- 因此，欲使齐次方程组拥有非零解，矩阵 $(A - \lambda I_n)$ **必须是奇异的（Singular / 不可逆）**！
+
+矩阵奇异等价于其行列式为零。这就引出了求解特征值的核心代数方程：
+
+$$
+\det(A - \lambda I_n) = 0
+$$
+
+这个关于 $\lambda$ 的一元 $n$ 次代数方程称为**特征方程（Characteristic Equation）**，其左端的多项式 $p(\lambda) = \det(A - \lambda I_n)$ 称为矩阵 $A$ 的**特征多项式（Characteristic Polynomial）**。
+
+---
+
+## 几何心算特征值：不解多项式的五大经典算子
+
+Gilbert Strang 教授在 MIT 课堂上反复强调：在匆忙计算繁琐的行列式之前，优秀的数学直觉应当能够直接"看穿"物理几何变换的特征值。
+
+<GeometricEigenSpectraDiagram />
+
+### 1. 正交投影矩阵 $P$（Orthogonal Projection）
+
+考虑三维空间中向某一平面或直线的正交投影矩阵 $P = P^T = P^2$：
+- 设向量 $\mathbf{x}$ 已经位于该平面内（即 $\mathbf{x} \in \operatorname{Col}(P)$）。投影像就是它自身：$P\mathbf{x} = 1 \cdot \mathbf{x}$。因此，**$\lambda_1 = 1$ 是特征值**，投影面内的所有非零向量都是特征向量！
+- 设向量 $\mathbf{x}$ 垂直于该平面（即 $\mathbf{x} \in \operatorname{Null}(P) = \operatorname{Col}(P)^\perp$）。投影之后全部坍缩到原点：$P\mathbf{x} = \mathbf{0} = 0 \cdot \mathbf{x}$。因此，**$\lambda_2 = 0$ 是特征值**，垂直于平面的所有非零向量都是对应 $\lambda = 0$ 的特征向量！
+- **代数自洽性**：因为 $P^2 = P$，若 $P\mathbf{x} = \lambda \mathbf{x}$，则 $P^2\mathbf{x} = \lambda^2 \mathbf{x} = \lambda \mathbf{x}$，故 $\lambda^2 - \lambda = 0 \implies \lambda \in \{0, 1\}$。投影矩阵的特征值只能是 $1$ 或 $0$。
+
+### 2. 镜像反射矩阵 $R = 2P - I$（Mirror Reflection）
+
+考虑相对于镜面的镜像反射变换：
+- 落在镜面内的任何向量 $\mathbf{x}$，镜面不改变其朝向：$R\mathbf{x} = 1 \cdot \mathbf{x} \implies \lambda_1 = 1$。
+- 垂直于镜面法线方向的向量 $\mathbf{x}$，经过镜面反射后被完全反向：$R\mathbf{x} = -1 \cdot \mathbf{x} \implies \lambda_2 = -1$。
+- **代数自洽性**：反射两次等于没变，即 $R^2 = I \implies \lambda^2 = 1 \implies \lambda \in \{1, -1\}$。
+
+### 3. 置换交换矩阵 $P_{12} = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$（Permutation）
+
+矩阵交换二维向量的两个分量：$P_{12} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} = \begin{bmatrix} x_2 \\ x_1 \end{bmatrix}$：
+- 若两个分量相等：$\mathbf{x}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}$，交换后仍为 $\begin{bmatrix} 1 \\ 1 \end{bmatrix}$，对应 $\lambda_1 = 1$。
+- 若两个分量互为相反数：$\mathbf{x}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}$，交换后为 $\begin{bmatrix} -1 \\ 1 \end{bmatrix} = -1 \begin{bmatrix} 1 \\ -1 \end{bmatrix}$，对应 $\lambda_2 = -1$。
+
+### 4. $90^\circ$ 纯旋转矩阵 $Q = \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix}$（Rotation）
+
+在二维实平面 $\mathbb{R}^2$ 上，该矩阵将所有向量逆时针旋转 $90^\circ$：
+- 几何上，没有任何一条实直线在旋转 $90^\circ$ 后还能与自身共线！因此，**实数域上不存在任何特征向量**。
+- 代数上求解：$\det(Q - \lambda I) = \det\begin{bmatrix} -\lambda & -1 \\ 1 & -\lambda \end{bmatrix} = \lambda^2 + 1 = 0 \implies \lambda = \pm i$。
+- 特征值是纯虚数 $\pm i$！将 $\lambda_1 = i$ 代入 $(Q - iI)\mathbf{x} = \mathbf{0}$，得到复特征向量 $\mathbf{x}_1 = \begin{bmatrix} 1 \\ -i \end{bmatrix}$。特征向量进入了复空间 $\mathbb{C}^2$。
+
+### 5. 平移变换 $A + cI$（Shift Theorem）
+
+若已知矩阵 $A$ 的特征值为 $\lambda$，特征向量为 $\mathbf{x}$，那么给对角线统一加上常数 $c$ 后的矩阵 $A + cI$ 会发生什么？
+
+$$
+(A + cI)\mathbf{x} = A\mathbf{x} + c\mathbf{x} = \lambda \mathbf{x} + c\mathbf{x} = (\lambda + c)\mathbf{x}
+$$
+
+**结论**：特征向量 $\mathbf{x}$ 完全保持不变，特征值整齐划一地平移：$\lambda \mapsto \lambda + c$！
+
+---
+
+## 特征值两大不变量：迹与行列式
+
+特征多项式的展开式蕴含了矩阵最重要的两个代数不变量。
+
+<TheoremCard title="迹与行列式的特征值恒等式" termEn="Trace and Determinant Invariants Theorem">
+
+设 $A \in \mathbb{C}^{n \times n}$ 为 $n$ 阶方阵，其在复数域 $\mathbb{C}$ 上的全部特征值为 $\lambda_1, \lambda_2, \dots, \lambda_n$（按代数重数计）。则：
+
+1. **迹（Trace）等于特征值之和**：
+   $$
+   \operatorname{tr}(A) = \sum_{i=1}^n a_{ii} = \sum_{i=1}^n \lambda_i
+   $$
+2. **行列式（Determinant）等于特征值之乘积**：
+   $$
+   \det(A) = \prod_{i=1}^n \lambda_i
+   $$
+
+</TheoremCard>
+
+<ProofCollapse title="基于特征多项式根与系数关系的严密代数证明">
+
+由代数基本定理（Fundamental Theorem of Algebra），$n$ 次特征多项式 $p(\lambda) = \det(A - \lambda I_n)$ 在复数域上必定恰有 $n$ 个根 $\lambda_1, \dots, \lambda_n$，故可完全因式分解为：
+
+$$
+p(\lambda) = \det(A - \lambda I_n) = (-1)^n \prod_{i=1}^n (\lambda - \lambda_i) = \prod_{i=1}^n (\lambda_i - \lambda)
+$$
+
+我们将此多项式按 $\lambda$ 的幂次展开：
+
+$$
+\prod_{i=1}^n (\lambda_i - \lambda) = (-\lambda)^n + (-\lambda)^{n-1} \left( \sum_{i=1}^n \lambda_i \right) + \dots + \prod_{i=1}^n \lambda_i
+$$
+
+另一方面，我们根据行列式的定义展开 $\det(A - \lambda I_n)$：
+在莱布尼茨全排列展开式 $\sum_{\sigma} \operatorname{sgn}(\sigma) \prod_{j=1}^n (A - \lambda I_n)_{\sigma(j), j}$ 中，只有主对角线乘积项包含了 $n$ 个 $(a_{ii} - \lambda)$ 的因式：
+
+$$
+\prod_{i=1}^n (a_{ii} - \lambda) = (-\lambda)^n + (-\lambda)^{n-1} \left( \sum_{i=1}^n a_{ii} \right) + \dots
+$$
+
+而所有非对角线置换项至少包含两个非对角元素（它们不含 $\lambda$），因此其关于 $\lambda$ 的次数至多为 $n-2$，绝对无法对 $\lambda^n$ 与 $\lambda^{n-1}$ 项提供任何贡献。
+
+对比两式中 $(-\lambda)^{n-1}$ 的系数，立即得到：
+
+$$
+\sum_{i=1}^n \lambda_i = \sum_{i=1}^n a_{ii} = \operatorname{tr}(A)
+$$
+
+对于常数项，只需令标量 $\lambda = 0$：
+
+$$
+p(0) = \det(A - 0 \cdot I_n) = \det(A)
+$$
+
+而从因式分解式代入 $\lambda = 0$ 得到：
+
+$$
+p(0) = \prod_{i=1}^n (\lambda_i - 0) = \prod_{i=1}^n \lambda_i
+$$
+
+两端相等，即证 $\det(A) = \prod_{i=1}^n \lambda_i$。 $\blacksquare$
+
+</ProofCollapse>
+
+### $2 \times 2$ 矩阵的快速二次公式
+
+对二阶方阵 $A = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$，特征多项式可以直接写出：
+
+$$
+\det\begin{bmatrix} a - \lambda & b \\ c & d - \lambda \end{bmatrix} = \lambda^2 - (a+d)\lambda + (ad-bc) = \lambda^2 - \operatorname{tr}(A)\lambda + \det(A) = 0
+$$
+
+利用一元二次方程求根公式：
+
+$$
+\lambda_{1, 2} = \frac{\operatorname{tr}(A) \pm \sqrt{(\operatorname{tr}(A))^2 - 4\det(A)}}{2}
+$$
+
+**算例 1**：对于对称矩阵 $A = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}$：
+- $\operatorname{tr}(A) = 2 + 2 = 4$
+- $\det(A) = 2 \times 2 - 1 \times 1 = 3$
+- 特征方程：$\lambda^2 - 4\lambda + 3 = (\lambda - 3)(\lambda - 1) = 0 \implies \lambda_1 = 3, \lambda_2 = 1$。
+- 验算：$3 + 1 = 4 = \operatorname{tr}(A)$，且 $3 \times 1 = 3 = \det(A)$！
+- 求解特征向量：
+  - 代入 $\lambda_1 = 3$：$(A - 3I)\mathbf{x} = \begin{bmatrix} -1 & 1 \\ 1 & -1 \end{bmatrix}\mathbf{x} = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}$。
+  - 代入 $\lambda_2 = 1$：$(A - I)\mathbf{x} = \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix}\mathbf{x} = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}$。
+  - 观察发现：$\mathbf{x}_1^T \mathbf{x}_2 = 1(1) + 1(-1) = 0$，两个特征向量相互正交！（对称矩阵必有正交特征向量，见第 25 讲）。
+
+**算例 2（极重要的秩 1 外积矩阵）**：设 $\mathbf{u}, \mathbf{v} \in \mathbb{R}^n$ 为非零向量，考虑秩 1 矩阵 $A = \mathbf{u}\mathbf{v}^T$：
+1. 因为 $\operatorname{rank}(A) = 1$，由秩-零度定理，其零空间维数 $\dim(\operatorname{Null}(A)) = n - 1$。
+2. 零空间中的所有向量 $\mathbf{x} \in \operatorname{Null}(A)$ 满足 $A\mathbf{x} = \mathbf{0} = 0 \cdot \mathbf{x}$。因此，**$\lambda = 0$ 是特征值，且几何重数至少为 $n - 1$**！
+3. 剩下一个非零特征值 $\lambda_1$ 是多少？直接将 $\mathbf{u}$ 代入测试：
+   $$
+   A\mathbf{u} = (\mathbf{u}\mathbf{v}^T)\mathbf{u} = \mathbf{u}(\mathbf{v}^T \mathbf{u}) = (\mathbf{v}^T \mathbf{u})\mathbf{u}
+   $$
+   由于标量 $\mathbf{v}^T \mathbf{u}$ 提取到前面，上式正说明：**$\mathbf{u}$ 是特征向量，对应特征值为 $\lambda_1 = \mathbf{v}^T \mathbf{u}$**！
+4. 验证迹公式：
+   $$
+   \operatorname{tr}(\mathbf{u}\mathbf{v}^T) = \sum_{i=1}^n u_i v_i = \mathbf{v}^T \mathbf{u} = \lambda_1 + 0 + \dots + 0
+   $$
+   两者完全吻合！这意味着面对高阶秩 1 矩阵，完全不需要展开 $n$ 阶行列式，心算一秒即可得到全部特征值！
+
+---
+
+## 经典认知陷阱与辨析
+
+<PitfallAlert title="特征值与特征向量的四大经典认知陷阱">
+
+### 1. 致命错误：误以为行消元保持特征值不变
+高斯消元（Row Elimination）是求解 $A\mathbf{x} = \mathbf{b}$ 的利器，它在矩阵左侧乘初等矩阵 $E$，保持方程组的解空间 $\operatorname{Null}(A)$ 和满秩性不变。但是：**初等行变换彻底摧毁了特征值与特征向量！**
+$$
+A = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} \xrightarrow{R_1 \leftrightarrow R_2} U = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}
+$$
+原矩阵 $A$ 的特征值为 $\lambda = \pm 1$，迹为 $0$。消元后的阶梯形矩阵 $U$ 的特征值为 $1, 1$，迹为 $2$！
+- 三角矩阵对角线上的元素确实是其特征值；
+- 但一般矩阵消元后的主元（Pivots）**绝不等于**原矩阵的特征值（主元的乘积等于 $\det(A)$，但主元自身与 $\lambda$ 完全无关）！
+
+### 2. 标量 0 可以是特征值，但零向量 0 绝不能是特征向量
+- 标量 $\lambda = 0$ 是合法特征值 $\iff A\mathbf{x} = 0\mathbf{x} = \mathbf{0}$ 拥有非零解 $\mathbf{x} \neq \mathbf{0} \iff A$ 是奇异矩阵（不可逆） $\iff \det(A) = 0$。
+- 然而，向量 $\mathbf{0}$ **绝不能**作为特征向量！因为对任意标量 $\lambda$，恒有 $A\mathbf{0} = \lambda \mathbf{0}$，如果允许零向量作为特征向量，那么任意数都会变成任意矩阵的特征值，定义将彻底失去数学价值。
+
+### 3. 矩阵和与积的特征值陷阱：$\lambda(A+B) \neq \lambda(A) + \lambda(B)$
+直觉常诱导人们以为两个矩阵相加或相乘，其特征值也会直接相加或相乘。这是极为严重的错误！
+取两个严格三角方阵：
+$$
+A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}, \quad B = \begin{bmatrix} 0 & 0 \\ 1 & 0 \end{bmatrix}
+$$
+$A$ 与 $B$ 的特征值全部为 $\{0, 0\}$。
+然而两矩阵之和：
+$$
+A + B = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+$$
+其特征值却是 $\{1, -1\}$！显然 $0 + 0 \neq 1$ 且 $0 + 0 \neq -1$。两矩阵之积 $AB = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}$，特征值为 $\{1, 0\}$，而 $0 \times 0 \neq 1$！
+**结论**：只有当 $A$ 与 $B$ 拥有**共同的特征向量系**（等价于它们可交换，$AB = BA$）时，特征值才成对相加或相乘。
+
+### 4. 实矩阵的特征值与特征向量未必是实数
+实矩阵并不保证其不变方向存在于实平面中。最典型的就是旋转矩阵 $Q$。必须将数域扩充至复数域 $\mathbb{C}$，由代数基本定理保证特征多项式恰有 $n$ 个根。若实矩阵出现复特征值，它们必定以**共轭复数对（Conjugate Pairs）** $a \pm bi$ 形式成对出现。
+
+</PitfallAlert>
+
+---
+
+## 交互探索沙盒
+
+<InteractiveCanvasSlot
+  id="l21-eigen-directions-sandbox"
+  title="特征方向与矩阵变换几何沙盒"
+  description="拖动二维平面中的输入向量 x，观察矩阵 A 作用后输出向量 Ax 的方向偏折与长度变化；直观寻找那两条使 Ax 与 x 严格共线的特征线。"
+/>
+
+---
+
+## 核心提炼与学习清单
+
+<KeyTakeaways
+  items={[
+    "特征值与特征向量的核心定义：$A\\mathbf{x} = \\lambda\\mathbf{x}$（$\\mathbf{x} \\neq \\mathbf{0}$），几何上代表在矩阵变换下方向保持不变的特殊直线。",
+    "代数判定条件：$(A - \\lambda I_n)\\mathbf{x} = \\mathbf{0}$ 存在非零解等价于矩阵奇异，即特征方程 $\\det(A - \\lambda I_n) = 0$。",
+    "迹与特征值之和恒等：$\\operatorname{tr}(A) = \\sum_{i=1}^n a_{ii} = \\sum_{i=1}^n \\lambda_i$；行列式与特征值之积恒等：$\\det(A) = \\prod_{i=1}^n \\lambda_i$。",
+    "几何直观先于代数：投影矩阵 $P$ 的特征值为 $1$ 和 $0$；反射矩阵 $R = 2P - I$ 的特征值为 $1$ 和 $-1$；平移矩阵 $A + cI$ 的特征值为 $\\lambda + c$ 且特征向量不变。",
+    "消元破坏特征值：初等行变换不保持特征多项式与特征值；主元（Pivots）绝不等于特征值（Eigenvalues）。",
+    "矩阵和与积的特征值陷阱：一般情况下 $\\lambda(A+B) \\neq \\lambda(A) + \\lambda(B)$，仅当 $AB = BA$（共享特征向量）时特征值才可直接代数叠加。"
+  ]}
+/>
+
+---
+
+## 课后精选题集
+
+<ProblemSet
+  title="第 21 讲 习题集：特征值与特征向量的几何直观与代数性质"
+  description="从几何直观心算特征值，到严格代数证明与 MIT 18.06 经典矩阵挑战。"
+>
+
+<ExerciseCard
+  id="l21-ex1"
+  tier="L1"
+  title="秩 1 外积矩阵与正交投影的特征值心算"
+>
+
+给定非零向量 $\mathbf{u} = \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}$，构造外积矩阵 $A = \mathbf{u}\mathbf{u}^T$。
+
+1. 不求行列式，直接利用零空间与迹计算 $A$ 的全部特征值及其代数重数；
+2. 构造向直线 $\operatorname{span}\{\mathbf{u}\}$ 的投影矩阵 $P = \frac{\mathbf{u}\mathbf{u}^T}{\mathbf{u}^T \mathbf{u}}$，直接求出 $P$ 的全部特征值与对应特征子空间的基。
+
+<ProgressiveHint
+  hints={[
+    "外积矩阵 $A$ 的秩为 $1$。由秩-零度定理，$\\dim(\\operatorname{Null}(A)) = 3 - 1 = 2$。零空间中的向量对应的特征值是什么？",
+    "计算迹 $\\operatorname{tr}(A) = \\mathbf{u}^T \\mathbf{u}$，利用定理 $\\operatorname{tr}(A) = \\sum \\lambda_i$ 立即解出非零特征值。"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+秩 1 矩阵将整个三维空间压缩到一条直线上。正交于该直线的一个二维平面（即零空间）全部坍缩为零向量，因此必定有 2 个特征值 $\lambda = 0$。唯一不被拍扁的方向正是向量 $\mathbf{u}$ 自身，在此方向上的伸缩倍数即为向量的内积模长平方 $\mathbf{u}^T \mathbf{u} = 1^2 + 2^2 + 2^2 = 9$。
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+**第一问**：
+计算矩阵外积：
+$$
+A\mathbf{u} = (\mathbf{u}\mathbf{u}^T)\mathbf{u} = \mathbf{u}(\mathbf{u}^T \mathbf{u})
+$$
+计算内积：$\mathbf{u}^T \mathbf{u} = 1^2 + 2^2 + 2^2 = 9$。因此 $A\mathbf{u} = 9\mathbf{u}$，这意味着 $\lambda_1 = 9$ 是一个特征值，对应特征向量为 $\mathbf{u}$。
+
+因为 $\operatorname{rank}(A) = 1$，由秩-零度定理：
+$$
+\dim(\operatorname{Null}(A)) = 3 - 1 = 2
+$$
+对任意满足 $\mathbf{u}^T \mathbf{x} = 0$ 的向量 $\mathbf{x} \in \operatorname{Null}(A)$，有 $A\mathbf{x} = \mathbf{u}(\mathbf{u}^T \mathbf{x}) = \mathbf{0} = 0 \cdot \mathbf{x}$。
+因此 $\lambda_2 = \lambda_3 = 0$，其几何重数等于代数重数等于 $2$。
+验证迹：$\operatorname{tr}(A) = \sum u_i^2 = 9 = 9 + 0 + 0$。
+
+**第二问**：
+投影矩阵 $P = \frac{1}{9}A$。根据标量乘法性质：
+- $P\mathbf{u} = \frac{1}{9}(9\mathbf{u}) = 1 \cdot \mathbf{u} \implies \lambda_1 = 1$，特征子空间 $E_1 = \operatorname{span}\{\begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}\}$；
+- 对任意 $\mathbf{x} \perp \mathbf{u}$，$P\mathbf{x} = \mathbf{0} = 0 \cdot \mathbf{x} \implies \lambda_2 = \lambda_3 = 0$。特征子空间 $E_0 = \operatorname{Null}(\mathbf{u}^T)$，求解方程 $x_1 + 2x_2 + 2x_3 = 0$，一组基为：
+  $$
+  \mathbf{x}_2 = \begin{bmatrix} -2 \\ 1 \\ 0 \end{bmatrix}, \quad \mathbf{x}_3 = \begin{bmatrix} -2 \\ 0 \\ 1 \end{bmatrix}
+  $$
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard
+  id="l21-ex2"
+  tier="L2"
+  title="概念辨析：高斯行消元是否保持特征值不变？"
+>
+
+判断正误：对任意可逆方阵 $A$，进行高斯消元得到上三角阶梯形矩阵 $U$，由于 $U$ 是三角矩阵，其对角线上的主元（Pivots）等于原矩阵 $A$ 的特征值。
+
+<TrueFalseInteractive
+  id="l21-tf1"
+  correct={false}
+  quickFeedback="错误！行变换改变了矩阵的几何作用方向，主元（Pivots）乘积等于行列式，但主元自身与特征值通常截然不同。"
+/>
+
+<ProgressiveHint
+  hints={[
+    "考虑最简单的二阶行交换矩阵 $A = \\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix}$。",
+    "计算 $A$ 的特征值与消元后矩阵 $U$ 的特征值，比较它们是否相同。"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+高斯行消元是在方程左侧乘初等矩阵 $E$。这虽然保持了方程组与坐标原点的交点（解空间），但它把原矩阵在多维空间中的旋转与伸缩方向完全扭曲了。矩阵的"动力学特征"在消元的第一步就已经荡然无存。
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+反例：取二阶置换矩阵：
+$$
+A = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+$$
+其特征方程为 $\det(A - \lambda I) = \lambda^2 - 1 = 0 \implies \lambda_1 = 1, \lambda_2 = -1$。
+其迹为 $\operatorname{tr}(A) = 0 + 0 = 0$。
+
+对 $A$ 进行高斯消元（只需一次行交换 $R_1 \leftrightarrow R_2$），立即得到上三角矩阵：
+$$
+U = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I_2
+$$
+$U$ 的主元分别为 $d_1 = 1, d_2 = 1$。
+$U$ 的特征值为 $\lambda_1 = 1, \lambda_2 = 1$，其迹为 $\operatorname{tr}(U) = 2$。
+
+显见 $A$ 与 $U$ 的特征值完全不同，主元不等于特征值。原命题断然为假。
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard
+  id="l21-ex3"
+  tier="L2"
+  title="算子运算：特征值相加与相乘法则辨析"
+>
+
+判断正误：若 $\lambda_A$ 是矩阵 $A$ 的特征值，$\lambda_B$ 是矩阵 $B$ 的特征值，则 $\lambda_A + \lambda_B$ 必是 $A + B$ 的特征值，$\lambda_A \lambda_B$ 必是 $AB$ 的特征值。
+
+<TrueFalseInteractive
+  id="l21-tf2"
+  correct={false}
+  quickFeedback="错误！仅当 $A$ 与 $B$ 共享相同的特征向量（即 $AB = BA$）时，特征值才成对相加或相乘。"
+/>
+
+<ProgressiveHint
+  hints={[
+    "若要 $(A + B)\\mathbf{x} = (\\lambda_A + \\lambda_B)\\mathbf{x}$，要求向量 $\\mathbf{x}$ 必须同时是 $A$ 和 $B$ 的特征向量。两个任意矩阵会共享特征向量吗？",
+    "考虑两个严格三角矩阵 $A = \\begin{bmatrix} 0 & 1 \\\\ 0 & 0 \\end{bmatrix}$ 与 $B = \\begin{bmatrix} 0 & 0 \\\\ 1 & 0 \\end{bmatrix}$。"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+特征向量是矩阵变换保持共线的特定轴。如果矩阵 $A$ 的主轴与矩阵 $B$ 的主轴指向完全不同的方向，当两个变换叠加在一起时，各自动态相互干扰，合作用必然把轴偏折到全新的方向，标量特征值无法简单相加。
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+构造严格反例：
+设：
+$$
+A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}, \quad B = \begin{bmatrix} 0 & 0 \\ 1 & 0 \end{bmatrix}
+$$
+$A$ 为上三角矩阵，特征值为 $\lambda(A) = \{0, 0\}$；其特征向量只能满足 $x_2 = 0$，即 $\operatorname{span}\{\begin{bmatrix} 1 \\ 0 \end{bmatrix}\}$。
+$B$ 为下三角矩阵，特征值为 $\lambda(B) = \{0, 0\}$；其特征向量只能满足 $x_1 = 0$，即 $\operatorname{span}\{\begin{bmatrix} 0 \\ 1 \end{bmatrix}\}$。
+
+两矩阵相加：
+$$
+A + B = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+$$
+其特征方程为 $\lambda^2 - 1 = 0 \implies \lambda(A + B) = \{1, -1\}$。
+然而 $\lambda_A + \lambda_B = 0 + 0 = 0 \neq \pm 1$。
+
+两矩阵相乘：
+$$
+AB = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} \begin{bmatrix} 0 & 0 \\ 1 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}
+$$
+$AB$ 的特征值为 $\{1, 0\}$，而 $\lambda_A \lambda_B = 0 \times 0 = 0 \neq 1$。
+因此命题在一般情况下完全不成立。只有当 $AB = BA$ 时，二者才能同时对角化并共享特征向量系，此时结论方成立。
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard
+  id="l21-ex4"
+  tier="L3"
+  title="矩阵转置、幂次、求逆与平移的谱分析定理"
+>
+
+设 $A \in \mathbb{R}^{n \times n}$ 具有特征值 $\lambda$ 及对应特征向量 $\mathbf{x}$。
+
+1. 证明 $A$ 与 $A^T$ 具有完全相同的特征多项式，因而特征值完全一致；并解释为什么它们的特征向量通常截然不同；
+2. 若 $A$ 可逆，求 $A^{-1}$ 的特征值与特征向量；
+3. 对任意正整数 $k$，求 $A^k$ 的特征值与特征向量；
+4. 对标量 $c \in \mathbb{R}$，求 $A + cI_n$ 的特征值与特征向量。
+
+<ProgressiveHint
+  hints={[
+    "利用行列式的基本性质：对任意方阵 $M$，恒有 $\\det(M^T) = \\det(M)$。将 $M$ 取为 $A - \\lambda I_n$。",
+    "对定义式 $A\\mathbf{x} = \\lambda\\mathbf{x}$ 两端左乘 $A^{-1}$，注意可逆矩阵必有 $\\lambda \\neq 0$。"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+转置操作不改变方阵的行列式，因此 $A - \lambda I$ 与其转置 $(A - \lambda I)^T = A^T - \lambda I$ 同时奇异，决定了它们的特征多项式完全重合。但 $A$ 的特征向量生活在列空间方向的几何中，而 $A^T$ 的特征向量是左特征向量 $\mathbf{y}^T A = \lambda \mathbf{y}^T$，分别生活在正交的不同子空间中。
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+**第一问**：
+设 $p_A(\lambda) = \det(A - \lambda I_n)$。由于对任意方阵转置行列式不变：
+$$
+p_{A^T}(\lambda) = \det(A^T - \lambda I_n) = \det((A - \lambda I_n)^T) = \det(A - \lambda I_n) = p_A(\lambda)
+$$
+两者的特征多项式恒等，故特征值集合及其代数重数完全相同。
+特征向量不同的原因：
+$A$ 的特征向量满足 $(A - \lambda I)\mathbf{x} = \mathbf{0} \implies \mathbf{x} \in \operatorname{Null}(A - \lambda I)$。
+而 $A^T$ 的特征向量满足 $(A^T - \lambda I)\mathbf{y} = \mathbf{0} \implies \mathbf{y} \in \operatorname{Null}((A - \lambda I)^T) = (\operatorname{Col}(A - \lambda I))^\perp$。
+由于矩阵的零空间与左零空间是互不相同的子空间，除非 $A$ 为对称矩阵（$A = A^T$），否则两者的特征向量通常完全不同。
+
+**第二问**：
+若 $A$ 可逆，则 $\det(A) = \prod \lambda_i \neq 0$，故所有特征值 $\lambda \neq 0$。
+在 $A\mathbf{x} = \lambda \mathbf{x}$ 两端左乘 $A^{-1}$：
+$$
+A^{-1}(A\mathbf{x}) = A^{-1}(\lambda \mathbf{x}) \implies \mathbf{x} = \lambda A^{-1}\mathbf{x} \implies A^{-1}\mathbf{x} = \frac{1}{\lambda}\mathbf{x}
+$$
+因此 $A^{-1}$ 的特征值为 $\frac{1}{\lambda}$，对应相同的特征向量 $\mathbf{x}$。
+
+**第三问**：
+对 $k$ 使用数学归纳法：
+当 $k=1$ 时成立。设 $A^k \mathbf{x} = \lambda^k \mathbf{x}$，则：
+$$
+A^{k+1}\mathbf{x} = A(A^k \mathbf{x}) = A(\lambda^k \mathbf{x}) = \lambda^k (A\mathbf{x}) = \lambda^k (\lambda \mathbf{x}) = \lambda^{k+1}\mathbf{x}
+$$
+因此 $A^k$ 的特征值为 $\lambda^k$，对应特征向量仍为 $\mathbf{x}$。
+
+**第四问**：
+直接由线性算子分配律：
+$$
+(A + cI_n)\mathbf{x} = A\mathbf{x} + cI_n \mathbf{x} = \lambda \mathbf{x} + c\mathbf{x} = (\lambda + c)\mathbf{x}
+$$
+因此 $A + cI_n$ 的特征值为 $\lambda + c$，特征向量仍为 $\mathbf{x}$。
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard
+  id="l21-ex5"
+  tier="L4"
+  title="MIT 18.06 经典挑战：全 1 矩阵平移与完全图邻接谱"
+>
+
+考虑 $n \times n$ 的全 1 矩阵 $J_n = \mathbf{1}\mathbf{1}^T$（其中 $\mathbf{1} = \begin{bmatrix} 1 & 1 & \dots & 1 \end{bmatrix}^T$）以及完全图的邻接矩阵 $K_n = J_n - I_n$（即主对角线全为 $0$，其余元素全为 $1$ 的矩阵）：
+
+1. 纯粹通过几何零空间维数和迹（无需计算繁琐行列式），求 $J_n$ 的全部特征值及其代数重数与几何重数；
+2. 利用平移定理立即写出 $K_n$ 的全部特征值与对应特征向量；
+3. 计算行列式 $\det(K_n)$，并代入验证 $n = 3$ 与 $n = 4$ 时的取值。
+
+<ProgressiveHint
+  hints={[
+    "$\\operatorname{rank}(J_n) = 1$。零空间维数为多少？所有元素之和为零的向量乘 $J_n$ 会得到什么？",
+    "利用 $K_n = J_n - I_n$，直接应用算子平移结论：$\\lambda(K_n) = \\lambda(J_n) - 1$。"
+  ]}
+/>
+
+<DualSolution>
+<SolutionIntuition>
+
+全 1 矩阵是最纯粹的秩 1 对称方阵。全 1 向量 $\mathbf{1}$ 会被它的每一行累加求和，结果被放大了 $n$ 倍；而所有正交于 $\mathbf{1}$ 的向量（即分量之和为零的向量，例如 $[1, -1, 0, \dots]^T$）经过每一行的内积后全部归零，这样的零方向足足有 $n-1$ 个维度！减去单位矩阵 $I_n$ 不过是将谱整体向下平移 $1$。
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+**第一问**：
+对 $J_n = \mathbf{1}\mathbf{1}^T$：
+代入全 1 向量测试：
+$$
+J_n \mathbf{1} = (\mathbf{1}\mathbf{1}^T)\mathbf{1} = \mathbf{1}(\mathbf{1}^T \mathbf{1}) = n\mathbf{1}
+$$
+因此 $\lambda_1 = n$，对应特征向量为 $\mathbf{1}$。
+
+因为 $\operatorname{rank}(J_n) = 1$，由秩-零度定理：
+$$
+\dim(\operatorname{Null}(J_n)) = n - \operatorname{rank}(J_n) = n - 1
+$$
+对于零空间 $\operatorname{Null}(J_n) = \{\mathbf{x} \in \mathbb{R}^n : \mathbf{1}^T \mathbf{x} = \sum x_i = 0\}$ 中的任意非零向量 $\mathbf{x}$，恒有：
+$$
+J_n \mathbf{x} = \mathbf{0} = 0 \cdot \mathbf{x}
+$$
+因此 $\lambda = 0$ 是特征值，几何重数与代数重数均为 $n - 1$。
+特征值谱为：
+$$
+\operatorname{spec}(J_n) = \{n, \underbrace{0, 0, \dots, 0}_{n-1 \text{ 个}}\}
+$$
+验证迹：$\operatorname{tr}(J_n) = \sum_{i=1}^n 1 = n = n + 0 + \dots + 0$。
+
+**第二问**：
+矩阵 $K_n = J_n - I_n$。
+根据平移定理，若 $J_n \mathbf{x} = \lambda \mathbf{x}$，则 $K_n \mathbf{x} = (J_n - I_n)\mathbf{x} = (\lambda - 1)\mathbf{x}$。
+因此 $K_n$ 的特征值为：
+$$
+\lambda_1(K_n) = n - 1
+$$
+$$
+\lambda_2(K_n) = \dots = \lambda_n(K_n) = 0 - 1 = -1 \quad (\text{代数重数 } n-1)
+$$
+对应特征向量完全不变：$\lambda = n-1$ 对应 $\mathbf{1}$，$\lambda = -1$ 对应超平面 $\sum x_i = 0$ 中的任意非零向量。
+
+**第三问**：
+矩阵行列式等于全部特征值之乘积：
+$$
+\det(K_n) = \prod_{i=1}^n \lambda_i(K_n) = (n - 1) \cdot (-1)^{n-1}
+$$
+具体代入检验：
+- 当 $n = 3$ 时：$K_3 = \begin{bmatrix} 0 & 1 & 1 \\ 1 & 0 & 1 \\ 1 & 1 & 0 \end{bmatrix}$，$\det(K_3) = (3 - 1)(-1)^2 = 2 \times 1 = 2$。
+- 当 $n = 4$ 时：$\det(K_4) = (4 - 1)(-1)^3 = 3 \times (-1) = -3$。
+
+如果不借助特征值性质，计算一般 $n$ 阶行列式需经过极其繁重的消元变形，而通过特征值谱几何，答案跃然纸上！
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>

@@ -396,7 +396,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Properties of Determinants',
     focusZh: '单位阵归一化、行交换反号与单行线性性三条核心公理如何唯一决定十条行列式性质（严禁误写 det(A+B)=detA+detB）。',
     focusEn: 'How the 3 defining axioms (det I = 1, sign reversal, row multilinearity) uniquely generate all 10 determinant laws.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -410,7 +410,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Determinant Formulas and Cofactors',
     focusZh: 'n! 置换奇偶求和公式、代数余子式（Cofactor）降阶展开与三对角矩阵递推。',
     focusEn: 'The Big Formula over n! permutations, cofactor Laplace expansion, and tridiagonal recurrence relations.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -424,7 +424,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: "Cramer's Rule, Inverse Matrix, and Volume",
     focusZh: 'A⁻¹ = Cᵀ / det(A) 的代数结构，以及行列式绝对值等于 n 维平行多面体体积的 Gram-Schmidt 几何证明。',
     focusEn: 'Adjugate inverse formula, Cramer’s rule geometry, and proving |det A| equals parallelepiped volume via QR.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-08',
@@ -448,7 +448,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Eigenvalues and Eigenvectors',
     focusZh: '线性变换下的不变方向 Ax = λx、投影与反射矩阵的无计算特征谱直觉，以及迹 tr(A)=∑λ_i 与 det(A)=∏λ_i。',
     focusEn: 'Invariant lines Ax = λx, reading eigenvalues of projections/reflections by inspection, trace, and determinant invariants.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -462,7 +462,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Diagonalization and Powers of A',
     focusZh: '可对角化的充要条件（n 个线性无关特征向量，而非“特征值互异”！）、代数重数 vs 几何重数、离散动力系统 u_{k+1}=Au_k。',
     focusEn: 'Necessary and sufficient condition for A = SΛS⁻¹, algebraic vs. geometric multiplicity, and difference equations u_k = Aᵏu_0.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-09',
@@ -486,7 +486,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Differential Equations and exp(At)',
     focusZh: '用特征基解耦 du/dt = Au、矩阵指数幂级数 e^{At} = Se^{Λt}S⁻¹，以及渐近稳定判据 Re(λ_i) < 0（注意复特征值实部！）。',
     focusEn: 'Decoupling du/dt = Au via eigenvectors, matrix exponential series e^{At} = Se^{Λt}S⁻¹, and stability condition Re(λ_i) < 0.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-10',
@@ -510,7 +510,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Markov Matrices; Fourier Series',
     focusZh: '利用左零空间严密证明列随机矩阵必有 λ_1=1、Perron-Frobenius 稳态收敛，以及函数空间 L² 上的无穷维正交投影。',
     focusEn: 'Proving λ=1 via Null(Aᵀ - I), steady-state convergence as k→∞, and Fourier series as orthogonal projection in function space.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-11',
@@ -534,7 +534,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Quiz 2 Review (Modules II & III Synthesis)',
     focusZh: '正交投影、QR、行列式性质、特征值与常微分方程/马尔可夫演化综合考题精讲。',
     focusEn: 'Integrated exam synthesis covering projections, least squares, QR, determinants, eigenvalues, and ODE/Markov dynamics.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
