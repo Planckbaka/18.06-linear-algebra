@@ -53,13 +53,13 @@ This project bridges both worlds with four strict design pillars:
 | **12** | L12 | P12 | Graphs, Networks, Incidence Matrices | ✅ Live | 🗓️ Planned | **[AI-05]** Graph Neural Networks (GNNs) & Incidence/Laplacian Operators |
 | **13** | L13 | P13 | Quiz 1 Review (Module I Synthesis) | ✅ Live | 🗓️ Planned | — |
 
-### Module II: Orthogonality, Projections & Least Squares
+### Module II: Orthogonality, Projections & Least Squares (4 / 4 `zh` Complete ✅)
 | Session | OCW # | Video P# | Topic | `zh` Status | `en` Status | Isolated Frontier AI Reading |
 | :---: | :---: | :---: | :--- | :---: | :---: | :--- |
-| **14** | L14 | P14 | Orthogonal Vectors and Subspaces ($\operatorname{Row}(A) \perp \operatorname{Null}(A)$) | 🗓️ Planned | 🗓️ Planned | — |
-| **15** | L15 | P15 | Projections onto Subspaces ($P = A(A^TA)^{-1}A^T$) | 🗓️ Planned | 🗓️ Planned | **[AI-06]** Representation Engineering & Concept Erasure via $I - P$ |
-| **16** | L16 | P16 | Projection Matrices and Least Squares ($A^TA\hat{\mathbf{x}} = A^T\mathbf{b}$) | 🗓️ Planned | 🗓️ Planned | — |
-| **17** | L17 | P17 | Orthogonal Matrices and Gram-Schmidt ($A = QR$) | 🗓️ Planned | 🗓️ Planned | **[AI-07]** RoPE (Rotary Position Embedding) & Norm-Preserving Orthogonal Init |
+| **14** | L14 | P14 | Orthogonal Vectors and Subspaces ($\operatorname{Row}(A) \perp \operatorname{Null}(A)$) | ✅ Live | 🗓️ Planned | — |
+| **15** | L15 | P15 | Projections onto Subspaces ($P = A(A^TA)^{-1}A^T$) | ✅ Live | 🗓️ Planned | **[AI-06]** Representation Engineering & Concept Erasure via $I - P$ |
+| **16** | L16 | P16 | Projection Matrices and Least Squares ($A^TA\hat{\mathbf{x}} = A^T\mathbf{b}$) | ✅ Live | 🗓️ Planned | — |
+| **17** | L17 | P17 | Orthogonal Matrices and Gram-Schmidt ($A = QR$) | ✅ Live | 🗓️ Planned | **[AI-07]** RoPE (Rotary Position Embedding) & Norm-Preserving Orthogonal Init |
 
 ### Module III: Determinants, Eigenvalues & Dynamical Systems
 | Session | OCW # | Video P# | Topic | `zh` Status | `en` Status | Isolated Frontier AI Reading |

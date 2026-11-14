@@ -320,7 +320,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Orthogonal Vectors and Subspaces',
     focusZh: '线性代数基本定理第二部分：正交补 Row(A) ⊥ Null(A) 与 Col(A) ⊥ Null(Aᵀ)（绝非“仅交于零向量”那么简单）。',
     focusEn: 'Fundamental Theorem Part II: Orthogonal complements Row(A) = Null(A)⊥ and Col(A) = Null(Aᵀ)⊥.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -334,7 +334,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Projections onto Subspaces',
     focusZh: '从直线投影矩阵 aaᵀ/(aᵀa) 到子空间投影 P = A(AᵀA)⁻¹Aᵀ，幂等性 P²=P、对称性 Pᵀ=P 与互补投影 I-P。',
     focusEn: 'Line projection vs. subspace projection P = A(AᵀA)⁻¹Aᵀ, idempotence P²=P, symmetry, and complementary projection I-P.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-06',
@@ -358,7 +358,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Projection Matrices and Least Squares',
     focusZh: '正规方程 AᵀA x̂ = Aᵀb 的子空间分解（b = p + e），以及 Null(AᵀA) = Null(A) 的核心严密证明。',
     focusEn: 'Splitting b = p + e across Col(A) ⊕ Null(Aᵀ), normal equations, and proving Null(AᵀA) = Null(A).',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -372,7 +372,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Orthogonal Matrices and Gram-Schmidt',
     focusZh: '标准正交列矩阵 QᵀQ = I 的保内积/保范数性质、无需求逆的优雅投影 QQᵀ，以及 A = QR 分解。',
     focusEn: 'Orthonormal columns QᵀQ = I, norm preservation ‖Qx‖ = ‖x‖, effortless projection QQᵀ, and Gram-Schmidt A = QR.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-07',

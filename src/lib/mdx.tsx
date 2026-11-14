@@ -40,6 +40,22 @@ import { MatrixSubspacesAndRank1BlocksDiagram } from '@/components/diagrams/lect
 import { DirectedGraphIncidenceDiagram } from '@/components/diagrams/lecture-12-diagrams';
 import { Module1SynthesisMapDiagram } from '@/components/diagrams/lecture-13-diagrams';
 import {
+  OrthogonalFourSubspacesCrossDiagram,
+  SubspaceOrthogonalityContrastDiagram,
+} from '@/components/diagrams/lecture-14-diagrams';
+import {
+  LineAndSubspaceProjectionDiagram,
+  ProjectionComplementarySplitDiagram,
+} from '@/components/diagrams/lecture-15-diagrams';
+import {
+  LeastSquaresDualGeometryDiagram,
+  OrthogonalDecompositionPythagorasDiagram,
+} from '@/components/diagrams/lecture-16-diagrams';
+import {
+  GramSchmidtAndQRDiagram,
+  OrthonormalProjectionDiagram,
+} from '@/components/diagrams/lecture-17-diagrams';
+import {
   ProblemSet,
   ExerciseCard,
   TrueFalseInteractive,
@@ -131,6 +147,14 @@ const MDX_COMPONENTS = {
   MatrixSubspacesAndRank1BlocksDiagram,
   DirectedGraphIncidenceDiagram,
   Module1SynthesisMapDiagram,
+  OrthogonalFourSubspacesCrossDiagram,
+  SubspaceOrthogonalityContrastDiagram,
+  LineAndSubspaceProjectionDiagram,
+  ProjectionComplementarySplitDiagram,
+  LeastSquaresDualGeometryDiagram,
+  OrthogonalDecompositionPythagorasDiagram,
+  GramSchmidtAndQRDiagram,
+  OrthonormalProjectionDiagram,
   ProblemSet,
   ExerciseCard,
   TrueFalseInteractive,
