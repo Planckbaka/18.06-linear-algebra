@@ -1,0 +1,829 @@
+---
+title: "第 26 讲：实对称矩阵与谱定理"
+ocwId: "L25"
+videoEpisode: "P26"
+textbookRef: "§6.4"
+---
+
+欢迎来到模块 IV 的开篇一讲。在前三个模块中，我们分别完成了线性方程组与四个基本子空间（Module I）、正交投影与最小二乘（Module II）、行列式与一般特征值对角化（Module III）的攀登。然而，当我们将一般方阵 $A \in \mathbb{R}^{n \times n}$ 放入 $A = S\Lambda S^{-1}$ 的对角化机器中时，总要战战兢兢地面对三大潜在危机：
+
+1. **复特征值危机**：即使 $A$ 全是实数（例如第 22 讲的 $90^\circ$ 旋转矩阵），特征值也可能跑到复平面去（$\lambda = \pm i$），在实空间 $\mathbb{R}^n$ 中根本找不到特征向量；
+2. **亏损不可对角化危机**：即使特征值全是实数，若存在重根且几何重数小于代数重数（例如剪切矩阵 $\begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}$），特征向量就会“亏损”不足 $n$ 个，导致 $S$ 不可逆；
+3. **倾斜基底危机**：即便能够对角化，一般矩阵的特征向量列矩阵 $S$ 也往往不是正交的，计算 $S^{-1}$ 既耗时又可能带来严重的数值病态放大。
+
+本讲的主角——**实对称矩阵（Real Symmetric Matrix）** $A = A^T \in \mathbb{R}^{n \times n}$——一举扫除了上述全部隐患！Gilbert Strang 教授称其为**“线性代数中最重要的矩阵（线性代数之王）”**。只要 $A$ 是实对称矩阵，它不仅**绝不会出现复特征值**、**绝不会亏损（必可对角化）**，而且特征向量天然可以选成**标准正交基（Orthonormal Basis）** $Q$，令对角化升华至最完美的形态：
+
+$$
+A = Q \Lambda Q^T = \sum_{i=1}^n \lambda_i \mathbf{q}_i \mathbf{q}_i^T
+$$
+
+更进一步，我们将把高斯消元的产物 $A = L D L^T$ 与谱分解 $A = Q \Lambda Q^T$ 放在一起对比，揭示支配主元符号与特征值符号守恒的**西尔维斯特惯性定理（Sylvester's Law of Inertia）**，为第 28 讲的正定矩阵（Positive Definite Matrix）铺平道路。
+
+---
+
+## 一、几何直觉与 $2 \times 2$ 数值解剖：对称矩阵如何变换空间？
+
+在证明任何抽象定理之前，让我们先亲手解剖一个最经典的 $2 \times 2$ 实对称矩阵：
+
+$$
+A = \begin{bmatrix} 3 & 1 \\ 1 & 3 \end{bmatrix} \in \mathbb{R}^{2 \times 2}
+$$
+
+首先求解它的特征多项式（注意到 $\operatorname{tr}(A) = 6$，$\det(A) = 8$）：
+
+$$
+\det(A - \lambda I_2) = \det \begin{bmatrix} 3 - \lambda & 1 \\ 1 & 3 - \lambda \end{bmatrix} = (3 - \lambda)^2 - 1 = \lambda^2 - 6\lambda + 8 = (\lambda - 4)(\lambda - 2) = 0
+$$
+
+特征值为两个实数：$\lambda_1 = 4$ 与 $\lambda_2 = 2$。接下来求解各自零空间中的特征向量并单位化：
+
+- **对应 $\lambda_1 = 4$**：解 $(A - 4I_2)\mathbf{x}_1 = \begin{bmatrix} -1 & 1 \\ 1 & -1 \end{bmatrix}\mathbf{x}_1 = \mathbf{0}$，得方向 $\begin{bmatrix} 1 \\ 1 \end{bmatrix}$，单位化为：
+  $$
+  \mathbf{q}_1 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+  $$
+- **对应 $\lambda_2 = 2$**：解 $(A - 2I_2)\mathbf{x}_2 = \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix}\mathbf{x}_2 = \mathbf{0}$，得方向 $\begin{bmatrix} -1 \\ 1 \end{bmatrix}$，单位化为：
+  $$
+  \mathbf{q}_2 = \frac{1}{\sqrt{2}} \begin{bmatrix} -1 \\ 1 \end{bmatrix}
+  $$
+
+请立刻计算这两个特征向量的点积：
+
+$$
+\mathbf{q}_1^T \mathbf{q}_2 = \frac{1}{2}\big(1 \cdot (-1) + 1 \cdot 1\big) = 0
+$$
+
+它们**天然垂直**！将它们并排组装为正交矩阵（Orthogonal Matrix）$Q = [\mathbf{q}_1 \;\; \mathbf{q}_2]$，由于 $Q^T Q = I_2$，故 $Q^{-1} = Q^T$，从而 $A = S\Lambda S^{-1}$ 自动蜕变为优雅无比的对称形式：
+
+$$
+A = Q \Lambda Q^T = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & -1 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} 4 & 0 \\ 0 & 2 \end{bmatrix} \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \\ -1 & 1 \end{bmatrix}
+$$
+
+### 秩 1 正交投影的几何动作（Rank-One Projection Picture）
+
+用第 03 讲的**“列乘行（外积之和）”**视角展开乘积 $(Q\Lambda) Q^T$，我们将得到本讲最震撼的几何图像：
+
+$$
+A = \lambda_1 \mathbf{q}_1 \mathbf{q}_1^T + \lambda_2 \mathbf{q}_2 \mathbf{q}_2^T = 4 P_1 + 2 P_2
+$$
+
+其中两个秩 1 矩阵（Rank-One Matrix）$P_1, P_2$ 分别是向特征直线 $\operatorname{span}\{\mathbf{q}_1\}$ 与 $\operatorname{span}\{\mathbf{q}_2\}$ 的**正交投影矩阵（Projection Matrix）**：
+
+$$
+P_1 = \mathbf{q}_1 \mathbf{q}_1^T = \begin{bmatrix} 1/2 & 1/2 \\ 1/2 & 1/2 \end{bmatrix}, \qquad P_2 = \mathbf{q}_2 \mathbf{q}_2^T = \begin{bmatrix} 1/2 & -1/2 \\ -1/2 & 1/2 \end{bmatrix}
+$$
+
+验证一下它们的投影代数性质：$P_1^2 = P_1 = P_1^T$，$P_2^2 = P_2 = P_2^T$，$P_1 P_2 = O$，且 $P_1 + P_2 = I_2$（完备正交分解）。现在任取一个输入向量，例如 $\mathbf{x} = \begin{bmatrix} 1 \\ 3 \end{bmatrix}$，看看 $A$ 究竟对它做了什么：
+
+1. **正交投影拆分（Step 1）**：用 $P_1, P_2$ 把 $\mathbf{x}$ 分解到相互垂直的两条特征轴上：
+   $$
+   P_1 \mathbf{x} = \begin{bmatrix} 1/2 & 1/2 \\ 1/2 & 1/2 \end{bmatrix} \begin{bmatrix} 1 \\ 3 \end{bmatrix} = \begin{bmatrix} 2 \\ 2 \end{bmatrix}, \qquad P_2 \mathbf{x} = \begin{bmatrix} 1/2 & -1/2 \\ -1/2 & 1/2 \end{bmatrix} \begin{bmatrix} 1 \\ 3 \end{bmatrix} = \begin{bmatrix} -1 \\ 1 \end{bmatrix}
+   $$
+   检验：$P_1 \mathbf{x} + P_2 \mathbf{x} = \begin{bmatrix} 2 \\ 2 \end{bmatrix} + \begin{bmatrix} -1 \\ 1 \end{bmatrix} = \begin{bmatrix} 1 \\ 3 \end{bmatrix} = \mathbf{x}$，且 $(P_1 \mathbf{x})^T (P_2 \mathbf{x}) = -2 + 2 = 0$。
+2. **沿特征轴纯实数伸缩与重组（Step 2）**：沿着两根正交轴分别拉伸 $\lambda_1 = 4$ 倍与 $\lambda_2 = 2$ 倍后再相加：
+   $$
+   A\mathbf{x} = 4 P_1 \mathbf{x} + 2 P_2 \mathbf{x} = 4 \begin{bmatrix} 2 \\ 2 \end{bmatrix} + 2 \begin{bmatrix} -1 \\ 1 \end{bmatrix} = \begin{bmatrix} 8 \\ 8 \end{bmatrix} + \begin{bmatrix} -2 \\ 2 \end{bmatrix} = \begin{bmatrix} 6 \\ 10 \end{bmatrix}
+   $$
+
+直接做矩阵乘法 $\begin{bmatrix} 3 & 1 \\ 1 & 3 \end{bmatrix}\begin{bmatrix} 1 \\ 3 \end{bmatrix} = \begin{bmatrix} 6 \\ 10 \end{bmatrix}$，分毫不差！这就是实对称矩阵的全部几何秘密：**在自身正交特征基的坐标系中，实对称矩阵没有任何旋转、没有任何剪切，它纯粹只是沿着一组两两垂直的主轴各自独立地伸缩！**
+
+<SpectralRankOneProjectionsDiagram />
+
+---
+
+## 二、谱定理的严格陈述与三大基石证明
+
+现在我们将刚才的 $2 \times 2$ 奇迹提升为适用于任意维数 $n$ 的严格数学定理。在此之前，先明确基本定义与向复数域的自然延伸。
+
+<DefinitionCard title="实对称矩阵、正交秩 1 投影与 Hermitian 对偶" termEn="Real Symmetric Matrix, Rank-1 Projection & Hermitian Analogy">
+
+1. **实对称矩阵（Real Symmetric Matrix）**：设方阵 $A \in \mathbb{R}^{n \times n}$。若 $A$ 满足转置等于自身，即：
+   $$
+   A = A^T \quad (\text{即对所有 } 1 \le i, j \le n \text{ 有 } a_{ij} = a_{ji})
+   $$
+   则称 $A$ 为**实对称矩阵**。
+2. **正交秩 1 投影矩阵（Rank-One Orthogonal Projection Matrix）**：对于任意单位向量 $\mathbf{q} \in \mathbb{R}^n$（$\|\mathbf{q}\|_2 = \sqrt{\mathbf{q}^T\mathbf{q}} = 1$），外积矩阵 $P = \mathbf{q}\mathbf{q}^T \in \mathbb{R}^{n \times n}$ 将任意向量正交投影到直线 $\operatorname{span}\{\mathbf{q}\}$ 上，且满足对称性（$P^T = P$）、幂等性（$P^2 = \mathbf{q}(\mathbf{q}^T\mathbf{q})\mathbf{q}^T = P$）与 $\operatorname{rank}(P) = 1$。
+3. **复共轭转置与埃尔米特矩阵（Hermitian Matrix）**：在复数域 $\mathbb{C}^{n \times n}$ 中，记矩阵 $A$ 的共轭转置为 $A^H = \overline{A}^T$。若复方阵 $A \in \mathbb{C}^{n \times n}$ 满足 $A^H = A$，则称 $A$ 为**埃尔米特矩阵**。实对称矩阵正是埃尔米特矩阵限制在实数域 $\mathbb{R}^{n \times n}$ 上的特例（当 $A$ 为实矩阵时，$\overline{A} = A$，故 $A^H = A^T = A$）。
+
+</DefinitionCard>
+
+有了上述定义，我们可以完整陈述线性代数中最具支柱意义的定理之一——**实对称矩阵谱定理（The Real Spectral Theorem）**。
+
+<TheoremCard title="实对称矩阵的谱定理" termEn="The Real Spectral Theorem">
+
+设 $A \in \mathbb{R}^{n \times n}$ 为任意**实对称矩阵**（$A = A^T$）。则下列结论同时成立：
+
+1. **特征值全为实数（Real Eigenvalues）**：即使在复数域 $\mathbb{C}$ 中求解特征方程 $\det(A - \lambda I_n) = 0$，其全部 $n$ 个根（计入重数）均严格属于实数域 $\mathbb{R}$；并且对每个特征值 $\lambda_i$，均可在实空间 $\mathbb{R}^n$ 中取到非零实特征向量。
+2. **不同特征值的特征空间两两正交（Orthogonality of Distinct Eigenspaces）**：若 $A\mathbf{x}_1 = \lambda_1\mathbf{x}_1$ 且 $A\mathbf{x}_2 = \lambda_2\mathbf{x}_2$，其中 $\lambda_1 \ne \lambda_2$，则必有：
+   $$
+   \mathbf{x}_1^T \mathbf{x}_2 = 0
+   $$
+3. **无亏损与正交对角化（Complete Orthonormal Eigenbasis）**：对任意特征值 $\lambda$，其几何重数严格等于代数重数（$\operatorname{GM}(\lambda) = \operatorname{AM}(\lambda)$）。从而存在实正交矩阵 $Q = [\mathbf{q}_1 \;\; \mathbf{q}_2 \;\; \cdots \;\; \mathbf{q}_n] \in \mathbb{R}^{n \times n}$（满足 $Q^T Q = Q Q^T = I_n$）以及实对角矩阵 $\Lambda = \operatorname{diag}(\lambda_1, \lambda_2, \dots, \lambda_n) \in \mathbb{R}^{n \times n}$，使得：
+   $$
+   A = Q \Lambda Q^T
+   $$
+4. **秩 1 正交投影的谱展开（Spectral Expansion & Resolution of the Identity）**：等价地，$A$ 可分解为 $n$ 个两两正交的秩 1 投影矩阵 $P_i = \mathbf{q}_i \mathbf{q}_i^T$ 的实数加权和：
+   $$
+   A = \sum_{i=1}^n \lambda_i \mathbf{q}_i \mathbf{q}_i^T = \sum_{i=1}^n \lambda_i P_i
+   $$
+   其中各投影矩阵满足 $P_i^2 = P_i = P_i^T$、$P_i P_j = O$（当 $i \ne j$）以及**恒等分解（Resolution of the Identity）** $\sum_{i=1}^n P_i = Q Q^T = I_n$。
+
+</TheoremCard>
+
+在非正式课堂笔记中，人们往往略过证明或用不严谨的代数步骤搪塞过去（尤其是证明特征值为实数时经常忘掉复共轭！）。下面我们把谱定理的三块核心拼图全部给出**无懈可击的严格证明**。请逐个展开研读。
+
+<ProofCollapse title="证明 1：为什么实对称矩阵的特征值必为实数？（完整复共轭证明）">
+
+**待证命题**：设 $A \in \mathbb{R}^{n \times n}$ 且 $A^T = A$。若 $\lambda \in \mathbb{C}$ 与 $\mathbf{x} \in \mathbb{C}^n \setminus \{\mathbf{0}\}$ 满足 $A\mathbf{x} = \lambda\mathbf{x}$，则必有 $\lambda \in \mathbb{R}$。
+
+**为何先要允许 $\lambda, \mathbf{x}$ 取复数？**
+在证明之前，我们**不能预设** $\lambda$ 和 $\mathbf{x}$ 是实的——那正是待证结论！由代数基本定理，特征多项式 $\det(A - \lambda I_n) = 0$ 在复数域 $\mathbb{C}$ 中必然至少有一个复根 $\lambda \in \mathbb{C}$，对应的齐次方程 $(A - \lambda I_n)\mathbf{x} = \mathbf{0}$ 在 $\mathbb{C}^n$ 中必有非零复向量解 $\mathbf{x} \in \mathbb{C}^n \setminus \{\mathbf{0}\}$。我们要从 $A\mathbf{x} = \lambda\mathbf{x}$ 出发，迫使 $\lambda = \bar{\lambda}$。
+
+**第 1 步（取复共轭）**：对特征方程 $A\mathbf{x} = \lambda\mathbf{x}$ 两边同时取复共轭：
+$$
+\overline{A\mathbf{x}} = \overline{\lambda\mathbf{x}} \implies \bar{A}\bar{\mathbf{x}} = \bar{\lambda}\bar{\mathbf{x}}
+$$
+由于 $A \in \mathbb{R}^{n \times n}$ 的所有元素都是**实数**，实数的共轭等于自身，即 $\bar{A} = A$！因此上式简化为：
+$$
+A\bar{\mathbf{x}} = \bar{\lambda}\bar{\mathbf{x}}
+$$
+
+**第 2 步（取转置并利用实对称性 $A^T = A$）**：对 $A\bar{\mathbf{x}} = \bar{\lambda}\bar{\mathbf{x}}$ 两边同时取转置：
+$$
+(A\bar{\mathbf{x}})^T = (\bar{\lambda}\bar{\mathbf{x}})^T \implies \bar{\mathbf{x}}^T A^T = \bar{\lambda}\bar{\mathbf{x}}^T
+$$
+利用对称条件 $A^T = A$，即得：
+$$
+\bar{\mathbf{x}}^T A = \bar{\lambda}\bar{\mathbf{x}}^T
+$$
+在等式两边同时右乘向量 $\mathbf{x}$：
+$$
+\bar{\mathbf{x}}^T A \mathbf{x} = \bar{\lambda} (\bar{\mathbf{x}}^T \mathbf{x}) \tag{1}
+$$
+
+**第 3 步（对原方程左乘 $\bar{\mathbf{x}}^T$）**：回到原始特征方程 $A\mathbf{x} = \lambda\mathbf{x}$，在两边同时左乘 $\bar{\mathbf{x}}^T$：
+$$
+\bar{\mathbf{x}}^T A \mathbf{x} = \lambda (\bar{\mathbf{x}}^T \mathbf{x}) \tag{2}
+$$
+
+**第 4 步（两式相减并检验范数正定性）**：由式 $(2)$ 减去式 $(1)$，左边 $\bar{\mathbf{x}}^T A \mathbf{x}$ 完全抵消：
+$$
+(\lambda - \bar{\lambda})(\bar{\mathbf{x}}^T \mathbf{x}) = 0
+$$
+现在关键一步来了：**$\bar{\mathbf{x}}^T \mathbf{x}$ 绝对不可能是零！** 展开计算：
+$$
+\bar{\mathbf{x}}^T \mathbf{x} = \sum_{k=1}^n \bar{x}_k x_k = \sum_{k=1}^n |x_k|^2
+$$
+因为 $\mathbf{x} \in \mathbb{C}^n$ 是非零特征向量（$\mathbf{x} \ne \mathbf{0}$），至少存在一个分量满足 $|x_k| \gt 0$，并且每一项模长平方 $|x_k|^2 \ge 0$ 都是非负实数，所以它们的和满足**严格大于零**：
+$$
+\bar{\mathbf{x}}^T \mathbf{x} = \|\mathbf{x}\|_2^2 \gt 0
+$$
+两边除以正实数 $\bar{\mathbf{x}}^T \mathbf{x} \gt 0$，立即迫使：
+$$
+\lambda - \bar{\lambda} = 0 \implies \lambda = \bar{\lambda} \implies \lambda \in \mathbb{R}
+$$
+
+**直接推论（实特征向量）**：既然特征值 $\lambda \in \mathbb{R}$，那么矩阵 $A - \lambda I_n \in \mathbb{R}^{n \times n}$ 就是纯实奇异矩阵。在实数域 $\mathbb{R}$ 上对 $(A - \lambda I_n)\mathbf{v} = \mathbf{0}$ 做高斯消元即可得到非零**实**特征向量 $\mathbf{v} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$！
+
+**警示：为什么不能省去复共轭直接写 $\mathbf{x}^T A \mathbf{x}$？**
+1. 若不取共轭，直接计算 $\mathbf{x}^T A \mathbf{x} = \mathbf{x}^T A^T \mathbf{x} = (A\mathbf{x})^T \mathbf{x} = \lambda \mathbf{x}^T \mathbf{x}$，与 $\mathbf{x}^T(A\mathbf{x}) = \lambda \mathbf{x}^T \mathbf{x}$ 相减只会得到毫无意义的恒等式 $0 = 0$，根本无法产生 $\bar{\lambda}$；
+2. 更危险的是，对于复向量 $\mathbf{x} \in \mathbb{C}^n \setminus \{\mathbf{0}\}$，不带共轭的 $\mathbf{x}^T \mathbf{x}$ **可以为零**！例如取 $\mathbf{x} = \begin{bmatrix} 1 \\ i \end{bmatrix} \ne \mathbf{0}$，就有 $\mathbf{x}^T \mathbf{x} = 1^2 + i^2 = 1 - 1 = 0$；而带共轭的埃尔米特内积 $\bar{\mathbf{x}}^T \mathbf{x} = |1|^2 + |i|^2 = 2 \gt 0$ 严格保正！
+
+**向复数域的自然推广**：若将“实数且 $A^T = A$”替换为“复矩阵满足 $A^H = \overline{A}^T = A$”（即埃尔米特矩阵），上述证明几乎一字不改：$\mathbf{x}^H A \mathbf{x} = \mathbf{x}^H (A\mathbf{x}) = \lambda \mathbf{x}^H\mathbf{x}$，另一方面 $\mathbf{x}^H A \mathbf{x} = \mathbf{x}^H A^H \mathbf{x} = (A\mathbf{x})^H \mathbf{x} = \bar{\lambda}\mathbf{x}^H\mathbf{x}$，相减依然得 $(\lambda - \bar{\lambda})\mathbf{x}^H\mathbf{x} = 0 \implies \lambda \in \mathbb{R}$！（详情见第 27 讲）
+
+</ProofCollapse>
+
+<ProofCollapse title="证明 2：为什么不同特征值对应的特征向量必两两正交？">
+
+**待证命题**：设 $A \in \mathbb{R}^{n \times n}$ 且 $A^T = A$。若 $A\mathbf{x}_1 = \lambda_1\mathbf{x}_1$，$A\mathbf{x}_2 = \lambda_2\mathbf{x}_2$ 且 $\lambda_1 \ne \lambda_2$，则 $\mathbf{x}_1^T \mathbf{x}_2 = 0$。
+
+**证明**：利用对称性 $A = A^T$，从两个方向计算标量三明治积 $\mathbf{x}_1^T A \mathbf{x}_2$：
+
+1. 让 $A$ **向右**作用在 $\mathbf{x}_2$ 上：
+   $$
+   \mathbf{x}_1^T (A\mathbf{x}_2) = \mathbf{x}_1^T (\lambda_2 \mathbf{x}_2) = \lambda_2 (\mathbf{x}_1^T \mathbf{x}_2)
+   $$
+2. 让 $A$ **向左**作用在 $\mathbf{x}_1^T$ 上（借助 $(A\mathbf{x}_1)^T = \mathbf{x}_1^T A^T = \mathbf{x}_1^T A$）：
+   $$
+   \mathbf{x}_1^T A \mathbf{x}_2 = \mathbf{x}_1^T A^T \mathbf{x}_2 = (A\mathbf{x}_1)^T \mathbf{x}_2 = (\lambda_1 \mathbf{x}_1)^T \mathbf{x}_2 = \lambda_1 (\mathbf{x}_1^T \mathbf{x}_2)
+   $$
+
+由于两种结合方式算的是同一个数 $\mathbf{x}_1^T A \mathbf{x}_2$，将两式相减：
+$$
+(\lambda_1 - \lambda_2)(\mathbf{x}_1^T \mathbf{x}_2) = 0
+$$
+
+由题设两个特征值互不相同，$\lambda_1 - \lambda_2 \ne 0$，故两端除以非零数 $\lambda_1 - \lambda_2$ 必然得到：
+$$
+\mathbf{x}_1^T \mathbf{x}_2 = 0
+$$
+
+即对应不同特征值的两个特征向量严格正交！
+
+</ProofCollapse>
+
+<ProofCollapse title="证明 3：即使存在重特征值，为何实对称矩阵也绝不会亏损？（Schur 分解证明）">
+
+前面两步只保证了**互异**特征值对应的特征向量彼此正交。如果特征多项式出现重根（例如 $\lambda_1 = \lambda_2 = 5$），怎么确保几何重数不会小于代数重数（即不会像 $\begin{bmatrix} 5 & 1 \\ 0 & 5 \end{bmatrix}$ 那样缺特征向量），从而永远能凑齐 $n$ 个标准正交特征向量呢？
+
+这里给出利用**舒尔分解（Schur Decomposition）**的极简优雅证明：
+
+**第 1 步（一般矩阵的复舒尔分解与实对称阵的实舒尔形式）**：
+任取方阵 $A \in \mathbb{R}^{n \times n}$，Schur 三角化定理保证存在酉矩阵 $U \in \mathbb{C}^{n \times n}$（$U^H U = I_n$）和上三角矩阵 $T \in \mathbb{C}^{n \times n}$，使得 $A = U T U^H$，且 $T$ 的主对角线元素正是 $A$ 的全部特征值（计入重数）。
+
+更进一步，因为**证明 1** 已经保证了实对称矩阵 $A$ 的全部特征值都是**实数**，我们可以在实空间 $\mathbb{R}^n$ 内直接做数学归纳法完成实 Schur 构造：
+- 当 $n = 1$ 时，$A = [\lambda_1]$ 自身就是 $1 \times 1$ 实对角矩阵。
+- 假设结论对 $(n-1) \times (n-1)$ 实对称矩阵成立。对 $n \times n$ 实对称矩阵 $A$，由证明 1 取一个实特征值 $\lambda_1 \in \mathbb{R}$ 及其单位实特征向量 $\mathbf{q}_1 \in \mathbb{R}^n$（$\|\mathbf{q}_1\|_2 = 1$）。
+- 将 $\mathbf{q}_1$ 扩充为 $\mathbb{R}^n$ 的一组标准正交基，排成实正交矩阵 $Q_1 = [\mathbf{q}_1 \;\; V_1] \in \mathbb{R}^{n \times n}$（其中 $V_1 \in \mathbb{R}^{n \times (n-1)}$ 满足 $V_1^T \mathbf{q}_1 = \mathbf{0}$ 且 $V_1^T V_1 = I_{n-1}$）。计算正交相似变换 $Q_1^T A Q_1$：
+  $$
+  Q_1^T A Q_1 = \begin{bmatrix} \mathbf{q}_1^T \\ V_1^T \end{bmatrix} \begin{bmatrix} A\mathbf{q}_1 & A V_1 \end{bmatrix} = \begin{bmatrix} \mathbf{q}_1^T (\lambda_1 \mathbf{q}_1) & \mathbf{q}_1^T A V_1 \\ V_1^T (\lambda_1 \mathbf{q}_1) & V_1^T A V_1 \end{bmatrix} = \begin{bmatrix} \lambda_1 & \mathbf{w}^T \\ \mathbf{0} & B \end{bmatrix}
+  $$
+  其中利用了 $\mathbf{q}_1^T \mathbf{q}_1 = 1$ 与 $V_1^T \mathbf{q}_1 = \mathbf{0}$，并记 $\mathbf{w}^T = \mathbf{q}_1^T A V_1$，$B = V_1^T A V_1 \in \mathbb{R}^{(n-1)\times(n-1)}$。
+
+**第 2 步（上三角遇上对称性，必然被迫对角化！）**：
+现在用 $A^T = A$ 这把“利剑”斩断所有非对角元：
+一方面，注意 $Q_1^T A Q_1$ 的转置为：
+$$
+(Q_1^T A Q_1)^T = Q_1^T A^T (Q_1^T)^T = Q_1^T A Q_1
+$$
+它仍然是一个实对称矩阵！对比分块形式：
+$$
+\begin{bmatrix} \lambda_1 & \mathbf{w}^T \\ \mathbf{0} & B \end{bmatrix} = \begin{bmatrix} \lambda_1 & \mathbf{0}^T \\ \mathbf{w} & B^T \end{bmatrix}
+$$
+逐块比较立即得出两条黄金结论：
+1. **右上块强行归零**：$\mathbf{w} = \mathbf{0}$！
+2. **右下子块保持实对称**：$B^T = B \in \mathbb{R}^{(n-1)\times(n-1)}$！
+
+**等价的整体 Schur 视角**：若直接用整体 Schur 分解 $A = Q T Q^T$（$T$ 为上三角阵），则对称性 $A = A^T$ 推出 $Q T Q^T = Q T^T Q^T \implies T = T^T$。**一个同时既是上三角又是下三角的矩阵，必然是对角矩阵！**
+
+**第 3 步（归纳收尾）**：
+对 $(n-1) \times (n-1)$ 实对称子矩阵 $B$ 应用归纳假设，存在 $(n-1) \times (n-1)$ 实正交矩阵 $\tilde{Q}$ 和实对角阵 $\tilde{\Lambda}$ 使得 $B = \tilde{Q} \tilde{\Lambda} \tilde{Q}^T$。令：
+$$
+Q = Q_1 \begin{bmatrix} 1 & \mathbf{0}^T \\ \mathbf{0} & \tilde{Q} \end{bmatrix} \in \mathbb{R}^{n \times n}
+$$
+两个正交矩阵的乘积依然是正交矩阵（$Q^T Q = I_n$），且：
+$$
+Q^T A Q = \begin{bmatrix} 1 & \mathbf{0}^T \\ \mathbf{0} & \tilde{Q}^T \end{bmatrix} \begin{bmatrix} \lambda_1 & \mathbf{0}^T \\ \mathbf{0} & B \end{bmatrix} \begin{bmatrix} 1 & \mathbf{0}^T \\ \mathbf{0} & \tilde{Q} \end{bmatrix} = \begin{bmatrix} \lambda_1 & \mathbf{0}^T \\ \mathbf{0} & \tilde{\Lambda} \end{bmatrix} = \Lambda
+$$
+故 $A = Q \Lambda Q^T$。重特征值所在的特征子空间 $E_\lambda = \operatorname{Null}(A - \lambda I_n)$ 维数必等于其代数重数 $\operatorname{AM}(\lambda)$，实对称矩阵**永远不会亏损**；实际计算时只需在每个重特征值对应的子空间内用 Gram-Schmidt 正交化取一组标准正交基即可！
+
+</ProofCollapse>
+
+### 谱定理带来的四大计算红利
+
+一旦拥有 $A = Q \Lambda Q^T$，对称矩阵的几乎所有矩阵运算都化繁为简：
+1. **矩阵幂与多项式**：因为中间的 $Q^T Q = I_n$ 连续坍缩，对任意正整数 $k$ 有：
+   $$
+   A^k = (Q\Lambda Q^T)(Q\Lambda Q^T)\cdots(Q\Lambda Q^T) = Q \Lambda^k Q^T = \sum_{i=1}^n \lambda_i^k \mathbf{q}_i \mathbf{q}_i^T
+   $$
+2. **对称逆矩阵**：若所有 $\lambda_i \ne 0$，则 $A$ 可逆，且逆矩阵同样对称并共享同一套特征基：
+   $$
+   A^{-1} = Q \Lambda^{-1} Q^T = \sum_{i=1}^n \frac{1}{\lambda_i} \mathbf{q}_i \mathbf{q}_i^T
+   $$
+3. **几何不变量直接读取**：
+   - $\operatorname{rank}(A) =$ 非零特征值的个数（计入重数），因为 $Q$ 可逆不改变秩；
+   - $\operatorname{Col}(A) = \operatorname{Row}(A) = \operatorname{span}\{\mathbf{q}_i : \lambda_i \ne 0\}$，而 $\operatorname{Null}(A) = \operatorname{Null}(A^T) = \operatorname{span}\{\mathbf{q}_i : \lambda_i = 0\}$；四大基本子空间直接沿正交特征基一分为二！
+4. **逆命题也成立（对称性与正交可对角化的充要等价）**：不仅“实对称 $\implies$ 可实正交对角化”，反之若存在实正交矩阵 $Q$ 与实对角阵 $\Lambda$ 使 $A = Q\Lambda Q^T$，则：
+   $$
+   A^T = (Q\Lambda Q^T)^T = (Q^T)^T \Lambda^T Q^T = Q\Lambda Q^T = A
+   $$
+   所以：**一个实方阵可实正交对角化，当且仅当它是实对称矩阵！**
+
+---
+
+## 三、主元符号与特征值符号：Sylvester 惯性定理
+
+我们已经有了两种分解对称矩阵的利器：
+- **第 04 讲的高斯消元法**（无需计算高次特征多项式，只需 $O(n^3/3)$ 算术操作，若无零主元阻碍行交换）：给出对称消元分解 $A = L D L^T$，其中 $L$ 是对角线全为 $1$ 的单位下三角矩阵（$\det(L) = 1$），$D = \operatorname{diag}(d_1, \dots, d_n)$ 存放全部 $n$ 个**主元（Pivots）**；
+- **本讲的谱分解法**（计算成本更高，需迭代求特征根）：给出正交对角化 $A = Q \Lambda Q^T$，其中 $Q$ 是正交矩阵（$Q^T = Q^{-1}$），$\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n)$ 存放全部 $n$ 个**特征值（Eigenvalues）**。
+
+让我们对比两个具体矩阵，看看 $D$ 中的主元与 $\Lambda$ 中的特征值究竟有何异同！
+
+### 实例对比：$2 \times 2$ 与 $3 \times 3$ 矩阵
+
+**例子 1（$2 \times 2$ 不定对称矩阵）**：取 $A = \begin{bmatrix} 1 & 2 \\ 2 & 1 \end{bmatrix}$。
+- **消元主元 ($A = LDL^T$)**：第 2 行减去 $2$ 倍第 1 行，得 $U = \begin{bmatrix} 1 & 2 \\ 0 & -3 \end{bmatrix}$，从而：
+  $$
+  A = \begin{bmatrix} 1 & 0 \\ 2 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & -3 \end{bmatrix} \begin{bmatrix} 1 & 2 \\ 0 & 1 \end{bmatrix}
+  $$
+  主元为 $d_1 = +1,\; d_2 = -3$（**1 个正数，1 个负数，0 个零**）。
+- **特征值 ($A = Q\Lambda Q^T$)**：$\det(A - \lambda I_2) = (1-\lambda)^2 - 4 = (\lambda - 3)(\lambda + 1) = 0$，得特征值 $\lambda_1 = +3,\; \lambda_2 = -1$（同样是 **1 个正数，1 个负数，0 个零**）。
+
+**例子 2（$3 \times 3$ 耦合对称矩阵）**：考察下面这个整数对称矩阵：
+$$
+B = \begin{bmatrix} 1 & 2 & 2 \\ 2 & 3 & 0 \\ 2 & 0 & 3 \end{bmatrix}
+$$
+- **消元主元 ($B = LDL^T$)**：
+  1. 第 2 行 $- 2\times$ 第 1 行：得 $[0, -1, -4]$；第 3 行 $- 2\times$ 第 1 行：得 $[0, -4, -1]$；
+  2. 第 3 行 $- 4\times$ 第 2 行：得 $[0, 0, -1 - 4(-4)] = [0, 0, 15]$。
+  故分解为：
+  $$
+  B = \begin{bmatrix} 1 & 0 & 0 \\ 2 & 1 & 0 \\ 2 & 4 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 & 0 \\ 0 & -1 & 0 \\ 0 & 0 & 15 \end{bmatrix} \begin{bmatrix} 1 & 2 & 2 \\ 0 & 1 & 4 \\ 0 & 0 & 1 \end{bmatrix}
+  $$
+  主元为 $d_1 = +1,\; d_2 = -1,\; d_3 = +15$。按消元顺序出现的符号是 $(+, -, +)$：**2 正、1 负、0 零**。
+- **特征值 ($B = Q\Lambda Q^T$)**：
+  - 观察向量 $\mathbf{v}_2 = [0, 1, -1]^T$：$B\mathbf{v}_2 = [0, 3, -3]^T = 3\mathbf{v}_2$，立刻读出 $\lambda_2 = +3$；
+  - 其余两个特征方向落在 $\mathbf{v}_2^\perp$（形如 $[x, y, y]^T$）中。由 $B\begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 5 \\ 5 \\ 5 \end{bmatrix}$ 读出 $\lambda_1 = +5$；
+  - 由迹守恒 $\operatorname{tr}(B) = 1 + 3 + 3 = 7 = 5 + 3 + \lambda_3$，立即得 $\lambda_3 = -1$！（检验乘积：$5 \times 3 \times (-1) = -15 = 1 \times (-1) \times 15 = \det(B)$）
+  特征值为 $\lambda_1 = +5,\; \lambda_2 = +3,\; \lambda_3 = -1$。符号分布同样是：**2 正、1 负、0 零**！
+
+仔细端详这组数字：
+- 数值完全不同：$d = (+1, -1, +15)$ 与 $\lambda = (+5, +3, -1)$ 毫不相干，连迹都不相等（$\operatorname{tr}(D) = 15 \ne 7 = \operatorname{tr}(\Lambda)$），因为 $L^T \ne L^{-1}$，$D = L^{-1} B (L^{-1})^T$ 是**合同变换（Congruence）**而非相似变换！
+- 符号的出现顺序也未必相同（主元顺序是 $+, -, +$，特征值从大到小是 $+, +, -$）。
+- **但惊人的是：主元中正数、负数、零的“个数”与特征值中正数、负数、零的“个数”永远严格相等！**
+
+这正是 19 世纪英国数学家 J. J. Sylvester 发现的著名定理。
+
+<DefinitionCard title="合同变换与惯性指数" termEn="Congruence Transformation & Inertia">
+
+1. **合同变换（Congruence Transformation）**：设 $A \in \mathbb{R}^{n \times n}$ 为实对称矩阵，若存在可逆矩阵 $M \in \mathbb{R}^{n \times n}$ 使得：
+   $$
+   B = M^T A M
+   $$
+   则称对称矩阵 $B$ 与 $A$ **合同（Congruent）**。注意 $B^T = (M^T A M)^T = M^T A^T M = B$，合同变换总是保持对称性与矩阵的秩（$\operatorname{rank}(B) = \operatorname{rank}(A)$），但它一般**不保持特征值的具体数值**（除非 $M$ 是正交矩阵，此时 $M^T = M^{-1}$，合同与相似重合）。
+2. **惯性指数（Inertia）**：对于实对称矩阵 $A$，将其全部 $n$ 个实特征值中**正数、负数、零的个数**记为三元组 $(n_+(A),\; n_-(A),\; n_0(A))$（满足 $n_+ + n_- + n_0 = n$），称为 $A$ 的**惯性指数**。
+
+</DefinitionCard>
+
+<TheoremCard title="Sylvester 惯性定理" termEn="Sylvester's Law of Inertia">
+
+设 $A \in \mathbb{R}^{n \times n}$ 为实对称矩阵，$M \in \mathbb{R}^{n \times n}$ 为**任意可逆实矩阵**，令 $B = M^T A M$。则 $B$ 与 $A$ 具有**完全相同的惯性指数**：
+
+$$
+\big(n_+(B),\; n_-(B),\; n_0(B)\big) = \big(n_+(A),\; n_-(A),\; n_0(A)\big)
+$$
+
+**直接推论（主元符号与特征值符号匹配律）**：若实对称矩阵 $A$ 经不换行高斯消元分解为 $A = L D L^T$（$L$ 为单位下三角阵，$D = \operatorname{diag}(d_1, \dots, d_n)$），则因为 $D = L^{-1} A (L^{-1})^T$ 与 $A$ 合同，所以：
+- 正主元个数 $=$ 正特征值个数；
+- 负主元个数 $=$ 负特征值个数；
+- 零主元个数（或若完成一般合同对角化 $M^T A M = D$ 后零对角元个数）$=$ 零特征值个数。
+
+</TheoremCard>
+
+<SylvesterInertiaSignMatchDiagram />
+
+<ProofCollapse title="Sylvester 惯性定理的双视角严格证明（连续同伦法 + 子空间维数法）">
+
+下面给出两种互为补充的证明：**方法一**用 Strang 教授最钟爱的连续同伦（Continuous Homotopy）直观揭示“为什么特征值在变形中绝不会穿过 0 变号”；**方法二**用子空间维数比较给出对任意可逆矩阵 $M$（哪怕 $\det(M) \lt 0$ 或包含置换矩阵）都无需连续性假设的四行纯代数证明。
+
+#### 方法一：连续同伦证明（针对 $A = L D L^T$，直观展示特征值不跨零）
+
+已知 $D = L^{-1} A (L^{-1})^T$，其中 $L$ 是单位下三角矩阵（对角线全为 $1$，因此 $\det(L) = 1$）。构造一条连接 $I_n$ 与 $L$ 的连续矩阵路径，参数 $t \in [0, 1]$：
+$$
+L_t = (1 - t) I_n + t L
+$$
+观察 $L_t$ 的结构：由于 $I_n$ 与 $L$ 都是单位下三角矩阵，它们的凸组合 $L_t$ 仍是**对角线全为 $1$ 的单位下三角矩阵**！因此对一切 $t \in [0, 1]$ 恒有：
+$$
+\det(L_t) = 1 \ne 0
+$$
+也就是说，整条路径上的每一个 $L_t$ 都是**严格可逆**的！现在定义随 $t$ 连续变化的实对称矩阵族：
+$$
+A(t) = L_t^{-1} A (L_t^{-1})^T, \quad t \in [0, 1]
+$$
+- 当 $t = 0$ 时，$L_0 = I_n$，故 $A(0) = A$，其特征值就是 $A$ 的特征值 $\lambda_1, \dots, \lambda_n$；
+- 当 $t = 1$ 时，$L_1 = L$，故 $A(1) = L^{-1} A (L^{-1})^T = D$，其特征值就是消元主元 $d_1, \dots, d_n$；
+- 在任意中间时刻 $t \in [0, 1]$，由于 $L_t^{-1}$ 与 $(L_t^{-1})^T$ 均可逆，矩阵乘积保秩，所以 $A(t)$ 的**零空间维数恒定不变**：
+  $$
+  \dim \operatorname{Null}(A(t)) = n - \operatorname{rank}(A(t)) = n - \operatorname{rank}(A) = n_0(A)
+  $$
+  这意味着特征值 $0$ 的重数自始至终锁死为 $n_0(A)$！
+
+把 $A(t)$ 的 $n$ 个实特征值按非降序排列为 $\mu_1(t) \le \mu_2(t) \le \dots \le \mu_n(t)$，它们是随 $t$ 连续变化的函数。假设某个特征值 $\mu_k(t)$ 试图从 $t=0$ 的正数跨越到 $t=1$ 的负数，由介值定理必存在某中间时刻 $t_* \in (0, 1)$ 使得 $\mu_k(t_*) = 0$；这会导致 $A(t_*)$ 额外多出一个零特征值，使得 $\dim \operatorname{Null}(A(t_*)) \ge n_0(A) + 1$，与秩守恒矛盾！因此**没有任何非零特征值能在连续同伦过程中越过零点禁区**，正、负、零特征值的个数从 $t=0$ 到 $t=1$ 绝对守恒！
+
+#### 方法二：子空间维数证明（适用于任意可逆矩阵 $M$ 的一般合同 $B = M^T A M$）
+
+设 $A$ 有 $n_+$ 个正特征值、$n_-$ 个负特征值、$n_0$ 个零特征值；$B = M^T A M$（$M$ 可逆）有 $n'_+$ 个正特征值、$n'_-$ 个负特征值、$n'_0$ 个零特征值。
+
+1. **零特征值个数相等**：因 $M$ 可逆，$\operatorname{rank}(B) = \operatorname{rank}(M^T A M) = \operatorname{rank}(A)$，故 $n'_0 = n - \operatorname{rank}(B) = n - \operatorname{rank}(A) = n_0$。
+2. **证明 $n_+ \le n'_+$**：
+   - 取 $V_+ \subseteq \mathbb{R}^n$ 为 $A$ 的全部正特征值对应的标准正交特征向量所张成的子空间，则 $\dim V_+ = n_+$。由谱分解，对任意非零向量 $\mathbf{y} = \sum_{i=1}^{n_+} c_i \mathbf{q}_i \in V_+ \setminus \{\mathbf{0}\}$，有：
+     $$
+     \mathbf{y}^T A \mathbf{y} = \sum_{i=1}^{n_+} \lambda_i c_i^2 \gt 0
+     $$
+   - 取 $W'_{\le 0} \subseteq \mathbb{R}^n$ 为 $B$ 的全部**非正**（负或零）特征值对应的特征向量所张成的子空间，则 $\dim W'_{\le 0} = n'_- + n'_0 = n - n'_+$。在可逆线性映射 $M$ 的像空间 $M W'_{\le 0} = \{M\mathbf{w} : \mathbf{w} \in W'_{\le 0}\}$ 中，维数保持不变（$\dim(M W'_{\le 0}) = n - n'_+$），且对任意 $\mathbf{y} = M\mathbf{w} \in M W'_{\le 0}$ 有：
+     $$
+     \mathbf{y}^T A \mathbf{y} = (M\mathbf{w})^T A (M\mathbf{w}) = \mathbf{w}^T (M^T A M) \mathbf{w} = \mathbf{w}^T B \mathbf{w} \le 0
+     $$
+   - 考察交集 $V_+ \cap (M W'_{\le 0})$：若存在非零向量 $\mathbf{y}$ 同时落入这两个子空间，则必须同时满足 $\mathbf{y}^T A \mathbf{y} \gt 0$ 与 $\mathbf{y}^T A \mathbf{y} \le 0$，不可能！故两个子空间只能交于零向量：
+     $$
+     V_+ \cap (M W'_{\le 0}) = \{\mathbf{0}\}
+     $$
+   - 由于它们的直和仍是 $\mathbb{R}^n$ 的子空间，维数之和不能超过 $n$：
+     $$
+     n_+ + (n - n'_+) = \dim V_+ + \dim(M W'_{\le 0}) \le n \implies n_+ \le n'_+
+     $$
+3. **反向不等式与结论**：由于 $M$ 可逆，反写 $A = (M^{-1})^T B M^{-1}$，完全对称地重复上述步骤立得 $n'_+ \le n_+$，从而 $n_+ = n'_+$。同理对 $-A$ 与 $-B$ 应用该结论可得 $n_- = n'_-$。证毕！
+
+</ProofCollapse>
+
+### 通往正定矩阵（Positive Definite Matrices）的桥梁
+
+Sylvester 惯性定理之所以在工程计算中价值千金，是因为在判断一个大型实对称矩阵（例如高维优化中的 Hessian 矩阵或结构力学中的刚度矩阵）是否所有特征值都严格大于零时，**我们根本不需要去硬算复杂的高次特征方程**！
+
+请看最核心的特例：当且仅当惯性指数为 $(n_+, n_-, n_0) = (n, 0, 0)$ 时，实对称矩阵 $A$ 的所有特征值全部严格为正（$\lambda_1, \dots, \lambda_n \gt 0$）。根据本节定理，这等价于高斯消元（无需行交换）顺利走完并产生 $n$ 个**全部严格为正的主元**（$d_1, \dots, d_n \gt 0$），同时还等价于对任意非零向量 $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$ 二次型恒正（$\mathbf{x}^T A \mathbf{x} = \sum \lambda_i (\mathbf{q}_i^T \mathbf{x})^2 \gt 0$）——这正是我们在**第 28 讲**将要全面展开的**实对称正定矩阵（Symmetric Positive Definite Matrix, SPD）**！
+
+---
+
+## 四、常见直觉陷阱与网传笔记勘误
+
+在学习实对称矩阵与谱定理时，以下四个陷阱在各类手写笔记甚至部分非严谨教材中极易出现，务必逐一警醒。
+
+<PitfallAlert title="常见直觉陷阱与概念勘误（务必避坑）">
+
+### 陷阱 1：混淆“一般可对角化 $A = S\Lambda S^{-1}$”与“正交对角化 $A = Q\Lambda Q^T$”
+千万不要以为只要矩阵有 $n$ 个实特征值（甚至互异实特征值），特征向量就自然正交！考察非对称上三角矩阵：
+$$
+A = \begin{bmatrix} 1 & 1 \\ 0 & 2 \end{bmatrix}
+$$
+它有两个互不相同的实特征值 $\lambda_1 = 1, \lambda_2 = 2$，完全可以对角化为 $A = S\Lambda S^{-1}$。然而算出特征向量分别是 $\mathbf{x}_1 = \begin{bmatrix} 1 \\ 0 \end{bmatrix}$ 与 $\mathbf{x}_2 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}$，点积 $\mathbf{x}_1^T \mathbf{x}_2 = 1 \ne 0$，**绝不正交**！只有当 $A$ 是实对称矩阵（或更一般的正规矩阵，如某些正交旋转/置换阵）时，才有 $S = Q$ 且 $S^{-1} = Q^T$。
+
+### 陷阱 2：在“特征值为实数”的证明中漏掉复共轭（$\mathbf{x}^T A \mathbf{x}$ 陷阱）
+部分速成笔记试图用“$\mathbf{x}^T A \mathbf{x} = \lambda \mathbf{x}^T \mathbf{x}$”直接证明 $\lambda \in \mathbb{R}$。正如我们在证明 1 末尾指出的，这是**双重致命错误**：
+1. 不加共轭根本得不到 $\bar{\lambda}$，只能推导出 $0 = 0$；
+2. 对于复向量空间 $\mathbb{C}^n$，非零向量的非共轭内积 $\mathbf{x}^T \mathbf{x}$ 可以等于 $0$（例如 $\mathbf{x} = [1, i]^T \ne \mathbf{0}$ 却满足 $\mathbf{x}^T \mathbf{x} = 1 + i^2 = 0$），此时两端同除 $\mathbf{x}^T \mathbf{x}$ 属于非法除以零！必须使用带共轭的 $\bar{\mathbf{x}}^T \mathbf{x} = \sum |x_k|^2 \gt 0$。
+
+### 陷阱 3：误以为消元主元 $d_i$ 就等于特征值 $\lambda_i$（或者忽略零主元与对称置换）
+- **数值并不相等**：在本讲例 1 的 $A = \begin{bmatrix} 1 & 2 \\ 2 & 1 \end{bmatrix}$ 中，主元是 $\{1, -3\}$，而特征值是 $\{3, -1\}$。除了总乘积都等于 $\det(A) = -3$，以及正/负/零的**个数**相等之外，单个主元和单个特征值之间没有任何相等关系！
+- **遇到零主元怎么办？** 对矩阵 $C = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$，左上角直接是零主元，$C = L D L^T$ 不存在。如果直接用普通行交换左乘 $P C = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$，左乘破坏了对称性（在一般矩阵 $P C$ 上做消元，主元 $(1, 1)$ 就不对应 $C$ 的特征值符号 $(1, -1)$！）。**正确做法是保持对称合同变换 $M^T C M$**：例如取可逆变换 $M = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}$（或整数可逆矩阵 $\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}$），算得 $M^T C M = \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}$（若 $M = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}$ 则为 $\begin{bmatrix} 2 & 0 \\ 0 & -2 \end{bmatrix}$），惯性指数 $(1, 1, 0)$ 与特征值 $\pm 1$ 完美一致！
+
+### 陷阱 4：忘记“实数域”前提——复对称矩阵 $A = A^T$ 既可能出现复特征值，也可能不可对角化！
+“对称阵特征值全是实数且必可对角化”这一金科玉律**仅对实对称矩阵成立**！在复矩阵空间 $\mathbb{C}^{n \times n}$ 中，若仅要求满足普通转置对称 $A^T = A$（而不取共轭），会出现两个反例：
+1. **复特征值**：$A_1 = \begin{bmatrix} i & 0 \\ 0 & 2i \end{bmatrix}$ 显然满足 $A_1^T = A_1$，但其特征值为纯虚数 $i, 2i \notin \mathbb{R}$；
+2. **不可对角化（亏损矩阵）**：考虑这个极其经典的复对称矩阵：
+   $$
+   A_2 = \begin{bmatrix} 1 & i \\ i & -1 \end{bmatrix} \in \mathbb{C}^{2 \times 2}
+   $$
+   验证对称性：$A_2^T = A_2$。计算其迹 $\operatorname{tr}(A_2) = 1 + (-1) = 0$，行列式 $\det(A_2) = (1)(-1) - i^2 = -1 + 1 = 0$。故特征方程为 $\lambda^2 = 0$，特征值为二重根 $\lambda_1 = \lambda_2 = 0$。然而 $\operatorname{rank}(A_2) = 1$（第 2 行等于 $i$ 倍第 1 行），故几何重数 $\operatorname{GM}(0) = \dim\operatorname{Null}(A_2) = 2 - 1 = 1 \lt 2 = \operatorname{AM}(0)$！事实上 $A_2^2 = \begin{bmatrix} 1+i^2 & i-i \\ i-i & i^2+1 \end{bmatrix} = O$，$A_2$ 是一个**亏损的幂零矩阵**，在 $\mathbb{C}$ 上**根本不可对角化**！
+根本原因在于：对复对称阵 $\overline{A} \ne A$，导致证明 1 与证明 3 中的共轭步骤全部失效。在复数域上真正继承实对称矩阵全部美德的，是第 27 讲将介绍的**埃尔米特矩阵（Hermitian Matrix）** $A^H = \overline{A}^T = A$！
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l26-spectral-inertia-sandbox"
+  title="实对称谱投影分解与 Sylvester 惯性连续同伦实验室"
+  description={"调节对称矩阵元素观察正交特征轴 $\\mathbf{q}_1 \\perp \\mathbf{q}_2$ 如何随旋转角变化、秩 1 投影 $P_i\\mathbf{x}$ 如何沿特征轴拉伸为 $A\\mathbf{x}$，并实时追踪连续同伦路径 $A(t) = L_t^{-1} A (L_t^{-1})^T$ 下特征值永不跨零的符号守恒轨迹。"}
+/>
+
+---
+
+<KeyTakeaways items={[
+  "实对称谱定理：对任意实对称矩阵 $A = A^T \\in \\mathbb{R}^{n \\times n}$，所有特征值均为实数（$\\lambda_i \\in \\mathbb{R}$）、不同特征值的特征向量正交，且存在完整标准正交特征基 $Q$ 使得 $A = Q\\Lambda Q^T$（绝不亏损）。",
+  "秩 1 正交投影展开：$A = Q\\Lambda Q^T = \\sum_{i=1}^n \\lambda_i \\mathbf{q}_i\\mathbf{q}_i^T = \\sum_{i=1}^n \\lambda_i P_i$。任意实对称矩阵都等价于先用两两正交的秩 1 投影 $P_i$ 拆解向量（$\\sum P_i = I_n$），再沿各正交主轴独立实数伸缩 $\\lambda_i$ 倍。",
+  "实特征值证明必须用复共轭：从 $A\\mathbf{x} = \\lambda\\mathbf{x}$ 出发，利用 $\\bar{A} = A$ 与 $A^T = A$ 推出 $(\\lambda - \\bar{\\lambda})(\\bar{\\mathbf{x}}^T\\mathbf{x}) = 0$。不可省去共轭，因为复向量 $\\mathbf{x}^T\\mathbf{x}$ 可能为零（如 $[1, i]^T$），而 $\\bar{\\mathbf{x}}^T\\mathbf{x} = \\sum |x_k|^2 \\gt 0$ 严格恒正。",
+  "无亏损本质（Schur 分解）：实对称阵可经实正交阵三角化为 $A = Q T Q^T$；结合对称性迫使 $T = T^T$，同时既是上三角又是下三角的矩阵必然为对角矩阵 $\\Lambda$。",
+  "Sylvester 惯性定理：在可逆合同变换 $B = M^T A M$ 下，正、负、零特征值的个数（惯性指数）绝对守恒。特别是对 $A = LDL^T$，消元主元 $d_i$ 的数值一般不等于特征值 $\\lambda_i$，但正主元数、负主元数、零主元数分别严格等于正、负、零特征值数。",
+  "数域边界警告：复对称阵（仅 $A^T = A$ 且含复元素）不保证实特征值也未必可对角化（如 $\\begin{bmatrix} 1 & i \\\\ i & -1 \\end{bmatrix}$ 亏损幂零）；复数域上的正确推广是埃尔米特矩阵 $A^H = A$。"
+]} />
+
+---
+
+## 五、课后直觉训练题
+
+<ProblemSet title="第 26 讲 习题集：谱分解、秩 1 投影与 Sylvester 惯性" description="覆盖实对称矩阵的谱分解手算、正交逆命题与复对称陷阱辨析、无消元特征谱重建以及零主元合同变换综合挑战。">
+
+<ExerciseCard id="l26-ex1" tier="L1" title="2x2 实对称矩阵的谱分解、秩 1 投影与谱求逆">
+
+设实对称矩阵为：
+
+$$
+A = \begin{bmatrix} 5 & -2 \\ -2 & 2 \end{bmatrix} \in \mathbb{R}^{2 \times 2}
+$$
+
+1. 求 $A$ 的特征值 $\lambda_1 \gt \lambda_2$ 及对应的标准正交特征基矩阵 $Q = [\mathbf{q}_1 \;\; \mathbf{q}_2]$，写出正交谱分解 $A = Q\Lambda Q^T$；
+2. 计算秩 1 投影矩阵 $P_1 = \mathbf{q}_1\mathbf{q}_1^T$ 与 $P_2 = \mathbf{q}_2\mathbf{q}_2^T$，验证 $P_1 + P_2 = I_2$、$P_1 P_2 = O$ 以及 $A = \lambda_1 P_1 + \lambda_2 P_2$；
+3. 利用谱投影公式直接写出逆矩阵 $A^{-1} = \frac{1}{\lambda_1} P_1 + \frac{1}{\lambda_2} P_2$ 的显式结果，并检验 $A A^{-1} = I_2$。
+
+<ProgressiveHint hints={[
+  "先利用迹与行列式快速定位特征值：$\\operatorname{tr}(A) = 7$，$\\det(A) = 10 - 4 = 6$，故特征多项式为 $\\lambda^2 - 7\\lambda + 6 = 0$。",
+  "求出未单位化的特征向量后，注意除以各自的欧氏范数 $\\sqrt{2^2 + (-1)^2} = \\sqrt{5}$ 以得到标准正交向量 $\\mathbf{q}_1, \\mathbf{q}_2$。",
+  "逆矩阵无需使用伴随矩阵或消元，直接将投影系数从 $\\lambda_i$ 替换为 $\\lambda_i^{-1}$ 并加权 $P_1, P_2$ 即可。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+矩阵 $A$ 是实对称矩阵，轨迹清晰：迹为 $7$、行列式为 $6$，一眼看穿两个特征值为 $6$ 和 $1$。由于它是实对称矩阵，求出第一个特征方向 $[2, -1]^T$ 后，第二个特征方向必然直接垂直于它（即 $[1, 2]^T$）！在 $\{ \mathbf{q}_1, \mathbf{q}_2 \}$ 这套旋转后的正交坐标系里，$A$ 只是把 $\mathbf{q}_1$ 方向放大 $6$ 倍、$\mathbf{q}_2$ 方向保持 $1$ 倍；那么逆变换 $A^{-1}$ 自然就是把 $\mathbf{q}_1$ 方向缩回 $\frac{1}{6}$ 倍、$\mathbf{q}_2$ 方向依然保持 $1$ 倍！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 步：求解特征值与标准正交矩阵 $Q$**
+
+计算特征方程：
+$$
+\det(A - \lambda I_2) = (5 - \lambda)(2 - \lambda) - (-2)^2 = \lambda^2 - 7\lambda + 6 = (\lambda - 6)(\lambda - 1) = 0
+$$
+得实特征值 $\lambda_1 = 6,\; \lambda_2 = 1$。
+
+- 当 $\lambda_1 = 6$ 时：
+  $$
+  (A - 6I_2)\mathbf{x}_1 = \begin{bmatrix} -1 & -2 \\ -2 & -4 \end{bmatrix}\mathbf{x}_1 = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 2 \\ -1 \end{bmatrix}, \quad \mathbf{q}_1 = \frac{1}{\sqrt{5}}\begin{bmatrix} 2 \\ -1 \end{bmatrix}
+  $$
+- 当 $\lambda_2 = 1$ 时：
+  $$
+  (A - I_2)\mathbf{x}_2 = \begin{bmatrix} 4 & -2 \\ -2 & 1 \end{bmatrix}\mathbf{x}_2 = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ 2 \end{bmatrix}, \quad \mathbf{q}_2 = \frac{1}{\sqrt{5}}\begin{bmatrix} 1 \\ 2 \end{bmatrix}
+  $$
+
+验证正交性：$\mathbf{q}_1^T \mathbf{q}_2 = \frac{1}{5}(2\cdot 1 + (-1)\cdot 2) = 0$。正交谱分解为：
+$$
+A = Q \Lambda Q^T = \frac{1}{\sqrt{5}}\begin{bmatrix} 2 & 1 \\ -1 & 2 \end{bmatrix} \begin{bmatrix} 6 & 0 \\ 0 & 1 \end{bmatrix} \frac{1}{\sqrt{5}}\begin{bmatrix} 2 & -1 \\ 1 & 2 \end{bmatrix}
+$$
+
+**第 2 步：秩 1 正交投影矩阵验证**
+
+$$
+P_1 = \mathbf{q}_1\mathbf{q}_1^T = \frac{1}{5}\begin{bmatrix} 2 \\ -1 \end{bmatrix}\begin{bmatrix} 2 & -1 \end{bmatrix} = \frac{1}{5}\begin{bmatrix} 4 & -2 \\ -2 & 1 \end{bmatrix}, \qquad
+P_2 = \mathbf{q}_2\mathbf{q}_2^T = \frac{1}{5}\begin{bmatrix} 1 \\ 2 \end{bmatrix}\begin{bmatrix} 1 & 2 \end{bmatrix} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix}
+$$
+
+1. 恒等分解验证：
+   $$
+   P_1 + P_2 = \frac{1}{5}\begin{bmatrix} 4+1 & -2+2 \\ -2+2 & 1+4 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I_2
+   $$
+2. 投影互斥性验证：
+   $$
+   P_1 P_2 = \mathbf{q}_1 (\mathbf{q}_1^T \mathbf{q}_2) \mathbf{q}_2^T = \mathbf{q}_1 (0) \mathbf{q}_2^T = O
+   $$
+3. 谱展开重装验证：
+   $$
+   6P_1 + 1P_2 = \frac{1}{5}\begin{bmatrix} 24+1 & -12+2 \\ -12+2 & 6+4 \end{bmatrix} = \frac{1}{5}\begin{bmatrix} 25 & -10 \\ -10 & 10 \end{bmatrix} = \begin{bmatrix} 5 & -2 \\ -2 & 2 \end{bmatrix} = A
+   $$
+
+**第 3 步：利用谱投影求逆矩阵 $A^{-1}$**
+
+$$
+A^{-1} = \frac{1}{6}P_1 + 1\cdot P_2 = \frac{1}{30}\begin{bmatrix} 4 & -2 \\ -2 & 1 \end{bmatrix} + \frac{6}{30}\begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix} = \frac{1}{30}\begin{bmatrix} 10 & 10 \\ 10 & 25 \end{bmatrix} = \frac{1}{6}\begin{bmatrix} 2 & 2 \\ 2 & 5 \end{bmatrix}
+$$
+
+乘法验算：
+$$
+A A^{-1} = \frac{1}{6}\begin{bmatrix} 5 & -2 \\ -2 & 2 \end{bmatrix}\begin{bmatrix} 2 & 2 \\ 2 & 5 \end{bmatrix} = \frac{1}{6}\begin{bmatrix} 10-4 & 10-10 \\ -4+4 & -4+10 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I_2
+$$
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l26-ex2" tier="L2" title="判别题：互异实特征值能否反推矩阵对称或特征向量正交？">
+
+判断下述命题是否正确：
+
+“若实方阵 $A \in \mathbb{R}^{n \times n}$ 拥有 $n$ 个互不相同的实特征值，则 $A$ 的特征向量必两两正交，且 $A$ 必为实对称矩阵。”
+
+<TrueFalseInteractive
+  id="l26-tf1"
+  correct={false}
+  quickFeedback={"错误！互异实特征值只保证 $n$ 个特征向量线性无关（$A = S\\Lambda S^{-1}$），绝不保证它们彼此正交！反例：$A = \\begin{bmatrix} 1 & 3 \\\\ 0 & 2 \\end{bmatrix}$ 有互异实特征值 $1, 2$，但特征向量 $[1, 0]^T$ 与 $[3, 1]^T$ 点积为 $3 \\ne 0$，且 $A \\ne A^T$。"}
+/>
+
+<ProgressiveHint hints={[
+  "考虑一个带非零上三角元素的 $2 \\times 2$ 三角矩阵，如 $A = \\begin{bmatrix} 1 & 3 \\\\ 0 & 2 \\end{bmatrix}$。",
+  "区分“线性无关的特征基 $S$”与“标准正交的特征基 $Q$”；什么条件才是“$A$ 为实对称矩阵”的真正充要条件？"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+“互异实特征值”只是强迫 $n$ 条特征直线互不重合、能够张成全空间，但这些直线完全可以斜着交会！只要对一个对角阵 $\Lambda$ 用一个**非正交的可逆矩阵 $S$** 做相似变换 $S\Lambda S^{-1}$，特征值丝毫不变（依然是互异实数），但你把垂直坐标轴硬生生揉斜了，所得的新矩阵也就不再对称。要想让矩阵对称，必须要求它能被**正交基**对角化（$A = Q\Lambda Q^T$）。
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**错误**。
+
+**构造反例**：取实上三角矩阵
+$$
+A = \begin{bmatrix} 1 & 3 \\ 0 & 2 \end{bmatrix} \in \mathbb{R}^{2 \times 2}
+$$
+1. 其特征值为 $\lambda_1 = 1,\; \lambda_2 = 2$，是两个互不相同的实数；
+2. 计算特征向量：
+   - 对应 $\lambda_1 = 1$：$(A - I_2)\mathbf{x}_1 = \begin{bmatrix} 0 & 3 \\ 0 & 1 \end{bmatrix}\mathbf{x}_1 = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 1 \\ 0 \end{bmatrix}$；
+   - 对应 $\lambda_2 = 2$：$(A - 2I_2)\mathbf{x}_2 = \begin{bmatrix} -1 & 3 \\ 0 & 0 \end{bmatrix}\mathbf{x}_2 = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} 3 \\ 1 \end{bmatrix}$。
+3. 检验正交性与对称性：$\mathbf{x}_1^T \mathbf{x}_2 = 1 \cdot 3 + 0 \cdot 1 = 3 \ne 0$，两个特征向量不正交；且显然 $A^T = \begin{bmatrix} 1 & 0 \\ 3 & 2 \end{bmatrix} \ne A$。
+
+**补充：正确的充要逆命题是什么？**
+若 $A \in \mathbb{R}^{n \times n}$ 拥有一组完整的**标准正交实特征基** $Q$（即存在正交矩阵 $Q \in \mathbb{R}^{n \times n}$ 与实对角阵 $\Lambda$ 使 $A = Q\Lambda Q^T$），则：
+$$
+A^T = (Q\Lambda Q^T)^T = Q\Lambda^T Q^T = Q\Lambda Q^T = A
+$$
+此时 $A$ 必定是实对称矩阵。因此，“实对称”等价于“可实**正交**对角化”，而不是“有互异实特征值”。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l26-ex3" tier="L2" title="判别题：复对称矩阵（Aᵀ = A over ℂ）的谱定理失效辨析">
+
+判断下述命题是否正确：
+
+“若复矩阵 $A \in \mathbb{C}^{n \times n}$ 满足常规转置对称条件 $A^T = A$，则与实对称矩阵一样，$A$ 的所有特征值必为实数，且 $A$ 必定可以对角化。”
+
+<TrueFalseInteractive
+  id="l26-tf2"
+  correct={false}
+  quickFeedback={"错误！实对称谱定理高度依赖矩阵元素为实数（$\\bar{A} = A$）。复对称阵 $A^T = A$ 既可能有非实特征值（如 $iI_2$），甚至可能亏损不可对角化（如 $\\begin{bmatrix} 1 & i \\\\ i & -1 \\end{bmatrix}$ 满足 $A^T=A$ 且 $\\lambda=0,0$，却秩为 $1$ 不可对角化）！复数域上应使用 $A^H = A$。"}
+/>
+
+<ProgressiveHint hints={[
+  "回顾证明 1 的第 1 步：$\\overline{A\\mathbf{x}} = \\bar{A}\\bar{\\mathbf{x}}$，其中需要用哪个条件把 $\\bar{A}$ 消成 $A$？",
+  "验证复对称矩阵 $A = \\begin{bmatrix} 1 & i \\\\ i & -1 \\end{bmatrix}$ 的特征值、秩与可对角化性。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+实对称矩阵能稳居“线性代数之王”，依赖的是**实数性**与**对称性**的双剑合璧。如果把矩阵元素放飞到复数域，普通转置 $A^T = A$ 根本管不住虚部符号的翻转，无法保证正交内积 $\mathbf{x}^H A \mathbf{x}$ 为实数。更令人惊讶的是，复对称阵甚至可以构造出非零的幂零亏损矩阵！复数域上正确的对称观是“转置的同时必须顺带共轭”，即 $A^H = \overline{A}^T = A$。
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**错误**，两条结论均不成立！
+
+**反例 1（反驳“特征值必为实数”）**：
+取 $A_1 = \begin{bmatrix} i & 0 \\ 0 & -3i \end{bmatrix} \in \mathbb{C}^{2 \times 2}$。显然 $A_1^T = A_1$，但其特征值为纯虚数 $\lambda_1 = i, \lambda_2 = -3i \notin \mathbb{R}$。
+
+**反例 2（反驳“必定可对角化”）**：
+取复对称矩阵
+$$
+A_2 = \begin{bmatrix} 1 & i \\ i & -1 \end{bmatrix} \in \mathbb{C}^{2 \times 2}
+$$
+- 验证转置对称性：$A_2^T = \begin{bmatrix} 1 & i \\ i & -1 \end{bmatrix} = A_2$；
+- 求特征值：$\operatorname{tr}(A_2) = 1 - 1 = 0$，$\det(A_2) = -1 - i^2 = 0$，故特征多项式为 $\lambda^2 = 0$，特征值全部为 $0$（$\operatorname{AM}(0) = 2$）；
+- 检验几何重数：矩阵 $A_2$ 非零，第二行恰好等于 $i$ 倍第一行，因此 $\operatorname{rank}(A_2) = 1$，从而：
+  $$
+  \operatorname{GM}(0) = \dim \operatorname{Null}(A_2 - 0I_2) = 2 - 1 = 1 \lt 2 = \operatorname{AM}(0)
+  $$
+  并且 $A_2^2 = \begin{bmatrix} 1 + i^2 & i - i \\ i - i & i^2 + 1 \end{bmatrix} = O$。若 $A_2$ 可对角化，唯一以 $0, 0$ 为特征值的对角矩阵是零矩阵 $O$，将推出 $A_2 = S O S^{-1} = O$，矛盾！因此 $A_2$ **不可对角化**。
+
+**证明断点定位**：在证明 1 中，取共轭得到 $\bar{A}\bar{\mathbf{x}} = \bar{\lambda}\bar{\mathbf{x}}$ 后，必须利用 $A \in \mathbb{R}^{n\times n} \implies \bar{A} = A$ 才能把 $\bar{A}$ 消去；若 $A \in \mathbb{C}^{n\times n}$ 只有 $A^T = A$ 而 $\bar{A} \ne A$，后续推导彻底断链。只有要求 $A^H = \overline{A}^T = A$（埃尔米特矩阵），才能用 $A^H$ 恢复实特征值与酉对角化 $A = U\Lambda U^H$。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l26-ex4" tier="L3" title="无消元反向工程：从正交特征谱重建 3x3 实对称矩阵并判别惯性">
+
+已知某个 $3 \times 3$ 实对称矩阵 $A \in \mathbb{R}^{3 \times 3}$ 的秩 $\operatorname{rank}(A) = 2$，它的两个非零特征值为 $\lambda_1 = 18$ 与 $\lambda_2 = -9$，对应的特征向量分别为：
+
+$$
+\mathbf{v}_1 = \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix} \;(\lambda_1 = 18), \qquad \mathbf{v}_2 = \begin{bmatrix} 2 \\ 1 \\ -2 \end{bmatrix} \;(\lambda_2 = -9)
+$$
+
+**要求在尽可能不做矩阵求逆的条件下，纯用正交性与谱分解完成以下三问：**
+
+1. 验证 $\mathbf{v}_1 \perp \mathbf{v}_2$，并直接写出 $A$ 的第三个特征值 $\lambda_3$、零空间 $\operatorname{Null}(A)$ 的一组基以及列空间 $\operatorname{Col}(A)$ 的一组标准正交基；
+2. 利用秩 1 谱投影公式 $A = \sum_{i=1}^3 \lambda_i \mathbf{q}_i \mathbf{q}_i^T$，精确还原整数矩阵 $A$（并验证 $\operatorname{tr}(A)$）；
+3. 假设对 $A$ 执行对称消元（允许对称行/列置换），$A$ 能否在对称合同变换下化为对角线上**全为正数**的对角矩阵？用 Sylvester 惯性定理简述理由。
+
+<ProgressiveHint hints={[
+  "第 1 问：$\\operatorname{rank}(A) = 2$ 说明 $3 \\times 3$ 对称阵必有 1 个零特征值 $\\lambda_3 = 0$；由实对称不同特征空间正交，零空间 $\\operatorname{Null}(A)$ 必同时垂直于 $\\mathbf{v}_1$ 与 $\\mathbf{v}_2$。",
+  "第 2 问：注意特征向量的模长 $\\|\\mathbf{v}_1\\|_2 = \\sqrt{1+4+4} = 3$，$\\|\\mathbf{v}_2\\|_2 = \\sqrt{4+1+4} = 3$；由于 $\\lambda_3 = 0$，第三项直接消失！",
+  "第 3 问：观察 $\\lambda_1 = 18 \\gt 0,\\; \\lambda_2 = -9 \\lt 0,\\; \\lambda_3 = 0$，由 Sylvester 惯性定理判断合同对角元符号能否改变。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+这正是谱展开 $A = \sum \lambda_i \mathbf{q}_i \mathbf{q}_i^T$ 威力最惊人的一幕：如果矩阵秩为 $2$，那么对应 $\lambda_3 = 0$ 的那块秩 1 积木根本不存在！你甚至不需要先求出 $\mathbf{q}_3$，就能直接把 $\lambda_1 \mathbf{q}_1 \mathbf{q}_1^T + \lambda_2 \mathbf{q}_2 \mathbf{q}_2^T$ 拼回原矩阵 $A$。而 $\operatorname{Null}(A)$ 就是与 $\mathbf{v}_1, \mathbf{v}_2$ 同时垂直的那条法线；至于主元正负号，特征值里已经带着一个正、一个负、一个零，哪怕怎么折腾合同变换，也绝不可能变出三个正对角元。
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问：正交验证、零特征值与四大子空间基**
+
+1. 计算点积验证正交性：
+   $$
+   \mathbf{v}_1^T \mathbf{v}_2 = 1\cdot 2 + 2\cdot 1 + 2\cdot(-2) = 2 + 2 - 4 = 0 \implies \mathbf{v}_1 \perp \mathbf{v}_2
+   $$
+2. 因为 $A \in \mathbb{R}^{3 \times 3}$ 且 $\operatorname{rank}(A) = 2$，故 $\dim \operatorname{Null}(A) = 3 - 2 = 1$，第三个特征值必为 $\lambda_3 = 0$。
+3. 单位化前两个向量（$\|\mathbf{v}_1\|_2 = \sqrt{1+4+4} = 3$，$\|\mathbf{v}_2\|_2 = \sqrt{4+1+4} = 3$）：
+   $$
+   \mathbf{q}_1 = \frac{1}{3}\begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}, \qquad \mathbf{q}_2 = \frac{1}{3}\begin{bmatrix} 2 \\ 1 \\ -2 \end{bmatrix}
+   $$
+   由谱分解，$\operatorname{Col}(A) = \operatorname{Row}(A) = \operatorname{span}\{\mathbf{q}_1, \mathbf{q}_2\}$，故 $\{\mathbf{q}_1, \mathbf{q}_2\}$ 即为 $\operatorname{Col}(A)$ 的标准正交基。
+4. 由于 $\lambda_3 = 0 \ne \lambda_1, \lambda_2$，零空间向量 $\mathbf{v}_3 \in \operatorname{Null}(A)$ 必须同时正交于 $\mathbf{v}_1$ 与 $\mathbf{v}_2$（这等价于第 14 讲的 $\operatorname{Null}(A) = \operatorname{Row}(A)^\perp$）。取叉积或解方程组 $\mathbf{v}_1^T \mathbf{v}_3 = 0,\; \mathbf{v}_2^T \mathbf{v}_3 = 0$：
+   $$
+   \mathbf{v}_3 = \begin{bmatrix} -2 \\ 2 \\ -1 \end{bmatrix} \quad (\text{验证：} 1(-2)+2(2)+2(-1)=0,\;\; 2(-2)+1(2)-2(-1)=0)
+   $$
+   故 $\operatorname{Null}(A) = \operatorname{span}\{[-2, 2, -1]^T\}$。
+
+**第 2 问：秩 1 谱投影重构矩阵 $A$**
+
+由实对称矩阵谱定理，第三项 $\lambda_3 \mathbf{q}_3 \mathbf{q}_3^T = 0$ 自动消去：
+$$
+A = \lambda_1 \mathbf{q}_1 \mathbf{q}_1^T + \lambda_2 \mathbf{q}_2 \mathbf{q}_2^T = \frac{18}{9} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}\begin{bmatrix} 1 & 2 & 2 \end{bmatrix} - \frac{9}{9} \begin{bmatrix} 2 \\ 1 \\ -2 \end{bmatrix}\begin{bmatrix} 2 & 1 & -2 \end{bmatrix}
+$$
+分别计算两个秩 1 矩阵并相减：
+$$
+A = 2 \begin{bmatrix} 1 & 2 & 2 \\ 2 & 4 & 4 \\ 2 & 4 & 4 \end{bmatrix} - \begin{bmatrix} 4 & 2 & -4 \\ 2 & 1 & -2 \\ -4 & -2 & 4 \end{bmatrix} = \begin{bmatrix} 2 - 4 & 4 - 2 & 4 - (-4) \\ 4 - 2 & 8 - 1 & 8 - (-2) \\ 4 - (-4) & 8 - (-2) & 8 - 4 \end{bmatrix} = \begin{bmatrix} -2 & 2 & 8 \\ 2 & 7 & 10 \\ 8 & 10 & 4 \end{bmatrix}
+$$
+**核验**：
+- 对称性成立；
+- 迹守恒：$\operatorname{tr}(A) = -2 + 7 + 4 = 9 = 18 + (-9) + 0 = \lambda_1 + \lambda_2 + \lambda_3$；
+- $A\mathbf{v}_1 = [-2+4+16,\; 2+14+20,\; 8+20+8]^T = [18, 36, 36]^T = 18\mathbf{v}_1$；
+- $A\mathbf{v}_2 = [-4+2-16,\; 4+7-20,\; 16+10-8]^T = [-18, -9, 18]^T = -9\mathbf{v}_2$。完全正确！
+
+**第 3 问：Sylvester 惯性定理判别**
+
+**绝对不能！** $A$ 的特征值为 $(18, -9, 0)$，其惯性指数为：
+$$
+(n_+, n_-, n_0) = (1, 1, 1)
+$$
+根据 Sylvester 惯性定理，对于任意可逆矩阵 $M \in \mathbb{R}^{3 \times 3}$，合同矩阵 $M^T A M$ 必保持完全相同的惯性指数 $(1, 1, 1)$。因此，任何通过可逆合同变换得到的对角矩阵 $D$ 上都**必然严格包含 1 个正数、1 个负数和 1 个零**，绝不可能出现三个全正（甚至三个全非零）的对角元！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l26-ex5" tier="L4" title="MIT 18.06 综合挑战：零主元合同对角化与对称幂等阵谱刻画">
+
+本题将谱定理与 Sylvester 惯性定理延伸至两类经典结构矩阵：
+
+1. **零主元阻塞消元与合同对角化**：考察零主元实对称矩阵
+   $$
+   A = \begin{bmatrix} 0 & 1 & 1 \\ 1 & 0 & 1 \\ 1 & 1 & 0 \end{bmatrix}
+   $$
+   (a) 注意到 $A = \mathbf{1}\mathbf{1}^T - I_3$（其中 $\mathbf{1} = [1, 1, 1]^T$），不解三次方程直接求出 $A$ 的全部三个特征值，并写出其惯性指数；
+   (b) 由于 $a_{11} = 0$，$A$ 无法直接分解为 $L D L^T$。为什么不能仅靠左乘普通置换矩阵 $P A$ 的主元来判断特征值符号？构造可逆对称变换矩阵 $M = \begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 0 \\ 0 & 0 & 1 \end{bmatrix}$，计算合同矩阵 $B = M^T A M$ 并对其做 $L D L^T$ 分解，验证 $D$ 的主元符号个数与特征值符号个数精确一致。
+
+2. **实对称幂等矩阵（正交投影矩阵）的谱刻画**：设 $P \in \mathbb{R}^{n \times n}$ 为实对称矩阵（$P^T = P$）。证明：
+   $$
+   P^2 = P \iff P \text{ 的所有特征值均属于集合 } \{0, 1\}
+   $$
+   并进一步结合谱定理证明：对任意正交投影矩阵（$P^T = P$ 且 $P^2 = P$），其秩严格等于其迹，即 $\operatorname{rank}(P) = \operatorname{tr}(P)$。
+
+<ProgressiveHint hints={[
+  "第 1 问 (a)：对 $\\mathbf{1} = [1, 1, 1]^T$ 计算 $A\\mathbf{1}$；对正交补 $\\mathbf{1}^\\perp$ 中任意满足 $x_1+x_2+x_3=0$ 的向量 $\\mathbf{v}$，计算 $(\\mathbf{1}\\mathbf{1}^T - I_3)\\mathbf{v}$。",
+  "第 1 问 (b)：左乘 $P$ 会破坏矩阵对称性（$P A$ 不再等于 $(PA)^T$），从而脱离合同变换范畴！计算 $M^T A M$ 后，其 $(1,1)$ 元变成非零值 $2$，即可顺利进行 $L D L^T$ 消元。",
+  "第 2 问：将 $P = Q\\Lambda Q^T$ 代入 $P^2 = P$，利用 $Q^T Q = I_n$ 将矩阵方程解耦为每个特征值的标量方程 $\\lambda_i^2 = \\lambda_i$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+第 1 问是 Sylvester 惯性定理最容易在实战中“踩坑又重见光明”的场景：当左上角出现零主元时，普通单边行交换会破坏对称性，必须用左右成对的合同变换 $M^T A M$ 来“对称地”打破零主元僵局。而在第 2 问里，正交投影阵的“二次投还是自己（$P^2 = P$）”放到谱基底下简直一览无余：既然矩阵只是沿正交轴各自独立放大 $\lambda_i$ 倍，要使做两次等于做一次，每个轴上就只能“完全保留（$\lambda_i = 1$）”或“彻底抹零（$\lambda_i = 0$）”——于是有几个 $1$，秩就是几，迹也恰好就是几！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问：零主元矩阵的特征谱与合同分解**
+
+**(a) 直接读取特征值与惯性指数**：
+写为 $A = \mathbf{1}\mathbf{1}^T - I_3$。
+- 取 $\mathbf{x}_1 = \mathbf{1} = [1, 1, 1]^T$：
+  $$
+  A\mathbf{1} = \mathbf{1}(\mathbf{1}^T \mathbf{1}) - \mathbf{1} = 3\mathbf{1} - \mathbf{1} = 2\mathbf{1} \implies \lambda_1 = 2 \gt 0
+  $$
+- 任取正交补 $\mathbf{1}^\perp$ 中的非零向量 $\mathbf{v}$（即 $\mathbf{1}^T \mathbf{v} = 0$，该子空间维数为 $2$，例如 $[1, -1, 0]^T$ 与 $[1, 0, -1]^T$）：
+  $$
+  A\mathbf{v} = \mathbf{1}(\mathbf{1}^T \mathbf{v}) - \mathbf{v} = \mathbf{0} - \mathbf{v} = -\mathbf{v} \implies \lambda_2 = \lambda_3 = -1 \lt 0
+  $$
+因此 $A$ 的全部特征值为 $(2, -1, -1)$，惯性指数为 $(n_+, n_-, n_0) = (1, 2, 0)$。
+
+**(b) 为何不能单边左乘 $P$，以及合同分解检验**：
+若单边左乘置换矩阵（例如交换第 1、2 行得 $P_{12} A = \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \\ 1 & 1 & 0 \end{bmatrix}$），该矩阵**不再对称**，既不是与 $A$ 相似，也不是与 $A$ 合同，其消元主元不服从 Sylvester 惯性定理（例如交换两行甚至直接改变行列式正负号，令主元乘积反号！）。
+
+必须使用**双边合同变换** $B = M^T A M$。验证 $M = \begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 0 \\ 0 & 0 & 1 \end{bmatrix}$ 的行列式 $\det(M) = -2 \ne 0$（可逆）。计算：
+$$
+A M = \begin{bmatrix} 0 & 1 & 1 \\ 1 & 0 & 1 \\ 1 & 1 & 0 \end{bmatrix} \begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 0 \\ 0 & 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & -1 & 1 \\ 1 & 1 & 1 \\ 2 & 0 & 0 \end{bmatrix}
+$$
+$$
+B = M^T (A M) = \begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 0 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} 1 & -1 & 1 \\ 1 & 1 & 1 \\ 2 & 0 & 0 \end{bmatrix} = \begin{bmatrix} 2 & 0 & 2 \\ 0 & -2 & 0 \\ 2 & 0 & 0 \end{bmatrix}
+$$
+现在 $B$ 是实对称矩阵，且左上角主元 $b_{11} = 2 \ne 0$。对 $B$ 执行不换行对称消元（第 3 行减去 $1\times$ 第 1 行）：
+$$
+B = L D L^T = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 1 & 0 & 1 \end{bmatrix} \begin{bmatrix} 2 & 0 & 0 \\ 0 & -2 & 0 \\ 0 & 0 & -2 \end{bmatrix} \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}
+$$
+主元为 $d_1 = +2,\; d_2 = -2,\; d_3 = -2$，恰好是 **1 个正主元、2 个负主元、0 个零主元**，惯性指数 $(1, 2, 0)$ 与特征值 $(2, -1, -1)$ 严丝合缝！
+
+---
+
+**第 2 问：实对称幂等矩阵的谱刻画**
+
+因为 $P \in \mathbb{R}^{n \times n}$ 是实对称矩阵，由实对称谱定理，存在实正交矩阵 $Q$（$Q^T Q = I_n$）和实对角矩阵 $\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n)$ 使得：
+$$
+P = Q \Lambda Q^T
+$$
+
+**证明充要条件（$\iff$）**：
+计算 $P^2$：
+$$
+P^2 = (Q\Lambda Q^T)(Q\Lambda Q^T) = Q \Lambda (Q^T Q) \Lambda Q^T = Q \Lambda^2 Q^T
+$$
+因此：
+$$
+P^2 = P \iff Q \Lambda^2 Q^T = Q \Lambda Q^T
+$$
+在等式两边同时左乘 $Q^T$、右乘 $Q$（可逆操作）：
+$$
+\Lambda^2 = \Lambda \iff \operatorname{diag}(\lambda_1^2, \dots, \lambda_n^2) = \operatorname{diag}(\lambda_1, \dots, \lambda_n)
+$$
+逐个对角元对比，这等价于对每个 $i \in \{1, \dots, n\}$ 均有：
+$$
+\lambda_i^2 = \lambda_i \iff \lambda_i(\lambda_i - 1) = 0 \iff \lambda_i \in \{0, 1\}
+$$
+（注意：如果 $P^T = P$ 不成立，仅由 $P^2 = P$ 仍能推出 $\lambda_i \in \{0, 1\}$，但此时 $P$ 未必可写为 $Q\Lambda Q^T$ 而是斜投影；这里在实对称前提下，它进一步保证了 $P$ 可以正交对角化！）
+
+**证明 $\operatorname{rank}(P) = \operatorname{tr}(P)$**：
+令所有特征值中等于 $1$ 的个数为 $r$，其余 $n - r$ 个特征值均为 $0$。
+1. **计算秩**：因为正交矩阵 $Q$ 可逆，左乘或右乘可逆矩阵不改变矩阵的秩：
+   $$
+   \operatorname{rank}(P) = \operatorname{rank}(Q \Lambda Q^T) = \operatorname{rank}(\Lambda) = \text{对角线上非零元个数} = r
+   $$
+2. **计算迹**：利用矩阵迹的循环不变性 $\operatorname{tr}(ABC) = \operatorname{tr}(CAB)$ 与 $Q^T Q = I_n$：
+   $$
+   \operatorname{tr}(P) = \operatorname{tr}(Q\Lambda Q^T) = \operatorname{tr}(\Lambda Q^T Q) = \operatorname{tr}(\Lambda) = \sum_{i=1}^n \lambda_i = \underbrace{1 + \dots + 1}_{r \text{ 个}} + \underbrace{0 + \dots + 0}_{n-r \text{ 个}} = r
+   $$
+综上所述，对于任意实对称正交投影矩阵 $P$，均有 $\operatorname{rank}(P) = \operatorname{tr}(P)$！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>

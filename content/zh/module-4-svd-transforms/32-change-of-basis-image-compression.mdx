@@ -1,0 +1,928 @@
+---
+title: "第 32 讲：基变换与图像压缩"
+ocwId: "L31"
+videoEpisode: "P32"
+textbookRef: "§8.2"
+---
+
+在第 31 讲中，我们第一次跳出特定数字矩阵的束缚，认识了**脱离坐标系的线性变换（Coordinate-free Linear Transformations）** $T: V \to W$，并且学会了一旦选定输入基与输出基，如何把算子 $T$ 唯一地写成一个矩阵。
+
+今天，Gilbert Strang 教授要回答两个直接决定线性代数威力的终极实践问题：**为什么要换一组基（Change of Basis）？怎样才算一组“好基”？**
+
+换基带来的红利体现在两条并驾齐驱的主线上：
+1. **图像与信号压缩（Image & Signal Compression）**：在默认的像素基下存储一张 $1024 \times 1024$ 的灰度图需要一百万个高度相关的像素数；然而，只要切换到一个聪明的**正交基**（如 JPEG 使用的**离散余弦变换 DCT 基**，或 JPEG 2000 使用的 **Haar 小波基**），绝大多数坐标系数立刻接近于零，只保留极少数基向量就能几乎无损地重建整张图片！
+2. **简化线性算子（Operator Simplification）**：同一个线性变换 $T$，如果输入与输出坐标基选得巧，它的矩阵表示会从稠密晦涩瞬间塌缩为极简的**对角矩阵**——当输入输出共用同一套特征基 $S$ 时得到相似对角化 $\Lambda = S^{-1}AS$；当分别选用输入正交基 $V$ 与输出正交基 $U$ 时，则诞生了覆盖全体矩阵的奇异值分解 $\Sigma = U^T A V$！
+
+---
+
+## 一、向量的坐标变换公式 $\mathbf{x} = W\mathbf{c}$ 与正交基优势
+
+### 1. 像素坐标系 vs. 新基坐标系：从几何直觉到矩阵方程
+
+在 $\mathbb{R}^n$ 中，我们默认生活在一个“隐形”的坐标系里——**标准基（Standard / Canonical Basis）** $\mathcal{E} = \{\mathbf{e}_1, \mathbf{e}_2, \dots, \mathbf{e}_n\}$。对于一幅拉直成列向量的 $n$ 像素图像 $\mathbf{x} = [x_1, x_2, \dots, x_n]^T \in \mathbb{R}^n$，它的第 $i$ 个分量 $x_i$ 本质上是标准像素基的线性组合系数：
+
+$$
+\mathbf{x} = x_1 \mathbf{e}_1 + x_2 \mathbf{e}_2 + \dots + x_n \mathbf{e}_n = I_n \mathbf{x}
+$$
+
+现在，假设我们精心挑选了另一组新的基底 $\mathcal{W} = \{\mathbf{w}_1, \mathbf{w}_2, \dots, \mathbf{w}_n\} \subset \mathbb{R}^n$（例如正弦波、阶梯波或特征方向），并将这 $n$ 个列向量按列排成一个 $n \times n$ 方阵：
+
+$$
+W = \begin{bmatrix} \vert & \vert & & \vert \\ \mathbf{w}_1 & \mathbf{w}_2 & \cdots & \mathbf{w}_n \\ \vert & \vert & & \vert \end{bmatrix} \in \mathbb{R}^{n \times n}
+$$
+
+因为 $\{\mathbf{w}_1, \dots, \mathbf{w}_n\}$ 是 $\mathbb{R}^n$ 的一组**基（Basis）**——它们既线性无关又张成全空间 $\mathbb{R}^n$——所以基矩阵 $W$ 必然**可逆（Invertible）**！这意味着任意图像向量 $\mathbf{x} \in \mathbb{R}^n$ 都可以**唯一**地分解为新基向量的线性组合：
+
+$$
+\mathbf{x} = c_1 \mathbf{w}_1 + c_2 \mathbf{w}_2 + \dots + c_n \mathbf{w}_n = W \mathbf{c}
+$$
+
+看一个最简单的 $2 \times 2$ 数值热身：取基向量 $\mathbf{w}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}$ 与 $\mathbf{w}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}$（平均模式与差值模式），则基矩阵 $W = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}$。给定像素向量 $\mathbf{x} = \begin{bmatrix} 5 \\ 1 \end{bmatrix}$，它在新基下的坐标系数 $\mathbf{c} = [c_1, c_2]^T$ 是什么？
+
+$$
+W \mathbf{c} = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} c_1 \\ c_2 \end{bmatrix} = \begin{bmatrix} 5 \\ 1 \end{bmatrix} \implies \mathbf{c} = W^{-1} \mathbf{x} = \frac{1}{2} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} 5 \\ 1 \end{bmatrix} = \begin{bmatrix} 3 \\ 2 \end{bmatrix}
+$$
+
+验证：$3\begin{bmatrix} 1 \\ 1 \end{bmatrix} + 2\begin{bmatrix} 1 \\ -1 \end{bmatrix} = \begin{bmatrix} 5 \\ 1 \end{bmatrix}$！在这里：
+- **分析 / 编码（Analysis / Encoding）**：已知像素 $\mathbf{x}$，求解新坐标 $\mathbf{c} = W^{-1}\mathbf{x}$；
+- **综合 / 重构（Synthesis / Reconstruction）**：已知新坐标 $\mathbf{c}$，做线性组合恢复像素 $\mathbf{x} = W\mathbf{c}$。
+
+<DefinitionCard title="基矩阵与向量坐标变换公式" termEn="Change-of-Basis Matrix & Coordinate Change Formula">
+
+设 $\mathcal{W} = \{\mathbf{w}_1, \mathbf{w}_2, \dots, \mathbf{w}_n\}$ 是 $\mathbb{R}^n$ 的一组基，将新基向量作为列构造**基矩阵（Change-of-Basis Matrix）** $W = [\mathbf{w}_1 \;\; \mathbf{w}_2 \;\; \cdots \;\; \mathbf{w}_n] \in \mathbb{R}^{n \times n}$（$\det(W) \ne 0$）。对任意向量 $\mathbf{x} \in \mathbb{R}^n$（标准基坐标）及其在基 $\mathcal{W}$ 下的**坐标向量（Coordinate Vector）** $\mathbf{c} = [c_1, \dots, c_n]^T \in \mathbb{R}^n$，两者满足互逆线性关系：
+
+$$
+\mathbf{x} = W \mathbf{c} \quad \Longleftrightarrow \quad \mathbf{c} = W^{-1} \mathbf{x}
+$$
+
+- 从新基坐标 $\mathbf{c}$ 回到标准坐标 $\mathbf{x}$：**左乘 $W$**（线性组合重构）；
+- 从标准坐标 $\mathbf{x}$ 换算到新基坐标 $\mathbf{c}$：**左乘 $W^{-1}$**（坐标分解编码）。
+
+（注：若空间为复空间 $\mathbb{C}^n$，只需将可逆矩阵与向量置于 $\mathbb{C}$ 上；当基底为酉矩阵 $U \in \mathbb{C}^{n\times n}$ 时，坐标反演公式中的 $^T$ 替换为共轭转置 $^H$，即 $\mathbf{c} = U^H \mathbf{x}$。）
+
+</DefinitionCard>
+
+### 2. 为什么正交基让分析与误差控制瞬间“起飞”？
+
+对于一般的非正交可逆矩阵 $W \in \mathbb{R}^{n \times n}$，若图像有 $n = 10^6$ 个像素，计算 $\mathbf{c} = W^{-1}\mathbf{x}$ 意味着求解百万阶稠密线性方程组（复杂度高达 $\mathcal{O}(n^3)$，彻底不可行！）。更糟糕的是，如果 $W$ 的列向量近似共线，截断微小系数 $\mathbf{c}$ 可能在乘以 $W$ 重构时引发剧烈的误差放大。
+
+而一旦我们选用的基矩阵满足**正交性（Orthogonality）**甚至**标准正交性（Orthonormality）**，奇迹立刻降临：
+
+<TheoremCard title="正交基反演与帕塞瓦尔能量守恒定理" termEn="Orthogonal Basis Inversion & Parseval's Identity">
+
+设 $W = [\mathbf{w}_1 \;\; \cdots \;\; \mathbf{w}_n] \in \mathbb{R}^{n \times n}$ 为 $\mathbb{R}^n$ 的一组基。
+
+1. **列正交基（Orthogonal Basis）**：若基向量两两正交（$\mathbf{w}_i^T \mathbf{w}_j = 0, \; \forall i \ne j$）且非零，令 $d_i := \|\mathbf{w}_i\|_2^2 \gt 0$，$D := \operatorname{diag}(d_1, \dots, d_n)$，则 $W^T W = D$，从而**求逆无需消元**，可直接由转置按行缩放得到：
+   $$
+   W^{-1} = D^{-1} W^T \quad \Longleftrightarrow \quad c_i = \frac{\mathbf{w}_i^T \mathbf{x}}{\mathbf{w}_i^T \mathbf{w}_i} = \frac{\mathbf{w}_i^T \mathbf{x}}{\|\mathbf{w}_i\|_2^2} \;\; (i = 1, \dots, n)
+   $$
+   同时满足**加权勾股能量恒等式**：
+   $$
+   \|\mathbf{x}\|_2^2 = \sum_{i=1}^n d_i c_i^2 = \sum_{i=1}^n \|\mathbf{w}_i\|_2^2 c_i^2
+   $$
+
+2. **标准正交基（Orthonormal Basis）**：若 $W = Q \in \mathbb{R}^{n \times n}$ 进一步满足各列单位化（$Q^T Q = I_n$），则：
+   - **求逆零代价**：$\mathbf{c} = Q^T \mathbf{x} \iff \mathbf{x} = Q \mathbf{c}$；
+   - **帕塞瓦尔恒等式（Parseval's Identity / 能量严格守恒）**：$\|\mathbf{x}\|_2^2 = \|\mathbf{c}\|_2^2 = \sum_{i=1}^n c_i^2$；
+   - **硬阈值压缩的精确 $\ell_2$ 误差定理**：若仅保留指标子集 $S \subseteq \{1, \dots, n\}$ 的系数（将 $i \notin S$ 的系数全部截断为 $0$ 得到 $\hat{\mathbf{c}}$），则重构向量 $\hat{\mathbf{x}} = Q \hat{\mathbf{c}} = \sum_{i \in S} c_i \mathbf{q}_i$ 的平方欧氏误差**严格等于**被丢弃系数的平方和：
+     $$
+     \|\mathbf{x} - \hat{\mathbf{x}}\|_2^2 = \|\mathbf{c} - \hat{\mathbf{c}}\|_2^2 = \sum_{i \notin S} c_i^2
+     $$
+
+</TheoremCard>
+
+<ProofCollapse title="展开严格代数证明：正交逆公式与截断误差的帕塞瓦尔精确等式">
+
+**第 1 步（列正交逆公式与加权能量和）：**
+直接计算乘积 $W^T W$ 的第 $(i, j)$ 元：$(W^T W)_{ij} = \mathbf{w}_i^T \mathbf{w}_j$。当 $i \ne j$ 时由正交性得 $0$；当 $i = j$ 时得 $\|\mathbf{w}_i\|_2^2 = d_i \gt 0$。故 $W^T W = D = \operatorname{diag}(d_1, \dots, d_n)$。因为对角元全正，$D$ 可逆，在等式两边同时左乘 $D^{-1}$：
+
+$$
+(D^{-1} W^T) W = I_n \implies W^{-1} = D^{-1} W^T
+$$
+
+（因为 $W$ 为方阵，左逆必等于右逆，第 3 讲）。展开 $\mathbf{c} = D^{-1} W^T \mathbf{x}$ 的第 $i$ 行，即得 $c_i = \frac{1}{d_i}\mathbf{w}_i^T \mathbf{x}$。再计算信号能量：
+
+$$
+\|\mathbf{x}\|_2^2 = \mathbf{x}^T \mathbf{x} = (W\mathbf{c})^T (W\mathbf{c}) = \mathbf{c}^T (W^T W) \mathbf{c} = \mathbf{c}^T D \mathbf{c} = \sum_{i=1}^n d_i c_i^2
+$$
+
+**第 2 步（标准正交情况与压缩截断误差）：**
+当 $W = Q$ 满足 $Q^T Q = I_n$ 时，$D = I_n$，故 $Q^{-1} = Q^T$，且 $\mathbf{c} = Q^T \mathbf{x}$。对于保留子集 $S$ 得到的截断系数向量 $\hat{\mathbf{c}}$（满足 $\hat{c}_i = c_i$ 若 $i \in S$，否则 $\hat{c}_i = 0$），重构差值为：
+
+$$
+\mathbf{x} - \hat{\mathbf{x}} = Q \mathbf{c} - Q \hat{\mathbf{c}} = Q (\mathbf{c} - \hat{\mathbf{c}})
+$$
+
+利用正交矩阵保内积与保长性质（$(Q\mathbf{u})^T(Q\mathbf{u}) = \mathbf{u}^T (Q^T Q) \mathbf{u} = \|\mathbf{u}\|_2^2$）：
+
+$$
+\|\mathbf{x} - \hat{\mathbf{x}}\|_2^2 = \|Q(\mathbf{c} - \hat{\mathbf{c}})\|_2^2 = \|\mathbf{c} - \hat{\mathbf{c}}\|_2^2 = \sum_{i \notin S} (c_i - 0)^2 = \sum_{i \notin S} c_i^2
+$$
+
+这意味着在标准正交基下，只要挑出绝对值最小的系数丢弃，就能在同等非零系数预算 $|S| = k$ 下获得像素空间**全局最小的 $\ell_2$ 逼近误差**！
+
+</ProofCollapse>
+
+---
+
+## 二、图像压缩与“好基”的黄金准则：JPEG DCT 与 Haar 小波
+
+### 1. 为什么不能直接在像素基下压缩？压缩的数学流水线
+
+把一张 $1024 \times 1024$ 像素的灰度图像看成向量 $\mathbf{x} \in \mathbb{R}^{1,048,576}$。在标准像素基 $\mathcal{E}$ 中，为什么几乎无法通过直接“丢弃某些像素”来压缩？
+- 自然图像（蓝天、墙壁、人像渐变阴影）具有极强的**空间相关性（Spatial Correlation）**：相邻像素几乎一样大（例如 $[128, 129, 128, 130, \dots]^T$），因此几乎没有像素等于 $0$，能量被均匀摊薄在全部一百万个基向量 $\mathbf{e}_i$ 中。
+
+于是，现代有损图像压缩采用三步走管道：
+
+1. **无损换基（Lossless Basis Transform）**：$\mathbf{c} = W^{-1}\mathbf{x}$（信息尚未有任何损失，只是换一套坐标语言描述同一张图）；
+2. **有损阈值 / 量化（Lossy Thresholding & Quantization）**：设定阈值 $\tau \gt 0$，将微小的系数（$|c_i| \lt \tau$）直接**置零**（或对高频系数施以粗糙步长量化），得到仅有 $k \ll n$ 个非零项的稀疏向量 $\hat{\mathbf{c}}$；
+3. **快速重构（Fast Reconstruction）**：解码端只需接收少数非零系数及其位置索引，计算 $\hat{\mathbf{x}} = W\hat{\mathbf{c}}$ 还原图像。
+
+要想让这套方案在真实世界跑得飞快又画质惊艳，基底矩阵 $W$ 必须同时满足 Gilbert Strang 总结的**两条黄金准则**：
+
+<DefinitionCard title="图像压缩好基的两条黄金准则" termEn="Two Golden Properties of a Compression Basis">
+
+1. **快速计算与快速求逆（Fast Analysis & Synthesis）**：正变换 $W^{-1}\mathbf{x}$ 与逆变换 $W\hat{\mathbf{c}}$ 绝不能停留在 $\mathcal{O}(n^2)$ 矩阵乘法。理想基底首先应满足**正交性**（$W^{-1} = D^{-1}W^T$ 或 $Q^T$，彻底消灭求逆），其次自身具备稀疏蝴蝶分解或金字塔结构，将复杂度降至 $\mathcal{O}(n \log n)$（如 FFT / DCT）甚至 $\mathcal{O}(n)$（如小波变换）。
+2. **能量高度集中 / 稀疏性（Energy Compaction / Sparsity）**：对于真实自然图像，绝大多数总能量 $\|\mathbf{x}\|_2^2$ 必须集中到极少数几个主基向量的系数上（典型情形：仅保留 $5\% \sim 10\%$ 的系数，即可捕获超过 $95\% \sim 99\%$ 的总能量），其余 $90\%$ 以上的系数接近零，置零后人眼几乎无法察觉失真。
+
+</DefinitionCard>
+
+### 2. JPEG 标准：$8 \times 8$ 二维可分离离散余弦变换（DCT）
+
+还记得第 27 讲中的快速傅里叶变换（FFT）吗？傅里叶基利用频率不同的复指数波（或实数正余弦波）分解信号，复杂度仅有 $\mathcal{O}(n \log n)$，并且天然把平滑渐变信息全部收拢到少数几个低频分量里！
+
+但经典 JPEG 图像压缩标准并没有直接对整张百万像素图片做二维傅里叶变换（DFT），而是做出了两个极其老练的工程数学抉择：
+- **分块为 $8 \times 8$ 小窗口（Block-based）**：如果对整张大图做全局正余弦变换，图像右半边的一条锐利屋檐边缘就会污染左半边宁静天空的频谱。切成 $8 \times 8$（$64$ 维）局部图像块后，每块内部极易呈现近似平坦或单调渐变，局部变换只需极低常数开销。
+- **使用余弦基 DCT 而非周期 DFT**：周期 DFT 默认将块右边缘直接首尾拼接到左边缘。若左边缘亮度为 $200$、右边缘亮度为 $40$，首尾拼接制造出虚假的悬崖跳变，迫使高频 DFT 系数剧增并产生 **Gibbs 振铃伪影（Ringing Artifacts）**。**离散余弦变换（Discrete Cosine Transform, DCT-II）** 等价于先做**偶对称镜像延拓（Even Extension）**，把左右边界光滑缝合在一起，从而把能量极度挤压进低频项！
+
+具体而言，1 维 $N$ 点标准正交 DCT-II 矩阵 $C \in \mathbb{R}^{N \times N}$（JPEG 中取 $N = 8$）定义为：
+
+$$
+C_{k, j} = \alpha_k \cos\!\left( \frac{\pi (2j + 1) k}{2N} \right), \qquad k, j \in \{0, 1, \dots, N-1\}
+$$
+
+其中归一化因子 $\alpha_0 = \sqrt{\frac{1}{N}}$，$\alpha_k = \sqrt{\frac{2}{N}}$（$k \ge 1$），严格保证 $C^T C = C C^T = I_N$。对于一个 $8 \times 8$ 图像块矩阵 $X \in \mathbb{R}^{8 \times 8}$，我们无需显式构造 $64 \times 64$ 的巨型矩阵，而是利用**二维可分离变换（2D Separable Transform）**——先对每列做 1D DCT（左乘 $C$），再对结果每行做 1D DCT（右乘 $C^T$）：
+
+$$
+Y = C X C^T \quad \Longleftrightarrow \quad X = C^T Y C
+$$
+
+感受一下它惊人的能量集中威力：如果某个 $8 \times 8$ 天空像素块恰好恒为常数 $v$（即 $X = v \mathbf{1}\mathbf{1}^T$），由于 $C$ 的第 $0$ 行是常数向量 $\frac{1}{\sqrt{8}}\mathbf{1}^T$，其余 $7$ 行均与 $\mathbf{1}$ 正交，于是 $C\mathbf{1} = [\sqrt{8}, 0, \dots, 0]^T$，从而：
+
+$$
+Y = v (C\mathbf{1})(C\mathbf{1})^T = \begin{bmatrix} 8v & 0 & \cdots & 0 \\ 0 & 0 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & 0 \end{bmatrix}
+$$
+
+整整 $64$ 个像素值被无损压扁成唯一一个直流系数 $Y_{0,0} = 8v$，其余 $63$ 个交流系数**全为零**！在真实 JPEG 中，对频谱系数 $Y_{p,q}$ 按人眼敏感度表做量化除法并舍入取整，高频位置几乎全部归零，随后按 Z 字形（Zigzag）扫描即可实现 $10:1$ 至 $20:1$ 的高质量压缩。
+
+### 3. JPEG 2000 思想：4 点 Haar 小波基 $W_4$ 与多分辨率压缩
+
+尽管 DCT 擅长平滑区域，但它也有先天短板：余弦波的支撑集覆盖整个 $8\times 8$ 块，一旦块内包含极其锐利的黑白边界（如文字、漫画线条），需要很多高频余弦波才能拼出跳变，高压缩比下会出现讨厌的 $8\times 8$ “马赛克块效应”。
+
+**小波（Wavelets）**的诞生彻底突破了这一局限：它像音符一样**同时在空间位置与频率尺度上局部化（Localized in Space & Scale）**，并且是 JPEG 2000 标准的核心数学底座。
+
+其中最经典、最能看清线性代数本质的，就是 **Haar 小波基（Haar Wavelet Basis）**。考察 $n = 4$ 维空间上的 **4 点 Haar 小波矩阵 $W_4 \in \mathbb{R}^{4 \times 4}$**：
+
+$$
+W_4 = \begin{bmatrix} \mathbf{w}_1 & \mathbf{w}_2 & \mathbf{w}_3 & \mathbf{w}_4 \end{bmatrix} = \begin{bmatrix}
+1 & 1 & 1 & 0 \\
+1 & 1 & -1 & 0 \\
+1 & -1 & 0 & 1 \\
+1 & -1 & 0 & -1
+\end{bmatrix}
+$$
+
+请用**多分辨率分析（Multiresolution Analysis）**的眼睛审视这四列阶梯基向量：
+- **$\mathbf{w}_1 = [1, 1, 1, 1]^T$**：全局均值基（粗糙直流，跨越全部 4 个像素）；
+- **$\mathbf{w}_2 = [1, 1, -1, -1]^T$**：中尺度粗跃变（捕捉左半区与右半区的整体明暗差）；
+- **$\mathbf{w}_3 = [1, -1, 0, 0]^T$**：左半局部高频细节（仅关注第 1、2 像素的细微差异，右半严格为零！）；
+- **$\mathbf{w}_4 = [0, 0, 1, -1]^T$**：右半局部高频细节（仅关注第 3、4 像素的细微差异，左半严格为零！）。
+
+逐对检查点积：$\mathbf{w}_1^T\mathbf{w}_2 = 1+1-1-1=0$，$\mathbf{w}_1^T\mathbf{w}_3 = 1-1=0$，$\mathbf{w}_2^T\mathbf{w}_3 = 1-1=0$，$\mathbf{w}_3^T\mathbf{w}_4 = 0$（支撑集互不相交！）。因此，$W_4$ 的列向量**两两正交**，且内积矩阵为对角阵：
+
+$$
+W_4^T W_4 = D_4 = \operatorname{diag}(4, 4, 2, 2)
+$$
+
+根据定理 1，无需做任何高斯消元，立刻写出显式逆矩阵：
+
+$$
+W_4^{-1} = D_4^{-1} W_4^T = \begin{bmatrix}
+1/4 & 0 & 0 & 0 \\
+0 & 1/4 & 0 & 0 \\
+0 & 0 & 1/2 & 0 \\
+0 & 0 & 0 & 1/2
+\end{bmatrix}
+\begin{bmatrix}
+1 & 1 & 1 & 1 \\
+1 & 1 & -1 & -1 \\
+1 & -1 & 0 & 0 \\
+0 & 0 & 1 & -1
+\end{bmatrix}
+= \begin{bmatrix}
+1/4 & 1/4 & 1/4 & 1/4 \\
+1/4 & 1/4 & -1/4 & -1/4 \\
+1/2 & -1/2 & 0 & 0 \\
+0 & 0 & 1/2 & -1/2
+\end{bmatrix}
+$$
+
+若将每列除以其自身欧氏长度（$\sqrt{4}=2, \sqrt{4}=2, \sqrt{2}, \sqrt{2}$），则得到**标准正交 Haar 矩阵** $Q_4 = W_4 D_4^{-1/2}$：
+
+$$
+Q_4 = \begin{bmatrix}
+1/2 & 1/2 & 1/\sqrt{2} & 0 \\
+1/2 & 1/2 & -1/\sqrt{2} & 0 \\
+1/2 & -1/2 & 0 & 1/\sqrt{2} \\
+1/2 & -1/2 & 0 & -1/\sqrt{2}
+\end{bmatrix}, \qquad Q_4^T Q_4 = I_4
+$$
+
+#### 完整手算实战：对信号 $\mathbf{x} = [9, 7, 3, 1]^T$ 执行 Haar 压缩
+
+取 4 像素一维信号 $\mathbf{x} = [9, 7, 3, 1]^T$，其总能量为 $\|\mathbf{x}\|_2^2 = 9^2 + 7^2 + 3^2 + 1^2 = 81 + 49 + 9 + 1 = 140$。
+
+1. **换基分析（计算小波坐标）**：
+   $$
+   \mathbf{c} = W_4^{-1} \mathbf{x} = \begin{bmatrix}
+   (9+7+3+1)/4 \\
+   (9+7-3-1)/4 \\
+   (9-7)/2 \\
+   (3-1)/2
+   \end{bmatrix} = \begin{bmatrix} 5 \\ 3 \\ 1 \\ 1 \end{bmatrix}
+   $$
+   换算到标准正交坐标 $\tilde{\mathbf{c}} = Q_4^T \mathbf{x} = D_4^{1/2}\mathbf{c}$：
+   $$
+   \tilde{\mathbf{c}} = \begin{bmatrix} 2\cdot 5 \\ 2\cdot 3 \\ \sqrt{2}\cdot 1 \\ \sqrt{2}\cdot 1 \end{bmatrix} = \begin{bmatrix} 10 \\ 6 \\ \sqrt{2} \\ \sqrt{2} \end{bmatrix}
+   $$
+   验证帕塞瓦尔能量分配：$\tilde{c}_1^2 + \tilde{c}_2^2 + \tilde{c}_3^2 + \tilde{c}_4^2 = 100 + 36 + 2 + 2 = 140 = \|\mathbf{x}\|_2^2$！
+   请看这能量分布：**仅仅前两个粗尺度基向量（$\mathbf{w}_1, \mathbf{w}_2$）就独占了 $136 / 140 = 97.14\%$ 的能量**，而两个高频细节分量各自仅占 $1.43\%$！
+
+2. **硬阈值截断（Hard Thresholding）与重构**：
+   设定硬阈值 $\tau = 2$（只保留 $|\tilde{c}_i| \ge 2$ 的大分量，将 $|\tilde{c}_3| = |\tilde{c}_4| = \sqrt{2} \lt 2$ 置零），得到稀疏系数 $\hat{\mathbf{c}} = [5, 3, 0, 0]^T$（实现了 $2:1$ 系数压缩）。
+   解码重构信号：
+   $$
+   \hat{\mathbf{x}} = W_4 \hat{\mathbf{c}} = 5\begin{bmatrix} 1 \\ 1 \\ 1 \\ 1 \end{bmatrix} + 3\begin{bmatrix} 1 \\ 1 \\ -1 \\ -1 \end{bmatrix} = \begin{bmatrix} 8 \\ 8 \\ 2 \\ 2 \end{bmatrix}
+   $$
+   计算重构误差：
+   $$
+   \mathbf{x} - \hat{\mathbf{x}} = \begin{bmatrix} 1 \\ -1 \\ 1 \\ -1 \end{bmatrix} \implies \|\mathbf{x} - \hat{\mathbf{x}}\|_2^2 = 1^2 + (-1)^2 + 1^2 + (-1)^2 = 4 = \tilde{c}_3^2 + \tilde{c}_4^2
+   $$
+   像素级平方误差精准等于被丢弃的标准正交系数平方和 $2 + 2 = 4$，总能量留存率高达 **$97.14\%$**！更妙的是，如果输入信号本身是一道锐利边缘阶跃信号 $\mathbf{x}_{\text{edge}} = [8, 8, 2, 2]^T$，在 Haar 基下 $c_3 = c_4 = 0$，**仅用 $2$ 个系数即可 $100\%$ 无损重建锐利边缘**，彻底避免傅里叶/余弦基的边界振铃！
+
+<WaveletAndDctCompressionBasisDiagram />
+
+<ProofCollapse title="展开推导：Haar 小波的 O(n) 金字塔快速算法与多尺度正交结构">
+
+为什么在实际图像编码器中，Haar 小波变换甚至不需要做矩阵乘法就能在 **$\mathcal{O}(n)$ 线性时间**（比 FFT 的 $\mathcal{O}(n \log n)$ 还要快！）完成？
+
+观察 $W_4^{-1} \mathbf{x}$ 的代数结构，它等价于如下**平均-差分（Averaging & Differencing）递归金字塔**：
+- **第 1 层（精细尺度，处理 $n$ 个像素，共 $n/2$ 对）**：
+  将相邻像素两两配对 $(9,7)$ 与 $(3,1)$：
+  - 半差值直接吐出高频细节系数：$c_3 = \frac{9-7}{2} = 1$，$c_4 = \frac{3-1}{2} = 1$；
+  - 平均值传递到下一层粗尺度向量：$\mathbf{x}^{(1)} = \left[\frac{9+7}{2}, \frac{3+1}{2}\right]^T = [8, 2]^T$。
+- **第 2 层（粗尺度，仅处理 $n/2$ 个均值）**：
+  对 $\mathbf{x}^{(1)} = [8, 2]^T$ 重复完全相同的平均与半差值操作：
+  - 半差值给出中尺度系数：$c_2 = \frac{8-2}{2} = 3$；
+  - 平均值给出最粗直流系数：$c_1 = \frac{8+2}{2} = 5$。
+
+对一般的 $n = 2^k$ 长度信号，第 $1$ 层处理 $n/2$ 对数字，第 $2$ 层只处理 $n/4$ 对，……，总加减与移位操作次数满足等比级数：
+
+$$
+\frac{n}{2} + \frac{n}{4} + \frac{n}{8} + \dots + 1 = n - 1 = \mathcal{O}(n)
+$$
+
+逆变换 $\mathbf{x} = W_n \mathbf{c}$ 只需沿着金字塔反向做“加加减减”（如 $8+1=9, 8-1=7$），同样仅需 $\mathcal{O}(n)$ 运算量。高速与局部多尺度稀疏性兼得，这正是小波压缩的数学精髓。
+
+</ProofCollapse>
+
+---
+
+## 三、线性算子的基变换公式：$B = M^{-1} A M$ 与分解大一统
+
+掌握了“向量在换基时如何变换坐标（$\mathbf{x} = W\mathbf{c}$）”之后，我们立刻跨入第 32 讲的另一座高峰：**当一个线性算子（Linear Operator）$T: \mathbb{R}^n \to \mathbb{R}^n$ 本身固定不变时，如果把坐标系从标准基 $\mathcal{E}$ 切换到新基 $\mathcal{W}$，算子的矩阵表示会如何变化？**
+
+### 1. 交换图路径与 $2 \times 2$ 算例直觉
+
+沿用第 29 讲（相似矩阵）与 MIT 18.06 讲义的经典记号，我们把新基矩阵记为可逆方阵 $M = [\mathbf{w}_1 \;\; \cdots \;\; \mathbf{w}_n] \in \mathbb{R}^{n \times n}$（注意 $M$ 扮演着与前文 $W$ 完全相同的角色）。
+
+设算子 $T$ 在标准基下的矩阵为 $A \in \mathbb{R}^{n \times n}$，即标准向量 $\mathbf{x}$ 被映射为 $\mathbf{y} = A\mathbf{x}$。现在站在新基 $\mathcal{W}$ 的坐标系下（坐标向量为 $\mathbf{c}$，满足 $\mathbf{x} = M\mathbf{c}$），请问如何只用新基坐标直接算出输出的坐标 $\mathbf{c}'$？让我们走一遍**三步绕行路径**：
+
+1. **上行重构**：先把新基输入坐标 $\mathbf{c}$ 翻译回标准坐标：$\mathbf{x} = M\mathbf{c}$；
+2. **标准基作用**：用标准矩阵 $A$ 作用在 $\mathbf{x}$ 上，得到标准输出：$\mathbf{y} = A\mathbf{x} = A(M\mathbf{c})$；
+3. **下行编码**：把标准输出 $\mathbf{y}$ 翻译回新基坐标 $\mathbf{c}' = M^{-1}\mathbf{y}$：
+   $$
+   \mathbf{c}' = M^{-1} (A M \mathbf{c}) = (M^{-1} A M)\mathbf{c}
+   $$
+
+因此，同一个线性算子 $T$ 在新基 $\mathcal{W}$ 下的矩阵表示必定是 $B = M^{-1} A M$！
+
+#### 数值验证 1：一般上三角算子的换基交换性
+
+取 $A = \begin{bmatrix} 1 & 2 \\ 0 & 3 \end{bmatrix}$，新基矩阵 $M = \begin{bmatrix} 1 & 1 \\ 1 & 2 \end{bmatrix}$（列向量 $\mathbf{w}_1 = [1,1]^T, \mathbf{w}_2 = [1,2]^T$），则逆矩阵 $M^{-1} = \begin{bmatrix} 2 & -1 \\ -1 & 1 \end{bmatrix}$。计算新基下的算子矩阵：
+
+$$
+B = M^{-1} A M = \begin{bmatrix} 2 & -1 \\ -1 & 1 \end{bmatrix} \begin{bmatrix} 1 & 2 \\ 0 & 3 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 1 & 2 \end{bmatrix} = \begin{bmatrix} 2 & -1 \\ -1 & 1 \end{bmatrix} \begin{bmatrix} 3 & 5 \\ 3 & 6 \end{bmatrix} = \begin{bmatrix} 3 & 4 \\ 0 & 1 \end{bmatrix}
+$$
+
+取测试坐标 $\mathbf{c} = \begin{bmatrix} 1 \\ 1 \end{bmatrix}$，分别走“上方绕路”和“底部直达”两条路线核验：
+- **上方绕路（$\mathbf{c} \xrightarrow{M} \mathbf{x} \xrightarrow{A} \mathbf{y} \xrightarrow{M^{-1}} \mathbf{c}'$）**：
+  $\mathbf{x} = M\mathbf{c} = \begin{bmatrix} 2 \\ 3 \end{bmatrix} \implies \mathbf{y} = A\mathbf{x} = \begin{bmatrix} 8 \\ 9 \end{bmatrix} \implies \mathbf{c}' = M^{-1}\mathbf{y} = \begin{bmatrix} 2\cdot 8 - 9 \\ -8 + 9 \end{bmatrix} = \begin{bmatrix} 7 \\ 1 \end{bmatrix}$；
+- **底部直达（$\mathbf{c} \xrightarrow{B} \mathbf{c}'$）**：
+  $B\mathbf{c} = \begin{bmatrix} 3 & 4 \\ 0 & 1 \end{bmatrix}\begin{bmatrix} 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 7 \\ 1 \end{bmatrix}$！
+
+两条路径完全重合！并且不难核对 $\operatorname{tr}(B) = 3+1 = 4 = \operatorname{tr}(A)$，$\det(B) = 3 = \det(A)$，因为 $B$ 与 $A$ 根本就是同一个几何算子！
+
+#### 数值验证 2：投影矩阵在“对的基”下瞬间坍缩为对角阵
+
+考虑向直线 $y = 2x$（方向 $[1, 2]^T$）作正交投影的算子 $T$。在标准基 $\mathcal{E}$ 下，投影矩阵 $P = \frac{\mathbf{a}\mathbf{a}^T}{\mathbf{a}^T\mathbf{a}} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix}$，看起来既稠密又带有分数。
+
+现在我们故意顺着几何直觉挑一组新基：$\mathbf{w}_1 = \begin{bmatrix} 1 \\ 2 \end{bmatrix}$（躺在直线上）与 $\mathbf{w}_2 = \begin{bmatrix} -2 \\ 1 \end{bmatrix}$（垂直于直线），构成正交列基矩阵 $M = \begin{bmatrix} 1 & -2 \\ 2 & 1 \end{bmatrix}$，其逆为 $M^{-1} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix}$。计算新基下的矩阵 $B = M^{-1} P M$：
+
+$$
+B = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix} \cdot \frac{1}{5}\begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix} \begin{bmatrix} 1 & -2 \\ 2 & 1 \end{bmatrix} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 2 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}
+$$
+
+**看懂了吗？** $T(\mathbf{w}_1) = \mathbf{w}_1$、$T(\mathbf{w}_2) = \mathbf{0}$——在这个完美贴合算子几何的基下，复杂的投影矩阵直接现出了 $\operatorname{diag}(1, 0)$ 的纯净本相！
+
+<TheoremCard title="线性算子基变换与分解大一统定理" termEn="Operator Change-of-Basis & Matrix Factorization Synthesis">
+
+1. **同空间同基变换（相似矩阵定理）**：设线性算子 $T: \mathbb{R}^n \to \mathbb{R}^n$ 在标准基下的矩阵为 $A \in \mathbb{R}^{n \times n}$。若输入与输出**共同**切换到可逆基矩阵 $M = [\mathbf{w}_1 \;\cdots\; \mathbf{w}_n] \in \mathbb{R}^{n \times n}$ 构成的基 $\mathcal{W}$，则 $T$ 在基 $\mathcal{W}$ 下的矩阵表示唯一确定为：
+   $$
+   B = M^{-1} A M
+   $$
+   这揭示了第 29 讲**相似矩阵（Similar Matrices）**的几何真谛：$A$ 与 $B$ 相似 $\iff$ 它们是同一个线性算子 $T$ 在两套不同基下的矩阵化身。
+
+2. **不同空间 / 双基一般变换（含长方形矩阵）**：设线性变换 $T: \mathbb{R}^n \to \mathbb{R}^m$ 在标准基下的矩阵为 $A \in \mathbb{R}^{m \times n}$。若输入空间 $\mathbb{R}^n$ 选用基矩阵 $V \in \mathbb{R}^{n \times n}$（$\det(V) \ne 0$），输出空间 $\mathbb{R}^m$ 独立选用基矩阵 $U \in \mathbb{R}^{m \times m}$（$\det(U) \ne 0$），则 $T$ 在新基对 $(V, U)$ 下的矩阵表示为：
+   $$
+   B = U^{-1} A V \in \mathbb{R}^{m \times n}
+   $$
+
+3. **化矩阵为对角阵的三大黄金基选择**：
+   - **可对角化方阵**：取特征基 $M = S$（要求存在 $n$ 个线性无关特征向量），得 $S^{-1} A S = \Lambda$；
+   - **实对称矩阵（$A = A^T$）**：取标准正交特征基 $M = Q$，得 $Q^T A Q = \Lambda$（相似与合同合一）；
+   - **地球上任意矩阵 $A \in \mathbb{R}^{m \times n}$**：允许输入正交基 $V$ 与输出正交基 $U$ 解耦，即得**奇异值分解（SVD）** $U^T A V = \Sigma$！
+
+</TheoremCard>
+
+<ProofCollapse title="展开严格证明：从交换路径与第 31 讲列构造法则双重推导 B = M⁻¹AM 与 U⁻¹AV">
+
+**方法一（交换图代数法，适用于一般双基 $U, V$）：**
+设输入向量 $\mathbf{x} \in \mathbb{R}^n$ 在输入基 $V = [\mathbf{v}_1 \;\cdots\; \mathbf{v}_n]$ 下的坐标为 $\mathbf{c}_{\text{in}} \in \mathbb{R}^n$，则 $\mathbf{x} = V \mathbf{c}_{\text{in}}$。
+输出向量 $\mathbf{y} = T(\mathbf{x}) = A\mathbf{x} \in \mathbb{R}^m$ 在输出基 $U = [\mathbf{u}_1 \;\cdots\; \mathbf{u}_m]$ 下的坐标为 $\mathbf{c}_{\text{out}} \in \mathbb{R}^m$，满足 $\mathbf{y} = U \mathbf{c}_{\text{out}}$。
+联立以上两式：
+
+$$
+U \mathbf{c}_{\text{out}} = \mathbf{y} = A \mathbf{x} = A (V \mathbf{c}_{\text{in}})
+$$
+
+因为输出基矩阵 $U \in \mathbb{R}^{m\times m}$ 可逆，左乘 $U^{-1}$ 立即得到：
+
+$$
+\mathbf{c}_{\text{out}} = (U^{-1} A V)\mathbf{c}_{\text{in}}
+$$
+
+故算子 $T$ 从基 $V$ 到基 $U$ 的矩阵恰好为 $B = U^{-1} A V$。特别地，当 $m = n$ 且输入输出采用同一套基 $U = V = M$ 时，自动退化为相似公式 $B = M^{-1} A M$。
+
+**方法二（第 31 讲列构造法则验证）：**
+按第 31 讲的定义，矩阵 $B$ 的第 $j$ 列 $\mathbf{b}_j$ 等于将第 $j$ 个输入基向量 $\mathbf{v}_j$ 送入算子 $T$ 后，把输出向量 $T(\mathbf{v}_j) = A\mathbf{v}_j$ 在输出基 $\{\mathbf{u}_1, \dots, \mathbf{u}_m\}$ 下展开得到的坐标向量：
+
+$$
+A\mathbf{v}_j = \sum_{i=1}^m b_{ij}\mathbf{u}_i = U \mathbf{b}_j \implies \mathbf{b}_j = U^{-1} A \mathbf{v}_j
+$$
+
+把全部 $n$ 列 $\mathbf{b}_1, \dots, \mathbf{b}_n$ 并排拼接起来：
+
+$$
+B = \begin{bmatrix} \mathbf{b}_1 & \cdots & \mathbf{b}_n \end{bmatrix} = U^{-1} A \begin{bmatrix} \mathbf{v}_1 & \cdots & \mathbf{v}_n \end{bmatrix} = U^{-1} A V
+$$
+
+两种视角严丝合缝，相互印证！
+
+</ProofCollapse>
+
+<ChangeOfBasisCommutativeDiagram />
+
+---
+
+## 四、常见直觉陷阱与网传笔记勘误
+
+<PitfallAlert title="常见直觉陷阱与网传笔记勘误">
+
+### 陷阱 1：弄反 $M$ 与 $M^{-1}$ 的方向——误写 $\mathbf{c} = M\mathbf{x}$ 或 $B = M A M^{-1}$
+当把新基向量按列排成 $M = [\mathbf{w}_1 \;\cdots\; \mathbf{w}_n]$ 时，基向量的变换是正方向的：$\mathbf{w}_j = M \mathbf{e}_j$。但**向量坐标的变换方向恰好相反（逆变律 / Contravariance）**：
+
+$$
+\mathbf{x} = M \mathbf{c} \quad \Longleftrightarrow \quad \mathbf{c} = M^{-1} \mathbf{x}
+$$
+
+如果你硬套“先左乘 $M^{-1}$ 再左乘 $M$”却写反了次序写成 $M A M^{-1}$，它对应的是把新基设为 $M^{-1}$ 而不是 $M$！防错口诀：**从左下角新基坐标 $\mathbf{c}$ 出发，先乘 $M$ 还原出标准向量 $\mathbf{x} = M\mathbf{c}$，再乘 $A$ 作用得 $AM\mathbf{c}$，最后乘 $M^{-1}$ 读回新坐标——因为矩阵乘法从右向左作用在向量上，所以一定是 $M^{-1} A M$**。
+
+### 陷阱 2：对不同空间或不同输入/输出基强套相似变换 $W^{-1} A W$
+矩阵相似变换 $B = M^{-1} A M$ 有一个极其严苛的前提：**线性算子必须把空间映回自身（$T: V \to V$，$A$ 为方阵），且输入端和输出端必须使用同一组基 $M$**！
+- 若 $A \in \mathbb{R}^{m\times n}$ 是长方形矩阵（$m \ne n$），$W^{-1} A W$ 连矩阵维度都不相容，根本无从定义；
+- 即使 $A$ 是方阵，只要输入基 $V$ 与输出基 $U$ 不相同（最典型的例子就是 SVD 中的 $U^T A V = \Sigma$），变换公式就是 $U^{-1} A V$（**等价变换**，而非相似变换！）。特别警示：一旦 $U \ne V$，**特征值不再守恒**（例如奇异值 $\sigma_i$ 一般绝不等于特征值 $\lambda_i$）！
+
+### 陷阱 3：把 Haar 小波基 $W_4$ 误当成单位长度的标准正交矩阵 $Q_4$
+第 2 节中的整数 Haar 矩阵 $W_4$ 的列向量确实相互垂直，但它们的长度**不是 $1$**，而是满足 $W_4^T W_4 = \operatorname{diag}(4, 4, 2, 2) \ne I_4$。因此：
+1. $W_4^{-1} \ne W_4^T$！忘记左乘 $D_4^{-1} = \operatorname{diag}(1/4, 1/4, 1/2, 1/2)$ 会把所有重构振幅放大 2 倍或 4 倍；
+2. 能量守恒与压缩误差截断公式 $\|\mathbf{x} - \hat{\mathbf{x}}\|_2^2 = \sum_{i \notin S} c_i^2$ **仅对标准正交系数 $\tilde{\mathbf{c}} = Q_4^T \mathbf{x}$ 成立**！若直接对未归一化的 $\mathbf{c} = W_4^{-1}\mathbf{x}$ 计算阈值，粗尺度基向量（权重大 $d_1=4$）与细尺度基向量（权重小 $d_3=2$）的贡献权重会失衡，正确能量加权和应为 $\sum d_i c_i^2 = 4c_1^2 + 4c_2^2 + 2c_3^2 + 2c_4^2$。
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l32-basis-compression-sandbox"
+  title="基变换交换图与 DCT / Haar 小波硬阈值图像压缩交互实验"
+  description={"自由调节 $2\\times 2$ 换基矩阵 $M$ 实时对比 $M^{-1}(A(Mc))$ 与 $(M^{-1}AM)c$ 的轨迹重合；并可切换像素基、$8\\times 8$ DCT 余弦基与 Haar 小波基，拖动硬阈值 $\\tau$ 滑块直观观察稀疏保留率与帕塞瓦尔（Parseval）重构误差 $\\|\\mathbf{x} - \\hat{\\mathbf{x}}\\|_2^2$。"}
+/>
+
+---
+
+<KeyTakeaways items={[
+  "向量坐标变换律：将新基向量排为可逆矩阵 $W = [\\mathbf{w}_1 \\;\\cdots\\; \\mathbf{w}_n]$ 的列，则标准坐标与新基坐标由 $\\mathbf{x} = W\\mathbf{c} \\iff \\mathbf{c} = W^{-1}\\mathbf{x}$ 严格互逆联系。",
+  "正交基反演与帕塞瓦尔（Parseval）误差公式：列正交基满足 $W^T W = D \\implies W^{-1} = D^{-1}W^T$；标准正交基 $Q$ 满足 $Q^{-1} = Q^T$，且在硬阈值截断下像素误差平方严格等于被舍弃系数平方和 $\\|\\mathbf{x} - \\hat{\\mathbf{x}}\\|_2^2 = \\sum_{i \\notin S} c_i^2$。",
+  "图像压缩好基的两条黄金准则：（1）快速正反变换（正交免求逆 + $\\mathcal{O}(n\\log n)$ 或 $\\mathcal{O}(n)$ 蝴蝶/金字塔结构）；（2）高度能量集中（少数系数捕获绝大部分信号能量）。",
+  "JPEG DCT vs. Haar 小波：JPEG 通过 $8\\times 8$ 二维可分离余弦变换 $Y = C X C^T$ 实现平滑块能量集中；Haar 小波 $W_4$ 列正交满足 $W_4^T W_4 = \\operatorname{diag}(4,4,2,2)$，兼顾空间局部定位与 $\\mathcal{O}(n)$ 线性复杂度，擅于无振铃地表示锐利边缘。",
+  "线性算子换基公式：同空间同基切换得相似变换 $B = M^{-1} A M$；一般空间双基切换得 $B = U^{-1} A V$。选择特征基 $M = S$ 得 $\\Lambda$，实对称特征基 $M = Q$ 得 $Q^T A Q = \\Lambda$，而双正交奇异基 $(U, V)$ 则把任意矩阵 $A \\in \\mathbb{R}^{m\\times n}$ 普遍化为对角阵 $\\Sigma = U^T A V$。"
+]} />
+
+---
+
+## 五、课后直觉训练题（Intuition Problem Set）
+
+<ProblemSet title="第 32 讲 课后直觉训练题" description="少算多想：先手算与定性推理（必要时逐级点开 Hint），再展开「几何与子空间直觉 + 严格代数证明」双视角核对。">
+
+<ExerciseCard id="l32-ex1" tier="L1" title="4 点 Haar 小波分解、标准正交化与硬阈值能量精算">
+
+给定 4 像素信号 $\mathbf{x} = \begin{bmatrix} 10 \\ 6 \\ 3 \\ 1 \end{bmatrix}$ 与 4 点 Haar 小波基矩阵 $W_4 = \begin{bmatrix} 1 & 1 & 1 & 0 \\ 1 & 1 & -1 & 0 \\ 1 & -1 & 0 & 1 \\ 1 & -1 & 0 & -1 \end{bmatrix}$。
+
+1. 利用 $W_4^{-1} = D_4^{-1} W_4^T$ 计算信号在 $W_4$ 下的坐标向量 $\mathbf{c} = [c_1, c_2, c_3, c_4]^T$，写出 $\mathbf{x}$ 关于 $\mathbf{w}_1, \mathbf{w}_2, \mathbf{w}_3, \mathbf{w}_4$ 的线性组合展开式；
+2. 将 $\mathbf{c}$ 换算为标准正交 Haar 基 $Q_4 = W_4 D_4^{-1/2}$ 下的系数 $\tilde{\mathbf{c}} = Q_4^T \mathbf{x}$，并直接核验帕塞瓦尔恒等式 $\|\mathbf{x}\|_2^2 = \sum_{i=1}^4 \tilde{c}_i^2$；
+3. 若设定硬阈值 $\tau = 2$（将所有满足 $|\tilde{c}_i| \lt 2$ 的分量置零），求保留后的稀疏系数 $\hat{\mathbf{c}}$ 与重构信号 $\hat{\mathbf{x}} = W_4 \hat{\mathbf{c}}$，计算像素空间平方误差 $\|\mathbf{x} - \hat{\mathbf{x}}\|_2^2$ 及留存能量百分比；若进一步将阈值提高到 $\tau = 3$ 呢？
+
+<ProgressiveHint hints={[
+  "回顾 $D_4 = W_4^T W_4 = \\operatorname{diag}(4, 4, 2, 2)$，因此 $c_1, c_2$ 需要除以 $4$，而 $c_3, c_4$ 需要除以 $2$。",
+  "标准正交系数满足 $\\tilde{\\mathbf{c}} = D_4^{1/2} \\mathbf{c} = [2c_1, 2c_2, \\sqrt{2}c_3, \\sqrt{2}c_4]^T$，从而 $\\tilde{c}_3^2 = 2 c_3^2$、$\\tilde{c}_4^2 = 2 c_4^2$。",
+  "当 $\\tau = 2$ 时，比较 $|\\tilde{c}_3| = 2\\sqrt{2} \\approx 2.828$ 与 $|\\tilde{c}_4| = \\sqrt{2} \\approx 1.414$；当 $\\tau = 3$ 时，两个高频细节系数都会被截断。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+通过平均与半差值金字塔，一眼就能看出 $[10, 6]$ 的平均是 $8$、半差是 $2$，$[3, 1]$ 的平均是 $2$、半差是 $1$；再把 $[8, 2]$ 平均与半差，瞬间读出全局均值 $5$、半区差 $3$。换算到标准正交能量后，左半区的跃变强度 $2\sqrt{2} \approx 2.83$ 比右半区的 $\sqrt{2} \approx 1.41$ 更大，所以阈值取 $2$ 时会聪明地保留左半边较显著的局部细节、仅砍掉右半边的微小波动；阈值升到 $3$ 则保留整体双阶梯轮廓 $[8, 8, 2, 2]^T$，依然保留了 $93.15\%$ 的信号能量！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问：**
+利用 $W_4^{-1} = D_4^{-1} W_4^T$，其中 $D_4 = \operatorname{diag}(4, 4, 2, 2)$：
+
+$$
+\mathbf{c} = \begin{bmatrix}
+(10 + 6 + 3 + 1)/4 \\
+(10 + 6 - 3 - 1)/4 \\
+(10 - 6)/2 \\
+(3 - 1)/2
+\end{bmatrix} = \begin{bmatrix} 5 \\ 3 \\ 2 \\ 1 \end{bmatrix}
+$$
+
+线性组合展开式为：
+
+$$
+\mathbf{x} = 5\mathbf{w}_1 + 3\mathbf{w}_2 + 2\mathbf{w}_3 + 1\mathbf{w}_4
+$$
+
+**第 2 问：**
+由于 $Q_4 = W_4 D_4^{-1/2}$，有 $\tilde{\mathbf{c}} = Q_4^T \mathbf{x} = D_4^{-1/2} W_4^T \mathbf{x} = D_4^{1/2} \mathbf{c}$：
+
+$$
+\tilde{\mathbf{c}} = \begin{bmatrix} 2 \cdot 5 \\ 2 \cdot 3 \\ \sqrt{2} \cdot 2 \\ \sqrt{2} \cdot 1 \end{bmatrix} = \begin{bmatrix} 10 \\ 6 \\ 2\sqrt{2} \\ \sqrt{2} \end{bmatrix}
+$$
+
+直接计算原信号总能量与系数能量和：
+
+$$
+\|\mathbf{x}\|_2^2 = 10^2 + 6^2 + 3^2 + 1^2 = 100 + 36 + 9 + 1 = 146
+$$
+
+$$
+\sum_{i=1}^4 \tilde{c}_i^2 = 10^2 + 6^2 + (2\sqrt{2})^2 + (\sqrt{2})^2 = 100 + 36 + 8 + 2 = 146
+$$
+
+两者严格相等！
+
+**第 3 问：**
+- **情形（a）$\tau = 2$**：
+  因为 $|\tilde{c}_1| = 10 \ge 2$，$|\tilde{c}_2| = 6 \ge 2$，$|\tilde{c}_3| = 2\sqrt{2} \approx 2.828 \ge 2$，唯有 $|\tilde{c}_4| = \sqrt{2} \approx 1.414 \lt 2$。因此置 $c_4 \mapsto 0$，得 $\hat{\mathbf{c}} = [5, 3, 2, 0]^T$。
+  重构信号为：
+  $$
+  \hat{\mathbf{x}} = 5\mathbf{w}_1 + 3\mathbf{w}_2 + 2\mathbf{w}_3 = \begin{bmatrix} 10 \\ 6 \\ 2 \\ 2 \end{bmatrix}
+  $$
+  像素空间误差为 $\mathbf{x} - \hat{\mathbf{x}} = [0, 0, 1, -1]^T$，平方误差为 $\|\mathbf{x} - \hat{\mathbf{x}}\|_2^2 = 1^2 + (-1)^2 = 2 = \tilde{c}_4^2$；留存能量比率为 $144 / 146 \approx 98.63\%$。
+
+- **情形（b）$\tau = 3$**：
+  此时 $|\tilde{c}_3| = 2\sqrt{2} \lt 3$ 与 $|\tilde{c}_4| = \sqrt{2} \lt 3$ 均被截断置零，得 $\hat{\mathbf{c}} = [5, 3, 0, 0]^T$。
+  重构信号为：
+  $$
+  \hat{\mathbf{x}} = 5\mathbf{w}_1 + 3\mathbf{w}_2 = \begin{bmatrix} 8 \\ 8 \\ 2 \\ 2 \end{bmatrix}
+  $$
+  误差 $\mathbf{x} - \hat{\mathbf{x}} = [2, -2, 1, -1]^T$，平方误差为 $2^2 + (-2)^2 + 1^2 + (-1)^2 = 10 = 8 + 2 = \tilde{c}_3^2 + \tilde{c}_4^2$；留存能量比率为 $136 / 146 \approx 93.15\%$。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l32-ex2" tier="L2" title="概念辨析：算子换基公式的矩阵乘法次序">
+
+判断以下命题是否正确：
+
+“设线性算子 $T: \mathbb{R}^n \to \mathbb{R}^n$ 在标准基下的矩阵为 $A$。若将新基向量 $\mathbf{w}_1, \dots, \mathbf{w}_n$ 按列排成可逆矩阵 $M = [\mathbf{w}_1 \;\cdots\; \mathbf{w}_n]$，则同一线性算子 $T$ 在新基 $\mathcal{W}$ 下的矩阵表示必等于 $M A M^{-1}$。”
+
+<TrueFalseInteractive
+  id="l32-tf1"
+  correct={false}
+  quickFeedback={"错误！因为标准坐标与新坐标满足 $\\mathbf{x} = M\\mathbf{c}$ 与 $\\mathbf{c}' = M^{-1}\\mathbf{y}$，从 $\\mathbf{c}$ 出发依次作用 $M$、$A$、$M^{-1}$，得到的矩阵必为 $M^{-1} A M$，而非 $M A M^{-1}$！"}
+/>
+
+<ProgressiveHint hints={[
+  "检验映射方向：从新基坐标 $\\mathbf{c}$ 出发，第一步必须先把它还原成标准坐标 $\\mathbf{x} = M\\mathbf{c}$。",
+  "尝试用 $A = \\begin{bmatrix} 1 & 0 \\\\ 0 & 2 \\end{bmatrix}$ 与 $M = \\begin{bmatrix} 1 & 1 \\\\ 0 & 1 \\end{bmatrix}$ 构造一个 $2\\times 2$ 反例，对比直接按列构造法 $T(\\mathbf{w}_2)$ 在基 $\\{\\mathbf{w}_1, \\mathbf{w}_2\\}$ 下的坐标。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+“把逆写在左边还是右边”是基变换中最常记混的坑。你只需记住一行逻辑链：**新基矩阵 $M$ 的作用是“把新坐标 $\mathbf{c}$ 翻译成老坐标 $\mathbf{x} = M\mathbf{c}$”**。因此，矩阵乘法最靠右端（最先吃进 $\mathbf{c}$）的必须是 $M$，绝不可能是 $M^{-1}$！吃进 $\mathbf{c}$ 变为 $\mathbf{x}$ 后，再用老算子 $A$ 乘上去得 $A M \mathbf{c}$，最后才用 $M^{-1}$ 把输出翻译回新坐标系——合起来自然就是 $M^{-1} A M$。
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**错误**。
+
+**一般推导**：
+由 $\mathbf{x} = M\mathbf{c}$ 与 $\mathbf{y} = A\mathbf{x} = M\mathbf{c}'$，得 $M\mathbf{c}' = A M \mathbf{c}$，左乘 $M^{-1}$ 立即得 $\mathbf{c}' = (M^{-1} A M)\mathbf{c}$。故新基下的矩阵是 $B = M^{-1} A M$，而非 $M A M^{-1}$（二者一般不等，除非 $M^2 A = A M^2$ 等特殊可交换情形）。
+
+**具体 $2 \times 2$ 反例**：
+取 $A = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix}$，新基矩阵 $M = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}$（即 $\mathbf{w}_1 = [1, 0]^T, \mathbf{w}_2 = [1, 1]^T$），则 $M^{-1} = \begin{bmatrix} 1 & -1 \\ 0 & 1 \end{bmatrix}$。
+
+1. 按第 31 讲定义直接检验第 2 列：
+   $$
+   T(\mathbf{w}_2) = A\begin{bmatrix} 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \end{bmatrix} = (-1)\begin{bmatrix} 1 \\ 0 \end{bmatrix} + 2\begin{bmatrix} 1 \\ 1 \end{bmatrix} = -\mathbf{w}_1 + 2\mathbf{w}_2
+   $$
+   故正确矩阵 $B$ 的第 2 列必为 $[-1, 2]^T$。
+2. 验证 $M^{-1} A M$：
+   $$
+   M^{-1} A M = \begin{bmatrix} 1 & -1 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & -2 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & -1 \\ 0 & 2 \end{bmatrix} = B
+   $$
+3. 而错误公式 $M A M^{-1}$ 给出：
+   $$
+   M A M^{-1} = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & -1 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 2 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & -1 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 1 \\ 0 & 2 \end{bmatrix} \ne B
+   $$
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l32-ex3" tier="L2" title="概念辨析：非正交基下硬阈值截断与帕塞瓦尔误差等式">
+
+判断以下命题是否正确：
+
+“设 $W \in \mathbb{R}^{n \times n}$ 是 $\mathbb{R}^n$ 的任意一组可逆基矩阵（不要求列向量正交），$\mathbf{x} = W\mathbf{c}$。若在坐标空间保留子集 $S$ 并把其余系数置零得 $\hat{\mathbf{c}}$（重构 $\hat{\mathbf{x}} = W\hat{\mathbf{c}}$），则像素空间平方误差 $\|\mathbf{x} - \hat{\mathbf{x}}\|_2^2$ 仍恒等于被丢弃系数平方和 $\sum_{i \notin S} c_i^2$。”
+
+<TrueFalseInteractive
+  id="l32-tf2"
+  correct={false}
+  quickFeedback={"错误！误差满足 $\\|\\mathbf{x} - \\hat{\\mathbf{x}}\\|_2^2 = (\\mathbf{c} - \\hat{\\mathbf{c}})^T (W^T W) (\\mathbf{c} - \\hat{\\mathbf{c}})$。只有当 $W$ 是标准正交矩阵（$W^T W = I_n$）时才恒等于 $\\sum_{i \\notin S} c_i^2$；否则列长度与列间夹角余弦（交叉项）都会改写真实误差！"}
+/>
+
+<ProgressiveHint hints={[
+  "将误差写成二次型：$\\|\\mathbf{x} - \\hat{\\mathbf{x}}\\|_2^2 = \\|W(\\mathbf{c} - \\hat{\\mathbf{c}})\\|_2^2 = \\Delta\\mathbf{c}^T (W^T W) \\Delta\\mathbf{c}$。",
+  "即使所有基向量都单位化（$\\|\\mathbf{w}_i\\|_2 = 1$），只要它们不正交（$\\mathbf{w}_i^T \\mathbf{w}_j \\ne 0$），同时丢弃两个系数就会冒出交叉乘积项 $2 c_i c_j (\\mathbf{w}_i^T \\mathbf{w}_j)$！试试取 $W = \\begin{bmatrix} 1 & 3/5 \\\\ 0 & 4/5 \\end{bmatrix}$ 与 $\\mathbf{c} = [1, 1]^T$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+帕塞瓦尔能量恒等式本质上是**高维勾股定理**：斜边平方等于各条直角边平方之和，前提必须是**直角（垂直）**！如果基向量之间夹角不是 $90^\circ$（比如斜着指向相近方向），丢掉的两个分量在叠加时就会互相“顺风叠加”或“逆风抵消”，导致真实重构误差既可能大幅膨胀，也可能意外变小——再也无法通过简单看系数大小来精准控制压缩误差。
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**错误**。
+
+令误差系数向量 $\Delta\mathbf{c} = \mathbf{c} - \hat{\mathbf{c}}$（仅在 $i \notin S$ 处等于 $c_i$，其余为 $0$）。则真实像素误差平方为：
+
+$$
+\|\mathbf{x} - \hat{\mathbf{x}}\|_2^2 = \|W \Delta\mathbf{c}\|_2^2 = \Delta\mathbf{c}^T (W^T W) \Delta\mathbf{c} = \sum_{i \notin S} \|\mathbf{w}_i\|_2^2 c_i^2 + \sum_{\substack{i, j \notin S \\ i \ne j}} c_i c_j (\mathbf{w}_i^T \mathbf{w}_j)
+$$
+
+可见该式恒等于 $\sum_{i \notin S} c_i^2$ 的充要条件是 $W^T W = I_n$（即 $W$ 必须为**标准正交矩阵**）。非正交基通过两大机制破坏该等式：
+1. **列长度不为 1**（即使两两正交，如 Haar 矩阵 $W_4$）：误差加权为 $\sum d_i c_i^2$；
+2. **列间不正交产生的交叉项**（即使每列都已经单位化！）。
+
+**反例（每列均为单位向量但非正交）**：
+取 $W = \begin{bmatrix} 1 & 3/5 \\ 0 & 4/5 \end{bmatrix}$，显见 $\|\mathbf{w}_1\|_2 = 1$ 且 $\|\mathbf{w}_2\|_2 = \sqrt{(3/5)^2 + (4/5)^2} = 1$，但 $\mathbf{w}_1^T \mathbf{w}_2 = 3/5 \ne 0$。取 $\mathbf{c} = [1, 1]^T$（对应 $\mathbf{x} = [8/5, 4/5]^T$），若将两个系数均截断置零得 $\hat{\mathbf{c}} = [0, 0]^T$：
+- 被丢弃系数平方和：$c_1^2 + c_2^2 = 1^2 + 1^2 = 2$；
+- 真实像素误差平方：$\|\mathbf{x} - \mathbf{0}\|_2^2 = (8/5)^2 + (4/5)^2 = 80/25 = 3.2 \ne 2$！多出的 $1.2$ 恰好就是交叉项 $2 c_1 c_2 (\mathbf{w}_1^T\mathbf{w}_2) = 2 \cdot 1 \cdot 1 \cdot (3/5) = 1.2$。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l32-ex4" tier="L3" title="无计算子空间与算子几何推理：单基对角化的局限与 SVD 双基的破局">
+
+设 $P \in \mathbb{R}^{3 \times 3}$ 是向 $\mathbb{R}^3$ 中一个二维平面 $V$ 作正交投影的矩阵，并定义镜面反射算子 $H = 2P - I_3$。再考察二维亏损（不可对角化）Jordan 块 $J = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}$。
+
+1. **不做具体数字坐标计算**，直接在几何上构造一组 $\mathbb{R}^3$ 的标准正交基 $\mathcal{Q} = \{\mathbf{q}_1, \mathbf{q}_2, \mathbf{q}_3\}$，使得在这组基下 $P$ 与 $H$ **同时**化为对角阵 $Q^T P Q$ 与 $Q^T H Q$，写出这两个对角阵的显式矩阵；
+2. 证明对于任意可逆换基矩阵 $M \in \mathbb{R}^{n\times n}$，矩阵 $B = M^{-1} A M$ 必保持秩不变（$\operatorname{rank}(B) = \operatorname{rank}(A)$）与迹不变（$\operatorname{tr}(B) = \operatorname{tr}(A)$）；
+3. 解释为什么对于 Jordan 块 $J = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}$，**不存在任何**可逆方阵 $M \in \mathbb{C}^{2 \times 2}$ 能够通过同基变换 $M^{-1} J M$ 将它对角化；但只要像第 30、31 讲那样允许输入与输出采用不同的标准正交基 $(V, U)$，就能立刻得到对角矩阵 $U^T J V = \Sigma$，请显式写出这组 $(U, \Sigma, V)$！
+
+<ProgressiveHint hints={[
+  "第 1 问：将 $\\mathbb{R}^3$ 按正交直和分解为 $V \\oplus V^\\perp$（维数分别为 $2$ 与 $1$）。对 $V$ 内向量，投影不动、反射不动；对 $V^\\perp$ 内向量，投影归零、反射反向！",
+  "第 2 问：左乘可逆矩阵不改变零空间与行空间，右乘可逆矩阵不改变列空间；迹的证明利用第 29 讲的循环不变性 $\\operatorname{tr}(XY) = \\operatorname{tr}(YX)$。",
+  "第 3 问：如果 $M^{-1} J M = \\Lambda$ 对角，利用 $J^2 = O_2$ 导出 $\\Lambda^2 = O_2$ 矛盾；而对不同输入输出基，只需观察 $J\\mathbf{e}_2 = \\mathbf{e}_1$ 与 $J\\mathbf{e}_1 = \\mathbf{0}$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+第 1 问抓住了线性代数最美妙的“正交补分解”思想：任何向量都能唯一拆成平面内分量和垂直于平面的分量。只要用平面内正交基 + 法向量组成坐标系，投影就是“保留前两维、砍掉第三维”，反射就是“保留前两维、翻转第三维”，无需算一个数字，对角矩阵直接映入眼帘。
+第 3 问点透了“相似变换 vs. SVD”的本质分水岭：强迫输入和输出用同一套坐标轴时，剪切算子 $J$ 把第 2 根轴压到第 1 根轴上，你无论怎么扭转坐标系都逃不脱这种错位（除非把矩阵变成零矩阵，但零矩阵显然不对）；但一旦允许“输入用一套正交轴 $\mathbf{v}_1 = \mathbf{e}_2, \mathbf{v}_2 = \mathbf{e}_1$，输出用另一套正交轴 $\mathbf{u}_1 = \mathbf{e}_1, \mathbf{u}_2 = \mathbf{e}_2$”，错位瞬间变成了“把输入第 1 轴原封不动送给输出第 1 轴、第 2 轴压零”，立马对角化为 $\operatorname{diag}(1, 0)$！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问（几何构造同时对角化基）：**
+在二维平面 $V$ 中任取一组标准正交基 $\{\mathbf{q}_1, \mathbf{q}_2\}$（可用 Gram-Schmidt 构造），并在一维正交补空间 $V^\perp$ 中取单位法向量 $\mathbf{q}_3$（显然 $\mathbf{q}_3 \perp \mathbf{q}_1, \mathbf{q}_3 \perp \mathbf{q}_2$）。则 $\mathcal{Q} = \{\mathbf{q}_1, \mathbf{q}_2, \mathbf{q}_3\}$ 构成 $\mathbb{R}^3$ 的标准正交基，$Q = [\mathbf{q}_1 \;\; \mathbf{q}_2 \;\; \mathbf{q}_3]$ 为正交矩阵（$Q^{-1} = Q^T$）。
+逐列考察算子作用：
+- 由于 $\mathbf{q}_1, \mathbf{q}_2 \in V$，正交投影保持它们不变：$P\mathbf{q}_1 = \mathbf{q}_1$，$P\mathbf{q}_2 = \mathbf{q}_2$；镜面反射亦然：$H\mathbf{q}_1 = (2P-I_3)\mathbf{q}_1 = \mathbf{q}_1$，$H\mathbf{q}_2 = \mathbf{q}_2$。
+- 由于 $\mathbf{q}_3 \in V^\perp$，正交投影将其映为零：$P\mathbf{q}_3 = \mathbf{0}$；镜面反射将其反向：$H\mathbf{q}_3 = 2\cdot\mathbf{0} - \mathbf{q}_3 = -\mathbf{q}_3$。
+
+根据算子换基定理，在新基 $\mathcal{Q}$ 下 $P$ 与 $H$ 同时化为对角阵：
+
+$$
+Q^T P Q = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 0 \end{bmatrix}, \qquad Q^T H Q = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & -1 \end{bmatrix}
+$$
+
+**第 2 问（秩与迹的相似不变性）：**
+- **保秩**：左乘可逆矩阵 $M^{-1}$ 不改变矩阵的零空间（$M^{-1}(A M\mathbf{z}) = \mathbf{0} \iff AM\mathbf{z} = \mathbf{0}$），右乘可逆矩阵 $M$ 只是对输入空间作可逆同构映射，故 $\dim \operatorname{Null}(B) = \dim \operatorname{Null}(A)$。由秩-零度定理得 $\operatorname{rank}(B) = n - \dim \operatorname{Null}(B) = n - \dim \operatorname{Null}(A) = \operatorname{rank}(A)$。
+- **保迹**：利用迹的循环不变性 $\operatorname{tr}(XY) = \operatorname{tr}(YX)$（取 $X = M^{-1}, Y = AM$）：
+  $$
+  \operatorname{tr}(B) = \operatorname{tr}\big(M^{-1} (A M)\big) = \operatorname{tr}\big((A M) M^{-1}\big) = \operatorname{tr}(A I_n) = \operatorname{tr}(A)
+  $$
+
+**第 3 问（Jordan 块不可相似对角化 vs. SVD 双基直接对角化）：**
+- **反证法证明同基不可能对角化**：假设存在可逆复方阵 $M$ 使得 $M^{-1} J M = \Lambda = \operatorname{diag}(\lambda_1, \lambda_2)$。注意 $J^2 = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}\begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} = O_2$，于是：
+  $$
+  \Lambda^2 = (M^{-1} J M)^2 = M^{-1} J^2 M = M^{-1} O_2 M = O_2 \implies \operatorname{diag}(\lambda_1^2, \lambda_2^2) = O_2 \implies \lambda_1 = \lambda_2 = 0
+  $$
+  因此 $\Lambda = O_2$，反推出 $J = M O_2 M^{-1} = O_2$，与 $J \ne O_2$（$\operatorname{rank}(J) = 1 \ne 0$）矛盾！故 $J$ 绝不可能通过 $M^{-1}JM$ 对角化。
+- **双正交基 SVD 显式分解**：注意 $J \mathbf{e}_2 = \mathbf{e}_1$ 且 $J \mathbf{e}_1 = \mathbf{0}$。选输入标准正交基为 $V = [\mathbf{e}_2 \;\; \mathbf{e}_1] = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$，输出标准正交基为 $U = [\mathbf{e}_1 \;\; \mathbf{e}_2] = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$。直接计算：
+  $$
+  U^T J V = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix} = \Sigma
+  $$
+  这正是 $J = U \Sigma V^T$ 的奇异值分解：通过解耦输入基 $V$ 与输出基 $U$，不可相似对角化的亏损矩阵立刻被完美对角化！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l32-ex5" tier="L4" title="综合挑战：2D 可分离变换能量守恒与病态斜基的压缩灾难">
+
+本题从二维图像块变换与矩阵条件数两个侧面，深挖正交基在现代压缩中的不可替代性：
+
+1. **二维可分离 Haar / DCT 块变换（2D Separable Transform）**：
+   设 $2 \times 2$ 标准正交变换矩阵 $H_2 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}$（显见 $H_2 = H_2^T$ 且 $H_2^T H_2 = I_2$），给定 $2 \times 2$ 灰度图像块 $X = \begin{bmatrix} 10 & 8 \\ 6 & 4 \end{bmatrix}$。
+   (a) 计算二维可分离变换结果 $Y = H_2 X H_2^T$，解释为什么右下角对角频域系数 $Y_{11}$ 恰好为零；
+   (b) 证明对**任意**正交方阵 $C \in \mathbb{R}^{N \times N}$（$C^T C = I_N$）和任意二维图像块 $X \in \mathbb{R}^{N \times N}$，二维变换 $Y = C X C^T$ 严格保持 Frobenius 能量守恒 $\|Y\|_F^2 = \|X\|_F^2$（其中 $\|M\|_F^2 = \operatorname{tr}(M^T M) = \sum_{i,j} M_{ij}^2$）；
+   (c) 若只保留直流项 $Y_{00}$ 将其余系数截断为零得 $\hat{Y}$，计算重构图像块 $\hat{X} = H_2^T \hat{Y} H_2$，并直接核验 $\|X - \hat{X}\|_F^2 = \sum_{(i,j)\ne(0,0)} Y_{ij}^2$。
+
+2. **为什么病态非正交（斜）基会酿成压缩灾难？**
+   设想有人改用近线性相关的非正交基矩阵 $W_\varepsilon = \begin{bmatrix} 1 & 1 \\ 0 & \varepsilon \end{bmatrix}$（$0 \lt \varepsilon \ll 1$）。
+   (a) 对单位长度输入 $\mathbf{x} = \begin{bmatrix} 0 \\ 1 \end{bmatrix}$（$\|\mathbf{x}\|_2 = 1$），求其坐标向量 $\mathbf{c} = W_\varepsilon^{-1} \mathbf{x}$；观察当 $\varepsilon = 10^{-3}$ 时系数幅值有多大，这会对量化/存储带来什么灾难？
+   (b) 结合第 30 讲奇异值分解理论，证明对于任意可逆基矩阵 $W \in \mathbb{R}^{n \times n}$，系数空间扰动 $\Delta\mathbf{c} = \mathbf{c} - \hat{\mathbf{c}}$ 与信号重构误差 $\Delta\mathbf{x} = W\Delta\mathbf{c}$ 严格满足双边奇异值界：
+   $$
+   \sigma_n(W) \|\Delta\mathbf{c}\|_2 \le \|\Delta\mathbf{x}\|_2 \le \sigma_1(W) \|\Delta\mathbf{c}\|_2
+   $$
+   说明为什么条件数 $\kappa_2(W) = \sigma_1(W)/\sigma_n(W) = 1$（即 $W$ 为正交矩阵的缩放倍数）是压制量化误差放大的最优几何设计。
+
+<ProgressiveHint hints={[
+  "第 1 问 (a)：先算 $H_2 X$（对每列求和再求差并除以 $\\sqrt{2}$），再右乘 $H_2^T = H_2$；$Y_{11}$ 探测的是行梯度与列梯度的耦合扭曲，平面函数 $x_{ij} = a i + b j + c$ 没有二阶交叉扭曲。",
+  "第 1 问 (b)：展开 $\\|Y\\|_F^2 = \\operatorname{tr}(Y^T Y) = \\operatorname{tr}((C X C^T)^T (C X C^T))$，利用 $C^T C = I_N$ 以及迹的循环不变性 $\\operatorname{tr}(AB) = \\operatorname{tr}(BA)$ 一步消去 $C$。",
+  "第 2 问 (b)：将 $W = U\\Sigma V^T$ 代入 $\\|W\\Delta\\mathbf{c}\\|_2$，利用正交矩阵 $U, V^T$ 保 $\\ell_2$ 范数性质，只剩下对角矩阵 $\\Sigma$ 的上下界估计。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+第 1 问让你亲手摸到了 JPEG / JPEG 2000 内部处理二维像素块的真实引擎：一行右乘、一列左乘，能量纹丝不动（Frobenius 范数绝对守恒），且线性渐变图像块的混合高频扭曲项直接归零，直流项一人扛起 $90.7\%$ 的能量！
+第 2 问揭示了为什么压缩界对正交基如此执迷：近共线斜基必须靠“两个巨大而方向几乎相反的基向量相互抵消”才能拼出垂直方向的单位向量（就像用 $[1, 0]^T$ 和 $[1, 0.001]^T$ 凑出 $[0, 1]^T$，系数高达 $\pm 1000$！）。一旦在系数空间做哪怕微小的四舍五入量化，巨大的正负抵消平衡立刻打破，误差会顺着大奇异值方向呈千倍放大！而正交基的所有奇异值齐刷刷等于 $1$（条件数 $\kappa_2 = 1$），坐标空间和像素空间完全等距，彻底杜绝了量化噪声放大。
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问（二维可分离变换与 Frobenius 能量守恒）：**
+
+**(a) 计算二维变换系数：**
+先左乘 $H_2$：
+
+$$
+H_2 X = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}\begin{bmatrix} 10 & 8 \\ 6 & 4 \end{bmatrix} = \frac{1}{\sqrt{2}}\begin{bmatrix} 16 & 12 \\ 4 & 4 \end{bmatrix}
+$$
+
+再右乘 $H_2^T = H_2$：
+
+$$
+Y = (H_2 X) H_2^T = \frac{1}{2}\begin{bmatrix} 16 & 12 \\ 4 & 4 \end{bmatrix}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} = \frac{1}{2}\begin{bmatrix} 28 & 4 \\ 8 & 0 \end{bmatrix} = \begin{bmatrix} 14 & 2 \\ 4 & 0 \end{bmatrix}
+$$
+
+解释：$Y_{11} = \frac{1}{2}(X_{00} - X_{01} - X_{10} + X_{11}) = \frac{1}{2}(10 - 8 - 6 + 4) = 0$。因为图像块 $X$ 沿着水平方向每格减 $2$、沿着竖直方向每格减 $4$（是一个精确的二维平面梯度），行差分与列差分之间没有混合扭曲（交叉二阶导数为零），所以对角高频项 $Y_{11}$ 严格为零！
+
+**(b) 证明 2D Frobenius 能量守恒：**
+对任意正交方阵 $C \in \mathbb{R}^{N\times N}$（满足 $C^T C = C C^T = I_N$）：
+
+$$
+\|Y\|_F^2 = \operatorname{tr}(Y^T Y) = \operatorname{tr}\!\left((C X C^T)^T (C X C^T)\right) = \operatorname{tr}\!\left(C X^T (C^T C) X C^T\right)
+$$
+
+代入 $C^T C = I_N$，再利用迹的循环不变性 $\operatorname{tr}(C (X^T X) C^T) = \operatorname{tr}\!\left((X^T X)(C^T C)\right)$：
+
+$$
+\|Y\|_F^2 = \operatorname{tr}(C X^T X C^T) = \operatorname{tr}(X^T X C^T C) = \operatorname{tr}(X^T X) = \|X\|_F^2
+$$
+
+证毕！（在本例中 $\|X\|_F^2 = 10^2 + 8^2 + 6^2 + 4^2 = 216$，且 $\|Y\|_F^2 = 14^2 + 2^2 + 4^2 + 0^2 = 196 + 4 + 16 = 216$。）
+
+**(c) 截断重构验证：**
+保留直流 $Y_{00} = 14$，得 $\hat{Y} = \begin{bmatrix} 14 & 0 \\ 0 & 0 \end{bmatrix}$。重构：
+
+$$
+\hat{X} = H_2^T \hat{Y} H_2 = \frac{1}{2}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}\begin{bmatrix} 14 & 0 \\ 0 & 0 \end{bmatrix}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} = \begin{bmatrix} 7 & 7 \\ 7 & 7 \end{bmatrix}
+$$
+
+直接计算残差 $X - \hat{X} = \begin{bmatrix} 3 & 1 \\ -1 & -3 \end{bmatrix}$，其 Frobenius 平方误差为：
+
+$$
+\|X - \hat{X}\|_F^2 = 3^2 + 1^2 + (-1)^2 + (-3)^2 = 9 + 1 + 1 + 9 = 20
+$$
+
+而被舍弃的变换系数平方和为 $Y_{01}^2 + Y_{10}^2 + Y_{11}^2 = 2^2 + 4^2 + 0^2 = 4 + 16 = 20$，两者完全相等！
+
+---
+
+**第 2 问（病态斜基分析与 SVD 误差界）：**
+
+**(a) 病态基的系数爆炸：**
+计算 $W_\varepsilon^{-1} = \begin{bmatrix} 1 & -1/\varepsilon \\ 0 & 1/\varepsilon \end{bmatrix}$，对 $\mathbf{x} = \begin{bmatrix} 0 \\ 1 \end{bmatrix}$：
+
+$$
+\mathbf{c} = W_\varepsilon^{-1} \mathbf{x} = \begin{bmatrix} -1/\varepsilon \\ 1/\varepsilon \end{bmatrix}
+$$
+
+当 $\varepsilon = 10^{-3}$ 时，$\mathbf{c} = [-1000, 1000]^T$！虽然原始信号能量仅为 $\|\mathbf{x}\|_2^2 = 1$，但坐标系数却飙升至上千倍（发生严重的正负相消灾难）；存储这些巨大系数不仅耗费更多比特，且对 $c_1, c_2$ 的微小量化误差都可能无法抵消而直接摧毁重构精度。
+
+**(b) 证明双边奇异值不等式：**
+对可逆矩阵 $W \in \mathbb{R}^{n\times n}$ 作奇异值分解 $W = U \Sigma V^T$（第 30 讲），其中 $U, V$ 均为正交矩阵，$\Sigma = \operatorname{diag}(\sigma_1, \dots, \sigma_n)$ 满足 $\sigma_1 \ge \dots \ge \sigma_n \gt 0$。令 $\mathbf{z} := V^T \Delta\mathbf{c}$。由于正交变换 $V^T$ 与 $U$ 均严格保持 $\ell_2$ 范数，有 $\|\mathbf{z}\|_2 = \|\Delta\mathbf{c}\|_2$ 以及：
+
+$$
+\|\Delta\mathbf{x}\|_2^2 = \|U \Sigma V^T \Delta\mathbf{c}\|_2^2 = \|\Sigma \mathbf{z}\|_2^2 = \sum_{i=1}^n \sigma_i^2 z_i^2
+$$
+
+利用 $\sigma_n^2 \le \sigma_i^2 \le \sigma_1^2$（$i = 1, \dots, n$）：
+
+$$
+\sigma_n^2 \|\mathbf{z}\|_2^2 = \sum_{i=1}^n \sigma_n^2 z_i^2 \le \sum_{i=1}^n \sigma_i^2 z_i^2 \le \sum_{i=1}^n \sigma_1^2 z_i^2 = \sigma_1^2 \|\mathbf{z}\|_2^2
+$$
+
+代入 $\|\mathbf{z}\|_2 = \|\Delta\mathbf{c}\|_2$ 并两端开平方，即得：
+
+$$
+\sigma_n(W) \|\Delta\mathbf{c}\|_2 \le \|\Delta\mathbf{x}\|_2 \le \sigma_1(W) \|\Delta\mathbf{c}\|_2
+$$
+
+相对误差放大倍数最坏可达条件数 $\kappa_2(W) = \frac{\sigma_1(W)}{\sigma_n(W)}$。当且仅当 $\kappa_2(W) = 1$（即所有奇异值相等 $\sigma_1 = \dots = \sigma_n = \alpha \gt 0$，$W = \alpha Q$ 为正交矩阵的纯缩放倍数）时，不等式退化为精确等距缩放 $\|\Delta\mathbf{x}\|_2 = \alpha \|\Delta\mathbf{c}\|_2$，彻底消除任何方向上的量化误差放大！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>
+
+---
+
+<FrontierAIReading
+  id="AI-14"
+  title="从正交基图像压缩（DCT / 小波）到 Latent Diffusion 潜空间降维生成直觉"
+  paperRef="Rombach et al. (CVPR 2022) High-Resolution Image Synthesis with Latent Diffusion Models"
+>
+
+### 1. 为什么高分辨率像素扩散模型遇到了“计算墙”？
+
+在第 24 讲 AI-11 中，我们见识了连续扩散模型 DDPM 的核心机制：通过前向马尔可夫加噪与反向神经网络去噪，在数据空间中拟合高维分布。然而，Rombach 等人在 2022 年提出 **Latent Diffusion Models（LDM，即 Stable Diffusion 的核心架构）** 时，敏锐指出了一个与本讲 **图像压缩** 深刻同构的瓶颈：
+
+假如直接在一张 $512 \times 512$ RGB 图像的**原始像素基（Pixel Basis）**上训练扩散模型：
+- 空间维数高达 $512 \times 512 \times 3 = 786,432$ 维！每一步反向去噪采样（通常需要 $20 \sim 50$ 步甚至上千步）都要让巨型 U-Net 或 Diffusion Transformer（DiT）在近八十万维的张量上反复前向传播；
+- 更本质的浪费在于：**像素空间中绝大多数比特和梯度都耗费在人眼根本分辨不出的“高频微末纹理”上**（犹如 JPEG 中那些能量微小、人眼迟钝的高频 DCT 系数）。在语义尚未成型时就让扩散模型耗尽算力去雕琢每一个孤立像素，在几何上极其低效！
+
+---
+
+### 2. LDM 的两阶段基变换哲学：用学出来的非线性“感知正交基”取代像素基
+
+对照我们在第 32 讲学过的**线性正交基图像压缩管道**与 **LDM 两阶段架构**，你会惊讶地发现两者在数学精神上完全同构：
+
+| 对比维度 | 经典线性图像压缩（JPEG DCT / Haar 小波） | Latent Diffusion Models（LDM / Stable Diffusion） |
+| :--- | :--- | :--- |
+| **原始表示空间** | 高维冗余像素向量 $\mathbf{x} \in \mathbb{R}^n$ | 高维冗余像素图像 $\mathbf{x} \in \mathbb{R}^{512 \times 512 \times 3}$（$786,432$ 维） |
+| **编码 / 分析换基** | 线性正交投影 $\mathbf{c} = Q^T \mathbf{x}$ | 深度卷积编码器（VAE Encoder）$\mathbf{z} = \mathcal{E}(\mathbf{x}) \in \mathbb{R}^{64 \times 64 \times 4}$（$16,384$ 维） |
+| **丢弃冗余的准则** | 硬阈值截断 $\lvert c_i\rvert \lt \tau$（最小化 $\ell_2$ 失真 $\sum_{i\notin S} c_i^2$） | **感知压缩（Perceptual Compression）**：保留语义流形结构，用对抗损失与感知损失（LPIPS）自动舍弃人眼无感的高频细节 |
+| **空间压缩比** | 典型保留 $5\% \sim 15\%$ 系数（$7:1 \sim 20:1$） | 空间下采样因子 $f = 8$（通道 $3 \to 4$），实现严格的 **$48:1$ 维度压缩**（$786,432 \div 16,384 = 48$）！ |
+| **压缩空间中的计算** | 只传输/存储稀疏非零坐标 $\hat{\mathbf{c}}$ | **语义扩散生成（Generative Modeling）**：U-Net / DiT 仅在低维潜空间 $\mathbf{z}_t \in \mathbb{R}^{64\times 64\times 4}$ 中做加噪与去噪！ |
+| **解码 / 重构还原** | 线性综合重构 $\hat{\mathbf{x}} = Q \hat{\mathbf{c}}$ | 深度卷积解码器（VAE Decoder）$\hat{\mathbf{x}} = \mathcal{D}(\mathbf{z}_0)$ 一步补回高频纹理细节 |
+
+从线性代数的视角来看，VAE 编码器 $\mathcal{E}$ 与解码器 $\mathcal{D}$ 扮演了**数据驱动的非线性“换基矩阵 $W^{-1}$ 与 $W$”**：
+1. 在经典 Haar 小波或 DCT 中，基底由人为解析设计（如余弦或阶梯），只能消除二阶像素相关性并用简单的 $\ell_2$ 帕塞瓦尔误差 $\sum_{i \notin S} c_i^2$ 度量失真；
+2. 在 LDM 中，自编码器在海量真实自然图像上端到端学会了一组**贴合自然图像流形（Natural Image Manifold）的非线性局部基底**。它把一张 $786,432$ 维图像压缩进短短 $16,384$ 维的潜空间 $\mathbf{z}$——在这里，每个潜空间坐标既像小波系数那样保留了空间拓扑结构（$64 \times 64$ 网格对应原图网格），又像低频主成分那样彻底剥离了冗余高频噪声；
+3. 于是，**高难度的“感知细节去除”由高效的前置自编码器一次性完成，昂贵的迭代扩散过程被彻底解放出来，专注于在紧凑的 $48\times$ 降维潜空间里学习纯粹的语义构图与全局结构**！这就是为什么消费级 GPU 上也能在几秒内生成高分辨率逼真图像的根本数学原因。
+
+---
+
+### 3. 可运行代码核验：Haar 正交基压缩与帕塞瓦尔（Parseval）等式验证
+
+下面这段纯 PyTorch 数值验证脚本实现了第 32 讲的 $4\times 4$ Haar 小波正交性核验，以及在 $n = 64$ 维带锐利边缘的一维扫描线信号上保留仅 $12.5\%$ 的系数后的能量留存率与帕塞瓦尔（Parseval）重构误差精确检验。
+
+<CollapsibleCode language="python" title="haar_wavelet_compaction_demo.py">
+```python
+"""
+第 32 讲 AI-14 数值核验脚本：
+1. 验证 4 点整数 Haar 小波基的正交对角化结构 W4^T W4 = diag(4, 4, 2, 2) 与手算信号 [9,7,3,1]
+2. 递归构造任意 2^k 阶标准正交 Haar 基矩阵 Q_n (满足 Q_n^T Q_n = I_n)
+3. 演示带平滑渐变 + 锐利跳变边缘的 64 点信号在仅保留 12.5% (8/64) 系数下的高能量集中与 Parseval 误差恒等式
+"""
+import math
+import torch
+
+
+def build_orthonormal_haar(n: int) -> torch.Tensor:
+    """递归构造 n x n 标准正交 Haar 小波矩阵 Q_n（列向量为标准正交基，n 须为 2 的幂）。"""
+    assert n >= 2 and (n & (n - 1)) == 0, "n must be a power of 2"
+    if n == 2:
+        return torch.tensor([[1.0, 1.0], [1.0, -1.0]]) / math.sqrt(2.0)
+
+    # 低频粗尺度部分由 Q_{n/2} 张成，高频细节部分为局部成对差分
+    q_half = build_orthonormal_haar(n // 2)
+    low_pass = torch.kron(q_half, torch.tensor([[1.0], [1.0]]) / math.sqrt(2.0))
+    high_pass = torch.kron(torch.eye(n // 2), torch.tensor([[1.0], [-1.0]]) / math.sqrt(2.0))
+    return torch.cat([low_pass, high_pass], dim=1)
+
+
+def verify_haar_compaction():
+    print("=" * 68)
+    # 1. 验证 4x4 整数 Haar 矩阵与课上 [9, 7, 3, 1]^T 手算例子
+    W4 = torch.tensor([
+        [1.0,  1.0,  1.0,  0.0],
+        [1.0,  1.0, -1.0,  0.0],
+        [1.0, -1.0,  0.0,  1.0],
+        [1.0, -1.0,  0.0, -1.0],
+    ])
+    D4 = W4.T @ W4
+    Q4 = build_orthonormal_haar(4)
+    ortho_err = (Q4.T @ Q4 - torch.eye(4)).abs().max().item()
+    print(f"1. 4 点 Haar 检验:")
+    print(f"   W4^T W4 对角元     = {torch.diag(D4).tolist()} (理论值: [4.0, 4.0, 2.0, 2.0])")
+    print(f"   ||Q4^T Q4 - I_4||  = {ortho_err:.2e}")
+
+    x4 = torch.tensor([9.0, 7.0, 3.0, 1.0])
+    c4_tilde = Q4.T @ x4
+    c4_hat = c4_tilde.clone()
+    c4_hat[2:] = 0.0  # 丢弃后两个高频细节系数 (50% 压缩)
+    x4_hat = Q4 @ c4_hat
+    err_pixel_4 = torch.sum((x4 - x4_hat) ** 2).item()
+    err_coeff_4 = torch.sum((c4_tilde - c4_hat) ** 2).item()
+    print(f"   标准正交系数 c_tilde = {[round(v, 4) for v in c4_tilde.tolist()]}")
+    print(f"   截断后重构 x_hat     = {x4_hat.round(decimals=4).tolist()}")
+    print(f"   像素误差 ||x-x_hat||^2 = {err_pixel_4:.6f} | 截断系数平方和 = {err_coeff_4:.6f}")
+
+    # 2. 在 64 维分段平滑+跃变信号上检验能量集中与 Parseval 恒等式
+    n = 64
+    Q64 = build_orthonormal_haar(n)
+    assert torch.allclose(Q64.T @ Q64, torch.eye(n), atol=1e-6)
+
+    t = torch.linspace(0.0, 1.0, n)
+    # 模拟自然图像扫描线：平滑余弦渐变 + 锐利阶跃边界
+    x = 1.5 * torch.cos(2.0 * math.pi * t) + torch.where(t < 0.5, 3.0, -1.0)
+    c = Q64.T @ x
+
+    k = 8  # 仅保留绝对值最大的前 8 个系数 (8/64 = 12.5%, 即 8:1 压缩)
+    topk_idx = torch.topk(c.abs(), k=k).indices
+    mask = torch.zeros_like(c, dtype=torch.bool)
+    mask[topk_idx] = True
+    c_hat = torch.where(mask, c, torch.zeros_like(c))
+    x_hat = Q64 @ c_hat
+
+    total_energy = torch.sum(x ** 2).item()
+    kept_energy = torch.sum(c_hat ** 2).item()
+    recon_err_sq = torch.sum((x - x_hat) ** 2).item()
+    dropped_coeff_sq = torch.sum(c[~mask] ** 2).item()
+
+    print("\n2. 64 维图像扫描线 Haar 压缩 (仅保留 8/64 = 12.5% 系数):")
+    print(f"   信号总能量 ||x||_2^2      = {total_energy:.4f}")
+    print(f"   保留能量占比              = {100.0 * kept_energy / total_energy:.2f}%")
+    print(f"   像素重构误差 ||x-x_hat||^2 = {recon_err_sq:.6f}")
+    print(f"   丢弃系数平方和 sum(c_i^2) = {dropped_coeff_sq:.6f}")
+    print(f"   Parseval 等式绝对偏差    = {abs(recon_err_sq - dropped_coeff_sq):.2e}")
+    print("=" * 68)
+
+
+if __name__ == "__main__":
+    verify_haar_compaction()
+```
+</CollapsibleCode>
+
+</FrontierAIReading>

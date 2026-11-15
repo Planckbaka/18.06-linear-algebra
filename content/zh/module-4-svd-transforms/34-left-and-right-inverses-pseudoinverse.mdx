@@ -1,0 +1,1062 @@
+---
+title: "第 34 讲：左右逆与 Moore-Penrose 伪逆 A⁺"
+ocwId: "L33"
+videoEpisode: "P34"
+textbookRef: "§7.3–7.4"
+---
+
+在第 30 讲中，我们登上了线性代数的代数巅峰——奇异值分解（Singular Value Decomposition, SVD）$A = U\Sigma V^T$。它告诉我们：哪怕是一个毫无对称性可言的长方形甚至秩亏缺矩阵 $A \in \mathbb{R}^{m \times n}$，本质上也只是在输入空间 $\mathbb{R}^n$ 的标准正交基 $V$ 与输出空间 $\mathbb{R}^m$ 的标准正交基 $U$ 之间做一次纯粹的轴向拉伸 $\Sigma$。
+
+然而，工程与数学的核心任务往往不是"给定输入 $\mathbf{x}$ 求输出 $\mathbf{b} = A\mathbf{x}$"，而是**反过来**——已知观测输出 $\mathbf{b}$ 与线性系统 $A$，反演最佳输入 $\mathbf{x}$！
+- 当 $A$ 是可逆方阵时，答案干净利落：$\mathbf{x} = A^{-1}\mathbf{b}$；
+- 但现实世界中的矩阵 $A \in \mathbb{R}^{m \times n}$ 绝大多数既**不是方阵**（$m \neq n$），也常常**不满秩**（$r \lt \min(m, n)$）。此时双边逆矩阵 $A^{-1}$ 根本不存在！
+
+Gilbert Strang 教授在本讲（第 34 讲 / 教材 §7.3–7.4）提出了一个统领全局的问题：**当标准逆 $A^{-1}$ 不复存在时，我们能赋予矩阵的"最完美逆运算"是什么？** 沿着矩阵秩 $r$ 与尺寸 $(m, n)$ 的四种全排列分类，我们将从单侧的**左逆（Left Inverse）**与**右逆（Right Inverse）**出发，剥离零空间的遮蔽，揭示行空间与列空间之间隐藏的严格**双射（Bijection）**，最终铸就普适一切矩阵的 **Moore-Penrose 伪逆（Moore-Penrose Pseudoinverse, $A^+$）**。
+
+---
+
+## 一、矩阵秩的四种情形与单侧逆家族
+
+设 $A \in \mathbb{R}^{m \times n}$ 为任意实矩阵，其秩为 $r = \operatorname{rank}(A)$。回顾四大基本子空间（第 10 讲）的维数守恒律：
+- 输入空间 $\mathbb{R}^n = \operatorname{Row}(A) \oplus \operatorname{Null}(A)$，其中 $\dim \operatorname{Row}(A) = r$，$\dim \operatorname{Null}(A) = n - r$；
+- 输出空间 $\mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T)$，其中 $\dim \operatorname{Col}(A) = r$，$\dim \operatorname{Null}(A^T) = m - r$。
+
+根据 $r$ 是否分别达到行数 $m$ 与列数 $n$，线性代数世界里的全部矩阵精确落入以下**四种情形**（Four Rank Cases）：
+
+| 矩阵情形 | 秩条件 | 零空间维度 | 方程组 $A\mathbf{x} = \mathbf{b}$ 解的个数 | 存在何种"逆"？ | 标准（规范）表达式 |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **1. 方阵满秩** | $r = m = n$ | $\dim \operatorname{Null}(A) = 0$<br/>$\dim \operatorname{Null}(A^T) = 0$ | 恒有**唯一解** | 唯一**双边逆** | $A^{-1}$ |
+| **2. 列满秩（瘦高）** | $r = n \lt m$ | $\dim \operatorname{Null}(A) = 0$<br/>$\dim \operatorname{Null}(A^T) = m - n \ge 1$ | $0$ 或 $1$ 个解<br/>（超定最小二乘） | **无穷多个左逆**<br/>（无右逆） | $(A^T A)^{-1} A^T$ |
+| **3. 行满秩（扁宽）** | $r = m \lt n$ | $\dim \operatorname{Null}(A) = n - m \ge 1$<br/>$\dim \operatorname{Null}(A^T) = 0$ | 恒有**无穷多解**<br/>（欠定自由变量） | **无穷多个右逆**<br/>（无左逆） | $A^T (A A^T)^{-1}$ |
+| **4. 一般秩亏缺** | $r \lt m$ 且 $r \lt n$ | $\dim \operatorname{Null}(A) \ge 1$<br/>$\dim \operatorname{Null}(A^T) \ge 1$ | $0$ 个或无穷多解 | **既无左逆也无右逆**<br/>（唯有**伪逆**） | $A^+ = V \Sigma^+ U^T$ |
+
+让我们逐一解剖这四种情形的代数机制与几何直觉——特别是左逆和右逆为何存在、为何不唯一，以及"标准"左右逆究竟胜在何处。
+
+---
+
+### 1. 情形 2：列满秩（$r = n \lt m$）与左逆（Left Inverse）
+
+当矩阵 $A \in \mathbb{R}^{m \times n}$ 拥有**满列秩（Full Column Rank）**时，所有列向量线性无关，因此零空间退化为原点：$\operatorname{Null}(A) = \{\mathbf{0}\}$。回忆第 15 讲（最小二乘法）的核心引理：此时格拉姆矩阵 $A^T A \in \mathbb{R}^{n \times n}$ 是**实对称正定矩阵（SPD）**，从而严格可逆！
+
+<DefinitionCard title="左逆与标准左逆" termEn="Left Inverse & Canonical Left Inverse">
+
+设矩阵 $A \in \mathbb{R}^{m \times n}$ 满足**列满秩**条件（$r = \operatorname{rank}(A) = n \le m$）。
+
+1. **左逆（Left Inverse）**：若存在矩阵 $B \in \mathbb{R}^{n \times m}$ 使得在左侧乘以 $A$ 得到 $n$ 阶单位矩阵：
+   $$
+   B A = I_n
+   $$
+   则称 $B$ 为 $A$ 的一个**左逆**。
+2. **标准左逆（Canonical Left Inverse）**：由正规方程矩阵 $A^T A$ 构造的特定左逆：
+   $$
+   A_{\text{left}}^{-1} := (A^T A)^{-1} A^T \in \mathbb{R}^{n \times m}
+   $$
+   其左乘严格给出单位阵：
+   $$
+   A_{\text{left}}^{-1} A = (A^T A)^{-1}(A^T A) = I_n
+   $$
+
+</DefinitionCard>
+
+#### 反序相乘会得到什么？
+注意：**把 $A_{\text{left}}^{-1}$ 放到右边去乘 $A$，绝对得不到 $I_m$**！事实上：
+
+$$
+A A_{\text{left}}^{-1} = A (A^T A)^{-1} A^T = P_{\operatorname{Col}(A)} \neq I_m
+$$
+
+它的秩只有 $n \lt m$，不可能等于 $m$ 阶单位矩阵 $I_m$。它恰好是第 15 讲中向列空间 $\operatorname{Col}(A)$ 做正交投影的**投影矩阵（Projection Matrix）** $P_{\operatorname{Col}(A)}$！
+
+#### 为什么左逆不唯一？一个极简 $3 \times 2$ 数值反例
+
+当 $n \lt m$ 时，左零空间 $\operatorname{Null}(A^T)$ 的维数为 $m - n \ge 1$，非平凡！如果我们在标准左逆上叠加任意一个矩阵 $D \in \mathbb{R}^{n \times m}$，只要 $D$ 的**每一行都落在 $\operatorname{Null}(A^T)$ 中**（等价于 $D A = O_{n \times n}$），就有：
+
+$$
+(A_{\text{left}}^{-1} + D) A = A_{\text{left}}^{-1} A + D A = I_n + O_{n \times n} = I_n
+$$
+
+因此 $A$ 拥有**无穷多个左逆**！
+
+**具体数值检验**：取 $3 \times 2$ 列满秩矩阵：
+
+$$
+A = \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 1 \end{bmatrix} \in \mathbb{R}^{3 \times 2} \quad (r = 2 = n \lt m = 3)
+$$
+
+先求标准左逆 $A_{\text{left}}^{-1} = (A^T A)^{-1} A^T$：
+
+$$
+A^T A = \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 1 \end{bmatrix} = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}, \qquad (A^T A)^{-1} = \frac{1}{3} \begin{bmatrix} 2 & -1 \\ -1 & 2 \end{bmatrix}
+$$
+
+$$
+A_{\text{left}}^{-1} = \frac{1}{3} \begin{bmatrix} 2 & -1 \\ -1 & 2 \end{bmatrix} \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \end{bmatrix} = \frac{1}{3} \begin{bmatrix} 2 & -1 & 1 \\ -1 & 2 & 1 \end{bmatrix}
+$$
+
+验算：
+- 左乘：$A_{\text{left}}^{-1} A = \frac{1}{3} \begin{bmatrix} 2+0+1 & 0-1+1 \\ -1+0+1 & 0+2+1 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I_2$；
+- 反序右乘：$A A_{\text{left}}^{-1} = \frac{1}{3} \begin{bmatrix} 2 & -1 & 1 \\ -1 & 2 & 1 \\ 1 & 1 & 2 \end{bmatrix} = P_{\operatorname{Col}(A)}$（对称、幂等、迹等于 $2$）。
+
+现在构造**另一个合法左逆**——直接盯住 $A$ 的前两行构成单位阵 $I_2$，干脆丢掉第 3 行信息：
+
+$$
+L_1 = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \end{bmatrix} \implies L_1 A = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I_2
+$$
+
+作差检验：$L_1 - A_{\text{left}}^{-1} = \frac{1}{3} \begin{bmatrix} 1 & 1 & -1 \\ 1 & 1 & -1 \end{bmatrix}$，其每一行都是左零空间基向量 $[1, 1, -1]$ 的倍数（$A^T [1, 1, -1]^T = \mathbf{0}$）！
+
+那为什么 $(A^T A)^{-1} A^T$ 是**出类拔萃的标准左逆**？
+1. 对任意落在左零空间中的干扰向量 $\mathbf{y} \in \operatorname{Null}(A^T)$，$A_{\text{left}}^{-1} \mathbf{y} = (A^T A)^{-1}(A^T \mathbf{y}) = \mathbf{0}$——它**精准抹零左零空间**；而 $L_1 \begin{bmatrix} 1 \\ 1 \\ -1 \end{bmatrix} = \begin{bmatrix} 1 \\ 1 \end{bmatrix} \neq \mathbf{0}$，会把正交误差强行塞进解里；
+2. 反序乘积 $A L_1 = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 1 & 1 & 0 \end{bmatrix}$ 是**斜投影**（不对称），而唯有 $A A_{\text{left}}^{-1}$ 才是对称的**正交投影** $P_{\operatorname{Col}(A)}$，使得 $\hat{\mathbf{x}} = A_{\text{left}}^{-1} \mathbf{b}$ 恰好是唯一的最小二乘解！
+
+---
+
+### 2. 情形 3：行满秩（$r = m \lt n$）与右逆（Right Inverse）
+
+把矩阵 $A$ 转置一下视角，立刻进入对称的镜像世界：当 $A \in \mathbb{R}^{m \times n}$ 拥有**满行秩（Full Row Rank）**（$r = m \lt n$）时，列空间铺满整个输出空间（$\operatorname{Col}(A) = \mathbb{R}^m$），左零空间只剩下原点 $\operatorname{Null}(A^T) = \{\mathbf{0}\}$。因此 $A A^T \in \mathbb{R}^{m \times m}$ 是实对称正定且可逆的矩阵！
+
+<DefinitionCard title="右逆与标准右逆" termEn="Right Inverse & Canonical Right Inverse">
+
+设矩阵 $A \in \mathbb{R}^{m \times n}$ 满足**行满秩**条件（$r = \operatorname{rank}(A) = m \le n$）。
+
+1. **右逆（Right Inverse）**：若存在矩阵 $C \in \mathbb{R}^{n \times m}$ 使得在右侧乘以 $A$ 得到 $m$ 阶单位矩阵：
+   $$
+   A C = I_m
+   $$
+   则称 $C$ 为 $A$ 的一个**右逆**。
+2. **标准右逆（Canonical Right Inverse）**：由 $A A^T$ 构造的特定右逆：
+   $$
+   A_{\text{right}}^{-1} := A^T (A A^T)^{-1} \in \mathbb{R}^{n \times m}
+   $$
+   其右乘严格给出单位阵：
+   $$
+   A A_{\text{right}}^{-1} = (A A^T)(A A^T)^{-1} = I_m
+   $$
+
+</DefinitionCard>
+
+#### 反序相乘与非唯一性
+同样地，若将 $A_{\text{right}}^{-1}$ 放到左边去乘 $A$，得到的不是 $I_n$，而是输入空间向行空间 $\operatorname{Row}(A) = \operatorname{Col}(A^T)$ 的**正交投影矩阵**：
+
+$$
+A_{\text{right}}^{-1} A = A^T (A A^T)^{-1} A = P_{\operatorname{Row}(A)} \neq I_n
+$$
+
+此时由于 $\dim \operatorname{Null}(A) = n - m \ge 1$，只要取任意列落在 $\operatorname{Null}(A)$ 中的矩阵 $E \in \mathbb{R}^{n \times m}$（即 $AE = O_{m \times m}$），就有 $A(A_{\text{right}}^{-1} + E) = I_m$，故右逆同样有**无穷多个**。
+
+#### 为什么 $A^T (AA^T)^{-1}$ 是标准右逆？——最小欧氏范数精确解！
+当 $r = m \lt n$ 时，方程 $A\mathbf{x} = \mathbf{b}$ 对**每一个** $\mathbf{b} \in \mathbb{R}^m$ 都有无穷多组精确解，形如 $\mathbf{x} = \mathbf{x}_{\text{particular}} + \mathbf{x}_n$（其中 $\mathbf{x}_n \in \operatorname{Null}(A)$）。
+观察标准右逆给出的解：
+
+$$
+\mathbf{x}^+ = A_{\text{right}}^{-1} \mathbf{b} = A^T \left[(AA^T)^{-1} \mathbf{b}\right] \in \operatorname{Col}(A^T) = \operatorname{Row}(A)
+$$
+
+因为 $\mathbf{x}^+$ 是 $A^T$ 各列的线性组合，它**完全躺在行空间 $\operatorname{Row}(A)$ 内部，不含任何 $\operatorname{Null}(A)$ 分量**！利用 $\operatorname{Row}(A) \perp \operatorname{Null}(A)$ 的勾股定理，在无穷多个精确解之中，$\mathbf{x}^+$ 具有**全局最小的 $\ell_2$ 长度（Minimum $\ell_2$-Norm）**！
+
+**快速数值对照**：取上一例的转置 $A = \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \end{bmatrix} \in \mathbb{R}^{2 \times 3}$，目标 $\mathbf{b} = \begin{bmatrix} 1 \\ 1 \end{bmatrix}$。
+- 朴素右逆 $R_1 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 0 & 0 \end{bmatrix}$ 满足 $AR_1 = I_2$，给出精确解 $\mathbf{x}_1 = R_1\mathbf{b} = \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix}$，其长度平方 $\|\mathbf{x}_1\|_2^2 = 1^2 + 1^2 + 0^2 = 2$；
+- 标准右逆 $A_{\text{right}}^{-1} = \frac{1}{3} \begin{bmatrix} 2 & -1 \\ -1 & 2 \\ 1 & 1 \end{bmatrix}$ 给出精确解 $\mathbf{x}^+ = A_{\text{right}}^{-1}\mathbf{b} = \frac{1}{3} \begin{bmatrix} 1 \\ 1 \\ 2 \end{bmatrix}$，验算 $A\mathbf{x}^+ = \begin{bmatrix} 1/3 + 2/3 \\ 1/3 + 2/3 \end{bmatrix} = \begin{bmatrix} 1 \\ 1 \end{bmatrix}$，而长度平方仅为：
+  $$
+  \|\mathbf{x}^+\|_2^2 = \left(\frac{1}{3}\right)^2 + \left(\frac{1}{3}\right)^2 + \left(\frac{2}{3}\right)^2 = \frac{6}{9} = \frac{2}{3} \lt 2
+  $$
+  这正是将 $\mathbf{x}_1$ 正交投影到 $\operatorname{Row}(A)$ 后，把多余的零空间分量 $\mathbf{x}_n = \frac{1}{3}[2, 2, -2]^T \in \operatorname{Null}(A)$ 彻底剔除的结果！
+
+---
+
+## 二、一般秩亏缺情形（$r \lt m, r \lt n$）与行空间到列空间的双射定理
+
+现在面对最棘手的**第 4 种情形**：$r \lt m$ 且 $r \lt n$。此时：
+- $\dim \operatorname{Null}(A) = n - r \ge 1 \implies A^T A$ **奇异不可逆**，$(A^TA)^{-1}A^T$ 彻底报废；
+- $\dim \operatorname{Null}(A^T) = m - r \ge 1 \implies A A^T$ **奇异不可逆**，$A^T(AA^T)^{-1}$ 同样报废！
+- 更一般地，由乘积秩不等式 $\operatorname{rank}(BA) \le \operatorname{rank}(A) = r \lt n = \operatorname{rank}(I_n)$ 以及 $\operatorname{rank}(AC) \le r \lt m = \operatorname{rank}(I_m)$，**任何单侧左逆或右逆都不可能存在**！
+
+既然整张矩阵 $A$ 在全局空间 $\mathbb{R}^n \to \mathbb{R}^m$ 上既非单射又非满射，逆运算的希望从何而来？
+
+Gilbert Strang 教授给出了线性代数中最深刻、最美的洞察：**矩阵 $A$ 之所以不可逆，唯一的原因是它在 $\operatorname{Null}(A)$ 上丢失了信息，并且在 $\operatorname{Null}(A^T)$ 上无法触达输出空间。如果我们把两个零空间剔除掉，只看行空间 $\operatorname{Row}(A)$ 与列空间 $\operatorname{Col}(A)$ 之间的映射，矩阵 $A$ 在它们之间永远是一一对应的完美双射！**
+
+<TheoremCard title="行空间到列空间的严格双射定理" termEn="Bijection Theorem from Row(A) to Col(A)">
+
+设 $A \in \mathbb{R}^{m \times n}$ 为任意实矩阵，$\operatorname{rank}(A) = r$。考虑线性映射 $T(\mathbf{x}) = A\mathbf{x}$ 在行空间 $\operatorname{Row}(A) \subseteq \mathbb{R}^n$ 上的限制（Restriction）：
+
+$$
+A|_{\operatorname{Row}(A)} : \operatorname{Row}(A) \longrightarrow \operatorname{Col}(A)
+$$
+
+则该限制映射恒为**一一且满射的线性同构（Bijection / Linear Isomorphism）**，即对每一个 $\mathbf{p} \in \operatorname{Col}(A)$，都**存在且仅存在唯一**一个行空间向量 $\mathbf{x}_r \in \operatorname{Row}(A)$ 使得 $A\mathbf{x}_r = \mathbf{p}$。
+
+</TheoremCard>
+
+<ProofCollapse title="双射定理的完整严格证明（满射性 + 单射性与正交补）">
+
+**第 1 步：证明满射性（Onto / Surjectivity）**
+任取列空间中的一个向量 $\mathbf{p} \in \operatorname{Col}(A)$。根据列空间定义，至少存在某个全空间向量 $\mathbf{x} \in \mathbb{R}^n$ 使得 $A\mathbf{x} = \mathbf{p}$。
+由四大基本子空间的正交补直和分解 $\mathbb{R}^n = \operatorname{Row}(A) \oplus \operatorname{Null}(A)$，可将 $\mathbf{x}$ 唯一分解为：
+
+$$
+\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n, \qquad \mathbf{x}_r \in \operatorname{Row}(A), \quad \mathbf{x}_n \in \operatorname{Null}(A)
+$$
+
+作用矩阵 $A$ 并利用 $A\mathbf{x}_n = \mathbf{0}$：
+
+$$
+A\mathbf{x}_r = A(\mathbf{x} - \mathbf{x}_n) = A\mathbf{x} - A\mathbf{x}_n = \mathbf{p} - \mathbf{0} = \mathbf{p}
+$$
+
+这表明 $\operatorname{Col}(A)$ 中的任意向量都能由 $\operatorname{Row}(A)$ 中的向量精确映出，故 $A|_{\operatorname{Row}(A)}$ 是**满射**。
+
+**第 2 步：证明单射性（One-to-One / Injectivity）**
+假设存在两个行空间向量 $\mathbf{x}_1, \mathbf{x}_2 \in \operatorname{Row}(A)$ 具有相同的像，即 $A\mathbf{x}_1 = A\mathbf{x}_2$。移项得：
+
+$$
+A(\mathbf{x}_1 - \mathbf{x}_2) = \mathbf{0} \implies \mathbf{x}_1 - \mathbf{x}_2 \in \operatorname{Null}(A)
+$$
+
+另一方面，由于 $\operatorname{Row}(A)$ 是线性子空间，对减法封闭，故 $\mathbf{x}_1 - \mathbf{x}_2 \in \operatorname{Row}(A)$。于是：
+
+$$
+\mathbf{x}_1 - \mathbf{x}_2 \in \operatorname{Row}(A) \cap \operatorname{Null}(A)
+$$
+
+根据基本子空间正交定理（$\operatorname{Row}(A) \perp \operatorname{Null}(A)$），对交集中的任意向量 $\mathbf{z} \in \operatorname{Row}(A) \cap \operatorname{Null}(A)$，必有 $\mathbf{z}$ 与自身正交：
+
+$$
+\mathbf{z}^T \mathbf{z} = \|\mathbf{z}\|_2^2 = 0 \implies \mathbf{z} = \mathbf{0}
+$$
+
+因此 $\mathbf{x}_1 - \mathbf{x}_2 = \mathbf{0}$，即 $\mathbf{x}_1 = \mathbf{x}_2$！结合 $\dim \operatorname{Row}(A) = \dim \operatorname{Col}(A) = r$，该线性映射既是单射又是满射，从而在 $\operatorname{Row}(A)$ 与 $\operatorname{Col}(A)$ 之间建立了严格的**一一双射**。
+
+</ProofCollapse>
+
+这一发现瞬间扫清了全部迷雾：只要我们在 $\operatorname{Col}(A) \to \operatorname{Row}(A)$ 上取上述双射的**精确逆映射**，同时把正交补 $\operatorname{Null}(A^T)$ 直接压扁为零向量 $\mathbf{0} \in \mathbb{R}^n$，我们就自然地得到了适用于**所有矩阵**的唯一终极广义逆——**Moore-Penrose 伪逆 $A^+$**！
+
+<LeftRightAndPseudoinverseSubspaceBijectionDiagram />
+
+---
+
+## 三、通过奇异值分解（SVD）显式构造 Moore-Penrose 伪逆 $A^+$
+
+双射定理不仅在抽象层面保证了逆映射的存在，第 30 讲建立的奇异值分解 $A = U\Sigma V^T$ 更直接给了我们一把**三秒写出 $A^+$ 显式公式**的手术刀！
+
+回顾 $A \in \mathbb{R}^{m \times n}$（$\operatorname{rank}(A) = r$）的完全奇异值分解与紧凑奇异值分解：
+
+$$
+A = U \Sigma V^T = U_r \Sigma_r V_r^T = \sum_{i=1}^r \sigma_i \mathbf{u}_i \mathbf{v}_i^T
+$$
+
+其中：
+- $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ 恰好构成 $\operatorname{Row}(A)$ 的标准正交基，矩阵 $A$ 把它**一一映射**到 $\operatorname{Col}(A)$ 的标准正交基 $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ 上：
+  $$
+  A \mathbf{v}_i = \sigma_i \mathbf{u}_i \quad (\sigma_i \gt 0, \; 1 \le i \le r)
+  $$
+- 其余基向量 $\{\mathbf{v}_{r+1}, \dots, \mathbf{v}_n\}$ 构成 $\operatorname{Null}(A)$ 的标准正交基（$A\mathbf{v}_i = \mathbf{0}$）；
+- 其余左奇异向量 $\{\mathbf{u}_{r+1}, \dots, \mathbf{u}_m\}$ 构成 $\operatorname{Null}(A^T)$ 的标准正交基。
+
+因此，要让 $A^+$ 在 $\operatorname{Col}(A) \to \operatorname{Row}(A)$ 上成为 $A$ 的精确逆映射，并把 $\operatorname{Null}(A^T)$ 归零，只需令：
+
+$$
+A^+ \mathbf{u}_i = \frac{1}{\sigma_i} \mathbf{v}_i \quad (1 \le i \le r), \qquad A^+ \mathbf{u}_i = \mathbf{0} \quad (r + 1 \le i \le m)
+$$
+
+写成矩阵分解形态，立即诞生了线性代数中最经典的定义：
+
+<DefinitionCard title="Moore-Penrose 伪逆的 SVD 构造与 Penrose 四大条件" termEn="Moore-Penrose Pseudoinverse A⁺ & Penrose Equations">
+
+设任意实矩阵 $A \in \mathbb{R}^{m \times n}$ 的奇异值分解为 $A = U \Sigma V^T$，其中 $\operatorname{rank}(A) = r$，且 $\Sigma = \begin{bmatrix} \Sigma_r & O \\ O & O \end{bmatrix} \in \mathbb{R}^{m \times n}$，$\Sigma_r = \operatorname{diag}(\sigma_1, \dots, \sigma_r)$（$\sigma_1 \ge \dots \ge \sigma_r \gt 0$）。
+
+1. **伪奇异值矩阵 $\Sigma^+ \in \mathbb{R}^{n \times m}$**：将 $\Sigma$ **转置为 $n \times m$ 形状**，将所有非零奇异值 $\sigma_i$ 取倒数 $\frac{1}{\sigma_i}$，而将所有零元素**原封不动保留为 $0$**：
+   $$
+   \Sigma^+ := \begin{bmatrix} \Sigma_r^{-1} & O_{r \times (m-r)} \\ O_{(n-r) \times r} & O_{(n-r) \times (m-r)} \end{bmatrix} \in \mathbb{R}^{n \times m}, \qquad \Sigma_r^{-1} = \operatorname{diag}\!\left(\frac{1}{\sigma_1}, \dots, \frac{1}{\sigma_r}\right)
+   $$
+2. **Moore-Penrose 伪逆 $A^+ \in \mathbb{R}^{n \times m}$**：
+   $$
+   A^+ := V \Sigma^+ U^T = V_r \Sigma_r^{-1} U_r^T = \sum_{i=1}^r \frac{1}{\sigma_i} \mathbf{v}_i \mathbf{u}_i^T
+   $$
+   （若 $A \in \mathbb{C}^{m \times n}$ 为复矩阵，则替换为共轭转置 $A^+ = V \Sigma^+ U^H$。）
+3. **Penrose 四大公理（Four Penrose Equations）**：对任意矩阵 $A \in \mathbb{R}^{m \times n}$，$A^+$ 是**唯一**同时满足以下四条矩阵方程的 $n \times m$ 矩阵 $X$：
+   - **(P1) 广义逆条件**：$A X A = A$
+   - **(P2) 自反条件**：$X A X = X$
+   - **(P3) 左对称条件**：$(A X)^T = A X$（事实上 $AA^+ = P_{\operatorname{Col}(A)}$）
+   - **(P4) 右对称条件**：$(X A)^T = X A$（事实上 $A^+A = P_{\operatorname{Row}(A)}$）
+
+</DefinitionCard>
+
+为什么通过 SVD 构造的 $A^+ = V\Sigma^+ U^T$ 一定满足这四条 Penrose 方程？为什么满足这四条方程的矩阵必然唯一？它又如何把第一节中的方阵逆、左逆和右逆悉数统一起来？
+
+<ProofCollapse title="证明：VΣ⁺Uᵀ 满足全部四条 Penrose 条件、唯一性，且退化为左逆/右逆/普通逆">
+
+**第 1 步：验证四条 Penrose 方程与正交投影矩阵**
+首先直接计算 $\Sigma \Sigma^+ \in \mathbb{R}^{m \times m}$ 与 $\Sigma^+ \Sigma \in \mathbb{R}^{n \times n}$：
+
+$$
+\Sigma \Sigma^+ = \begin{bmatrix} I_r & O \\ O & O_{(m-r) \times (m-r)} \end{bmatrix} \in \mathbb{R}^{m \times m}, \qquad \Sigma^+ \Sigma = \begin{bmatrix} I_r & O \\ O & O_{(n-r) \times (n-r)} \end{bmatrix} \in \mathbb{R}^{n \times n}
+$$
+
+利用 $U^T U = I_m$ 与 $V^T V = I_n$，立即算出两个组合乘积：
+
+$$
+A A^+ = (U \Sigma V^T)(V \Sigma^+ U^T) = U (\Sigma \Sigma^+) U^T = U_r U_r^T = P_{\operatorname{Col}(A)}
+$$
+
+$$
+A^+ A = (V \Sigma^+ U^T)(U \Sigma V^T) = V (\Sigma^+ \Sigma) V^T = V_r V_r^T = P_{\operatorname{Row}(A)}
+$$
+
+由对称转置律直接得 $(AA^+)^T = (U_r U_r^T)^T = U_r U_r^T = AA^+$ 以及 $(A^+A)^T = (V_r V_r^T)^T = V_r V_r^T = A^+A$，验证了 **(P3)** 与 **(P4)**！
+
+再验证 **(P1)** 与 **(P2)**：因为 $\Sigma (\Sigma^+ \Sigma) = \Sigma$ 且 $\Sigma^+ (\Sigma \Sigma^+) = \Sigma^+$，故：
+
+$$
+A A^+ A = U (\Sigma \Sigma^+ \Sigma) V^T = U \Sigma V^T = A
+$$
+
+$$
+A^+ A A^+ = V (\Sigma^+ \Sigma \Sigma^+) U^T = V \Sigma^+ U^T = A^+
+$$
+
+全部四条 Penrose 条件成立！
+
+**第 2 步：证明满足 Penrose (P1)–(P4) 的矩阵 $X$ 全局唯一**
+设 $X, Y \in \mathbb{R}^{n \times m}$ 都满足 (P1)–(P4)。先用 $X$ 的 (P2)、(P3) 和 $Y$ 的 (P1)、(P3)：
+
+$$
+\begin{aligned}
+X &= X A X = X (A X)^T = X X^T A^T \\
+  &= X X^T (A Y A)^T = X X^T A^T Y^T A^T \\
+  &= X (A X)^T (A Y)^T = X (A X)(A Y) = (X A X) A Y = X A Y
+\end{aligned}
+$$
+
+对称地，再用 $Y$ 的 (P2)、(P4) 和 $X$ 的 (P1)、(P4)：
+
+$$
+\begin{aligned}
+Y &= Y A Y = (Y A)^T Y = A^T Y^T Y \\
+  &= (A X A)^T Y^T Y = A^T X^T A^T Y^T Y \\
+  &= (X A)^T (Y A)^T Y = (X A)(Y A) Y = X A (Y A Y) = X A Y
+\end{aligned}
+$$
+
+因此 $X = X A Y = Y$，伪逆的唯一性得证！
+
+**第 3 步：验证 $A^+$ 自动退化为前三种情形**
+- **情形 1（$r = m = n$）**：$\Sigma^+ = \Sigma^{-1}$，$A^+ = V\Sigma^{-1}U^T = (U\Sigma V^T)^{-1} = A^{-1}$；
+- **情形 2（列满秩 $r = n \lt m$）**：此时 $V_r = V$ 为 $n \times n$ 正交方阵，故 $A = U_r \Sigma_r V^T$，$A^T A = V \Sigma_r^2 V^T$ 可逆。代入标准左逆：
+  $$
+  (A^T A)^{-1} A^T = (V \Sigma_r^{-2} V^T)(V \Sigma_r U_r^T) = V \Sigma_r^{-1} U_r^T = A^+
+  $$
+- **情形 3（行满秩 $r = m \lt n$）**：此时 $U_r = U$ 为 $m \times m$ 正交方阵，故 $A = U \Sigma_r V_r^T$，$A A^T = U \Sigma_r^2 U^T$ 可逆。代入标准右逆：
+  $$
+  A^T (A A^T)^{-1} = (V_r \Sigma_r U^T)(U \Sigma_r^{-2} U^T) = V_r \Sigma_r^{-1} U^T = A^+
+  $$
+
+至此，$A^+$ 将线性代数中所有四种矩阵情形彻底大一统！
+
+</ProofCollapse>
+
+### 手工演练：一个极简的秩 1 矩阵伪逆全过程
+
+设 $2 \times 3$ 秩 1 矩阵（第 4 种情形）：
+
+$$
+A = \begin{bmatrix} 1 & 2 & 2 \\ 2 & 4 & 4 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \end{bmatrix} \begin{bmatrix} 1 & 2 & 2 \end{bmatrix} \in \mathbb{R}^{2 \times 3} \qquad (r = 1 \lt 2, \; r = 1 \lt 3)
+$$
+
+注意 $A^T A$ 和 $AA^T$ 的秩都只有 $1$，**两者均奇异不可逆**！但通过 SVD 构造 $A^+$ 却异常轻松：
+1. 将外积向量归一化：$\mathbf{u}_1 = \frac{1}{\sqrt{1^2+2^2}} \begin{bmatrix} 1 \\ 2 \end{bmatrix} = \frac{1}{\sqrt{5}} \begin{bmatrix} 1 \\ 2 \end{bmatrix}$，$\mathbf{v}_1 = \frac{1}{\sqrt{1^2+2^2+2^2}} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix} = \frac{1}{3} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}$；
+2. 唯一非零奇异值为 $\sigma_1 = 3\sqrt{5}$，即紧凑 SVD 为 $A = (3\sqrt{5})\,\mathbf{u}_1 \mathbf{v}_1^T$；
+3. 立即翻转奇异值并交换左右向量，写出 $3 \times 2$ 伪逆矩阵：
+   $$
+   A^+ = \frac{1}{\sigma_1} \mathbf{v}_1 \mathbf{u}_1^T = \frac{1}{3\sqrt{5}} \left(\frac{1}{3} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}\right) \left(\frac{1}{\sqrt{5}} \begin{bmatrix} 1 & 2 \end{bmatrix}\right) = \frac{1}{45} \begin{bmatrix} 1 & 2 \\ 2 & 4 \\ 2 & 4 \end{bmatrix}
+   $$
+4. 验证两个正交投影阵：
+   $$
+   A^+ A = \frac{1}{9} \begin{bmatrix} 1 & 2 & 2 \\ 2 & 4 & 4 \\ 2 & 4 & 4 \end{bmatrix} = \mathbf{v}_1 \mathbf{v}_1^T = P_{\operatorname{Row}(A)}, \qquad A A^+ = \frac{1}{5} \begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix} = \mathbf{u}_1 \mathbf{u}_1^T = P_{\operatorname{Col}(A)}
+   $$
+5. 代入不可达右端向量 $\mathbf{b} = \begin{bmatrix} 5 \\ 0 \end{bmatrix} \notin \operatorname{Col}(A)$：
+   - 伪逆给出唯一推荐解：$\mathbf{x}^+ = A^+ \mathbf{b} = \frac{1}{45} \begin{bmatrix} 1 & 2 \\ 2 & 4 \\ 2 & 4 \end{bmatrix} \begin{bmatrix} 5 \\ 0 \end{bmatrix} = \frac{1}{9} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}$，长度平方 $\|\mathbf{x}^+\|_2^2 = \frac{1 + 4 + 4}{81} = \frac{1}{9}$；
+   - 它在输出空间的像 $A\mathbf{x}^+ = \begin{bmatrix} 1 \\ 2 \end{bmatrix} = \mathbf{p}$，残差 $\mathbf{e} = \mathbf{b} - \mathbf{p} = \begin{bmatrix} 4 \\ -2 \end{bmatrix} \perp \mathbf{u}_1$（最小残差平方 $\|\mathbf{e}\|_2^2 = 20$）；
+   - 如果随意叠加一个零空间向量 $\mathbf{x}_n = \begin{bmatrix} 2 \\ -1 \\ 0 \end{bmatrix} \in \operatorname{Null}(A)$，得到另一组最小二乘解 $\hat{\mathbf{x}} = \mathbf{x}^+ + \mathbf{x}_n = \frac{1}{9} \begin{bmatrix} 19 \\ -7 \\ 2 \end{bmatrix}$。它给出完全相同的投影 $A\hat{\mathbf{x}} = \begin{bmatrix} 1 \\ 2 \end{bmatrix}$ 与残差平方 $20$，但长度平方暴涨至 $\|\hat{\mathbf{x}}\|_2^2 = \frac{361 + 49 + 4}{81} = \frac{46}{9} = \frac{1}{9} + 5 = \|\mathbf{x}^+\|_2^2 + \|\mathbf{x}_n\|_2^2$！
+
+---
+
+## 四、伪逆的核心应用：唯一最小范数最小二乘解定理
+
+上述数值例子绝非巧合。它体现了 Moore-Penrose 伪逆之所以成为数值线性代数与现代科学计算黄金标准的终极性质：当方程 $A\mathbf{x} = \mathbf{b}$ **无精确解**且同时有**无穷多个使误差最小化的解**时，$A^+\mathbf{b}$ 在所有最小二乘解中自动挑出那个**最短的向量**！
+
+<MinimumNormLeastSquaresGeometryDiagram />
+
+<TheoremCard title="唯一最小范数最小二乘定理" termEn="Unique Minimum-Norm Least-Squares Solution Theorem">
+
+设 $A \in \mathbb{R}^{m \times n}$ 为**任意**实矩阵（秩 $r$ 任意），$\mathbf{b} \in \mathbb{R}^m$ 为任意目标向量。令 $\mathbf{x}^+ := A^+ \mathbf{b} \in \mathbb{R}^n$。则：
+
+1. **最小二乘最优性（Least-Squares Optimality）**：$\mathbf{x}^+$ 最小化残差范数 $\|A\mathbf{x} - \mathbf{b}\|_2$，满足 $A\mathbf{x}^+ = P_{\operatorname{Col}(A)}\mathbf{b}$；并且全部最小二乘极小化解构成一个以 $\operatorname{Null}(A)$ 为方向的仿射子空间：
+   $$
+   \mathcal{S}_{\text{LS}} := \left\{ \hat{\mathbf{x}} \in \mathbb{R}^n \;\middle|\; \|A\hat{\mathbf{x}} - \mathbf{b}\|_2 = \min_{\mathbf{x} \in \mathbb{R}^n} \|A\mathbf{x} - \mathbf{b}\|_2 \right\} = \mathbf{x}^+ + \operatorname{Null}(A)
+   $$
+2. **全局唯一最小 $\ell_2$ 范数（Unique Minimum $\ell_2$-Norm）**：在 $\mathcal{S}_{\text{LS}}$ 的全部候选解中，$\mathbf{x}^+$ 是**唯一**使欧氏长度 $\|\mathbf{x}\|_2$ 达到严格全局极小的向量：
+   $$
+   \|\mathbf{x}^+\|_2 \lt \|\hat{\mathbf{x}}\|_2 \qquad \left(\forall \hat{\mathbf{x}} \in \mathcal{S}_{\text{LS}}, \;\; \hat{\mathbf{x}} \neq \mathbf{x}^+\right)
+   $$
+
+</TheoremCard>
+
+<ProofCollapse title="最小范数最小二乘定理的两步严格证明（投影正交 + 勾股定理）">
+
+**第 1 步：证明最小二乘最优性与解集结构 $\mathcal{S}_{\text{LS}} = \mathbf{x}^+ + \operatorname{Null}(A)$**
+利用输出空间的正交直和分解 $\mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T)$，将 $\mathbf{b}$ 分解为投影分量与残差分量：
+
+$$
+\mathbf{b} = \mathbf{p} + \mathbf{e}, \qquad \mathbf{p} = P_{\operatorname{Col}(A)}\mathbf{b} = AA^+\mathbf{b} \in \operatorname{Col}(A), \quad \mathbf{e} = \mathbf{b} - \mathbf{p} \in \operatorname{Null}(A^T)
+$$
+
+对任意 $\mathbf{x} \in \mathbb{R}^n$，由于 $A\mathbf{x} - \mathbf{p} \in \operatorname{Col}(A)$ 且 $\mathbf{e} \in \operatorname{Null}(A^T) = \operatorname{Col}(A)^\perp$，二者严格正交。应用欧氏空间勾股定理：
+
+$$
+\|A\mathbf{x} - \mathbf{b}\|_2^2 = \|(A\mathbf{x} - \mathbf{p}) - \mathbf{e}\|_2^2 = \|A\mathbf{x} - \mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2 \ge \|\mathbf{e}\|_2^2
+$$
+
+等号成立当且仅当 $A\mathbf{x} = \mathbf{p}$。由于 $A\mathbf{x}^+ = A(A^+\mathbf{b}) = \mathbf{p}$，故 $\mathbf{x}^+$ 达到残差极小值 $\|\mathbf{e}\|_2$；且对任意 $\hat{\mathbf{x}} \in \mathbb{R}^n$：
+
+$$
+\hat{\mathbf{x}} \in \mathcal{S}_{\text{LS}} \iff A\hat{\mathbf{x}} = \mathbf{p} = A\mathbf{x}^+ \iff A(\hat{\mathbf{x}} - \mathbf{x}^+) = \mathbf{0} \iff \hat{\mathbf{x}} - \mathbf{x}^+ \in \operatorname{Null}(A)
+$$
+
+这就精确刻画了全部最小二乘解集 $\mathcal{S}_{\text{LS}} = \mathbf{x}^+ + \operatorname{Null}(A)$。
+
+**第 2 步：证明唯一最小范数性质**
+观察 $\mathbf{x}^+$ 的 SVD 表达式：
+
+$$
+\mathbf{x}^+ = A^+ \mathbf{b} = \sum_{i=1}^r \frac{\mathbf{u}_i^T \mathbf{b}}{\sigma_i} \mathbf{v}_i \in \operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_r\} = \operatorname{Row}(A)
+$$
+
+这说明 $\mathbf{x}^+$ **完全落在行空间 $\operatorname{Row}(A)$ 内**。现在任取 $\hat{\mathbf{x}} \in \mathcal{S}_{\text{LS}}$，将其记为 $\hat{\mathbf{x}} = \mathbf{x}^+ + \mathbf{x}_n$，其中 $\mathbf{x}_n \in \operatorname{Null}(A)$。
+因为 $\operatorname{Row}(A) \perp \operatorname{Null}(A)$，必有 $(\mathbf{x}^+)^T \mathbf{x}_n = 0$。再次应用勾股定理：
+
+$$
+\|\hat{\mathbf{x}}\|_2^2 = \|\mathbf{x}^+ + \mathbf{x}_n\|_2^2 = \|\mathbf{x}^+\|_2^2 + \|\mathbf{x}_n\|_2^2 \ge \|\mathbf{x}^+\|_2^2
+$$
+
+等号成立当且仅当 $\|\mathbf{x}_n\|_2^2 = 0$，即 $\mathbf{x}_n = \mathbf{0} \iff \hat{\mathbf{x}} = \mathbf{x}^+$。因此 $\mathbf{x}^+ = A^+\mathbf{b}$ 是全局唯一的最小范数最小二乘解！
+
+</ProofCollapse>
+
+#### 病态矩阵与正则化视角的附注
+在实际数值计算中，若某个非零奇异值 $\sigma_r \gt 0$ 极小（矩阵接近秩亏缺），则伪逆分量 $\frac{1}{\sigma_r} (\mathbf{u}_r^T \mathbf{b}) \mathbf{v}_r$ 会将 $\mathbf{b}$ 中的微小测量噪声放大 $1/\sigma_r$ 倍。工程中常用**截断伪逆（Truncated SVD）**将低于阈值的极小奇异值视作零，或引入 **Tikhonov（岭）正则化**：
+
+$$
+\mathbf{x}_\lambda = (A^T A + \lambda I_n)^{-1} A^T \mathbf{b} \qquad (\lambda \gt 0)
+$$
+
+在 SVD 基下，每个奇异值对应的滤波因子是 $\frac{\sigma_i}{\sigma_i^2 + \lambda}$：当 $\sigma_i \gt 0$ 时 $\lim_{\lambda \to 0^+} \frac{\sigma_i}{\sigma_i^2 + \lambda} = \frac{1}{\sigma_i}$，而当 $\sigma_i = 0$ 时该项在极限前就恒等于 $0$！这从微扰极限的视角深刻印证了为什么伪逆中必须规定 **$0^+ = 0$** 而非 $\infty$。
+
+---
+
+<PitfallAlert title="常见直觉陷阱与伪逆使用勘误">
+
+### 1. 误把 $(A^TA)^{-1}A^T$ 当成万能伪逆公式！
+许多同学背熟了最小二乘公式 $\hat{\mathbf{x}} = (A^TA)^{-1}A^T\mathbf{b}$，就误以为对任何矩阵都有 $A^+ = (A^TA)^{-1}A^T$。**严重错误！**
+- 只要 $r = \operatorname{rank}(A) \lt n$（包括第 3 种扁宽行满秩情形 $r = m \lt n$，以及第 4 种一般秩亏缺情形），矩阵 $A^T A \in \mathbb{R}^{n \times n}$ 的秩同样等于 $r \lt n$，**行列式严格为零、根本不可逆**！
+- 同样，$A^T(AA^T)^{-1}$ 也**仅在满行秩 $r = m$ 时才成立**。唯有 $A^+ = V\Sigma^+ U^T$ 才是全天候通用公式！
+
+### 2. 误以为伪逆满足乘积反序律 $(AB)^+ = B^+ A^+$！
+对于标准可逆方阵，$(AB)^{-1} = B^{-1}A^{-1}$ 是铁律；但对于伪逆，**$(AB)^+ = B^+ A^+$ 在一般情形下不成立**！
+- **极简反例**：取 $A = \begin{bmatrix} 1 & 1 \end{bmatrix} \in \mathbb{R}^{1 \times 2}$ 与 $B = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \in \mathbb{R}^{2 \times 1}$。
+  - 乘积 $AB = [1] \in \mathbb{R}^{1 \times 1}$，因此 $(AB)^+ = [1]$；
+  - 然而 $A$ 行满秩，$A^+ = A^T(AA^T)^{-1} = \begin{bmatrix} 1/2 \\ 1/2 \end{bmatrix}$；$B$ 列满秩，$B^+ = (B^TB)^{-1}B^T = \begin{bmatrix} 1 & 0 \end{bmatrix}$；
+  - 计算反序乘积：
+    $$
+    B^+ A^+ = \begin{bmatrix} 1 & 0 \end{bmatrix} \begin{bmatrix} 1/2 \\ 1/2 \end{bmatrix} = \left[\frac{1}{2}\right] \neq [1] = (AB)^+
+    $$
+- **原因**：只有当中间衔接子空间不发生斜截断失真时（例如 $A$ 具有标准正交列 $A^TA = I$，或 $B$ 具有标准正交行 $BB^T = I$，或满足一般的 Greville 充分必要条件），$(AB)^+ = B^+ A^+$ 才成立。
+
+### 3. 构造 $\Sigma^+$ 时忘记转置尺寸，或把 $0$ 的伪逆写成 $\infty$
+- **形状必须转置**：若 $A, \Sigma \in \mathbb{R}^{m \times n}$，则 $A^+, \Sigma^+ \in \mathbb{R}^{n \times m}$；
+- **$0^+ = 0$ 而非 $\infty$**：伪逆遇到零奇异值时必须直接赋零（将 $\operatorname{Null}(A^T)$ 映回 $\mathbf{0}$），这对应着舍弃输出空间中不可达的残差分量，绝不能除以 $0$。
+
+### 4. 混淆"任意左逆 / 右逆"与"Moore-Penrose 伪逆 $A^+$"
+列满秩矩阵有无穷多个左逆（例如丢弃多余行构造出的截断逆 $L_1$），它们都满足 $L_1 A = I_n$；但除了 $A^+ = (A^TA)^{-1}A^T$ 之外，其余左逆都不满足第 (3) 条 Penrose 条件 $(AL_1)^T = AL_1$（它们对应斜投影而非正交投影），因此**都不是伪逆**！
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l34-pseudoinverse-sandbox"
+  title="左右逆非唯一性与伪逆最小范数几何交互沙盒"
+  description={"调节矩阵秩 $r$ 与奇异值阈值，对比一般左/右逆形成的斜投影与 $A^+ = V\\Sigma^+ U^T$ 形成的正交投影；并在输入空间 $\\mathbb{R}^n$ 中沿着仿射解集 $\\mathbf{x}^+ + \\operatorname{Null}(A)$ 拖动 $\\hat{\\mathbf{x}}$，直观观察 $\\|\\hat{\\mathbf{x}}\\|_2^2 = \\|\\mathbf{x}^+\\|_2^2 + \\|\\mathbf{x}_n\\|_2^2$ 如何在 $\\mathbf{x}^+ = A^+\\mathbf{b}$ 处达到唯一最小值。"}
+/>
+
+---
+
+<KeyTakeaways items={[
+  "四种秩情形总览：方阵满秩（$r=m=n$）有唯一双边逆 $A^{-1}$；列满秩（$r=n\\lt m$）有无穷多左逆，标准左逆 $(A^TA)^{-1}A^T$ 消去 $\\operatorname{Null}(A^T)$；行满秩（$r=m\\lt n$）有无穷多右逆，标准右逆 $A^T(AA^T)^{-1}$ 落在 $\\operatorname{Row}(A)$ 内；一般秩亏缺（$r\\lt m, r\\lt n$）既无左逆也无右逆。",
+  "行空间到列空间的双射定理：尽管一般矩阵不可逆，但把映射限制在 $\\operatorname{Row}(A) \\to \\operatorname{Col}(A)$ 上时，$A$ 恒为严格一一且满射的线性同构，因为在交集处 $\\operatorname{Row}(A) \\cap \\operatorname{Null}(A) = \\{\\mathbf{0}\\}$。",
+  "Moore-Penrose 伪逆公式：由 $A = U\\Sigma V^T$ 直接定义 $A^+ = V\\Sigma^+ U^T = \\sum_{i=1}^r \\frac{1}{\\sigma_i} \\mathbf{v}_i \\mathbf{u}_i^T \\in \\mathbb{R}^{n \\times m}$，其中 $\\Sigma^+$ 先转置尺寸再将非零奇异值取倒数、零奇异值保持为 $0$。",
+  "Penrose 四大条件与唯一性：$A^+$ 是唯一同时满足 $AA^+A = A$、$A^+AA^+ = A^+$、$(AA^+)^T = AA^+ = P_{\\operatorname{Col}(A)}$ 与 $(A^+A)^T = A^+A = P_{\\operatorname{Row}(A)}$ 的矩阵，并在前三种情形下自动退化为 $(A^TA)^{-1}A^T$、$A^T(AA^T)^{-1}$ 与 $A^{-1}$。",
+  "最小范数最小二乘定理：对任意矩阵 $A$，向量 $\\mathbf{x}^+ = A^+\\mathbf{b} \\in \\operatorname{Row}(A)$ 不仅使残差 $\\|A\\mathbf{x} - \\mathbf{b}\\|_2$ 达到最小，而且由勾股定理 $\\|\\mathbf{x}^+ + \\mathbf{x}_n\\|_2^2 = \\|\\mathbf{x}^+\\|_2^2 + \\|\\mathbf{x}_n\\|_2^2$ 成为全部最小二乘解中欧氏长度 $\\|\\mathbf{x}\\|_2$ 严格最小的唯一解。",
+  "核心警钟：切忌在 $r \\lt n$ 时使用 $(A^TA)^{-1}A^T$（此时 $A^TA$ 奇异）；且伪逆一般不满足 $(AB)^+ = B^+ A^+$。"
+]} />
+
+---
+
+## 五、课后直觉训练题
+
+<ProblemSet title="第 34 讲 课后习题集" description="涵盖左逆构造与非唯一性、伪逆性质辨析、无计算子空间与 SVD 恒等式推导，以及秩亏缺系统与 Tikhonov 正则化极限。">
+
+<ExerciseCard id="l34-ex1" tier="L1" title="极小计算核验：列满秩 3×2 矩阵的左逆家族与唯一正交投影">
+
+考虑列满秩矩阵：
+
+$$
+A = \begin{bmatrix} 1 & 1 \\ 1 & -1 \\ 0 & 2 \end{bmatrix} \in \mathbb{R}^{3 \times 2}
+$$
+
+1. 计算 $A$ 的 Moore-Penrose 伪逆（即标准左逆）$A^+ = (A^T A)^{-1} A^T$，并验证 $A^+ A = I_2$；
+2. 计算反序乘积 $AA^+$，验证它是向 $\operatorname{Col}(A)$ 投影的对称正交投影矩阵，并找一个非零向量 $\mathbf{n} \in \operatorname{Null}(A^T)$ 验证 $AA^+\mathbf{n} = \mathbf{0}$；
+3. 利用 $A$ 的前两行构成一个**不同于 $A^+$ 的左逆** $B \in \mathbb{R}^{2 \times 3}$（满足 $BA = I_2$），计算 $AB$ 并说明为什么 $B$ 不满足 Penrose 条件，不能称为伪逆。
+
+<ProgressiveHint hints={[
+  "先算 $A^T A$，你会惊喜地发现 $A$ 的两列互相正交，$A^T A$ 是一个对角矩阵！",
+  "第 2 问：$AA^+ = P_{\\operatorname{Col}(A)}$ 必满足对称性、幂等性，且迹 $\\operatorname{tr}(AA^+) = \\operatorname{rank}(A) = 2$。解 $A^T\\mathbf{n} = \\mathbf{0}$ 可直接找出 $\\operatorname{Null}(A^T)$ 的基向量。",
+  "第 3 问：截取 $A$ 的前两行方阵 $A_1 = \\begin{bmatrix} 1 & 1 \\\\ 1 & -1 \\end{bmatrix}$，将其逆矩阵放在左前两列、最后一列补零，即得满足 $BA = I_2$ 的合法左逆 $B$，检验 $(AB)^T$ 是否等于 $AB$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+矩阵 $A$ 的两列在三维空间里相互垂直，这让 $(A^T A)^{-1}$ 的计算完全口算化——只需对每列平方和取倒数后乘上 $A^T$ 即可。所有左逆在作用于 $A$ 的列空间时行为完全一致（把 $A\mathbf{x}$ 还原为 $\mathbf{x}$）；它们的区别全部发生在"如何对待左零空间 $\operatorname{Null}(A^T)$"。标准左逆 $A^+$ 对 $\operatorname{Null}(A^T)$ 彻底视而不见（直接映射成 $\mathbf{0}$），从而使 $AA^+$ 成为端正的正交投影；而手工拼接的左逆 $B$ 在零空间方向上"夹带私货"，使 $AB$ 变成歪斜的斜投影。
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问：计算标准左逆 $A^+$**
+计算 $A^T A$：
+
+$$
+A^T A = \begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 2 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 1 & -1 \\ 0 & 2 \end{bmatrix} = \begin{bmatrix} 2 & 0 \\ 0 & 6 \end{bmatrix}
+$$
+
+这是一个可逆对角阵，其逆为 $(A^T A)^{-1} = \begin{bmatrix} 1/2 & 0 \\ 0 & 1/6 \end{bmatrix}$。因此：
+
+$$
+A^+ = (A^T A)^{-1} A^T = \begin{bmatrix} 1/2 & 0 \\ 0 & 1/6 \end{bmatrix} \begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 2 \end{bmatrix} = \begin{bmatrix} 1/2 & 1/2 & 0 \\ 1/6 & -1/6 & 1/3 \end{bmatrix}
+$$
+
+验算左乘单位阵：
+
+$$
+A^+ A = \begin{bmatrix} 1/2 & 1/2 & 0 \\ 1/6 & -1/6 & 1/3 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 1 & -1 \\ 0 & 2 \end{bmatrix} = \begin{bmatrix} 1/2 + 1/2 & 1/2 - 1/2 \\ 1/6 - 1/6 & 1/6 + 1/6 + 2/3 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I_2
+$$
+
+**第 2 问：计算 $AA^+$ 与左零空间验证**
+
+$$
+AA^+ = \begin{bmatrix} 1 & 1 \\ 1 & -1 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1/2 & 1/2 & 0 \\ 1/6 & -1/6 & 1/3 \end{bmatrix} = \begin{bmatrix} 2/3 & 1/3 & 1/3 \\ 1/3 & 2/3 & -1/3 \\ 1/3 & -1/3 & 2/3 \end{bmatrix}
+$$
+
+显然 $(AA^+)^T = AA^+$（对称），且 $\operatorname{tr}(AA^+) = 2/3 + 2/3 + 2/3 = 2 = \operatorname{rank}(A)$。由于 $(AA^+)^2 = A(A^+A)A^+ = AA^+$，它是向 $\operatorname{Col}(A)$ 的正交投影矩阵。
+求解 $A^T \mathbf{n} = \mathbf{0}$：$\begin{cases} n_1 + n_2 = 0 \\ n_1 - n_2 + 2n_3 = 0 \end{cases}$，取 $n_1 = 1$ 得 $n_2 = -1, n_3 = -1$，即 $\mathbf{n} = \begin{bmatrix} 1 \\ -1 \\ -1 \end{bmatrix} \in \operatorname{Null}(A^T)$。验算：
+
+$$
+AA^+ \mathbf{n} = \frac{1}{3} \begin{bmatrix} 2 - 1 - 1 \\ 1 - 2 + 1 \\ 1 + 1 - 2 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}
+$$
+
+**第 3 问：构造另一个左逆 $B \neq A^+$**
+取 $A$ 的前两行 $A_1 = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}$，其逆为 $A_1^{-1} = \frac{1}{2} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}$。构造 $2 \times 3$ 矩阵：
+
+$$
+B = \begin{bmatrix} 1/2 & 1/2 & 0 \\ 1/2 & -1/2 & 0 \end{bmatrix}
+$$
+
+验证 $BA = A_1^{-1} A_1 + \mathbf{0} = I_2$，故 $B$ 确实是 $A$ 的合法左逆。但计算反序乘积：
+
+$$
+AB = \begin{bmatrix} 1 & 1 \\ 1 & -1 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1/2 & 1/2 & 0 \\ 1/2 & -1/2 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 1 & -1 & 0 \end{bmatrix}
+$$
+
+可见 $(AB)^T \neq AB$，违反了第 (3) 条 Penrose 条件（$AB$ 是斜投影矩阵，而非正交投影，且 $B\mathbf{n} = [0, 1]^T \neq \mathbf{0}$）。故 $B$ 不是 $A$ 的伪逆。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l34-ex2" tier="L2" title="概念辨析与反例构造：左逆唯一性与伪逆乘积反序律">
+
+判断下列复合命题是否正确，并给出严格证明或反例：
+
+"若矩阵 $A \in \mathbb{R}^{m \times n}$ 满足列满秩 $r = \operatorname{rank}(A) = n \lt m$，则 $A$ 的左逆唯一；且对任意可相乘矩阵 $B \in \mathbb{R}^{n \times k}$，恒有 $(AB)^+ = B^+ A^+$。"
+
+<TrueFalseInteractive
+  id="l34-tf1"
+  correct={false}
+  quickFeedback={"命题错误！首先当 $n \\lt m$ 时，$\\dim \\operatorname{Null}(A^T) = m - n \\ge 1$，将任意行落在 $\\operatorname{Null}(A^T)$ 中的非零矩阵 $D$ 加到标准左逆上仍满足 $(A^+ + D)A = I_n$，故左逆有无穷多个；其次即使 $A$ 列满秩（一般并不要求列正交），$(AB)^+ = B^+ A^+$ 依然可能严重失效！"}
+/>
+
+<ProgressiveHint hints={[
+  "关于左逆唯一性：若 $n \\lt m$，则 $\\operatorname{Null}(A^T)$ 维数为 $m - n \\ge 1$。任何满足 $DA = O$ 的矩阵 $D$ 都能加到已有左逆上。",
+  "关于 $(AB)^+ = B^+ A^+$：请特别注意，列满秩（$r = n$）并不意味着列向量之间标准正交（$A^TA \\neq I_n$）！尝试取一个 $2 \\times 1$ 列满秩（但非单位化或非正交结构）与 $1 \\times 2$ 矩阵？注意本题 $A \\in \\mathbb{R}^{m\\times n}, B \\in \\mathbb{R}^{n\\times k}$，尝试取 $n = 2, m = 3, k = 1$！"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+这道题设下了两个经典陷阱：第一个陷阱是把"列满秩只有 1 个标准左逆"当成"只有 1 个左逆"——其实 $m - n$ 维的左零空间留下了整片自由空间，可以任意篡改左逆在残差方向的行为；第二个陷阱是把普通矩阵的"穿脱鞋袜法则" $(AB)^{-1} = B^{-1}A^{-1}$ 照搬到伪逆上，然而只要 $A$ 把向量沿不同方向做了非等长拉伸（$A^T A \neq c I$），或者 $B$ 投影到了与 $A$ 不匹配的子空间，先求伪逆再相乘就会在权重配比上出错！
+</SolutionIntuition>
+<SolutionRigorous>
+该复合命题**两条结论全部错误**，下面分别驳斥并构造反例：
+
+**第 1 部分：列满秩且 $n \lt m$ 时左逆有无穷多个**
+因为 $\operatorname{rank}(A) = n \lt m$，左零空间维数 $\dim \operatorname{Null}(A^T) = m - n \ge 1$，必存在非零向量 $\mathbf{y} \in \operatorname{Null}(A^T)$（即 $\mathbf{y}^T A = \mathbf{0}^T$）。
+构造 $n \times m$ 非零矩阵 $D = \begin{bmatrix} \mathbf{y}^T \\ \mathbf{0}^T \\ \vdots \\ \mathbf{0}^T \end{bmatrix}$，显然 $DA = O_{n \times n}$。对任意标量 $t \in \mathbb{R}$，定义 $L(t) = (A^TA)^{-1}A^T + t D$，则：
+
+$$
+L(t) A = (A^TA)^{-1}A^T A + t (DA) = I_n + O = I_n
+$$
+
+故对一切 $t \in \mathbb{R}$，$L(t)$ 都是 $A$ 的不同左逆。
+
+**第 2 部分：$(AB)^+ = B^+ A^+$ 不成立的反例（满足题设 $r = n \lt m$）**
+取 $m = 3, n = 2, k = 1$：
+
+$$
+A = \begin{bmatrix} 1 & 0 \\ 0 & 2 \\ 0 & 0 \end{bmatrix} \in \mathbb{R}^{3 \times 2} \quad (\operatorname{rank}(A) = 2 = n \lt m), \qquad B = \begin{bmatrix} 1 \\ 1 \end{bmatrix} \in \mathbb{R}^{2 \times 1}
+$$
+
+1. 先算乘积及其伪逆：
+   $$
+   AB = \begin{bmatrix} 1 \\ 2 \\ 0 \end{bmatrix} \in \mathbb{R}^{3 \times 1} \implies (AB)^+ = \frac{(AB)^T}{\|AB\|_2^2} = \frac{1}{5} \begin{bmatrix} 1 & 2 & 0 \end{bmatrix} = \begin{bmatrix} 1/5 & 2/5 & 0 \end{bmatrix}
+   $$
+2. 再分别计算 $A^+$ 与 $B^+$：
+   - $A$ 列满秩，$A^TA = \begin{bmatrix} 1 & 0 \\ 0 & 4 \end{bmatrix}$，故 $A^+ = (A^TA)^{-1}A^T = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1/2 & 0 \end{bmatrix}$；
+   - $B$ 列满秩，$B^TB = [2]$，故 $B^+ = \frac{1}{2} \begin{bmatrix} 1 & 1 \end{bmatrix}$。
+3. 计算 $B^+ A^+$：
+   $$
+   B^+ A^+ = \begin{bmatrix} 1/2 & 1/2 \end{bmatrix} \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1/2 & 0 \end{bmatrix} = \begin{bmatrix} 1/2 & 1/4 & 0 \end{bmatrix} \neq \begin{bmatrix} 1/5 & 2/5 & 0 \end{bmatrix} = (AB)^+
+   $$
+
+命题彻底证伪！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l34-ex3" tier="L2" tierLabel="L2/L3 · 判别与子空间投影推理" title="伪逆的四大基本子空间与零空间正交性">
+
+判断下述命题是否正确，并完整刻画 $A^+$ 的四个基本子空间：
+
+"对任意实矩阵 $A \in \mathbb{R}^{m \times n}$ 与任意 $\mathbf{b} \in \mathbb{R}^m$，向量 $\mathbf{x}^+ = A^+\mathbf{b}$ 必落在 $\operatorname{Row}(A)$ 中；且 $\operatorname{Null}(A^+) = \operatorname{Null}(A^T)$、$\operatorname{Col}(A^+) = \operatorname{Row}(A)$。"
+
+<TrueFalseInteractive
+  id="l34-tf2"
+  correct={true}
+  quickFeedback={"命题完全正确！由 SVD 展开 $A^+ = \\sum_{i=1}^r \\frac{1}{\\sigma_i} \\mathbf{v}_i \\mathbf{u}_i^T$ 立即可见：任何 $A^+\\mathbf{b}$ 都是前 $r$ 个右奇异向量 $\\mathbf{v}_1, \\dots, \\mathbf{v}_r$ 的线性组合，故 $\\operatorname{Col}(A^+) = \\operatorname{Row}(A)$；且 $A^+\\mathbf{b} = \\mathbf{0}$ 当且仅当 $\\mathbf{b}$ 与全部 $\\mathbf{u}_1, \\dots, \\mathbf{u}_r$ 正交，即 $\\operatorname{Null}(A^+) = \\operatorname{Null}(A^T)$！"}
+/>
+
+<ProgressiveHint hints={[
+  "写出 $A^+ = \\sum_{i=1}^r \\frac{1}{\\sigma_i} \\mathbf{v}_i \\mathbf{u}_i^T$ 作用在任意向量 $\\mathbf{b}$ 上的结果，观察输出向量由哪一组基线性张成。",
+  "利用四大基本子空间的正交补关系：$\\operatorname{Row}(A^+) = \\operatorname{Null}(A^+)^\\perp$ 与 $\\operatorname{Null}((A^+)^T) = \\operatorname{Col}(A^+)^\\perp$，进而把 $A^+$ 的四个基本子空间全部对应到 $A$ 的四个基本子空间上！"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+把 $A^+$ 想象成在原图（第 34 讲第一幅总图）里把所有箭头反向的矩阵：
+- 正向矩阵 $A$ 从 $\operatorname{Row}(A)$ 出发、到达 $\operatorname{Col}(A)$，同时把 $\operatorname{Null}(A)$ 吃掉；
+- 逆向矩阵 $A^+$ 则从 $\operatorname{Col}(A)$ 出发、精准返回 $\operatorname{Row}(A)$，同时把 $\operatorname{Null}(A^T)$ 吃掉！
+因此 $A^+$ 的"出发有效区（行空间）"恰好就是 $A$ 的"列空间"；$A^+$ 的"到达区（列空间）"恰好就是 $A$ 的"行空间"；$A^+$ 的"黑洞（零空间）"恰好就是 $A$ 的"左零空间"；而 $A^+$ 的"左零空间"则恰好是 $A$ 的"零空间"——四大子空间完全对称互换！
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**完全正确**。
+
+设 $A = U\Sigma V^T$（$\operatorname{rank}(A) = r$），于是 $A^+ = \sum_{i=1}^r \frac{1}{\sigma_i} \mathbf{v}_i \mathbf{u}_i^T$，其中 $\sigma_1 \ge \dots \ge \sigma_r \gt 0$。对任意 $\mathbf{b} \in \mathbb{R}^m$：
+
+$$
+\mathbf{x}^+ = A^+ \mathbf{b} = \sum_{i=1}^r \left(\frac{\mathbf{u}_i^T \mathbf{b}}{\sigma_i}\right) \mathbf{v}_i
+$$
+
+1. **证明 $\operatorname{Col}(A^+) = \operatorname{Row}(A)$（且 $\mathbf{x}^+ \in \operatorname{Row}(A)$）**：
+   上式表明对任意 $\mathbf{b} \in \mathbb{R}^m$，$A^+\mathbf{b} \in \operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_r\} = \operatorname{Row}(A)$，故 $\operatorname{Col}(A^+) \subseteq \operatorname{Row}(A)$。反之，对任意 $1 \le j \le r$，取 $\mathbf{b} = \sigma_j \mathbf{u}_j$，由正交性 $\mathbf{u}_i^T \mathbf{u}_j = \delta_{ij}$ 得 $A^+(\sigma_j \mathbf{u}_j) = \mathbf{v}_j \in \operatorname{Col}(A^+)$，故 $\operatorname{Row}(A) \subseteq \operatorname{Col}(A^+)$。因此 $\operatorname{Col}(A^+) = \operatorname{Row}(A)$。
+
+2. **证明 $\operatorname{Null}(A^+) = \operatorname{Null}(A^T)$**：
+   由于 $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ 线性无关且各 $\sigma_i \gt 0$：
+   $$
+   A^+ \mathbf{b} = \mathbf{0} \iff \sum_{i=1}^r \left(\frac{\mathbf{u}_i^T \mathbf{b}}{\sigma_i}\right) \mathbf{v}_i = \mathbf{0} \iff \mathbf{u}_i^T \mathbf{b} = 0 \; (\forall 1 \le i \le r)
+   $$
+   即 $\mathbf{b} \perp \operatorname{span}\{\mathbf{u}_1, \dots, \mathbf{u}_r\} = \operatorname{Col}(A)$。根据四大子空间正交补定理 $\operatorname{Col}(A)^\perp = \operatorname{Null}(A^T)$，从而：
+   $$
+   \operatorname{Null}(A^+) = \operatorname{Null}(A^T)
+   $$
+
+3. **$A^+$ 的完整四大基本子空间对照表**（利用正交补立即推出另两个）：
+   - $\operatorname{Col}(A^+) = \operatorname{Row}(A)$
+   - $\operatorname{Null}(A^+) = \operatorname{Null}(A^T)$
+   - $\operatorname{Row}(A^+) = \operatorname{Null}(A^+)^\perp = \operatorname{Null}(A^T)^\perp = \operatorname{Col}(A)$
+   - $\operatorname{Null}((A^+)^T) = \operatorname{Col}(A^+)^\perp = \operatorname{Row}(A)^\perp = \operatorname{Null}(A)$
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l34-ex4" tier="L3" title="无计算子空间与 SVD 推理：伪逆对合律与通用格拉姆表达式 (AᵀA)⁺Aᵀ">
+
+设 $A \in \mathbb{R}^{m \times n}$ 为任意矩阵（允许秩亏缺 $r \lt \min(m, n)$）。**不借助具体矩阵元素计算**，直接利用奇异值分解 $A = U\Sigma V^T$（或 Penrose 四条公理）证明以下三条普适恒等式：
+
+1. **对合律与转置交换律**：$(A^+)^+ = A$，且 $(A^T)^+ = (A^+)^T$；
+2. **正规矩阵伪逆公式**：$(A^T A)^+ = A^+ (A^+)^T$；
+3. **无条件通用左逆公式**：无论 $A^T A$ 是否可逆，恒有：
+   $$
+   A^+ = (A^T A)^+ A^T
+   $$
+   请解释为何当 $A$ 列满秩时它自然退化为熟悉的 $(A^T A)^{-1} A^T$，而在秩亏缺时依然绝对有效！
+
+<ProgressiveHint hints={[
+  "对第 1 问，可直接验证矩阵 $A$ 满足以 $A^+$ 为基准的四条 Penrose 公理（即把 $A$ 与 $X$ 在 (P1)-(P4) 中的角色互换！），或者对 $A^+ = V \\Sigma^+ U^T$ 再做一次 SVD 翻转。",
+  "对第 2、3 问，写出 $A^T A = V (\\Sigma^T \\Sigma) V^T$！注意 $\\Sigma^T \\Sigma = \\operatorname{diag}(\\sigma_1^2, \\dots, \\sigma_r^2, 0, \\dots, 0)$ 已经是对角形式，它的伪逆只需对前 $r$ 个对角元取倒数 $\\sigma_i^{-2}$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+第 1 问非常神奇：Penrose 四条公理 $(AXA=A, XAX=X, (AX)^T=AX, (XA)^T=XA)$ 对于 $(A, X)$ 的角色是完全对称的！互换 $A \leftrightarrow A^+$ 后四条方程依然全部成立，由唯一性瞬间推出 $(A^+)^+ = A$。
+而第 3 问则彻底修补了最小二乘法中最脆弱的一环：通常公式 $(A^T A)^{-1} A^T$ 会在 $A^TA$ 不可逆时崩溃，只要把普通的逆 $(\cdot)^{-1}$ 升级为伪逆 $(\cdot)^+$，公式 $A^+ = (A^T A)^+ A^T$ 便对全宇宙所有矩阵无条件成立！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问证明：**
+- **证明 $(A^+)^+ = A$**：考察四条 Penrose 条件对于矩阵 $B := A^+$ 及其候选伪逆 $Y := A$：
+  1. $B Y B = A^+ A A^+ = A^+ = B$（成立，由 $A^+$ 满足 P2）；
+  2. $Y B Y = A A^+ A = A = Y$（成立，由 $A^+$ 满足 P1）；
+  3. $(B Y)^T = (A^+ A)^T = A^+ A = B Y$（成立，由 $A^+$ 满足 P4）；
+  4. $(Y B)^T = (A A^+)^T = A A^+ = Y B$（成立，由 $A^+$ 满足 P3）。
+  由于满足这四条 Penrose 条件的伪逆矩阵唯一，故 $B^+ = Y$，即 $(A^+)^+ = A$！
+- **证明 $(A^T)^+ = (A^+)^T$**：对 $A^+$ 满足的四条 Penrose 方程全部两侧取转置：
+  1. $A^T (A^+)^T A^T = (A A^+ A)^T = A^T$；
+  2. $(A^+)^T A^T (A^+)^T = (A^+ A A^+)^T = (A^+)^T$；
+  3. $(A^T (A^+)^T)^T = (A^+ A)^T = A^+ A = ((A^+ A)^T) = A^T (A^+)^T$；
+  4. $((A^+)^T A^T)^T = (A A^+)^T = A A^+ = (A^+)^T A^T$。
+  由唯一性立得 $(A^T)^+ = (A^+)^T$！（亦可用 SVD：$A^T = V \Sigma^T U^T \implies (A^T)^+ = U (\Sigma^T)^+ V^T = U (\Sigma^+)^T V^T = (V\Sigma^+ U^T)^T = (A^+)^T$。）
+
+**第 2 问证明：**
+利用 $A = U\Sigma V^T$（$U^T U = I_m, V^T V = I_n$），计算 $A^T A$：
+
+$$
+A^T A = V (\Sigma^T \Sigma) V^T = V \begin{bmatrix} \Sigma_r^2 & O \\ O & O_{(n-r) \times (n-r)} \end{bmatrix} V^T
+$$
+
+其中 $\Sigma_r^2 = \operatorname{diag}(\sigma_1^2, \dots, \sigma_r^2)$，$\sigma_1^2 \ge \dots \ge \sigma_r^2 \gt 0$。由于 $V$ 是正交方阵，上式已经正是实对称半正定矩阵 $A^T A$ 的 SVD（同时也是谱分解）！故其伪逆为：
+
+$$
+(A^T A)^+ = V \begin{bmatrix} \Sigma_r^{-2} & O \\ O & O_{(n-r) \times (n-r)} \end{bmatrix} V^T
+$$
+
+另一方面，计算 $A^+ (A^+)^T$：
+
+$$
+A^+ (A^+)^T = (V \Sigma^+ U^T)(U (\Sigma^+)^T V^T) = V \left(\Sigma^+ (\Sigma^+)^T\right) V^T = V \begin{bmatrix} \Sigma_r^{-2} & O \\ O & O_{(n-r) \times (n-r)} \end{bmatrix} V^T
+$$
+
+左右两端严格相等，因此 $(A^T A)^+ = A^+ (A^+)^T$！
+
+**第 3 问证明与解释：**
+将第 2 问中的 $(A^T A)^+$ 右乘 $A^T = V \Sigma^T U^T$：
+
+$$
+(A^T A)^+ A^T = V \begin{bmatrix} \Sigma_r^{-2} & O_{r \times (n-r)} \\ O_{(n-r) \times r} & O \end{bmatrix} \begin{bmatrix} \Sigma_r & O_{r \times (m-r)} \\ O_{(n-r) \times r} & O \end{bmatrix} U^T = V \begin{bmatrix} \Sigma_r^{-1} & O_{r \times (m-r)} \\ O_{(n-r) \times r} & O \end{bmatrix} U^T = V \Sigma^+ U^T = A^+
+$$
+
+**意义**：当 $A$ 列满秩（$r = n$）时，$A^T A$ 可逆，从而 $(A^TA)^+ = (A^TA)^{-1}$，上式瞬间退化为熟悉的 $(A^TA)^{-1}A^T$；而当 $r \lt n$ 使得 $A^T A$ 奇异不可逆时，$(A^TA)^+$ 会保留前 $r$ 个正特征值并把零特征值全部按 $0^+ = 0$ 归零，完美剔除 $\operatorname{Null}(A)$ 并依然精准还原出唯一的 $A^+$！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l34-ex5" tier="L4" title="MIT 18.06 考题级综合挑战：秩亏缺最小范数解与 Tikhonov 正则化极限">
+
+考虑秩为 $1$ 的欠定矩阵 $A$ 与不在列空间内的目标向量 $\mathbf{b}$：
+
+$$
+A = \begin{bmatrix} 1 & 2 & 1 \\ 2 & 4 & 2 \end{bmatrix} \in \mathbb{R}^{2 \times 3}, \qquad \mathbf{b} = \begin{bmatrix} 1 \\ 7 \end{bmatrix} \in \mathbb{R}^2
+$$
+
+1. 构造 $A$ 的紧凑奇异值分解 $A = \sigma_1 \mathbf{u}_1 \mathbf{v}_1^T$，进而写出其 Moore-Penrose 伪逆 $A^+$；
+2. 求出唯一最小范数最小二乘解 $\mathbf{x}^+ = A^+\mathbf{b}$、正交投影 $\mathbf{p} = A\mathbf{x}^+$ 以及最小残差 $\mathbf{e} = \mathbf{b} - \mathbf{p}$；
+3. 写出全部最小二乘解集 $\mathcal{S}_{\text{LS}} = \mathbf{x}^+ + \operatorname{Null}(A)$ 的参数表达式，验证 $\mathbf{x}^+$ 确为其中 $\ell_2$ 范数严格最小的解；
+4. **Tikhonov 岭正则化极限**：对于任意实矩阵 $A \in \mathbb{R}^{m \times n}$ 与任意正则化参数 $\lambda \gt 0$，求最小化目标 $\min_{\mathbf{x} \in \mathbb{R}^n} \left( \|A\mathbf{x} - \mathbf{b}\|_2^2 + \lambda \|\mathbf{x}\|_2^2 \right)$ 的唯一闭式解 $\mathbf{x}_\lambda$，并用 SVD 严格证明：
+   $$
+   \lim_{\lambda \to 0^+} \mathbf{x}_\lambda = A^+ \mathbf{b}
+   $$
+   最后在上述 $2 \times 3$ 数值矩阵上显式算出 $\mathbf{x}_\lambda$，核验它沿直线趋近于 $\mathbf{x}^+$！
+
+<ProgressiveHint hints={[
+  "第 1 问：$A = [1, 2]^T [1, 2, 1]$。把两个外积向量分别除以各自的 $\\ell_2$ 长度 $\\sqrt{5}$ 与 $\\sqrt{6}$，得到 $\\mathbf{u}_1, \\mathbf{v}_1$ 以及 $\\sigma_1 = \\sqrt{30}$。",
+  "第 2、3 问：算出 $\\mathbf{x}^+ = [1/2, 1, 1/2]^T$ 与 $\\mathbf{p} = [3, 6]^T$。解 $x_1 + 2x_2 + x_3 = 0$ 得二维零空间 $\\operatorname{Null}(A)$。",
+  "第 4 问：将目标函数改写为增广最小二乘问题 $\\left\\| \\begin{bmatrix} A \\\\ \\sqrt{\\lambda} I_n \\end{bmatrix} \\mathbf{x} - \\begin{bmatrix} \\mathbf{b} \\\\ \\mathbf{0} \\end{bmatrix} \\right\\|_2^2$，由于增广矩阵恒为列满秩，正规方程矩阵 $A^T A + \\lambda I_n$ 严格正定可逆！再用 SVD 展开求 $\\lambda \\to 0^+$ 极限。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+这是一个标准的双亏缺问题：$A\mathbf{x} = \mathbf{b}$ 既无精确解（因为 $\mathbf{b} = [1, 7]^T$ 不平行于 $[1, 2]^T$），最小二乘解又有整整一个二维平面那么大（因为 $\dim \operatorname{Null}(A) = 3 - 1 = 2$）。伪逆一步跨越两重困境：在输出端正交投影到 $\mathbf{p} = [3, 6]^T$ 砍掉不可达残差 $[-2, 1]^T$；在输入端在这个二维平行解平面上向原点垂足落点，精准锚定 $[1/2, 1, 1/2]^T$。而第 4 问揭示了另一种通往伪逆的道路：给奇异矩阵 $A^TA$ 加上哪怕一丁点儿 $\lambda I_n$ 的正定扰动，就迫使零空间上的解往原点回缩；当 $\lambda \to 0^+$ 时，留在零空间的分量依然严格为零，自然逼近伪逆解 $A^+\mathbf{b}$！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问：紧凑 SVD 与伪逆**
+观察秩 1 分解 $A = \begin{bmatrix} 1 \\ 2 \end{bmatrix} \begin{bmatrix} 1 & 2 & 1 \end{bmatrix}$。归一化左右奇异向量：
+
+$$
+\mathbf{u}_1 = \frac{1}{\sqrt{5}} \begin{bmatrix} 1 \\ 2 \end{bmatrix}, \qquad \mathbf{v}_1 = \frac{1}{\sqrt{6}} \begin{bmatrix} 1 \\ 2 \\ 1 \end{bmatrix}, \qquad \sigma_1 = \sqrt{5}\cdot\sqrt{6} = \sqrt{30}
+$$
+
+紧凑 SVD 为 $A = \sqrt{30}\,\mathbf{u}_1 \mathbf{v}_1^T$。因此伪逆为：
+
+$$
+A^+ = \frac{1}{\sigma_1} \mathbf{v}_1 \mathbf{u}_1^T = \frac{1}{\sqrt{30}} \left(\frac{1}{\sqrt{6}} \begin{bmatrix} 1 \\ 2 \\ 1 \end{bmatrix}\right) \left(\frac{1}{\sqrt{5}} \begin{bmatrix} 1 & 2 \end{bmatrix}\right) = \frac{1}{30} \begin{bmatrix} 1 & 2 \\ 2 & 4 \\ 1 & 2 \end{bmatrix}
+$$
+
+**第 2 问：最小范数最小二乘解、投影与残差**
+
+$$
+\mathbf{x}^+ = A^+ \mathbf{b} = \frac{1}{30} \begin{bmatrix} 1 & 2 \\ 2 & 4 \\ 1 & 2 \end{bmatrix} \begin{bmatrix} 1 \\ 7 \end{bmatrix} = \frac{1}{30} \begin{bmatrix} 15 \\ 30 \\ 15 \end{bmatrix} = \begin{bmatrix} 1/2 \\ 1 \\ 1/2 \end{bmatrix}
+$$
+
+$$
+\mathbf{p} = A\mathbf{x}^+ = \begin{bmatrix} 1/2 + 2 + 1/2 \\ 1 + 4 + 1 \end{bmatrix} = \begin{bmatrix} 3 \\ 6 \end{bmatrix}, \qquad \mathbf{e} = \mathbf{b} - \mathbf{p} = \begin{bmatrix} 1 - 3 \\ 7 - 6 \end{bmatrix} = \begin{bmatrix} -2 \\ 1 \end{bmatrix}
+$$
+
+显然 $\mathbf{e}^T \mathbf{u}_1 = \frac{1}{\sqrt{5}}(-2 + 2) = 0$，即 $\mathbf{e} \in \operatorname{Null}(A^T)$，最小残差为 $\|\mathbf{e}\|_2 = \sqrt{(-2)^2 + 1^2} = \sqrt{5}$。
+
+**第 3 问：全部最小二乘解集 $\mathcal{S}_{\text{LS}}$**
+零空间方程 $x_1 + 2x_2 + x_3 = 0$ 的两组基础解系（自由变量取 $x_2, x_3$）为 $\mathbf{n}_1 = \begin{bmatrix} -2 \\ 1 \\ 0 \end{bmatrix}, \mathbf{n}_2 = \begin{bmatrix} -1 \\ 0 \\ 1 \end{bmatrix}$。故全部最小二乘解集为三维空间中的二维平面：
+
+$$
+\mathcal{S}_{\text{LS}} = \left\{ \begin{bmatrix} 1/2 \\ 1 \\ 1/2 \end{bmatrix} + c_1 \begin{bmatrix} -2 \\ 1 \\ 0 \end{bmatrix} + c_2 \begin{bmatrix} -1 \\ 0 \\ 1 \end{bmatrix} \;\middle|\; c_1, c_2 \in \mathbb{R} \right\}
+$$
+
+由于 $\mathbf{x}^+$ 平行于 $\mathbf{v}_1 \in \operatorname{Row}(A)$ 且与 $\mathbf{n}_1, \mathbf{n}_2$ 均正交（验证：$[1/2, 1, 1/2]\cdot[-2, 1, 0]^T = 0$，$[1/2, 1, 1/2]\cdot[-1, 0, 1]^T = 0$），故任意 $\hat{\mathbf{x}} = \mathbf{x}^+ + \mathbf{x}_n$ 的范数平方满足：
+
+$$
+\|\hat{\mathbf{x}}\|_2^2 = \|\mathbf{x}^+\|_2^2 + \|\mathbf{x}_n\|_2^2 = \frac{3}{2} + \|c_1 \mathbf{n}_1 + c_2 \mathbf{n}_2\|_2^2 \ge \frac{3}{2}
+$$
+
+仅当 $c_1 = c_2 = 0$ 时取到唯一极小值 $\|\mathbf{x}^+\|_2 = \sqrt{3/2}$。
+
+**第 4 问：Tikhonov 岭正则化极限定理与数值验证**
+将目标改写为增广最小二乘问题：
+
+$$
+J(\mathbf{x}) = \|A\mathbf{x} - \mathbf{b}\|_2^2 + \lambda \|\mathbf{x}\|_2^2 = \left\| \begin{bmatrix} A \\ \sqrt{\lambda} I_n \end{bmatrix} \mathbf{x} - \begin{bmatrix} \mathbf{b} \\ \mathbf{0} \end{bmatrix} \right\|_2^2
+$$
+
+由于增广矩阵底部含有 $\sqrt{\lambda} I_n$（$\lambda \gt 0$），其零空间仅为 $\{\mathbf{0}\}$，必为列满秩！写出唯一正规方程：
+
+$$
+(A^T A + \lambda I_n) \mathbf{x}_\lambda = A^T \mathbf{b} \implies \mathbf{x}_\lambda = (A^T A + \lambda I_n)^{-1} A^T \mathbf{b}
+$$
+
+代入 SVD $A = U\Sigma V^T$（并注意 $I_n = V I_n V^T$）：
+
+$$
+(A^T A + \lambda I_n)^{-1} A^T = \left[V (\Sigma^T \Sigma + \lambda I_n) V^T\right]^{-1} (V \Sigma^T U^T) = V (\Sigma^T \Sigma + \lambda I_n)^{-1} \Sigma^T U^T
+$$
+
+其中对角核心矩阵 $D_\lambda := (\Sigma^T \Sigma + \lambda I_n)^{-1} \Sigma^T \in \mathbb{R}^{n \times m}$ 的第 $(i, i)$ 元为：
+- 当 $1 \le i \le r$（$\sigma_i \gt 0$）时：$(D_\lambda)_{ii} = \frac{\sigma_i}{\sigma_i^2 + \lambda} \xrightarrow{\lambda \to 0^+} \frac{1}{\sigma_i}$；
+- 当 $i \gt r$ 时，因 $\Sigma^T$ 的对应位置元素为 $0$，$(D_\lambda)_{ii} = \frac{0}{0 + \lambda} \equiv 0$（与 $\lambda$ 无关！）。
+
+因此 $\lim_{\lambda \to 0^+} D_\lambda = \Sigma^+$，从而严格得到：
+
+$$
+\lim_{\lambda \to 0^+} \mathbf{x}_\lambda = V \Sigma^+ U^T \mathbf{b} = A^+ \mathbf{b}
+$$
+
+**数值核验**：针对本例 $A, \mathbf{b}$，有 $A^T\mathbf{b} = \begin{bmatrix} 15 \\ 30 \\ 15 \end{bmatrix} = 30 \mathbf{x}^+$，且 $A^T A \mathbf{x}^+ = 30 \mathbf{x}^+$（因为 $\mathbf{x}^+ \parallel \mathbf{v}_1$ 是 $A^T A$ 对应特征值 $\sigma_1^2 = 30$ 的特征向量！）。于是 $(A^T A + \lambda I_3)\mathbf{x}^+ = (30 + \lambda)\mathbf{x}^+$，故：
+
+$$
+\mathbf{x}_\lambda = (A^T A + \lambda I_3)^{-1} (30\mathbf{x}^+) = \frac{30}{30 + \lambda} \begin{bmatrix} 1/2 \\ 1 \\ 1/2 \end{bmatrix} \xrightarrow{\lambda \to 0^+} \begin{bmatrix} 1/2 \\ 1 \\ 1/2 \end{bmatrix} = \mathbf{x}^+
+$$
+
+完美吻合！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>
+
+---
+
+<FrontierAIReading
+  id="AI-15"
+  title="过参数化模型的隐式偏置（Implicit Bias）：为什么无正则梯度下降自动收敛到最小范数伪逆解 A⁺b"
+  paperRef="Zhang et al. (ICLR 2017) Rethinking Generalization · Soudry et al. (JMLR 2018) Implicit Bias"
+>
+
+### 1. 现代深度学习的头号谜题：无穷多个零误差解，优化器到底偏爱哪一个？
+
+在经典统计学（以及本讲的第 2 种"瘦高"情形 $N \gt d$）中，我们用少量参数拟合大量样本，方程组是超定的。但在当今的大语言模型与过参数化（Overparameterized）神经网络中，形势彻底反转：参数维度 $d$ 远远超过训练样本数 $N$（$d \gg N$），这恰好对应本讲的第 3 种（**扁宽行满秩 $r = N \lt d$**）甚至第 4 种（**特征高度相关的秩亏缺 $r \lt N \lt d$**）矩阵情形！
+
+考察过参数化线性回归（或神经切线核 NTK 线性化区间的网络训练）：给定数据矩阵 $A \in \mathbb{R}^{N \times d}$ 与标签 $\mathbf{y} \in \mathbb{R}^N$，其中 $d \gg N$。满足零训练误差 $A\mathbf{w} = \mathbf{y}$ 的权重参数向量 $\mathbf{w} \in \mathbb{R}^d$ 构成一个维数高达 $d - r \gg 1$ 的仿射子空间：
+
+$$
+\mathcal{S}_{\text{interp}} = \mathbf{w}^+ + \operatorname{Null}(A)
+$$
+
+其中藏着无数个能**把训练集背得一字不差（Loss $= 0$）**的坏解——只需在 $\mathbf{w}^+$ 上叠加一个巨大的零空间分量 $\mathbf{w}_n \in \operatorname{Null}(A)$，它在训练样本 $A\mathbf{w}_n = \mathbf{0}$ 上完全隐身，却会在遇到未知测试样本 $\mathbf{a}_{\text{test}} \notin \operatorname{Row}(A)$ 时产生灾难性预测爆炸！
+
+然而令人震惊的实验事实（Zhang et al., ICLR 2017）是：**即使完全不加任何显式的 $\ell_2$ 权重衰减（Weight Decay）正则化，只要从零或极小权重出发运行标准梯度下降（Gradient Descent, GD），算法居然总能避开那些泛化极差的恶意插值解，收敛到泛化表现优异的解！**
+
+为什么没有正则项的梯度下降，仿佛自带了一双"隐形的手"？这正是深度学习理论的核心定理——**隐式偏置（Implicit Bias / Implicit Regularization）**。而它的本质，竟只需要**三行纯线性代数**就能彻底看穿！
+
+---
+
+### 2. 三行纯线性代数证明：梯度下降永不踏入零空间
+
+考虑均方误差损失函数：
+
+$$
+L(\mathbf{w}) = \frac{1}{2} \|A\mathbf{w} - \mathbf{y}\|_2^2
+$$
+
+#### 第 1 行：每一步梯度都严格锁死在行空间 $\operatorname{Row}(A)$ 内部
+对 $\mathbf{w}$ 求梯度：
+
+$$
+\nabla_{\mathbf{w}} L(\mathbf{w}_t) = A^T (A\mathbf{w}_t - \mathbf{y})
+$$
+
+请注意：无论括号里的残差向量 $\mathbf{r}_t := A\mathbf{w}_t - \mathbf{y} \in \mathbb{R}^N$ 是什么，左乘 $A^T$ 得到的向量永远是 $A^T$ 各列的线性组合！也就是：
+
+$$
+\nabla_{\mathbf{w}} L(\mathbf{w}_t) \in \operatorname{Col}(A^T) = \operatorname{Row}(A) \qquad (\forall t \ge 0)
+$$
+
+因为 $\operatorname{Row}(A) \perp \operatorname{Null}(A)$，梯度下降在**整个训练过程中对 $\operatorname{Null}(A)$ 方向上的投影分量永远严格为零**！
+
+#### 第 2 行：零初始化归纳法——参数轨迹永远无法离开 $\operatorname{Row}(A)$
+假设我们从原点 $\mathbf{w}_0 = \mathbf{0} \in \operatorname{Row}(A)$ 出发，执行学习率为 $\eta \gt 0$ 的梯度下降迭代：
+
+$$
+\mathbf{w}_{t+1} = \mathbf{w}_t - \eta \nabla_{\mathbf{w}} L(\mathbf{w}_t) = \mathbf{w}_t - \eta A^T (A\mathbf{w}_t - \mathbf{y})
+$$
+
+由数学归纳法：由于 $\mathbf{w}_0 = \mathbf{0} \in \operatorname{Row}(A)$，且每一步增量 $-\eta A^T(A\mathbf{w}_t - \mathbf{y}) \in \operatorname{Row}(A)$，子空间对加法封闭，从而：
+
+$$
+\mathbf{w}_t \in \operatorname{Row}(A) \qquad (\forall t = 0, 1, 2, \dots)
+$$
+
+也就是说，在整个优化轨迹上，参数向量的零空间分量 $P_{\operatorname{Null}(A)}\mathbf{w}_t$ 始终死死保持为 $\mathbf{0}$！
+
+#### 第 3 行：双射定理锁定唯一终点——Moore-Penrose 伪逆解 $A^+ \mathbf{y}$
+当步长满足收敛条件 $0 \lt \eta \lt \frac{2}{\sigma_1^2(A)}$ 时，凸优化迭代必收敛至某一个全局最小二乘极小值点 $\mathbf{w}_\infty \in \mathcal{S}_{\text{LS}}$（对于相容插值情形即 $A\mathbf{w}_\infty = \mathbf{y}$；哪怕数据含噪声不相容，亦有 $A\mathbf{w}_\infty = P_{\operatorname{Col}(A)}\mathbf{y}$）。由于有限维线性子空间 $\operatorname{Row}(A)$ 是闭集，极限点同样满足：
+
+$$
+\mathbf{w}_\infty \in \operatorname{Row}(A) \cap \mathcal{S}_{\text{LS}}
+$$
+
+由本讲的**行空间到列空间双射定理**与**唯一最小范数最小二乘定理**：在全部最小二乘解集 $\mathcal{S}_{\text{LS}} = \mathbf{w}^+ + \operatorname{Null}(A)$ 中，**有且仅有唯一的一个向量落在 $\operatorname{Row}(A)$ 里**——那就是：
+
+$$
+\mathbf{w}_\infty = A^+ \mathbf{y} = \arg\min_{\mathbf{w} \in \mathcal{S}_{\text{LS}}} \|\mathbf{w}\|_2
+$$
+
+**证毕！** 梯度下降之所以不用显式加 $\lambda \|\mathbf{w}\|_2^2$ 正则项也能找到最小范数解，是因为**算法每一步的更新轨迹本身就被几何锁死在零空间的正交补 $\operatorname{Row}(A)$ 上**！
+
+---
+
+### 3. 推广到非零初始化 $\mathbf{w}_0 \neq \mathbf{0}$：为什么初始化尺度直接影响泛化？
+
+如果实际训练中采用随机非零初始化 $\mathbf{w}_0 \neq \mathbf{0}$，结论又如何？将初始权重做正交分解：
+
+$$
+\mathbf{w}_0 = \mathbf{w}_{0,\text{row}} + \mathbf{w}_{0,\text{null}}, \qquad \mathbf{w}_{0,\text{row}} = P_{\operatorname{Row}(A)}\mathbf{w}_0, \quad \mathbf{w}_{0,\text{null}} = P_{\operatorname{Null}(A)}\mathbf{w}_0
+$$
+
+由于全部梯度增量 $\nabla_{\mathbf{w}} L(\mathbf{w}_t) \in \operatorname{Row}(A)$ 与 $\operatorname{Null}(A)$ 正交，梯度下降**根本看不到、也永远改不动**参数里自带的零空间分量 $\mathbf{w}_{0,\text{null}}$！于是对于任意 $t \ge 0$，$P_{\operatorname{Null}(A)}\mathbf{w}_t \equiv \mathbf{w}_{0,\text{null}}$，最终收敛点精确等于：
+
+$$
+\mathbf{w}_\infty = A^+ \mathbf{y} + P_{\operatorname{Null}(A)} \mathbf{w}_0 = \arg\min_{\mathbf{w} \in \mathcal{S}_{\text{LS}}} \|\mathbf{w} - \mathbf{w}_0\|_2
+$$
+
+这直接给出了一项在深度学习实践中被反复验证的黄金原则：
+1. 随机初始化 $\mathbf{w}_0$ 残留的零空间噪音 $P_{\operatorname{Null}(A)}\mathbf{w}_0$ 会**永久冻结**在最终模型里；
+2. 采用**小方差初始化**（使 $\|\mathbf{w}_0\|_2$ 尽量小）或加入微弱的 Weight Decay（把被冻结的 $\operatorname{Null}(A)$ 分量按 $(1 - \eta \lambda)^t$ 指数衰减回零），能使参数重返最小范数流形 $\operatorname{Row}(A)$，从而大幅抑制过拟合、解释“良性过拟合（Benign Overfitting）”与“双下降（Double Descent）”现象！
+
+<CollapsibleCode language="python" title="implicit_bias_gd_pseudoinverse.py">
+```python
+"""
+验证第 34 讲 AI-15 核心定理：过参数化梯度下降（GD）的隐式偏置（Implicit Bias）
+1. 在既过参数化又秩亏缺的线性模型 (N=10, d=40, rank=8) 上：
+   - 零初始化无正则 GD 自动且精确收敛到 Moore-Penrose 伪逆解 A^+ y（唯一最小 L2 范数解）；
+   - 随机非零初始化 GD 获得完全相同的零训练损失，但永久冻结初始零空间分量 P_Null(w0)，
+     收敛到 A^+ y + P_Null(w0)（即距离 w0 最近的最小二乘解），范数严格更大！
+2. 同样验证在数据含正交噪声（不相容）情形下，零初始化 GD 依然收敛到 A^+ y。
+"""
+import torch
+
+def verify_implicit_bias_pseudoinverse():
+    torch.manual_seed(34)
+
+    # 构造既扁宽又秩亏缺的矩阵 A ∈ R^{10 x 40}, rank(A) = 8 < N < d
+    N, d, r = 10, 40, 8
+    U_sub, _ = torch.linalg.qr(torch.randn(N, r, dtype=torch.float64))
+    V_sub, _ = torch.linalg.qr(torch.randn(d, r, dtype=torch.float64))
+    S_sub = torch.linspace(3.0, 0.8, r, dtype=torch.float64)
+    A = U_sub @ torch.diag(S_sub) @ V_sub.T
+
+    # 1. 相容过参数化插值数据 y = A @ w_true
+    w_true = torch.randn(d, dtype=torch.float64)
+    y = A @ w_true
+
+    # 计算理论唯一最小范数伪逆解 w^+ = A^+ y
+    w_pinv = torch.linalg.pinv(A) @ y
+
+    # 理论收敛安全步长: 0 < eta < 2 / sigma_1^2
+    sigma_1 = S_sub[0].item()
+    eta = 1.0 / (sigma_1 ** 2)
+
+    # 运行无任何正则化的零初始化梯度下降
+    w_gd_zero = torch.zeros(d, dtype=torch.float64)
+    for _ in range(3000):
+        grad = A.T @ (A @ w_gd_zero - y)
+        w_gd_zero = w_gd_zero - eta * grad
+
+    loss_zero = 0.5 * torch.norm(A @ w_gd_zero - y).item() ** 2
+    dist_to_pinv = torch.norm(w_gd_zero - w_pinv).item()
+
+    print("=" * 72)
+    print("1. 过参数化且秩亏缺插值问题 (N=10, d=40, rank=8):")
+    print(f"   零初始化 GD 最终训练损失:           {loss_zero:.2e}")
+    print(f"   ||w_gd_zero - A^+ y||_2 偏差:      {dist_to_pinv:.2e} (严格收敛至伪逆解!)")
+    print(f"   ||w_gd_zero||_2 = {torch.norm(w_gd_zero).item():.6f}  vs  ||A^+ y||_2 = {torch.norm(w_pinv).item():.6f}")
+
+    # 2. 随机非零初始化 GD：验证 Null(A) 分量被永久冻结
+    w0 = torch.randn(d, dtype=torch.float64)
+    P_row = V_sub @ V_sub.T
+    w0_null = w0 - P_row @ w0  # 初始零空间投影分量 P_Null(w0)
+
+    w_gd_rand = w0.clone()
+    for _ in range(3000):
+        grad = A.T @ (A @ w_gd_rand - y)
+        w_gd_rand = w_gd_rand - eta * grad
+
+    loss_rand = 0.5 * torch.norm(A @ w_gd_rand - y).item() ** 2
+    w_theory_rand = w_pinv + w0_null
+    dist_to_theory = torch.norm(w_gd_rand - w_theory_rand).item()
+
+    print("\n2. 非零初始化 w0 的梯度下降 (零空间冻结定理):")
+    print(f"   非零初始化 GD 最终训练损失:         {loss_rand:.2e} (同样完全插值零误差!)")
+    print(f"   ||w_gd_rand - (A^+ y + P_Null(w0))||_2 = {dist_to_theory:.2e}")
+    print(f"   ||w_gd_rand||_2 = {torch.norm(w_gd_rand).item():.6f}  >  ||A^+ y||_2 = {torch.norm(w_pinv).item():.6f}")
+    print("   结论：无正则 GD 隐式找到了距离初始化最近的最小二乘解！")
+
+    # 3. 不相容（含左零空间正交噪声）情形检验
+    y_noisy = y + 0.5 * (torch.randn(N, dtype=torch.float64) - U_sub @ (U_sub.T @ torch.randn(N, dtype=torch.float64)))
+    w_pinv_noisy = torch.linalg.pinv(A) @ y_noisy
+    w_gd_noisy = torch.zeros(d, dtype=torch.float64)
+    for _ in range(3000):
+        w_gd_noisy = w_gd_noisy - eta * (A.T @ (A @ w_gd_noisy - y_noisy))
+    err_noisy = torch.norm(w_gd_noisy - w_pinv_noisy).item()
+    print("\n3. 含不可达残差的不相容系统检验:")
+    print(f"   ||w_gd_noisy - A^+ y_noisy||_2 = {err_noisy:.2e} (依然精准锁定最小范数最小二乘解!)")
+    print("=" * 72)
+
+if __name__ == "__main__":
+    verify_implicit_bias_pseudoinverse()
+```
+</CollapsibleCode>
+
+</FrontierAIReading>

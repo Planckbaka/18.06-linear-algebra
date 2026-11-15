@@ -548,7 +548,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Symmetric Matrices and Positive Definiteness',
     focusZh: '谱定理 A = QΛQᵀ = ∑ λ_i q_i q_iᵀ 的完整复共轭严密证明（为何特征值必为实数、不同特征空间必正交）与 Sylvester 惯性定理。',
     focusEn: 'Complete proof of the Real Spectral Theorem A = QΛQᵀ, orthogonal rank-1 projection decomposition, and pivot/eigenvalue signs.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -562,7 +562,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Complex Matrices; Fast Fourier Transform',
     focusZh: '复空间内积 zᴴw（为何必须共轭！）、Hermitian 矩阵与酉矩阵 UᴴU=I，以及 DFT 矩阵蝴蝶分治将 O(n²) 降至 O(n log n)。',
     focusEn: 'Complex inner product zᴴw, Hermitian & unitary matrices, Fourier matrix F_n orthogonality, and radix-2 FFT factorization.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -576,7 +576,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Positive Definite Matrices and Minima',
     focusZh: '实对称正定矩阵 SPD 的五大充要判据（二次型 xᵀAx>0、特征值、顺序主子式、主元、A=RᵀR）、椭球主轴几何与多元极值二阶条件。',
     focusEn: 'Five equivalent tests for symmetric positive definiteness, level-set ellipsoids xᵀAx = 1, and Hessian minima vs. saddle points.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-12',
@@ -600,7 +600,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Similar Matrices and Jordan Form',
     focusZh: '相似关系 B = M⁻¹AM 的不变量族（特征多项式、秩、迹、行列式、Jordan 块个数）与亏损矩阵广义特征向量结构。',
     focusEn: 'Similarity invariants under B = M⁻¹AM, defective matrices, and how Jordan blocks correspond one-to-one with eigenvectors.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -614,7 +614,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Singular Value Decomposition (SVD)',
     focusZh: '对任意 m×n 矩阵成立的终极分解 A = UΣVᵀ：行空间标准正交基映射为列空间标准正交基 Av_i = σ_i u_i，规避单独求 U、V 导致符号失配的经典陷阱！',
     focusEn: 'A = UΣVᵀ for any m×n matrix, geometry of rotation-stretch-rotation, four-subspace orthonormal bases, and sign-consistency rigor.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-13',
@@ -638,7 +638,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Linear Transformations and Their Matrices',
     focusZh: '脱离坐标理解线性算子 T: V → W（如求导与积分算子），以及给定输入基 {v_j} 与输出基 {w_i} 后变换矩阵的唯一构造法则。',
     focusEn: 'Coordinate-free linear maps T(cv + dw) = cT(v) + dT(w), derivative/integral operators, and matrix representation wrt bases.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -652,7 +652,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Change of Basis; Image Compression',
     focusZh: '坐标变换 x = Wc、好基的标准（可快速计算 + 少数基向量捕获绝大部分信号能量：傅里叶基与 Haar 小波基）与算子换基公式 M⁻¹AM。',
     focusEn: 'Coordinate change x = Wc, properties of a good basis (fast transform + sparse compression: DCT & Haar wavelets), and M⁻¹AM.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-14',
@@ -676,7 +676,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Quiz 3 Review (Module IV Synthesis)',
     focusZh: '实对称谱分解、正定二次型判据、相似不变量、SVD 与线性变换换基考题综合演练。',
     focusEn: 'Comprehensive synthesis of Spectral Theorem, positive definiteness, Jordan similarity, SVD, and basis transformations.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
   {
@@ -690,7 +690,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Left and Right Inverses; Pseudoinverse',
     focusZh: '单侧逆的非唯一性、为什么 A⁺ = V Σ⁺ Uᵀ 在行空间到列空间之间建立一一双射，并同时给出“最小二乘误差 + 最短欧氏范数”最优解 x⁺ = A⁺b。',
     focusEn: 'One-sided inverses, bijection between Row(A) and Col(A), and why x⁺ = VΣ⁺Uᵀb is the unique minimum-norm least-squares solution.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
     aiBridge: {
       id: 'AI-15',
@@ -714,7 +714,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleEn: 'Final Course Review: The Grand Picture',
     focusZh: '将四个基本子空间与四大矩阵分解（LU、QR、QΛQᵀ、UΣVᵀ）融汇成一张终身受用的线性代数思维总图。',
     focusEn: 'Unifying the Four Fundamental Subspaces and the Four Great Factorizations (LU, QR, QΛQᵀ, UΣVᵀ) into one master framework.',
-    statusZh: 'planned',
+    statusZh: 'published',
     statusEn: 'planned',
   },
 ];

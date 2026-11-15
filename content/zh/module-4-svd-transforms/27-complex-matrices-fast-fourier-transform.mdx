@@ -1,0 +1,909 @@
+---
+title: "第 27 讲：复数矩阵与快速傅里叶变换（FFT）"
+ocwId: "L26"
+videoEpisode: "P27"
+textbookRef: "§9.1–9.3"
+---
+
+在前两讲中，我们深入研究了实对称矩阵的谱定理（$A = Q\Lambda Q^T$）与正定二次型的概念。然而，一旦走出实对称矩阵的舒适区，哪怕矩阵 $A \in \mathbb{R}^{n\times n}$ 的每一个元素都是实数，它的特征值与特征向量也随时可能进入复数领域——例如第 21 讲中的 $90^\circ$ 旋转矩阵 $R = \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix}$，其特征值恰好为 $\pm i$。
+
+要让线性代数的谱理论与正交分解彻底完备，我们必须从实空间 $\mathbb{R}^n$ 迈入复向量空间 $\mathbb{C}^n$。更令人振奋的是，这一推广直接孕育了应用数学与工程史上最重要的算法之一：
+
+1. **复空间几何与算子字典**：揭示为什么普通点积 $\mathbf{z}^T\mathbf{z}$ 在 $\mathbb{C}^n$ 上彻底失效，必须引入**共轭转置（Conjugate Transpose / Hermitian Transpose）** $\mathbf{z}^H$；并据此将对称矩阵推广为 **Hermitian 矩阵（$A^H = A$）**，将正交矩阵推广为**酉矩阵（Unitary Matrix，$U^H U = I$）**。
+2. **离散傅里叶矩阵 $F_n$ 与快速傅里叶变换（Fast Fourier Transform, FFT）**：由 $n$ 次单位根构成的傅里叶矩阵 $F_n$ 满足优雅的列正交性 $F_n^H F_n = n I_n$；而利用奇偶下标置换与旋转因子对角化，原本看似稠密的 $n \times n$ 矩阵乘法 $F_n\mathbf{x}$ 被拆解为稀疏矩阵乘积，计算量从 $\mathcal{O}(n^2)$ 奇迹般坍缩至 $\frac{1}{2} n \log_2 n$！
+
+---
+
+## 一、复向量空间 $\mathbb{C}^n$ 与共轭转置内积
+
+### 1. 为什么实数点积 $\mathbf{z}^T\mathbf{z}$ 会在 $\mathbb{C}^n$ 中崩溃？
+
+在 $\mathbb{R}^n$ 中，向量的长度平方由点积 $\mathbf{x}^T\mathbf{x} = \sum_{k=1}^n x_k^2$ 定义。因为实数的平方总是非负的，所以 $\mathbf{x}^T\mathbf{x} \ge 0$ 且仅在 $\mathbf{x} = \mathbf{0}$ 时取等号。
+
+然而，若我们不加思索地把 $\mathbf{z}^T\mathbf{z}$ 直接照搬到复向量空间 $\mathbb{C}^n$，灾难立刻发生。考察这个极其简单的非零复向量：
+
+$$
+\mathbf{z} = \begin{bmatrix} 1 \\ i \end{bmatrix} \in \mathbb{C}^2, \qquad \mathbf{z} \ne \mathbf{0}
+$$
+
+如果我们套用不带共轭的普通转置点积，将会算出：
+
+$$
+\mathbf{z}^T \mathbf{z} = 1^2 + i^2 = 1 + (-1) = 0
+$$
+
+一个明明非零的向量，它的“长度平方”居然变成了 $0$！如果取 $\mathbf{w} = [0, i]^T$，甚至会得出 $\mathbf{w}^T\mathbf{w} = -1 \lt 0$ 的荒谬负数结果。这彻底摧毁了长度（范数）、距离和正交投影的几何基石。
+
+挽救正定性的唯一方法，是在取转置的同时对每个复数分量取**复共轭（Complex Conjugate）**（记 $\overline{a+bi} = a-bi$），从而把 $z_k^2$ 转化为模长的平方 $|z_k|^2 = \bar{z}_k z_k = a_k^2 + b_k^2 \ge 0$。
+
+<DefinitionCard title="共轭转置与复数内积" termEn="Conjugate Transpose & Complex Inner Product">
+
+设复向量 $\mathbf{z}, \mathbf{w} \in \mathbb{C}^n$，复矩阵 $A \in \mathbb{C}^{m\times n}$。
+
+1. **共轭转置（Conjugate Transpose / Hermitian Transpose）**：将矩阵或向量先转置再对所有元素取复共轭（两者次序可交换），记为上标 $H$：
+   $$
+   \mathbf{z}^H = \overline{\mathbf{z}}^T = \begin{bmatrix} \bar{z}_1 & \bar{z}_2 & \dots & \bar{z}_n \end{bmatrix} \in \mathbb{C}^{1\times n}, \qquad A^H = \overline{A}^T \in \mathbb{C}^{n\times m}
+   $$
+   （部分物理学或泛函分析文献也写作 $A^*$ 或 $A^\dagger$，本课程统一采用线性代数标准的 $A^H$。）
+2. **复数内积（Complex Inner Product）**：$\mathbf{z}$ 与 $\mathbf{w}$ 的标准复内积定义为：
+   $$
+   \langle \mathbf{z}, \mathbf{w} \rangle = \mathbf{z}^H \mathbf{w} = \sum_{k=1}^n \bar{z}_k w_k
+   $$
+3. **复向量的长度（Euclidean Norm）**：
+   $$
+   \|\mathbf{z}\| = \sqrt{\mathbf{z}^H \mathbf{z}} = \sqrt{\sum_{k=1}^n |z_k|^2} \ge 0
+   $$
+   且严格满足正定性：$\|\mathbf{z}\| = 0 \iff \mathbf{z} = \mathbf{0}$。
+4. **复向量的正交性（Orthogonality）**：若 $\mathbf{z}^H \mathbf{w} = 0$，则称 $\mathbf{z}$ 与 $\mathbf{w}$ 在 $\mathbb{C}^n$ 中正交（记作 $\mathbf{z} \perp \mathbf{w}$）。
+
+</DefinitionCard>
+
+回到刚才的向量 $\mathbf{z} = [1, i]^T$，现在用复内积计算长度平方：
+
+$$
+\mathbf{z}^H \mathbf{z} = \begin{bmatrix} 1 & -i \end{bmatrix} \begin{bmatrix} 1 \\ i \end{bmatrix} = 1\cdot 1 + (-i)\cdot i = 1 + 1 = 2 \implies \|\mathbf{z}\| = \sqrt{2} \gt 0
+$$
+
+**复内积的两个关键代数规则**（必须时刻留心与实内积的差别）：
+- **共轭对称性（Conjugate Symmetry）**：交换两个向量的次序会使结果取共轭，即：
+  $$
+  \mathbf{w}^H \mathbf{z} = \sum_{k=1}^n \bar{w}_k z_k = \overline{\sum_{k=1}^n \bar{z}_k w_k} = \overline{\mathbf{z}^H \mathbf{w}}
+  $$
+  正交性仍然是对称的，因为 $\mathbf{z}^H \mathbf{w} = 0 \iff \mathbf{w}^H \mathbf{z} = \overline{0} = 0$。
+- **反穿袜原则**：对于任意相容尺寸的复矩阵 $A \in \mathbb{C}^{m\times k}$ 和 $B \in \mathbb{C}^{k\times n}$，同样成立：
+  $$
+  (AB)^H = B^H A^H
+  $$
+- **半双线性（Sesquilinearity）**：提取标量因子 $\alpha \in \mathbb{C}$ 时，右端线性而左端共轭线性：
+  $$
+  \mathbf{z}^H (\alpha \mathbf{w}) = \alpha (\mathbf{z}^H \mathbf{w}), \qquad (\alpha \mathbf{z})^H \mathbf{w} = \bar{\alpha} (\mathbf{z}^H \mathbf{w})
+  $$
+
+### 2. 实空间 $\mathbb{R}^n$ 到复空间 $\mathbb{C}^n$ 的翻译字典
+
+Gilbert Strang 教授给出了一个极具启发性的经验法则：**凡是在实线性代数中看到转置符号 $^T$ 的地方，在复线性代数中几乎都要原封不动地替换为共轭转置 $^H$**。
+
+| 核心概念 | 实空间 $\mathbb{R}^n$ | 复空间 $\mathbb{C}^n$（自动加共轭） | 核心不变性质 |
+| :--- | :---: | :---: | :--- |
+| 转置算子 | $A^T$ | $A^H = \bar{A}^T$ | $(AB)^H = B^H A^H$ |
+| 标准内积 | $\mathbf{x}^T \mathbf{y}$ | $\mathbf{z}^H \mathbf{w} = \sum \bar{z}_k w_k$ | 正定性 $\mathbf{z}^H\mathbf{z} \gt 0$（$\mathbf{z} \ne \mathbf{0}$） |
+| 实谱矩阵 | 实对称矩阵（$A^T = A$） | **Hermitian 矩阵**（$A^H = A$） | 全部特征值 $\lambda_i \in \mathbb{R}$ |
+| 保长矩阵 | 正交矩阵（$Q^T Q = I_n$） | **酉矩阵**（$U^H U = I_n$） | 保持长度 $\|U\mathbf{z}\| = \|\mathbf{z}\|$，且 $|\lambda_i| = 1$ |
+| 谱分解定理 | $A = Q \Lambda Q^T$ | $A = U \Lambda U^H$ | 存在标准正交特征基 |
+
+---
+
+## 二、Hermitian 矩阵与酉矩阵的谱理论
+
+根据上面的翻译字典，实对称矩阵在复域中的真正对应物不是复对称矩阵 $A^T = A$，而是 **Hermitian 矩阵**；实正交矩阵的真正对应物则是**酉矩阵**。
+
+<DefinitionCard title="Hermitian 矩阵与酉矩阵" termEn="Hermitian Matrix & Unitary Matrix">
+
+设 $A, U \in \mathbb{C}^{n\times n}$ 为 $n$ 阶复方阵。
+
+1. **Hermitian 矩阵（厄米特矩阵 / 自共轭矩阵）**：若 $A$ 等于自身的共轭转置，即：
+   $$
+   A^H = A \quad (\text{等价于对所有 } 1 \le j, k \le n \text{ 有 } a_{jk} = \bar{a}_{kj})
+   $$
+   则称 $A$ 为 Hermitian 矩阵。特别地，主对角线元素必须满足 $a_{kk} = \bar{a}_{kk}$，即**对角元全部为实数**。
+2. **酉矩阵（Unitary Matrix）**：若方阵 $U$ 的各列在复内积下构成 $\mathbb{C}^n$ 的一组标准正交基（Orthonormal Basis），即：
+   $$
+   U^H U = I_n
+   $$
+   则称 $U$ 为酉矩阵。因为 $U$ 是方阵，由左逆等于右逆知 $U^{-1} = U^H$ 且同时成立 $U U^H = I_n$（行向量也标准正交）。
+
+</DefinitionCard>
+
+我们先看一个具体的 $2\times 2$ Hermitian 矩阵数值算例，亲眼见证它的特征值与特征向量如何表现：
+
+$$
+A = \begin{bmatrix} 3 & 1 - i \\ 1 + i & 2 \end{bmatrix}
+$$
+
+- 验证 Hermitian 条件：$A^H = \overline{\begin{bmatrix} 3 & 1+i \\ 1-i & 2 \end{bmatrix}} = \begin{bmatrix} 3 & 1-i \\ 1+i & 2 \end{bmatrix} = A$。主对角线元素 $3$ 和 $2$ 均为实数，非对角元 $1-i$ 与 $1+i$ 互为共轭。
+- 求特征值：$\operatorname{tr}(A) = 3 + 2 = 5$，$\det(A) = 3\times 2 - (1-i)(1+i) = 6 - 2 = 4$。特征方程为：
+  $$
+  \lambda^2 - 5\lambda + 4 = (\lambda - 4)(\lambda - 1) = 0 \implies \lambda_1 = 4, \quad \lambda_2 = 1
+  $$
+  两个特征值全为实数！
+- 求特征向量并单位化：
+  - 对 $\lambda_1 = 4$：解 $(A - 4I)\mathbf{x}_1 = \begin{bmatrix} -1 & 1-i \\ 1+i & -2 \end{bmatrix}\mathbf{x}_1 = \mathbf{0}$，得 $\mathbf{x}_1 = \begin{bmatrix} 1-i \\ 1 \end{bmatrix}$。其长度平方为 $|1-i|^2 + 1^2 = 2 + 1 = 3$，故单位特征向量为 $\mathbf{u}_1 = \frac{1}{\sqrt{3}}\begin{bmatrix} 1-i \\ 1 \end{bmatrix}$。
+  - 对 $\lambda_2 = 1$：解 $(A - I)\mathbf{x}_2 = \begin{bmatrix} 2 & 1-i \\ 1+i & 1 \end{bmatrix}\mathbf{x}_2 = \mathbf{0}$，得 $\mathbf{x}_2 = \begin{bmatrix} 1 \\ -1-i \end{bmatrix}$。其长度平方为 $1^2 + |-1-i|^2 = 1 + 2 = 3$，故单位特征向量为 $\mathbf{u}_2 = \frac{1}{\sqrt{3}}\begin{bmatrix} 1 \\ -1-i \end{bmatrix}$。
+- 检验复正交性与酉对角化：
+  $$
+  \mathbf{u}_1^H \mathbf{u}_2 = \frac{1}{3}\Big(\overline{(1-i)}\cdot 1 + \bar{1}\cdot (-1-i)\Big) = \frac{1}{3}\big((1+i) + (-1-i)\big) = 0
+  $$
+  令 $U = [\mathbf{u}_1 \;\; \mathbf{u}_2] = \frac{1}{\sqrt{3}}\begin{bmatrix} 1-i & 1 \\ 1 & -1-i \end{bmatrix}$，直接验证可知 $U^H U = I_2$ 且 $A = U \begin{bmatrix} 4 & 0 \\ 0 & 1 \end{bmatrix} U^H$！
+
+这一完美结构并非巧合，而是由以下核心定理严格担保的。
+
+<TheoremCard title="Hermitian 矩阵与酉矩阵核心谱定理" termEn="Spectral Theorem for Hermitian & Unitary Matrices">
+
+1. **Hermitian 矩阵的四大谱性质**（设 $A \in \mathbb{C}^{n\times n}$ 满足 $A^H = A$）：
+   - **二次型恒实**：对任意向量 $\mathbf{z} \in \mathbb{C}^n$，复数二次型 $\mathbf{z}^H A \mathbf{z}$ 必定是实数（$\mathbf{z}^H A \mathbf{z} \in \mathbb{R}$）；
+   - **特征值全实**：$A$ 的所有特征值均为实数（$\lambda_1, \dots, \lambda_n \in \mathbb{R}$）；
+   - **特征向量正交**：对应不同特征值（$\lambda_1 \ne \lambda_2$）的特征向量在复内积下严格正交，即 $\mathbf{x}_1^H \mathbf{x}_2 = 0$；
+   - **复谱分解定理（Hermitian Spectral Theorem）**：$A$ 恒可被酉矩阵对角化为：
+     $$
+     A = U \Lambda U^H
+     $$
+     其中 $U \in \mathbb{C}^{n\times n}$ 为酉矩阵（$U^H U = I_n$），$\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n) \in \mathbb{R}^{n\times n}$ 为实对角阵。
+
+2. **酉矩阵的三大几何与谱性质**（设 $U \in \mathbb{C}^{n\times n}$ 满足 $U^H U = I_n$）：
+   - **保内积与保长（等距性）**：对任意 $\mathbf{z}, \mathbf{w} \in \mathbb{C}^n$，均有 $(U\mathbf{z})^H(U\mathbf{w}) = \mathbf{z}^H\mathbf{w}$ 以及 $\|U\mathbf{z}\| = \|\mathbf{z}\|$；
+   - **特征值落在单位圆上**：$U$ 的任意特征值 $\lambda \in \mathbb{C}$ 均满足模长 $|\lambda| = 1$；
+   - **酉群封闭性**：两个同阶酉矩阵的乘积 $U_1 U_2$ 及其逆 $U^{-1} = U^H$ 仍是酉矩阵，且 $\frac{1}{\sqrt{n}}F_n$ 等正交基旋转变换皆可由酉谱分解表示。
+
+</TheoremCard>
+
+<ProofCollapse title="展开严格代数证明：Hermitian 实特征值、特征向量正交性与酉矩阵保长性">
+
+**1. 证明 Hermitian 矩阵的二次型与特征值均为实数：**
+
+设 $A \in \mathbb{C}^{n\times n}$ 满足 $A^H = A$。对任意向量 $\mathbf{z} \in \mathbb{C}^n$，考察 $1\times 1$ 标量 $\alpha = \mathbf{z}^H A \mathbf{z}$。对其整体取共轭转置（对于 $1\times 1$ 标量，共轭转置就是普通复共轭 $\bar{\alpha}$）：
+
+$$
+\bar{\alpha} = (\mathbf{z}^H A \mathbf{z})^H = \mathbf{z}^H A^H (\mathbf{z}^H)^H = \mathbf{z}^H A \mathbf{z} = \alpha
+$$
+
+一个复数等于其自身的复共轭，当且仅当它的虚部为零，即 $\mathbf{z}^H A \mathbf{z} \in \mathbb{R}$。
+
+现设 $A\mathbf{x} = \lambda \mathbf{x}$，其中 $\mathbf{x} \ne \mathbf{0}$。在等式左端同时左乘 $\mathbf{x}^H$：
+
+$$
+\mathbf{x}^H A \mathbf{x} = \mathbf{x}^H (\lambda \mathbf{x}) = \lambda (\mathbf{x}^H \mathbf{x}) = \lambda \|\mathbf{x}\|^2
+$$
+
+由于 $\mathbf{x} \ne \mathbf{0}$，复内积的正定性保证了分母 $\|\mathbf{x}\|^2 = \mathbf{x}^H\mathbf{x} \gt 0$（严格为正实数，绝对不为零！）。因此可以合法地相除：
+
+$$
+\lambda = \frac{\mathbf{x}^H A \mathbf{x}}{\mathbf{x}^H \mathbf{x}} \in \mathbb{R}
+$$
+
+（注意：若没有复共轭导致的正定性，$\mathbf{x}^T\mathbf{x}$ 可能等于 $0$，这个经典除法证明就会彻底崩溃！）
+
+**2. 证明不同特征值的特征向量复正交：**
+
+设 $A\mathbf{x}_1 = \lambda_1 \mathbf{x}_1$ 且 $A\mathbf{x}_2 = \lambda_2 \mathbf{x}_2$，其中 $\lambda_1 \ne \lambda_2$。分别从两侧计算 $\mathbf{x}_1^H A \mathbf{x}_2$：
+- 利用 $A\mathbf{x}_2 = \lambda_2 \mathbf{x}_2$：$\mathbf{x}_1^H (A\mathbf{x}_2) = \lambda_2 (\mathbf{x}_1^H \mathbf{x}_2)$；
+- 利用 $A = A^H$ 及 $\lambda_1 \in \mathbb{R}$（故 $\bar{\lambda}_1 = \lambda_1$）：
+  $$
+  \mathbf{x}_1^H A \mathbf{x}_2 = (A^H \mathbf{x}_1)^H \mathbf{x}_2 = (A\mathbf{x}_1)^H \mathbf{x}_2 = (\lambda_1 \mathbf{x}_1)^H \mathbf{x}_2 = \bar{\lambda}_1 (\mathbf{x}_1^H \mathbf{x}_2) = \lambda_1 (\mathbf{x}_1^H \mathbf{x}_2)
+  $$
+
+两式相减得 $(\lambda_1 - \lambda_2)(\mathbf{x}_1^H \mathbf{x}_2) = 0$。因 $\lambda_1 \ne \lambda_2$，必有 $\mathbf{x}_1^H \mathbf{x}_2 = 0$。
+
+**3. 证明酉矩阵保内积、保范数且 $|\lambda| = 1$：**
+
+设 $U^H U = I_n$。对任意 $\mathbf{z}, \mathbf{w} \in \mathbb{C}^n$：
+
+$$
+(U\mathbf{z})^H (U\mathbf{w}) = \mathbf{z}^H (U^H U) \mathbf{w} = \mathbf{z}^H I_n \mathbf{w} = \mathbf{z}^H \mathbf{w}
+$$
+
+令 $\mathbf{w} = \mathbf{z}$，立得 $\|U\mathbf{z}\|^2 = (U\mathbf{z})^H (U\mathbf{z}) = \mathbf{z}^H \mathbf{z} = \|\mathbf{z}\|^2$，即 $\|U\mathbf{z}\| = \|\mathbf{z}\|$。
+
+若 $U\mathbf{x} = \lambda \mathbf{x}$（$\mathbf{x} \ne \mathbf{0}$），两端取欧氏范数：
+
+$$
+\|U\mathbf{x}\| = \|\lambda \mathbf{x}\| = |\lambda| \|\mathbf{x}\|
+$$
+
+结合保长性 $\|U\mathbf{x}\| = \|\mathbf{x}\|$ 且 $\|\mathbf{x}\| \gt 0$，约去 $\|\mathbf{x}\|$ 立即得 $|\lambda| = 1$。证毕！
+
+</ProofCollapse>
+
+---
+
+## 三、离散傅里叶变换（DFT）矩阵 $F_n$ 与单位根正交性
+
+现在我们迎来本讲最辉煌的主角——Gilbert Strang 教授赞誉为“数学界最重要的复矩阵”的**离散傅里叶变换（Discrete Fourier Transform, DFT）矩阵** $F_n$。它把向量空间中的正交基概念与周期波分解的频谱分析无缝融合在一起。
+
+### 1. $n$ 次单位根与傅里叶矩阵的构造
+
+回忆复平面上满足 $z^n = 1$ 的方程。它共有 $n$ 个等距分布在单位圆 $|z|=1$ 上的根，全部由**本原 $n$ 次单位根（Primitive $n$-th Root of Unity）**的幂次生成：
+
+$$
+w = w_n = e^{2\pi i / n} = \cos\frac{2\pi}{n} + i \sin\frac{2\pi}{n}
+$$
+
+显然 $w^n = e^{2\pi i} = 1$，并且 $1, w, w^2, \dots, w^{n-1}$ 在复平面单位圆上均匀切分出 $n$ 个弧度为 $\frac{2\pi}{n}$ 的扇区。
+
+<DefinitionCard title="n 阶离散傅里叶变换矩阵" termEn="Discrete Fourier Transform (DFT) Matrix">
+
+设正整数 $n \ge 1$，令 $w = e^{2\pi i / n}$。采用从 $0$ 开始的指标约定 $j, k \in \{0, 1, \dots, n-1\}$，**$n$ 阶傅里叶矩阵（Fourier Matrix）** $F_n \in \mathbb{C}^{n\times n}$ 定义为：
+
+$$
+(F_n)_{jk} = w^{jk} \qquad (0 \le j, k \le n-1)
+$$
+
+展开成显式矩阵形式为：
+
+$$
+F_n = \begin{bmatrix}
+1 & 1 & 1 & \cdots & 1 \\
+1 & w & w^2 & \cdots & w^{n-1} \\
+1 & w^2 & w^4 & \cdots & w^{2(n-1)} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+1 & w^{n-1} & w^{2(n-1)} & \cdots & w^{(n-1)^2}
+\end{bmatrix}
+$$
+
+> **关于符号惯例的说明**：MIT 18.06 与 Strang 教材定义 $w = e^{+2\pi i / n}$ 并用 $F_n$ 作逆合成/正变换基底（其共轭 $\bar{w} = e^{-2\pi i / n}$ 用于反向）；而在信号处理（DSP）与工程软件库中，常把 $\bar{w} = e^{-2\pi i / n}$ 作为正变换（Analysis DFT）、把 $w = e^{+2\pi i / n}$ 作为逆变换（Synthesis IDFT）。两种约定本质上仅仅互为复共轭矩阵（$F_n \leftrightarrow \bar{F}_n$），所有正交性、酉性与 FFT 分解定理完全一致！本讲严格遵循 MIT 18.06 的 $w = e^{2\pi i/n}$ 记号。
+
+</DefinitionCard>
+
+### 2. 亲手剖析 $4\times 4$ 傅里叶矩阵 $F_4$
+
+当 $n = 4$ 时，本原 4 次单位根为 $w = e^{2\pi i / 4} = e^{i\pi/2} = i$。它的幂次在单位圆上以 $90^\circ$ 旋转循环：
+
+$$
+w^0 = 1, \quad w^1 = i, \quad w^2 = -1, \quad w^3 = -i, \quad w^4 = 1
+$$
+
+将这些幂次按 $(F_4)_{jk} = i^{jk}$ 填入 $4\times 4$ 矩阵：
+
+$$
+F_4 = \begin{bmatrix}
+1 & 1 & 1 & 1 \\
+1 & i & i^2 & i^3 \\
+1 & i^2 & i^4 & i^6 \\
+1 & i^3 & i^6 & i^9
+\end{bmatrix} = \begin{bmatrix}
+1 & 1 & 1 & 1 \\
+1 & i & -1 & -i \\
+1 & -1 & 1 & -1 \\
+1 & -i & -1 & i
+\end{bmatrix}
+$$
+
+请立即用第 1 节学到的复内积检验 $F_4$ 的列向量 $\mathbf{c}_0, \mathbf{c}_1, \mathbf{c}_2, \mathbf{c}_3$：
+- **长度平方**：每一列的元素模长都是 $1$，所以 $\mathbf{c}_k^H \mathbf{c}_k = |1|^2 + |w^k|^2 + |w^{2k}|^2 + |w^{3k}|^2 = 1 + 1 + 1 + 1 = 4 = n$。
+- **第 0 列与第 1 列正交**：
+  $$
+  \mathbf{c}_0^H \mathbf{c}_1 = \bar{1}\cdot 1 + \bar{1}\cdot i + \bar{1}\cdot(-1) + \bar{1}\cdot(-i) = 1 + i - 1 - i = 0
+  $$
+- **第 1 列与第 3 列正交**（注意共轭的关键作用！）：
+  $$
+  \mathbf{c}_1^H \mathbf{c}_3 = \bar{1}\cdot 1 + \bar{i}\cdot(-i) + \overline{(-1)}\cdot(-1) + \overline{(-i)}\cdot i = 1 + (-i)(-i) + 1 + (i)(i) = 1 - 1 + 1 - 1 = 0
+  $$
+  对比：如果忘记取共轭而误算 $\mathbf{c}_1^T \mathbf{c}_3$，结果会是 $1 + i(-i) + 1 + (-i)i = 1 + 1 + 1 + 1 = 4 \ne 0$！这再一次印证了复内积取共轭的绝对必要性。
+
+于是，我们一眼就能写出 $F_4$ 的共轭转置乘积与逆矩阵：
+
+$$
+F_4^H F_4 = 4 I_4 \implies F_4^{-1} = \frac{1}{4} F_4^H = \frac{1}{4} \begin{bmatrix}
+1 & 1 & 1 & 1 \\
+1 & -i & -1 & i \\
+1 & -1 & 1 & -1 \\
+1 & i & -1 & -i
+\end{bmatrix}
+$$
+
+### 3. 一般 $n$ 阶傅里叶矩阵的正交性与几何直观
+
+<TheoremCard title="傅里叶矩阵列正交与酉归一化定理" termEn="Orthogonality & Unitarity of the DFT Matrix">
+
+对任意正整数 $n \ge 1$，离散傅里叶矩阵 $F_n \in \mathbb{C}^{n\times n}$ 满足：
+
+1. **列向量两两复正交**：
+   $$
+   F_n^H F_n = n I_n
+   $$
+2. **归一化酉矩阵**：将 $F_n$ 的每一列除以长度 $\sqrt{n}$，所得矩阵 $\tilde{F}_n = \frac{1}{\sqrt{n}} F_n$ 是严格的酉矩阵（$\tilde{F}_n^H \tilde{F}_n = I_n$）。
+3. **快速求逆公式**：由于 $F_n$ 本身是复对称矩阵（$(F_n)_{jk} = w^{jk} = (F_n)_{kj}$，即 $F_n^T = F_n$），其逆矩阵无需高斯消元，直接由共轭即可得出：
+   $$
+   F_n^{-1} = \frac{1}{n} F_n^H = \frac{1}{n} \bar{F}_n
+   $$
+
+</TheoremCard>
+
+<ProofCollapse title="展开严格代数证明：等比级数求和与单位圆对称抵消">
+
+考虑 $F_n^H F_n$ 的第 $(j, k)$ 个元素（$0 \le j, k \le n-1$），即第 $j$ 列 $\mathbf{c}_j$ 与第 $k$ 列 $\mathbf{c}_k$ 的复内积：
+
+$$
+(F_n^H F_n)_{jk} = \mathbf{c}_j^H \mathbf{c}_k = \sum_{r=0}^{n-1} \overline{w^{rj}} \, w^{rk}
+$$
+
+因为 $|w| = 1$，有 $\bar{w} = w^{-1}$，故 $\overline{w^{rj}} = w^{-rj}$。令差值整数 $m = k - j$，则：
+
+$$
+(F_n^H F_n)_{jk} = \sum_{r=0}^{n-1} w^{r(k - j)} = \sum_{r=0}^{n-1} (w^m)^r = 1 + w^m + w^{2m} + \dots + w^{(n-1)m}
+$$
+
+分两种情况讨论：
+- **对角元情形（$j = k$，即 $m = 0$）**：$w^0 = 1$，求和为 $n$ 个 $1$ 相加：
+  $$
+  (F_n^H F_n)_{jj} = \sum_{r=0}^{n-1} 1 = n
+  $$
+- **非对角元情形（$j \ne k$，即 $m \not\equiv 0 \pmod n$）**：由于 $0 \lt |m| \le n - 1$，复数公比 $w^m = e^{2\pi i m / n} \ne 1$。但同时 $(w^m)^n = (w^n)^m = 1^m = 1$。直接应用有限等比数列求和公式：
+  $$
+  1 + w^m + w^{2m} + \dots + w^{(n-1)m} = \frac{1 - (w^m)^n}{1 - w^m} = \frac{1 - 1}{1 - w^m} = 0
+  $$
+
+综合两种情形，$(F_n^H F_n)_{jk} = n \delta_{jk}$，即 $F_n^H F_n = n I_n$。因此 $\left(\frac{1}{\sqrt{n}}F_n\right)^H \left(\frac{1}{\sqrt{n}}F_n\right) = \frac{1}{n}(nI_n) = I_n$，且 $F_n^{-1} = \frac{1}{n} F_n^H$。因为 $F_n^T = F_n$，故 $F_n^H = \overline{F_n}^T = \bar{F}_n$。证毕！
+
+</ProofCollapse>
+
+**几何直觉为什么这么美？** 当 $m \not\equiv 0 \pmod n$ 时，复数序列 $1, w^m, w^{2m}, \dots, w^{(n-1)m}$ 是单位圆上绕行对称分布的等长矢量（其矢量中心恰好位于原点 $0$）。若把这 $n$ 个向量首尾相接，它们必定构成一个对称闭合的正多边形或星形闭环，精确回到出发点 $0$！
+
+<ComplexInnerProductAndUnitaryCircleDiagram />
+
+---
+
+## 四、快速傅里叶变换（FFT）：从 $\mathcal{O}(n^2)$ 到 $\frac{1}{2}n\log_2 n$ 的分治奇迹
+
+### 1. 为什么直接计算 $F_n \mathbf{x}$ 太慢了？
+
+用傅里叶矩阵 $F_n$ 对一个长度为 $n$ 的离散信号 $\mathbf{x} \in \mathbb{C}^n$ 做频谱分析（计算 $\mathbf{y} = F_n \mathbf{x}$），或通过 $\mathbf{x} = \frac{1}{n} F_n^H \mathbf{y}$ 做信号重构，在代数上只是一次矩阵乘以向量。
+
+然而，若按照矩阵乘法的常规定义逐行求内积，每行有 $n$ 次乘法，共有 $n$ 行，总计需要 $n^2$ 次复数乘法。在现代音频处理、雷达成像或偏微分方程谱方法中，采样点数动辄达到 $n = 2^{20} \approx 10^6$，此时 $n^2 \approx 10^{12}$ 次乘法会让计算机陷入漫长的等待。
+
+1965 年，Cooley 和 Tukey 重新发现（实际可追溯至 1805 年的高斯！）了隐藏在 $F_n$ 内部惊人的**稀疏分块分解结构**。当 $n$ 为 $2$ 的幂次（$n = 2^L$）时，矩阵 $F_n$ 根本不需要按稠密矩阵整体相乘！
+
+### 2. 从 $F_4$ 到一般 $F_n$ 的“奇偶分治”初窥
+
+先用 $n = 4$ 亲手拆解 $F_4 \mathbf{x}$ 来寻找灵感。给定信号 $\mathbf{x} = [x_0, x_1, x_2, x_3]^T$，其中 $w = i$：
+
+$$
+\mathbf{y} = F_4 \mathbf{x} = \begin{bmatrix} 1 & 1 & 1 & 1 \\ 1 & i & -1 & -i \\ 1 & -1 & 1 & -1 \\ 1 & -i & -1 & i \end{bmatrix} \begin{bmatrix} x_0 \\ x_1 \\ x_2 \\ x_3 \end{bmatrix}
+$$
+
+不要按顺序取 $x_0, x_1, x_2, x_3$，而是把**偶数下标** $(x_0, x_2)$ 挑出来放在上半部分，把**奇数下标** $(x_1, x_3)$ 挑出来放在下半部分。这只需左乘一个**奇偶重排置换矩阵（Even-Odd Permutation Matrix）** $P_4$：
+
+$$
+P_4 \mathbf{x} = \begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} x_0 \\ x_1 \\ x_2 \\ x_3 \end{bmatrix} = \begin{bmatrix} x_0 \\ x_2 \\ \hline x_1 \\ x_3 \end{bmatrix}
+$$
+
+对这两半分别做规模减半的 $2$ 点 DFT 变换 $F_2 = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}$（注意到 $w_4^2 = i^2 = -1$ 恰好就是 $2$ 次本原单位根 $w_2$！）：
+
+$$
+\mathbf{y}_{\text{even}} = F_2 \begin{bmatrix} x_0 \\ x_2 \end{bmatrix} = \begin{bmatrix} x_0 + x_2 \\ x_0 - x_2 \end{bmatrix} = \begin{bmatrix} E_0 \\ E_1 \end{bmatrix}, \qquad
+\mathbf{y}_{\text{odd}} = F_2 \begin{bmatrix} x_1 \\ x_3 \end{bmatrix} = \begin{bmatrix} x_1 + x_3 \\ x_1 - x_3 \end{bmatrix} = \begin{bmatrix} O_0 \\ O_1 \end{bmatrix}
+$$
+
+现在惊喜发生了！对比直接展开 $F_4\mathbf{x}$ 的四个分量：
+- $y_0 = (x_0 + x_2) + 1\cdot(x_1 + x_3) = E_0 + 1 \cdot O_0$
+- $y_1 = (x_0 - x_2) + i\cdot(x_1 - x_3) = E_1 + i \cdot O_1$
+- $y_2 = (x_0 + x_2) - 1\cdot(x_1 + x_3) = E_0 - 1 \cdot O_0$
+- $y_3 = (x_0 - x_2) - i\cdot(x_1 - x_3) = E_1 - i \cdot O_1$
+
+$y_2$ 和 $y_3$ **完全不需要重新计算任何新的乘积**，它们仅仅把 $y_0$ 和 $y_1$ 中的旋转因子（Twiddle Factor）$D_2 = \operatorname{diag}(1, i)$ 改了一个负号！写成三矩阵连乘，就是令人屏息的代数恒等式：
+
+$$
+F_4 = \begin{bmatrix} I_2 & D_2 \\ I_2 & -D_2 \end{bmatrix} \begin{bmatrix} F_2 & 0 \\ 0 & F_2 \end{bmatrix} P_4
+= \begin{bmatrix} 1 & 0 & 1 & 0 \\ 0 & 1 & 0 & i \\ 1 & 0 & -1 & 0 \\ 0 & 1 & 0 & -i \end{bmatrix}
+\begin{bmatrix} 1 & 1 & 0 & 0 \\ 1 & -1 & 0 & 0 \\ 0 & 0 & 1 & 1 \\ 0 & 0 & 1 & -1 \end{bmatrix}
+\begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+你可以亲自把右边三块矩阵乘起来，验证它分毫不差地等于 $\begin{bmatrix} 1 & 1 & 1 & 1 \\ 1 & i & -1 & -i \\ 1 & -1 & 1 & -1 \\ 1 & -i & -1 & i \end{bmatrix} = F_4$！
+
+### 3. 一般阶 Radix-2 FFT 分块分解定理
+
+上述惊人的分治规律对任何偶数阶 $n$ 普遍成立。
+
+<TheoremCard title="Cooley-Tukey / Strang 快速傅里叶变换分块分解定理" termEn="Radix-2 FFT Matrix Factorization Theorem">
+
+设 $n = 2m$ 为任意正偶数，记本原 $n$ 次单位根 $w = e^{2\pi i / n}$，则 $n$ 阶傅里叶矩阵 $F_n \in \mathbb{C}^{n\times n}$ 严格分解为如下三个稀疏分块矩阵的乘积：
+
+$$
+F_n = \begin{bmatrix} I_{n/2} & D_{n/2} \\ I_{n/2} & -D_{n/2} \end{bmatrix} \begin{bmatrix} F_{n/2} & 0 \\ 0 & F_{n/2} \end{bmatrix} P_n
+$$
+
+其中各分块定义为：
+1. **奇偶置换矩阵 $P_n \in \mathbb{R}^{n\times n}$**：将输入向量 $\mathbf{x} = [x_0, x_1, \dots, x_{n-1}]^T$ 重排为偶数下标与奇数下标两部分，即 $P_n\mathbf{x} = \begin{bmatrix} \mathbf{x}_{\text{even}} \\ \mathbf{x}_{\text{odd}} \end{bmatrix} = \begin{bmatrix} x_0, x_2, \dots, x_{n-2} \mid x_1, x_3, \dots, x_{n-1} \end{bmatrix}^T$；
+2. **半阶傅里叶块 $F_{n/2} \in \mathbb{C}^{(n/2)\times(n/2)}$**：使用单位根 $w_{n/2} = e^{2\pi i / (n/2)} = w^2$ 构造的 $n/2$ 阶 DFT 矩阵；
+3. **旋转因子对角阵（Twiddle Factor Matrix）$D_{n/2}$**：
+   $$
+   D_{n/2} = \operatorname{diag}\!\left(1, \, w, \, w^2, \, \dots, \, w^{n/2 - 1}\right)
+   $$
+
+当 $n = 2^L$ 时，对两个 $F_{n/2}$ 继续递归展开，最终 $F_n$ 被分解为 $L = \log_2 n$ 个极度稀疏的蝶形矩阵（每行至多仅有 2 个非零元）与位反转置换矩阵的乘积，从而使复数乘法次数从 $n^2$ 降至：
+
+$$
+M(n) = \frac{1}{2} n \log_2 n
+$$
+
+</TheoremCard>
+
+<ProofCollapse title="展开严格分块推导：奇偶下标拆分与蝶形递推复杂度分析">
+
+**第一部分：分块矩阵分解恒等式的证明**
+
+设 $m = n/2$，对任意列向量 $\mathbf{x} = [x_0, x_1, \dots, x_{n-1}]^T \in \mathbb{C}^n$，考察 $(F_n \mathbf{x})_j$（$0 \le j \le n-1$）。按偶数索引 $k = 2r$ 与奇数索引 $k = 2r + 1$（$r = 0, 1, \dots, m-1$）将求和号拆分为两半：
+
+$$
+(F_n \mathbf{x})_j = \sum_{k=0}^{n-1} w^{jk} x_k = \sum_{r=0}^{m-1} w^{j(2r)} x_{2r} + \sum_{r=0}^{m-1} w^{j(2r+1)} x_{2r+1}
+$$
+
+提取公因子 $w^j$ 并注意到 $w^{j(2r)} = (w^2)^{jr}$：
+
+$$
+(F_n \mathbf{x})_j = \sum_{r=0}^{m-1} (w^2)^{jr} x_{2r} + w^j \sum_{r=0}^{m-1} (w^2)^{jr} x_{2r+1}
+$$
+
+**核心洞察 1（半阶频率完全重合）**：由 $w = e^{2\pi i / n}$，有：
+
+$$
+w^2 = e^{2\pi i / (n/2)} = e^{2\pi i / m} = w_m
+$$
+
+这正是 $m = n/2$ 阶傅里叶矩阵 $F_{n/2}$ 的生成元！记 $\mathbf{y}_{\text{even}} = F_{n/2} \mathbf{x}_{\text{even}}$ 与 $\mathbf{y}_{\text{odd}} = F_{n/2} \mathbf{x}_{\text{odd}}$。
+
+现将行指标拆为上半部分（$0 \le j \le m-1$）与下半部分（行指标写成 $j + m$，其中 $0 \le j \le m-1$）：
+- **对于上半部分（$0 \le j \le m-1$）**：
+  $$
+  (F_n \mathbf{x})_j = (\mathbf{y}_{\text{even}})_j + w^j (\mathbf{y}_{\text{odd}})_j
+  $$
+  写成矩阵块即为 $\mathbf{y}_{\text{even}} + D_m \mathbf{y}_{\text{odd}}$。
+- **对于下半部分（行指标 $j + m$，$0 \le j \le m-1$）**：
+  **核心洞察 2（周期性与半周反号）**：因为 $w_m = w^2$ 满足 $(w^2)^m = w^n = 1$，且 $w^m = e^{2\pi i (n/2)/n} = e^{i\pi} = -1$，所以：
+  $$
+  (w^2)^{(j+m)r} = (w^2)^{jr} \cdot ((w^2)^m)^r = (w^2)^{jr} \cdot 1 = (w^2)^{jr}
+  $$
+  $$
+  w^{j+m} = w^m \cdot w^j = -w^j
+  $$
+  代入展开式立刻得到：
+  $$
+  (F_n \mathbf{x})_{j+m} = \sum_{r=0}^{m-1} (w^2)^{jr} x_{2r} - w^j \sum_{r=0}^{m-1} (w^2)^{jr} x_{2r+1} = (\mathbf{y}_{\text{even}})_j - w^j (\mathbf{y}_{\text{odd}})_j
+  $$
+  写成矩阵块即为 $\mathbf{y}_{\text{even}} - D_m \mathbf{y}_{\text{odd}}$。
+
+将上下两半合并，对一切 $\mathbf{x} \in \mathbb{C}^n$ 均有：
+
+$$
+F_n \mathbf{x} = \begin{bmatrix} I_{n/2} & D_{n/2} \\ I_{n/2} & -D_{n/2} \end{bmatrix} \begin{bmatrix} F_{n/2} & 0 \\ 0 & F_{n/2} \end{bmatrix} \begin{bmatrix} \mathbf{x}_{\text{even}} \\ \mathbf{x}_{\text{odd}} \end{bmatrix} = \begin{bmatrix} I_{n/2} & D_{n/2} \\ I_{n/2} & -D_{n/2} \end{bmatrix} \begin{bmatrix} F_{n/2} & 0 \\ 0 & F_{n/2} \end{bmatrix} P_n \mathbf{x}
+$$
+
+由 $\mathbf{x}$ 的任意性，矩阵分解定理得证！
+
+---
+
+**第二部分：递归运算复杂度 $M(n) = \frac{1}{2} n \log_2 n$ 的推导**
+
+设完成一次 $n$ 点 FFT 所需的复数乘法次数为 $M(n)$：
+1. 左乘置换矩阵 $P_n$ 仅仅重排元素位置，需要 $0$ 次乘法；
+2. 分别计算 $F_{n/2}\mathbf{x}_{\text{even}}$ 与 $F_{n/2}\mathbf{x}_{\text{odd}}$，共需 $2 M(n/2)$ 次复数乘法；
+3. 计算 $\mathbf{d} = D_{n/2} \mathbf{y}_{\text{odd}}$ 需要至多 $\frac{n}{2}$ 次复数乘法（分别用 $1, w, \dots, w^{n/2-1}$ 乘以 $\mathbf{y}_{\text{odd}}$ 的各分量；由于上下两半共用同一个 $\mathbf{d}$，计算 $\mathbf{y}_{\text{even}} + \mathbf{d}$ 与 $\mathbf{y}_{\text{even}} - \mathbf{d}$ 只需 $n$ 次复数加减，不再消耗乘法！）。
+
+由此得到递推方程（$M(1) = 0$，因为 $F_1 = [1]$ 无需任何乘法）：
+
+$$
+M(n) = 2 M(n/2) + \frac{n}{2}
+$$
+
+当 $n = 2^L$（$L = \log_2 n$）时，逐层展开该递推式：
+
+$$
+\begin{aligned}
+M(n) &= 2 \left( 2 M(n/4) + \frac{n}{4} \right) + \frac{n}{2} = 4 M(n/4) + \frac{n}{2} + \frac{n}{2} \\
+&= 2^L M(1) + \underbrace{\frac{n}{2} + \frac{n}{2} + \dots + \frac{n}{2}}_{L \text{ 项}} \\
+&= 0 + L \cdot \frac{n}{2} = \frac{1}{2} n \log_2 n
+\end{aligned}
+$$
+
+（若同时计入加减法 $A(n) = 2A(n/2) + n = n\log_2 n$，总算术运算也仅为 $\frac{3}{2} n \log_2 n$。）
+
+以 $n = 1024 = 2^{10}$ 为例：
+- 常规矩阵乘法需要 $n^2 = 1024^2 = 1{,}048{,}576 \approx 10^6$ 次复数乘法；
+- FFT 仅需 $\frac{1}{2} \times 1024 \times 10 = 5{,}120$ 次复数乘法；
+- 计算加速比高达 $1{,}048{,}576 / 5{,}120 = 204.8$ 倍（超过 **200 倍加速**）！当 $n = 2^{20} \approx 10^6$ 时，加速比更飙升至 $100{,}000$ 倍以上。证毕！
+
+</ProofCollapse>
+
+<FastFourierButterflyFactorizationDiagram />
+
+---
+
+<PitfallAlert title="常见直觉陷阱与网传笔记勘误 (Pitfall & Errata)">
+
+### 1. 陷阱一：在 $\mathbb{C}^n$ 中遗漏共轭符号，把 $\mathbf{z}^H\mathbf{w}$ 写成 $\mathbf{z}^T\mathbf{w}$
+这是从实线性代数进入复数领域时最致命的错误。一旦漏掉共轭：
+- 非零向量 $\mathbf{z} = [1, i]^T$ 满足 $\mathbf{z}^T\mathbf{z} = 1 + i^2 = 0$，“向量长度为 0 当且仅当零向量”的基石崩溃；
+- 傅里叶矩阵 $F_4$ 的第 1 列与第 3 列明明在复几何中正交（$\mathbf{c}_1^H\mathbf{c}_3 = 0$），若错算 $\mathbf{c}_1^T\mathbf{c}_3$ 却得到 $4 \ne 0$，甚至会误以为傅里叶列不正交！
+
+### 2. 陷阱二：把“复对称矩阵 $A^T = A$”误认为 Hermitian 矩阵 $A^H = A$
+许多网传笔记随手写下“对称矩阵特征值全为实数且可正交对角化”，却忘了补全前提**必须是实矩阵 $A \in \mathbb{R}^{n\times n}$ 或复 Hermitian 矩阵 $A^H = A$**！若矩阵是**复对称（$A^T = A$ 但 $A^H \ne A$）**，谱定理彻底失效：
+- **非实特征值反例**：$C = \begin{bmatrix} 1 & i \\ i & 1 \end{bmatrix}$ 满足 $C^T = C$，但其特征值为 $\lambda = 1 \pm i \notin \mathbb{R}$；
+- **甚至不可对角化（亏损矩阵）反例**：$B = \begin{bmatrix} 1 & i \\ i & -1 \end{bmatrix}$ 同样满足 $B^T = B$，然而 $\operatorname{tr}(B) = 0$ 且 $\det(B) = -1 - i^2 = 0$，特征值为二重根 $\lambda_1 = \lambda_2 = 0$，而 $\operatorname{rank}(B) = 1$ 使其只有一个线性无关特征向量 $[1, i]^T$——它甚至连对角化都做不到！此外，Hermitian 矩阵对角元必须为实数，而复对称矩阵的对角元可以是任意复数。
+
+### 3. 陷阱三：遗忘 $F_n$ 的缩放系数 $\frac{1}{\sqrt{n}}$ 或逆变换因子 $\frac{1}{n}$
+傅里叶矩阵 $F_n$ 本身的列向量**两两正交但不是单位向量**——每一列的长度是 $\sqrt{n}$（因为 $\| \mathbf{c}_k \|^2 = \sum_{r=0}^{n-1} |w^{rk}|^2 = n$）。因此：
+- $F_n$ 本身**不是**酉矩阵，$F_n^H F_n = n I_n \ne I_n$；
+- 只有 $\tilde{F}_n = \frac{1}{\sqrt{n}} F_n$ 才是真正的酉矩阵；
+- 逆离散傅里叶变换必须除以 $n$，即 $F_n^{-1} = \frac{1}{n} F_n^H = \frac{1}{n} \bar{F}_n$。如果忘记 $\frac{1}{n}$ 因子，把频率分量反变换回时域信号时，振幅会被错误放大 $n$ 倍（在离散帕塞瓦尔能量守恒中对应 $\|F_n \mathbf{x}\|^2 = n \|\mathbf{x}\|^2$）！
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l27-complex-fft-sandbox"
+  title="单位圆 Roots of Unity 几何抵消与 8 点 FFT 蝶形交互实验室"
+  description={"自由调节维度 $n = 2, 4, 8, 16$ 与频率差 $m = k - j$，动态观察复平面单位圆上矢量和 $\\sum_{r=0}^{n-1} w^{mr}$ 如何首尾相连闭合归零，并逐步单步追踪 Radix-2 FFT 从奇偶置换 $P_n$ 到旋转因子 $D_{n/2}$ 蝶形合并的数据流。"}
+/>
+
+---
+
+<KeyTakeaways items={[
+  "复内积必须共轭：对 $\\mathbf{z}, \\mathbf{w} \\in \\mathbb{C}^n$，定义共轭转置 $\\mathbf{z}^H = \\overline{\\mathbf{z}}^T$ 与复内积 $\\langle \\mathbf{z}, \\mathbf{w} \\rangle = \\mathbf{z}^H \\mathbf{w} = \\sum_{k=1}^n \\bar{z}_k w_k$，确保非零向量长度平方 $\\mathbf{z}^H \\mathbf{z} = \\sum |z_k|^2 \\gt 0$，且满足共轭对称 $\\mathbf{w}^H \\mathbf{z} = \\overline{\\mathbf{z}^H \\mathbf{w}}$。",
+  "实数到复数的翻译字典：在复矩阵代数中，$^T$ 统一升级为 $^H$；实对称矩阵升级为 Hermitian 矩阵（$A^H = A$），实正交矩阵升级为酉矩阵（$U^H U = I_n$）。",
+  "Hermitian 谱定理与酉矩阵保长性：Hermitian 矩阵（$A^H = A$）对角元为实数、二次型 $\\mathbf{z}^H A\\mathbf{z} \\in \\mathbb{R}$、所有特征值为实数、不同特征值对应的特征向量复正交，可酉对角化为 $A = U\\Lambda U^H$；酉矩阵（$U^H U = I_n$）保持内积和范数不变，所有特征值满足 $|\\lambda| = 1$。切勿将复对称 $A^T = A$ 混同于 Hermitian！",
+  "傅里叶矩阵 $F_n$ 的列正交性：以 $w = e^{2\\pi i/n}$ 构造 $(F_n)_{jk} = w^{jk}$，由等比级数 $1 + w^m + \\dots + w^{(n-1)m} = 0$（$m \\not\\equiv 0 \\pmod n$）得 $F_n^H F_n = n I_n$；因此 $\\frac{1}{\\sqrt{n}} F_n$ 是酉矩阵，且 $F_n^{-1} = \\frac{1}{n} F_n^H = \\frac{1}{n} \\bar{F}_n$。",
+  "FFT 的稀疏分块本质：利用 $w_n^2 = w_{n/2}$ 与 $w_n^{n/2} = -1$，Cooley-Tukey / Strang 分解写出 $F_n = \\begin{bmatrix} I_{n/2} & D_{n/2} \\\\ I_{n/2} & -D_{n/2} \\end{bmatrix} \\begin{bmatrix} F_{n/2} & 0 \\\\ 0 & F_{n/2} \\end{bmatrix} P_n$，由递推 $M(n) = 2M(n/2) + \\frac{n}{2}$ 将乘法复杂度从 $\\mathcal{O}(n^2)$ 降至 $\\frac{1}{2} n \\log_2 n$。"
+]} />
+
+---
+
+## 六、课后习题集
+
+<ProblemSet title="第 27 讲 课后习题集" description="涵盖复内积计算、Hermitian 酉对角化、复对称 vs. Hermitian 辨析、傅里叶矩阵酉性、斜 Hermitian 分解与 4 点 FFT / 循环矩阵对角化。">
+
+<ExerciseCard id="l27-ex1" tier="L1" title="复内积计算与 2×2 Hermitian 矩阵的酉对角化">
+
+1. 设复向量 $\mathbf{z} = \begin{bmatrix} 1+i \\ 2-i \end{bmatrix}, \mathbf{w} = \begin{bmatrix} i \\ 1+2i \end{bmatrix} \in \mathbb{C}^2$，计算复内积 $\mathbf{z}^H \mathbf{w}$、$\mathbf{w}^H \mathbf{z}$ 以及欧氏范数 $\|\mathbf{z}\|$。
+2. 验证矩阵 $A = \begin{bmatrix} 4 & 1+i \\ 1-i & 3 \end{bmatrix}$ 是 Hermitian 矩阵，并求其酉对角化分解 $A = U \Lambda U^H$（其中 $U^H U = I_2$，$\Lambda$ 为实对角阵）。
+
+<ProgressiveHint hints={[
+  "第 1 问：切记对第一个向量 $\\mathbf{z}$ 的每个分量先取复共轭再转置：$\\mathbf{z}^H = [1-i, \\; 2+i]$。计算完 $\\mathbf{z}^H\\mathbf{w}$ 后，直接取共轭即得 $\\mathbf{w}^H\\mathbf{z}$。",
+  "第 2 问：先用迹 $\\operatorname{tr}(A) = 7$ 与行列式 $\\det(A) = 4\\times 3 - |1+i|^2 = 10$ 秒算实特征值 $\\lambda_1 = 5, \\lambda_2 = 2$。",
+  "求出非零特征向量 $\\mathbf{x}_1, \\mathbf{x}_2$ 后，务必计算范数 $\\|\\mathbf{x}_i\\| = \\sqrt{\\mathbf{x}_i^H\\mathbf{x}_i}$ 进行单位化，并验证 $\\mathbf{u}_1^H \\mathbf{u}_2 = 0$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+第 1 问通过把 $\mathbf{z}$ 共轭转置成行向量 $\mathbf{z}^H$，把复数“逆转相位”后再与 $\mathbf{w}$ 相乘：自己点自己时所有虚部相位全部抵消，只剩下实数的模长平方之和。第 2 问中，$A$ 的对角元是实数 $4, 3$，非对角元互为共轭 $1+i$ 与 $1-i$，保证了特征值必定落在实轴上，且两个特征方向在复空间中彼此垂直。
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问解答：**
+
+首先求 $\mathbf{z}^H = [1-i, \; 2+i]$：
+
+$$
+\mathbf{z}^H \mathbf{w} = (1-i)i + (2+i)(1+2i) = (i + 1) + (2 + 4i + i - 2) = (1 + i) + 5i = 1 + 6i
+$$
+
+利用共轭对称性 $\mathbf{w}^H \mathbf{z} = \overline{\mathbf{z}^H \mathbf{w}} = 1 - 6i$。直接验算：
+
+$$
+\mathbf{w}^H \mathbf{z} = (-i)(1+i) + (1-2i)(2-i) = (1 - i) + (2 - i - 4i - 2) = 1 - 6i
+$$
+
+计算 $\mathbf{z}$ 的欧氏长度：
+
+$$
+\|\mathbf{z}\|^2 = \mathbf{z}^H \mathbf{z} = |1+i|^2 + |2-i|^2 = (1^2 + 1^2) + (2^2 + (-1)^2) = 2 + 5 = 7 \implies \|\mathbf{z}\| = \sqrt{7}
+$$
+
+**第 2 问解答：**
+
+1. **验证 Hermitian 性**：
+   $$
+   A^H = \overline{\begin{bmatrix} 4 & 1-i \\ 1+i & 3 \end{bmatrix}} = \begin{bmatrix} 4 & 1+i \\ 1-i & 3 \end{bmatrix} = A
+   $$
+2. **求解实特征值**：
+   特征方程为 $\det(A - \lambda I_2) = (4-\lambda)(3-\lambda) - (1+i)(1-i) = \lambda^2 - 7\lambda + 10 = (\lambda - 5)(\lambda - 2) = 0$，故特征值为 $\lambda_1 = 5, \lambda_2 = 2$。
+3. **求解并单位化特征向量**：
+   - 对应 $\lambda_1 = 5$：
+     $$
+     (A - 5I_2)\mathbf{x}_1 = \begin{bmatrix} -1 & 1+i \\ 1-i & -2 \end{bmatrix}\begin{bmatrix} x_{11} \\ x_{21} \end{bmatrix} = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 1+i \\ 1 \end{bmatrix}
+     $$
+     模长平方 $\|\mathbf{x}_1\|^2 = |1+i|^2 + 1^2 = 3$，单位化得 $\mathbf{u}_1 = \frac{1}{\sqrt{3}}\begin{bmatrix} 1+i \\ 1 \end{bmatrix}$。
+   - 对应 $\lambda_2 = 2$：
+     $$
+     (A - 2I_2)\mathbf{x}_2 = \begin{bmatrix} 2 & 1+i \\ 1-i & 1 \end{bmatrix}\begin{bmatrix} x_{12} \\ x_{22} \end{bmatrix} = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ -1+i \end{bmatrix}
+     $$
+     模长平方 $\|\mathbf{x}_2\|^2 = 1^2 + |-1+i|^2 = 3$，单位化得 $\mathbf{u}_2 = \frac{1}{\sqrt{3}}\begin{bmatrix} 1 \\ -1+i \end{bmatrix}$。
+4. **检验正交性与写出 $U\Lambda U^H$**：
+   $$
+   \mathbf{u}_1^H \mathbf{u}_2 = \frac{1}{3}\big((1-i)\cdot 1 + 1\cdot(-1+i)\big) = 0
+   $$
+   因此取酉矩阵 $U = \frac{1}{\sqrt{3}}\begin{bmatrix} 1+i & 1 \\ 1 & -1+i \end{bmatrix}$ 与实对角矩阵 $\Lambda = \begin{bmatrix} 5 & 0 \\ 0 & 2 \end{bmatrix}$，即得 $A = U \Lambda U^H$。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l27-ex2" tier="L2" title="判别题：复对称矩阵与 Hermitian 矩阵的谱性质陷阱">
+
+判断下述命题是否正确：
+
+“若复方阵 $A \in \mathbb{C}^{n\times n}$ 满足对称条件 $A^T = A$，则 $A$ 的所有特征值必为实数，且必可由酉矩阵对角化为 $A = U\Lambda U^H$。”
+
+<TrueFalseInteractive
+  id="l27-tf1"
+  correct={false}
+  quickFeedback={"错误！在 $\\mathbb{C}^{n\\times n}$ 上，$A^T = A$ 仅代表复对称，不保证特征值为实数，甚至不保证矩阵可对角化！例如 $C = \\begin{bmatrix} 1 & i \\\\ i & 1 \\end{bmatrix}$ 满足 $C^T = C$ 但特征值为 $1 \\pm i \\notin \\mathbb{R}$；而 $B = \\begin{bmatrix} 1 & i \\\\ i & -1 \\end{bmatrix}$ 满足 $B^T = B$ 却连对角化都做不到。必须满足 Hermitian 条件 $A^H = A$ 才成立！"}
+/>
+
+<ProgressiveHint hints={[
+  "区分复对称 $A^T = A$ 与 Hermitian $A^H = A$ 的差别：前者只转置不取共轭。",
+  "试构造一个 $2\\times 2$ 矩阵满足 $A^T = A$ 但 $A^2 = 0$（提示：利用 $1^2 + i^2 = 0$）。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+实矩阵上“转置等于自身”能锁死特征值为实数，是因为用到了 $\mathbf{x}^T\mathbf{x} \gt 0$。到了复数域，如果不对转置加共轭，不仅实数性会丢掉，连“特征向量能张满全空间”也会崩塌——因为复向量 $[1, i]^T$ 在不共轭时“自己与自己正交”（$\mathbf{z}^T\mathbf{z} = 0$），这让矩阵可以退化成非零却幂零的亏损矩阵。
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**错误**。在复域 $\mathbb{C}^{n\times n}$ 上，只有 **Hermitian 条件 $A^H = A$** 才能保证特征值全实且可酉对角化；单纯的复对称条件 $A^T = A$ 既不能保证特征值为实数，甚至不能保证矩阵可对角化。给出两类明确反例：
+
+- **反例 1（特征值非实数）**：
+  $$
+  C = \begin{bmatrix} 1 & i \\ i & 1 \end{bmatrix}
+  $$
+  显然 $C^T = C$，但特征方程 $(1-\lambda)^2 - i^2 = (1-\lambda)^2 + 1 = 0$ 给出复特征值 $\lambda_{1,2} = 1 \pm i \notin \mathbb{R}$。
+- **反例 2（甚至不可对角化 / 亏损矩阵）**：
+  $$
+  B = \begin{bmatrix} 1 & i \\ i & -1 \end{bmatrix}
+  $$
+  显然 $B^T = B$，但 $\operatorname{tr}(B) = 0$ 且 $\det(B) = -1 - i^2 = 0$，故特征值为二重根 $\lambda_1 = \lambda_2 = 0$。然而 $\operatorname{rank}(B) = 1$，零空间维数为 $\dim \operatorname{Null}(B) = 2 - 1 = 1$（仅由 $[1, i]^T$ 张成），特征向量不足 2 个，故 $B$ **根本不可对角化**！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l27-ex3" tier="L2" title="判别题：傅里叶矩阵的酉性与求逆归一化">
+
+判断下述命题是否正确：
+
+“对任意正整数 $n$，离散傅里叶变换矩阵 $F_n \in \mathbb{C}^{n\times n}$ 本身就是酉矩阵（即 $F_n^H F_n = I_n$），因此傅里叶逆变换矩阵就是 $F_n^{-1} = F_n^H$。”
+
+<TrueFalseInteractive
+  id="l27-tf2"
+  correct={false}
+  quickFeedback={"错误！$F_n$ 的各列仅互相正交但尚未单位化，每列模长平方为 $n$，所以 $F_n^H F_n = n I_n$（而非 $I_n$）。只有 $\\frac{1}{\\sqrt{n}} F_n$ 才是酉矩阵，且傅里叶逆变换必须除以 $n$：$F_n^{-1} = \\frac{1}{n} F_n^H = \\frac{1}{n} \\bar{F}_n$。"}
+/>
+
+<ProgressiveHint hints={[
+  "计算 $F_n$ 第 0 列全 1 向量 $[1, 1, \\dots, 1]^T$ 的长度平方是多少？",
+  "注意区分“正交列矩阵”（$A^H A$ 为对角阵）与“标准正交列 / 酉矩阵”（$U^H U = I_n$）。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+$F_n$ 的所有元素模长都是 $1$，就像一个由方向互相垂直、但长度全为 $\sqrt{n}$ 的向量拼成的矩阵。因此 $F_n^H F_n$ 对角线上不是 $1$ 而是 $n$。如果直接拿 $F_n^H$ 当作逆矩阵乘回去，信号能量会被白白放大 $n$ 倍。
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**错误**。
+
+考察 $F_n$ 的第 $k$ 列 $\mathbf{c}_k = [1, w^k, w^{2k}, \dots, w^{(n-1)k}]^T$，其复内积平方为：
+
+$$
+(\mathbf{c}_k)^H \mathbf{c}_k = \sum_{r=0}^{n-1} |w^{rk}|^2 = \sum_{r=0}^{n-1} 1 = n
+$$
+
+虽然不同列彼此正交（$\mathbf{c}_j^H \mathbf{c}_k = 0$ 当 $j \ne k$），但各列长度为 $\sqrt{n} \ne 1$（当 $n \ge 2$ 时）。因此：
+
+$$
+F_n^H F_n = n I_n \ne I_n
+$$
+
+正确的结论是：
+1. 仅归一化后的矩阵 $\tilde{F}_n = \frac{1}{\sqrt{n}} F_n$ 是酉矩阵（$\tilde{F}_n^H \tilde{F}_n = I_n$）；
+2. $F_n$ 的逆矩阵必须携带 $\frac{1}{n}$ 缩放因子：$F_n^{-1} = \frac{1}{n} F_n^H = \frac{1}{n} \bar{F}_n$。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l27-ex4" tier="L3" title="无计算算子证明：酉矩阵谱结构逆向辨析与任意方阵的 Hermitian-斜 Hermitian 分解">
+
+1. 设方阵 $U \in \mathbb{C}^{n\times n}$ 是酉矩阵（$U^H U = I_n$），我们已经证明了 $U$ 的所有特征值均满足 $|\lambda_i| = 1$。请问逆命题是否成立——即**“若 $A \in \mathbb{C}^{n\times n}$ 的所有特征值都满足 $|\lambda_i| = 1$，则 $A$ 一定是酉矩阵吗？”** 若成立请证明，若不成立请构造一个 $2\times 2$ 反例并解释几何原因。
+2. 类似实方阵分解为对称与反对称部分之和，证明**任意复方阵 $A \in \mathbb{C}^{n\times n}$ 都可唯一分解为** $A = H + K$，其中 $H$ 是 Hermitian 矩阵（$H^H = H$），$K$ 是**斜 Hermitian 矩阵（Skew-Hermitian Matrix，$K^H = -K$）**；并证明斜 Hermitian 矩阵 $K$ 的所有特征值均为**纯虚数**（即实部 $\operatorname{Re}(\lambda) = 0$）。
+
+<ProgressiveHint hints={[
+  "第 1 问：考虑实上三角矩阵 $A = \\begin{bmatrix} 1 & 2 \\\\ 0 & -1 \\end{bmatrix}$ 或剪切矩阵 $\\begin{bmatrix} 1 & 1 \\\\ 0 & 1 \\end{bmatrix}$，它们的特征值满足 $|\\lambda| = 1$，但列向量互相正交吗？",
+  "第 2 问（唯一性）：若 $A = H + K$，两边同时取共轭转置得到 $A^H = H - K$，将两式相加相减即可唯一锁定 $H$ 与 $K$。",
+  "第 2 问（纯虚特征值）：与 Hermitian 实特征值证明如出一辙！对 $K\\mathbf{x} = \\lambda \\mathbf{x}$ 左乘 $\\mathbf{x}^H$，考察 $\\overline{\\mathbf{x}^H K \\mathbf{x}} = (\\mathbf{x}^H K \\mathbf{x})^H$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+第 1 问直指特征值与特征向量正交性的分野：只看特征值就像只看拉伸倍率而不管特征方向夹角。即使沿着各自特征轴都不伸缩（$|\lambda|=1$），只要特征方向不互相垂直（存在剪切分量），非特征方向上的向量长度照样会被拉长或缩短，因此矩阵绝不是保长的酉矩阵！
+第 2 问揭示了复算子的实部-虚部直和分解：$H = \frac{1}{2}(A+A^H)$ 如同复数的“实部”（特征值落在实轴），$K = \frac{1}{2}(A-A^H)$ 如同复数的“纯虚部”（特征值落在虚轴），这正是量子力学哈密顿算符与连续时间酉演化 $e^{Kt}$ 的代数来源。
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问证明（逆命题不成立）：**
+
+特征值均在单位圆上（$|\lambda_i| = 1$）**不足以**保证矩阵是酉矩阵！
+
+构造反例（$2\times 2$ 剪切矩阵）：
+
+$$
+A = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} \quad (\text{或 } A = \begin{bmatrix} 1 & 2 \\ 0 & -1 \end{bmatrix})
+$$
+
+该矩阵为上三角阵，特征值即为主对角元 $\lambda_1 = \lambda_2 = 1$，满足 $|\lambda_1| = |\lambda_2| = 1$。但检验酉性：
+
+$$
+A^H A = \begin{bmatrix} 1 & 0 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 1 \\ 1 & 2 \end{bmatrix} \ne I_2
+$$
+
+**几何本质**：酉矩阵不仅要求谱模长为 $1$，还要求不同特征子空间两两正交（即矩阵必须是**正规矩阵（Normal Matrix）** $A^H A = A A^H$，且可酉对角化）。剪切矩阵的列向量 $[1, 0]^T$ 与 $[1, 1]^T$ 夹角为 $45^\circ$ 而非 $90^\circ$，它将向量 $[0, 1]^T$ 映射为 $[1, 1]^T$，长度从 $1$ 变成了 $\sqrt{2}$，破坏了保长性。
+
+---
+
+**第 2 问证明（存在唯一性与斜 Hermitian 纯虚谱）：**
+
+1. **存在性与唯一性**：
+   - *唯一性*：假设存在分解 $A = H + K$，其中 $H^H = H$ 且 $K^H = -K$。对等式两端取共轭转置：
+     $$
+     A^H = H^H + K^H = H - K
+     $$
+     将 $A = H + K$ 与 $A^H = H - K$ 相加并除以 $2$，唯一解出：
+     $$
+     H = \frac{1}{2}(A + A^H)
+     $$
+     两式相减并除以 $2$，唯一解出：
+     $$
+     K = \frac{1}{2}(A - A^H)
+     $$
+   - *存在性*：直接验算上述构造确实满足条件：
+     $$
+     H^H = \frac{1}{2}(A^H + (A^H)^H) = \frac{1}{2}(A^H + A) = H
+     $$
+     $$
+     K^H = \frac{1}{2}(A^H - (A^H)^H) = \frac{1}{2}(A^H - A) = -K
+     $$
+     且 $H + K = A$。因此分解存在且唯一。
+
+2. **证明斜 Hermitian 矩阵特征值全为纯虚数**：
+   设 $K^H = -K$ 且 $K\mathbf{x} = \lambda \mathbf{x}$（$\mathbf{x} \ne \mathbf{0}$）。两边左乘 $\mathbf{x}^H$：
+   $$
+   \mathbf{x}^H K \mathbf{x} = \lambda (\mathbf{x}^H \mathbf{x}) = \lambda \|\mathbf{x}\|^2
+   $$
+   对 $1\times 1$ 标量 $\mathbf{x}^H K \mathbf{x}$ 取共轭转置（即复共轭）：
+   $$
+   \overline{\lambda} \|\mathbf{x}\|^2 = (\mathbf{x}^H K \mathbf{x})^H = \mathbf{x}^H K^H \mathbf{x} = \mathbf{x}^H (-K) \mathbf{x} = -\lambda \|\mathbf{x}\|^2
+   $$
+   因 $\mathbf{x} \ne \mathbf{0}$，故 $\|\mathbf{x}\|^2 \gt 0$，两端消去 $\|\mathbf{x}\|^2$ 得：
+   $$
+   \bar{\lambda} = -\lambda \iff 2 \operatorname{Re}(\lambda) = \lambda + \bar{\lambda} = 0 \implies \operatorname{Re}(\lambda) = 0
+   $$
+   即 $K$ 的每一个特征值实部均为零（纯虚数或 $0$）。证毕！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l27-ex5" tier="L4" title="综合挑战：4 点 FFT 蝶形手算与循环矩阵的傅里叶谱对角化">
+
+1. **用 4 点 FFT 分治流程计算离散傅里叶变换**：
+   给定信号向量 $\mathbf{x} = [1, 2, 0, -1]^T \in \mathbb{R}^4$。严格按照本讲 FFT 分解公式：
+   $$
+   F_4 \mathbf{x} = \begin{bmatrix} I_2 & D_2 \\ I_2 & -D_2 \end{bmatrix} \begin{bmatrix} F_2 & 0 \\ 0 & F_2 \end{bmatrix} P_4 \mathbf{x} \qquad \left(D_2 = \operatorname{diag}(1, i), \; F_2 = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}\right)
+   $$
+   分三步计算 $\mathbf{y} = F_4 \mathbf{x}$，并利用 $\mathbf{x} = \frac{1}{4} F_4^H \mathbf{y}$ 进行逆变换验算。
+
+2. **傅里叶矩阵的更深层密码：对角化一切循环矩阵（Circulant Matrix）与快速卷积**：
+   考虑 4 阶循环移位置换矩阵：
+   $$
+   P = \begin{bmatrix} 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \\ 1 & 0 & 0 & 0 \end{bmatrix}
+   $$
+   - (a) 直接验证傅里叶矩阵 $F_4$ 的第 $k$ 列 $\mathbf{f}_k = [1, w^k, w^{2k}, w^{3k}]^T$（$w = i$，$k = 0, 1, 2, 3$）正是矩阵 $P$ 的特征向量，并求其对应特征值 $\lambda_k$；
+   - (b) 设任意 4 阶循环矩阵为多项式 $C = c_0 I_4 + c_1 P + c_2 P^2 + c_3 P^3$。证明**所有循环矩阵都共享同一组标准正交特征向量基** $U = \frac{1}{2} F_4$，写出 $C = U \Lambda U^H$ 中特征值对角阵 $\Lambda$ 与首行向量 $\mathbf{c} = [c_0, c_1, c_2, c_3]^T$ 的关系，并解释为什么循环卷积 $C\mathbf{x}$ 可借助 FFT 在 $\mathcal{O}(n \log n)$ 时间内完成！
+
+<ProgressiveHint hints={[
+  "第 1 问：先用 $P_4$ 分离出 $\\mathbf{x}_{\\text{even}} = [1, 0]^T$ 与 $\\mathbf{x}_{\\text{odd}} = [2, -1]^T$，分别算 $F_2$ 后，把奇部输出乘上 $D_2 = \\operatorname{diag}(1, i)$ 再与偶部相加减。",
+  "第 2 问 (a)：把 $P$ 左乘列向量 $[1, w^k, w^{2k}, w^{3k}]^T$，利用 $w^4 = 1$ 把最后一项 $1$ 改写成 $w^{4k}$，提出公因子 $w^k$ 即可！",
+  "第 2 问 (b)：若 $P\\mathbf{f}_k = w^k \\mathbf{f}_k$，则 $P^m \\mathbf{f}_k = w^{mk} \\mathbf{f}_k$。因此 $C\\mathbf{f}_k = (\\sum_{m=0}^3 c_m w^{mk})\\mathbf{f}_k$，括号里恰好就是 $(F_4 \\mathbf{c})_k$！"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+第 1 问让你亲手体验“蝴蝶如何扇动翅膀”：原本要算 $4\times 4 = 16$ 项乘加的 $F_4 \mathbf{x}$，拆成两个极简的 $2\times 2$ 和差运算外加 1 次乘以 $i$ 的旋转调整后，加减交叉瞬间得出全部 4 个频谱分量。
+第 2 问揭示了为什么信号处理与偏微分方程数值求解离不开傅里叶变换：带有周期边界条件的平移算子（循环矩阵）本质上是复平面单位圆上的纯旋转！傅里叶矩阵 $F_n$ 的各列恰好就是移位算子的特征模态（复正弦波在移位下只改变相位而不改变波形！）。因此，复杂的时域循环卷积 $C\mathbf{x}$ 一旦转入傅里叶基底，就彻底解耦为逐点的对角乘法 $\Lambda (F_n \mathbf{x})$！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问解答：**
+
+**Step 1（奇偶重排 $P_4 \mathbf{x}$）**：
+
+$$
+P_4 \begin{bmatrix} 1 \\ 2 \\ 0 \\ -1 \end{bmatrix} = \begin{bmatrix} \mathbf{x}_{\text{even}} \\ \mathbf{x}_{\text{odd}} \end{bmatrix} = \begin{bmatrix} 1 \\ 0 \\ \hline 2 \\ -1 \end{bmatrix}
+$$
+
+**Step 2（半阶 $F_2$ 递归计算）**：
+
+$$
+\mathbf{y}_{\text{even}} = F_2 \begin{bmatrix} 1 \\ 0 \end{bmatrix} = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} 1 \\ 0 \end{bmatrix} = \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+$$
+
+$$
+\mathbf{y}_{\text{odd}} = F_2 \begin{bmatrix} 2 \\ -1 \end{bmatrix} = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} 2 \\ -1 \end{bmatrix} = \begin{bmatrix} 1 \\ 3 \end{bmatrix}
+$$
+
+**Step 3（旋转因子 $D_2$ 加权与蝴蝶加减合流）**：
+先计算 $D_2 \mathbf{y}_{\text{odd}} = \begin{bmatrix} 1 & 0 \\ 0 & i \end{bmatrix} \begin{bmatrix} 1 \\ 3 \end{bmatrix} = \begin{bmatrix} 1 \\ 3i \end{bmatrix}$。于是：
+
+$$
+\begin{bmatrix} y_0 \\ y_1 \end{bmatrix} = \mathbf{y}_{\text{even}} + D_2 \mathbf{y}_{\text{odd}} = \begin{bmatrix} 1 \\ 1 \end{bmatrix} + \begin{bmatrix} 1 \\ 3i \end{bmatrix} = \begin{bmatrix} 2 \\ 1 + 3i \end{bmatrix}
+$$
+
+$$
+\begin{bmatrix} y_2 \\ y_3 \end{bmatrix} = \mathbf{y}_{\text{even}} - D_2 \mathbf{y}_{\text{odd}} = \begin{bmatrix} 1 \\ 1 \end{bmatrix} - \begin{bmatrix} 1 \\ 3i \end{bmatrix} = \begin{bmatrix} 0 \\ 1 - 3i \end{bmatrix}
+$$
+
+因此 $\mathbf{y} = F_4 \mathbf{x} = \begin{bmatrix} 2 \\ 1+3i \\ 0 \\ 1-3i \end{bmatrix}$。
+
+**双向验算**：
+- 直接乘法验算：
+  $$
+  \begin{bmatrix} 1 & 1 & 1 & 1 \\ 1 & i & -1 & -i \\ 1 & -1 & 1 & -1 \\ 1 & -i & -1 & i \end{bmatrix} \begin{bmatrix} 1 \\ 2 \\ 0 \\ -1 \end{bmatrix} = \begin{bmatrix} 1 + 2 + 0 - 1 \\ 1 + 2i + 0 + i \\ 1 - 2 + 0 + 1 \\ 1 - 2i + 0 - i \end{bmatrix} = \begin{bmatrix} 2 \\ 1+3i \\ 0 \\ 1-3i \end{bmatrix}
+  $$
+- 逆傅里叶变换验算 $\frac{1}{4} F_4^H \mathbf{y}$：
+  $$
+  \frac{1}{4} \begin{bmatrix} 1 & 1 & 1 & 1 \\ 1 & -i & -1 & i \\ 1 & -1 & 1 & -1 \\ 1 & i & -1 & -i \end{bmatrix} \begin{bmatrix} 2 \\ 1+3i \\ 0 \\ 1-3i \end{bmatrix}
+  = \frac{1}{4} \begin{bmatrix} 2 + (1+3i) + 0 + (1-3i) \\ 2 - i(1+3i) + 0 + i(1-3i) \\ 2 - (1+3i) + 0 - (1-3i) \\ 2 + i(1+3i) + 0 - i(1-3i) \end{bmatrix}
+  = \frac{1}{4} \begin{bmatrix} 4 \\ 8 \\ 0 \\ -4 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \\ 0 \\ -1 \end{bmatrix} = \mathbf{x}
+  $$
+
+---
+
+**第 2 问证明：**
+
+**(a) 验证傅里叶列向量是循环移位矩阵 $P$ 的特征向量：**
+
+对任意 $k \in \{0, 1, 2, 3\}$，将 $P$ 作用于 $F_4$ 的第 $k$ 列 $\mathbf{f}_k = [1, w^k, w^{2k}, w^{3k}]^T$（$w = i$，满足 $w^4 = 1$）：
+
+$$
+P \mathbf{f}_k = \begin{bmatrix} 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \\ 1 & 0 & 0 & 0 \end{bmatrix} \begin{bmatrix} 1 \\ w^k \\ w^{2k} \\ w^{3k} \end{bmatrix} = \begin{bmatrix} w^k \\ w^{2k} \\ w^{3k} \\ 1 \end{bmatrix} = \begin{bmatrix} w^k \\ w^{2k} \\ w^{3k} \\ w^{4k} \end{bmatrix} = w^k \begin{bmatrix} 1 \\ w^k \\ w^{2k} \\ w^{3k} \end{bmatrix} = w^k \mathbf{f}_k
+$$
+
+因此 $\mathbf{f}_k$ 是 $P$ 的特征向量，对应的特征值为 $\lambda_k = w^k$（即 $1, i, -1, -i$）。写成矩阵形式即 $P F_4 = F_4 \operatorname{diag}(1, w, w^2, w^3)$。
+
+**(b) 任意循环矩阵的酉对角化与 $\mathcal{O}(n \log n)$ 快速卷积定理：**
+
+令 $U = \frac{1}{2} F_4$（对一般 $n$ 阶则是 $U = \frac{1}{\sqrt{n}} F_n$）。由第 3 节定理，$U$ 是酉矩阵（$U^H U = I_4$），且 $U$ 的第 $k$ 列 $\mathbf{u}_k = \frac{1}{2}\mathbf{f}_k$ 仍是 $P$ 对应特征值 $w^k$ 的特征向量。
+
+对于矩阵幂 $P^m$（$m = 0, 1, 2, 3$），有 $P^m \mathbf{u}_k = (w^k)^m \mathbf{u}_k = w^{mk} \mathbf{u}_k$。于是对任意 4 阶循环矩阵 $C = \sum_{m=0}^3 c_m P^m$：
+
+$$
+C \mathbf{u}_k = \left(\sum_{m=0}^3 c_m P^m\right) \mathbf{u}_k = \left(\sum_{m=0}^3 c_m w^{mk}\right) \mathbf{u}_k = (F_4 \mathbf{c})_k \, \mathbf{u}_k
+$$
+
+将 4 列拼成矩阵，即 $C U = U \Lambda$，其中对角矩阵 $\Lambda = \operatorname{diag}(F_4 \mathbf{c})$ 的第 $k$ 个特征值正是首行系数向量 $\mathbf{c}$ 的 DFT 分量！两边右乘 $U^H = U^{-1}$ 立即得：
+
+$$
+C = U \operatorname{diag}(F_4 \mathbf{c}) U^H = \frac{1}{4} F_4 \operatorname{diag}(F_4 \mathbf{c}) F_4^H
+$$
+
+于是，对任意输入向量 $\mathbf{x} \in \mathbb{C}^4$，矩阵向量乘积可写成：
+
+$$
+C\mathbf{x} = \frac{1}{4} F_4 \Big( (F_4 \mathbf{c}) \odot (F_4^H \mathbf{x}) \Big)
+$$
+
+其中 $\odot$ 表示向量的逐元素乘积（Hadamard Product）。（若采用工程中常见的**循环下移**矩阵 $S = P^T$ 定义标准循环卷积 $C_{\text{conv}} = \sum_{m=0}^3 c_m S^m$，则由 $S \bar{\mathbf{f}}_k = w^k \bar{\mathbf{f}}_k$ 同理可得更熟悉的形式 $C_{\text{conv}}\mathbf{x} = F_4^{-1}\big((F_4 \mathbf{c}) \odot (F_4 \mathbf{x})\big)$。）
+
+**快速卷积的复杂度机制**：直接计算 $n$ 阶循环矩阵乘积 $C\mathbf{x}$ 需要 $n^2$ 次乘法；而利用上述傅里叶谱对角化，只需执行 2 次正向/共轭 FFT（将系数 $\mathbf{c}$ 与信号 $\mathbf{x}$ 转换到特征频率基底）+ $n$ 次复数逐点相乘（$\Lambda$ 对角缩放）+ 1 次逆/共轭 FFT（回到时域），总复杂度骤降为 $\mathcal{O}(n \log n)$！这正是数字信号滤波、图像卷积与大整数快速乘法的线性代数引擎。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>

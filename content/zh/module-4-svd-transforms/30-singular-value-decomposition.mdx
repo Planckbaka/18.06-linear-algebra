@@ -1,0 +1,933 @@
+---
+title: "第 30 讲：奇异值分解（SVD）"
+ocwId: "L29"
+videoEpisode: "P30"
+textbookRef: "§7.1–7.2"
+---
+
+如果说整个 MIT 18.06 线性代数课程是一次向代数结构巅峰的攀登，那么**奇异值分解（Singular Value Decomposition, SVD）**就是站在峰顶俯瞰群山的那一瞬间。
+
+回顾我们在第 22 讲至第 29 讲走过的矩阵分解之路：
+- 一般方阵的特征值对角化 $A = S\Lambda S^{-1}$（第 22 讲）威力巨大，但它有两道过不去的坎：第一，它**只能用于方阵**（$m = n$），对工程和数据科学中最常见的长方形矩阵 $A \in \mathbb{R}^{m \times n}$（$m \ne n$）束手无策；第二，哪怕是方阵，一旦出现亏损（Defective Matrix，特征向量不足 $n$ 个，第 29 讲），$S$ 就不可逆，对角化彻底失效。况且特征向量矩阵 $S$ 一般并**不正交**。
+- 实对称矩阵谱定理 $A = Q\Lambda Q^T$（第 26 讲）堪称完美：任何实对称矩阵总能找到一组**标准正交特征基（Orthonormal Eigenbasis）** $Q$ 将其对角化。但它要求矩阵必须满足极其苛刻的对称性 $A = A^T$。
+
+现在，Gilbert Strang 教授抛出一个终极问题：**对于地球上任意一个毫无对称性可言、甚至行多列少或秩亏缺的长方形矩阵 $A \in \mathbb{R}^{m \times n}$，我们能否依然只用“正交旋转/反射”和“对角纯拉伸”把它彻底对角化？**
+
+答案是响亮的 **YES**！代价仅仅是——不再强求输入空间 $\mathbb{R}^n$ 和输出空间 $\mathbb{R}^m$ 使用同一组基底，而是**允许输入空间拥有自己的标准正交基 $V$，输出空间拥有自己的标准正交基 $U$**。这就是奇异值分解 $A = U\Sigma V^T$！
+
+---
+
+## 一、几何直觉：为什么任意矩阵都能把单位圆映成椭圆？
+
+理解 $A = U\Sigma V^T$ 最深刻的入口，不是死背计算步骤，而是盯着几何图像。
+
+考虑任意一个平面线性变换 $A \in \mathbb{R}^{2 \times 2}$，让它作用在输入空间 $\mathbb{R}^2$ 的单位圆 $\|\mathbf{x}\|_2 = 1$ 上：
+- 单位圆上任意一点 $\mathbf{x}$ 经过线性变换后变成 $A\mathbf{x}$，所有像点在输出空间共同构成一个**椭圆**（若 $\operatorname{rank}(A) = 1$ 则退化为一条线段，若 $A = O$ 则坍缩为原点）。
+- 问：在输出空间的椭圆上，有一对相互垂直的主半轴（长半轴方向 $\mathbf{u}_1$、短半轴方向 $\mathbf{u}_2$，长度分别为 $\sigma_1 \ge \sigma_2 \ge 0$）。它们是从输入单位圆上的哪两个方向变过来的？
+- 令人拍案叫绝的几何事实是：**它们在输入单位圆上的原像 $\mathbf{v}_1, \mathbf{v}_2$ 同样严格相互垂直**（$\mathbf{v}_1 \perp \mathbf{v}_2$）！
+
+也就是说，即使矩阵 $A$ 本身既包含剪切又包含缩放和旋转（导致整体上一般**不保角**），**输入空间中总能挑出一对极其特殊的正交单位方向 $(\mathbf{v}_1, \mathbf{v}_2)$，使得经过 $A$ 作用之后，它们的像 $(A\mathbf{v}_1, A\mathbf{v}_2) = (\sigma_1 \mathbf{u}_1, \sigma_2 \mathbf{u}_2)$ 在输出空间里竟然仍然保持 $90^\circ$ 正交**！
+
+这直接把任意线性映射 $A$ 拆解成三个在几何上无比纯净的动作流水线：
+1. **右正交矩阵 $V^T$（输入空间对齐）**：正交变换严格保长保角（第 17 讲）。左乘 $V^T$ 将输入空间的那对天然正交主轴 $\mathbf{v}_1, \mathbf{v}_2$ 旋转（或反射）对齐到标准坐标轴 $\mathbf{e}_1, \mathbf{e}_2$；
+2. **奇异值对角阵 $\Sigma$（纯粹的轴向缩放与维度嵌入）**：沿着对齐后的坐标轴方向，分别拉伸或压缩 $\sigma_1, \sigma_2$ 倍（若有零空间维度则直接压扁为 $0$，若 $m \gt n$ 则补零嵌入高维），把单位圆直接拉成端正的椭圆；
+3. **左正交矩阵 $U$（输出空间定向）**：最后在输出空间作一次正交旋转（或反射），将端正椭圆的长短半轴 $\sigma_1\mathbf{e}_1, \sigma_2\mathbf{e}_2$ 摆放到最终目标方向 $\sigma_1\mathbf{u}_1, \sigma_2\mathbf{u}_2$ 上。
+
+<SvdCircleToEllipsePipelineDiagram />
+
+用一句话凝练这幅几何画卷：
+- 在一般方阵特征分解 $A\mathbf{x} = \lambda \mathbf{x}$ 中，我们强求输出方向必须**平行**于输入方向（同一组基）；
+- 而在奇异值分解中，我们寻找的是**成对的标准正交基**，使得输入正交方向 $\mathbf{v}_i$ 精确映射到按比例缩放的输出正交方向 $\mathbf{u}_i$：
+
+$$
+A \mathbf{v}_i = \sigma_i \mathbf{u}_i \quad (1 \le i \le r), \qquad A \mathbf{v}_i = \mathbf{0} \quad (r+1 \le i \le n)
+$$
+
+把全部 $n$ 条列向量方程并排拼成矩阵乘法，瞬间就得到 $A V = U \Sigma$。因为正交方阵满足 $V^{-1} = V^T$，右乘 $V^T$ 即得奇异值分解的黄金公式：$A = U \Sigma V^T$！
+
+---
+
+## 二、严密定义与存在性定理
+
+在几何直觉的指引下，我们现在把奇异值分解（SVD）的矩阵形状、阶数约束、紧凑形式以及存在性构造定理完整确立下来。
+
+<DefinitionCard title="奇异值分解与奇异值" termEn="Singular Value Decomposition (SVD) & Singular Values">
+
+设 $A \in \mathbb{R}^{m \times n}$ 为任意实矩阵，其秩为 $r = \operatorname{rank}(A)$（显然 $0 \le r \le \min(m, n)$）。
+
+1. **完全奇异值分解（Full SVD）**：将 $A$ 分解为三个矩阵的乘积：
+   $$
+   A = U \Sigma V^T
+   $$
+   其中：
+   - $U = [\mathbf{u}_1 \;\; \mathbf{u}_2 \;\; \cdots \;\; \mathbf{u}_m] \in \mathbb{R}^{m \times m}$ 是**正交矩阵**（$U^T U = U U^T = I_m$），其列向量 $\mathbf{u}_i \in \mathbb{R}^m$ 称为 $A$ 的**左奇异向量（Left Singular Vectors）**；
+   - $V = [\mathbf{v}_1 \;\; \mathbf{v}_2 \;\; \cdots \;\; \mathbf{v}_n] \in \mathbb{R}^{n \times n}$ 是**正交矩阵**（$V^T V = V V^T = I_n$），其列向量 $\mathbf{v}_j \in \mathbb{R}^n$ 称为 $A$ 的**右奇异向量（Right Singular Vectors）**；
+   - $\Sigma \in \mathbb{R}^{m \times n}$ 是与 $A$ 同型的广义对角矩阵，其左上角 $r \times r$ 主子块为严格正对角阵 $\Sigma_r = \operatorname{diag}(\sigma_1, \sigma_2, \dots, \sigma_r)$，其余位置全部为 $0$：
+     $$
+     \Sigma = \begin{bmatrix} \Sigma_r & O_{r \times (n-r)} \\ O_{(m-r) \times r} & O_{(m-r) \times (n-r)} \end{bmatrix}, \qquad \sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_r \gt 0
+     $$
+     其中 $\sigma_1, \dots, \sigma_r$ 称为矩阵 $A$ 的**非零奇异值（Nonzero Singular Values）**（若按习惯补足 $\min(m,n)$ 个奇异值，则 $\sigma_{r+1} = \dots = \sigma_{\min(m,n)} = 0$）。
+
+2. **紧凑 / 经济奇异值分解（Thin / Economy SVD）**：由于 $\Sigma$ 中第 $r+1$ 行以后和第 $r+1$ 列以后全为零，截掉零块对应的 $\mathbf{u}_{r+1},\dots,\mathbf{u}_m$ 和 $\mathbf{v}_{r+1},\dots,\mathbf{v}_n$ 不改变乘积结果：
+   $$
+   A = U_r \Sigma_r V_r^T = \sum_{i=1}^r \sigma_i \mathbf{u}_i \mathbf{v}_i^T
+   $$
+   其中 $U_r = [\mathbf{u}_1 \;\; \cdots \;\; \mathbf{u}_r] \in \mathbb{R}^{m \times r}$（满足 $U_r^T U_r = I_r$）、$V_r = [\mathbf{v}_1 \;\; \cdots \;\; \mathbf{v}_r] \in \mathbb{R}^{n \times r}$（满足 $V_r^T V_r = I_r$）。右侧的 $\sum_{i=1}^r \sigma_i \mathbf{u}_i \mathbf{v}_i^T$ 将 $A$ 写成 $r$ 个相互正交的**秩 1 外积矩阵（Rank-One Matrix）**之和！
+
+（注：若 $A \in \mathbb{C}^{m \times n}$ 为复矩阵，只需将上述正交矩阵替换为酉矩阵 $U^H U = I_m, V^H V = I_n$，分解式为 $A = U\Sigma V^H$，而奇异值 $\sigma_i \ge 0$ 仍然恒为**非负实数**。）
+
+</DefinitionCard>
+
+为什么对**每一个**实矩阵 $A \in \mathbb{R}^{m \times n}$——无论形状多畸形、是否可逆或亏损——都必然存在这样的分解？答案隐藏在两个由 $A$ 构造出的实对称矩阵 $A^T A$ 与 $A A^T$ 中！
+
+先观察如果 $A = U\Sigma V^T$ 已经成立，则利用正交性 $U^T U = I_m$ 和 $V^T V = I_n$，立即得到：
+
+$$
+A^T A = (V \Sigma^T U^T)(U \Sigma V^T) = V (\Sigma^T \Sigma) V^T
+$$
+
+$$
+A A^T = (U \Sigma V^T)(V \Sigma^T U^T) = U (\Sigma \Sigma^T) U^T
+$$
+
+这揭示了一个惊人联系：
+- $V$ 的列向量必须是实对称半正定矩阵 $A^T A \in \mathbb{R}^{n \times n}$ 的标准正交特征向量；
+- $U$ 的列向量必须是实对称半正定矩阵 $A A^T \in \mathbb{R}^{m \times m}$ 的标准正交特征向量；
+- 非零奇异值的平方 $\sigma_1^2, \dots, \sigma_r^2$ 正是 $A^T A$ 与 $A A^T$ 共同拥有的全部非零特征值！
+
+**但这里有一个生死攸关的细节**：如果把 $A^T A$ 和 $A A^T$ 各自独立对角化来拼装 $V$ 和 $U$，几乎必然在正负号（甚至重奇异值子空间旋转角）上发生错配！严密的存在性定理告诉我们：**左奇异向量 $\mathbf{u}_i$ 必须由右奇异向量 $\mathbf{v}_i$ 通过 $A\mathbf{v}_i$ 直接锁定**。
+
+<TheoremCard title="奇异值分解存在性与构造性定理" termEn="Existence & Constructive Characterization of the SVD">
+
+对任意实矩阵 $A \in \mathbb{R}^{m \times n}$（$\operatorname{rank}(A) = r$），奇异值分解 $A = U\Sigma V^T$ 必定存在。具体而言：
+
+1. **奇异值的唯一性**：非零奇异值 $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_r \gt 0$ 由矩阵 $A$ 唯一确定，它们恰好是实对称半正定矩阵 $A^T A \in \mathbb{R}^{n \times n}$（以及 $A A^T \in \mathbb{R}^{m \times m}$）全部 $r$ 个正特征值的算术平方根（$\sigma_i = \sqrt{\lambda_i}$）。
+2. **右奇异向量来自 $A^T A$ 的特征基**：取 $A^T A$ 的一组按特征值降序排列的标准正交特征基 $\{\mathbf{v}_1, \dots, \mathbf{v}_r, \mathbf{v}_{r+1}, \dots, \mathbf{v}_n\}$，满足：
+   $$
+   A^T A \mathbf{v}_i = \sigma_i^2 \mathbf{v}_i \;\; (1 \le i \le r), \qquad A^T A \mathbf{v}_i = \mathbf{0} \iff A\mathbf{v}_i = \mathbf{0} \;\; (r+1 \le i \le n)
+   $$
+3. **左奇异向量由 $A\mathbf{v}_i$ 严格锁定**：对 $1 \le i \le r$，定义：
+   $$
+   \mathbf{u}_i := \frac{1}{\sigma_i} A \mathbf{v}_i
+   $$
+   则集合 $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ **自动**成为 $\operatorname{Col}(A)$ 的一组标准正交基，且自动满足 $AA^T \mathbf{u}_i = \sigma_i^2 \mathbf{u}_i$ 与 $A\mathbf{v}_i = \sigma_i \mathbf{u}_i$。
+4. **左零空间基补齐 $U$**：在 $\operatorname{Null}(A^T) = \operatorname{Col}(A)^\perp \subseteq \mathbb{R}^m$ 中任取一组标准正交基 $\{\mathbf{u}_{r+1}, \dots, \mathbf{u}_m\}$（维数为 $m - r$），即可将 $U$ 补全为 $m \times m$ 正交矩阵，使得 $A = U\Sigma V^T$ 严格成立。
+
+</TheoremCard>
+
+<ProofCollapse title="展开 SVD 存在性与自动正交性完整证明">
+
+我们来一步一步验证上述构造在代数上为什么严丝合缝，没有任何隐含漏洞。
+
+**第 1 步：$A^T A$ 的对称半正定性与谱定理分解**
+考察矩阵 $A^T A \in \mathbb{R}^{n \times n}$：
+- 对称性：$(A^T A)^T = A^T (A^T)^T = A^T A$；
+- 半正定性：对任意 $\mathbf{x} \in \mathbb{R}^n$，均有 $\mathbf{x}^T (A^T A) \mathbf{x} = (A\mathbf{x})^T (A\mathbf{x}) = \|A\mathbf{x}\|_2^2 \ge 0$。
+
+根据第 26 讲实对称矩阵谱定理，$A^T A$ 必定拥有 $n$ 个实特征值 $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n \ge 0$ 以及对应的标准正交特征向量基 $\{\mathbf{v}_1, \dots, \mathbf{v}_n\} \subset \mathbb{R}^n$（即 $\mathbf{v}_i^T \mathbf{v}_j = \delta_{ij}$）。
+
+**第 2 步：锁定非零奇异值的个数恰好等于 $r = \operatorname{rank}(A)$**
+回想第 16 讲的核心引理：$\operatorname{Null}(A^T A) = \operatorname{Null}(A)$。
+（证明：$A\mathbf{x} = \mathbf{0} \implies A^T A \mathbf{x} = \mathbf{0}$；反之 $A^T A\mathbf{x} = \mathbf{0} \implies \mathbf{x}^T A^T A \mathbf{x} = \|A\mathbf{x}\|_2^2 = 0 \implies A\mathbf{x} = \mathbf{0}$。）
+
+由秩-零度定理，$\operatorname{rank}(A^T A) = n - \dim\operatorname{Null}(A^T A) = n - \dim\operatorname{Null}(A) = \operatorname{rank}(A) = r$。
+由于实对称矩阵的秩等于其非零特征值的个数（第 26 讲），$A^T A$ **恰好有 $r$ 个严格正特征值**：
+
+$$
+\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_r \gt 0, \qquad \lambda_{r+1} = \dots = \lambda_n = 0
+$$
+
+令 $\sigma_i = \sqrt{\lambda_i} \gt 0$（$1 \le i \le r$）。同时，对后 $n-r$ 个向量，$A^T A \mathbf{v}_i = \mathbf{0} \implies \|A\mathbf{v}_i\|_2^2 = 0 \implies A\mathbf{v}_i = \mathbf{0}$，故 $\{\mathbf{v}_{r+1}, \dots, \mathbf{v}_n\}$ 是 $\operatorname{Null}(A)$ 的一组标准正交基；从而其正交补张成空间 $\operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_r\} = \operatorname{Null}(A)^\perp = \operatorname{Row}(A)$。
+
+**第 3 步：证明 $\mathbf{u}_i = \frac{1}{\sigma_i} A\mathbf{v}_i$ 自动两两正交且单位化**
+对任意 $1 \le i, j \le r$，直接计算内积 $\mathbf{u}_i^T \mathbf{u}_j$：
+
+$$
+\mathbf{u}_i^T \mathbf{u}_j = \left(\frac{1}{\sigma_i} A\mathbf{v}_i\right)^T \left(\frac{1}{\sigma_j} A\mathbf{v}_j\right) = \frac{1}{\sigma_i \sigma_j} \mathbf{v}_i^T (A^T A \mathbf{v}_j) = \frac{1}{\sigma_i \sigma_j} \mathbf{v}_i^T (\sigma_j^2 \mathbf{v}_j) = \frac{\sigma_j}{\sigma_i} (\mathbf{v}_i^T \mathbf{v}_j) = \delta_{ij}
+$$
+
+太神奇了！尽管 $A$ 既不是正交矩阵也不是方阵，但只要 $\mathbf{v}_i, \mathbf{v}_j$ 是 $A^T A$ 的标准正交特征向量，它们在 $A$ 下的像 $\mathbf{u}_i, \mathbf{u}_j$ **自动单位化且严格正交**！而且进一步验证 $AA^T \mathbf{u}_i$：
+
+$$
+AA^T \mathbf{u}_i = A A^T \left(\frac{1}{\sigma_i} A\mathbf{v}_i\right) = \frac{1}{\sigma_i} A (A^T A \mathbf{v}_i) = \frac{\sigma_i^2}{\sigma_i} A \mathbf{v}_i = \sigma_i^2 \mathbf{u}_i
+$$
+
+同时，由于 $\mathbf{u}_i = A(\frac{1}{\sigma_i}\mathbf{v}_i) \in \operatorname{Col}(A)$，这 $r$ 个标准正交向量张成了 $\dim \operatorname{Col}(A) = r$ 的全部列空间！
+
+**第 4 步：补齐 $\operatorname{Null}(A^T)$ 的标准正交基并核验 $U^T A V = \Sigma$**
+因为 $\operatorname{Null}(A^T) = \operatorname{Col}(A)^\perp \subseteq \mathbb{R}^m$ 维数为 $m - r$，利用 Gram-Schmidt 正交化（第 17 讲）在其中选取一组标准正交基 $\{\mathbf{u}_{r+1}, \dots, \mathbf{u}_m\}$。于是 $U = [\mathbf{u}_1 \;\; \cdots \;\; \mathbf{u}_m] \in \mathbb{R}^{m \times m}$ 是正交矩阵，$V = [\mathbf{v}_1 \;\; \cdots \;\; \mathbf{v}_n] \in \mathbb{R}^{n \times n}$ 也是正交矩阵。
+
+最后逐项计算矩阵乘积 $U^T A V$ 的第 $(i, j)$ 个元素 $\mathbf{u}_i^T A \mathbf{v}_j$：
+- 若 $j \gt r$：因 $\mathbf{v}_j \in \operatorname{Null}(A)$，有 $A\mathbf{v}_j = \mathbf{0}$，故 $\mathbf{u}_i^T A \mathbf{v}_j = 0$；
+- 若 $1 \le j \le r$：由定义有 $A\mathbf{v}_j = \sigma_j \mathbf{u}_j$，故 $\mathbf{u}_i^T A \mathbf{v}_j = \sigma_j (\mathbf{u}_i^T \mathbf{u}_j) = \sigma_j \delta_{ij}$。
+
+由此可见 $U^T A V$ 在左上角 $(i, i)$（$1 \le i \le r$）处恰好等于 $\sigma_i$，其余所有位置全部为 $0$，即：
+
+$$
+U^T A V = \Sigma
+$$
+
+左乘 $U$、右乘 $V^T$（利用 $U U^T = I_m, V V^T = I_n$），立即得证 $A = U \Sigma V^T$！至于奇异值 $\sigma_i$ 的唯一性，是因为 $A^T A$ 的特征值集合（含重数）由特征多项式 $\det(\lambda I_n - A^T A)$ 唯一决定，按降序排列后的算术平方根自然唯一。
+
+</ProofCollapse>
+
+**对偶快捷计算法（当行数少于列数 $m \lt n$ 时）**：若 $A$ 是“矮胖矩阵”（比如 $2 \times 100$），直接计算 $100 \times 100$ 的 $A^T A$ 过于笨重，而 $A A^T$ 只有 $2 \times 2$！此时可以对称地**先对更小的 $A A^T$ 进行特征分解**求出 $\sigma_1,\dots,\sigma_r$ 与 $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$，再通过转置公式**反向锁定**右奇异向量：
+
+$$
+A^T \mathbf{u}_i = A^T \left(\frac{1}{\sigma_i} A \mathbf{v}_i\right) = \frac{1}{\sigma_i} (A^T A \mathbf{v}_i) = \sigma_i \mathbf{v}_i \implies \mathbf{v}_i = \frac{1}{\sigma_i} A^T \mathbf{u}_i \quad (1 \le i \le r)
+$$
+
+随后只需在 $\operatorname{Null}(A)$ 中补齐 $\mathbf{v}_{r+1}, \dots, \mathbf{v}_n$ 即可！两条路在数学上完全对称，永远选择先分解 $A^T A$ 与 $A A^T$ 中**尺寸更小**的那个，绝不要分别独立求解两者！
+
+---
+
+## 三、手算实战：两个直击核心的经典算例
+
+### 算例 1：手算 $2 \times 2$ 可逆矩阵并揭示符号陷阱
+
+计算矩阵 $A = \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix}$ 的奇异值分解 $A = U\Sigma V^T$（注：$A$ 甚至不是对称矩阵）。
+
+**第 1 步：构造对称矩阵 $A^T A$ 并求特征值与右奇异向量**
+
+$$
+A^T A = \begin{bmatrix} 4 & -3 \\ 4 & 3 \end{bmatrix} \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix} = \begin{bmatrix} 25 & 7 \\ 7 & 25 \end{bmatrix}
+$$
+
+计算特征多项式：
+
+$$
+\det(A^T A - \lambda I_2) = (25 - \lambda)^2 - 7^2 = (\lambda - 32)(\lambda - 18) = 0
+$$
+
+按降序排列特征值：$\lambda_1 = 32$，$\lambda_2 = 18$。因此奇异值为：
+
+$$
+\sigma_1 = \sqrt{32} = 4\sqrt{2}, \qquad \sigma_2 = \sqrt{18} = 3\sqrt{2}
+$$
+
+（快速验算：$\sigma_1 \sigma_2 = 4\sqrt{2} \cdot 3\sqrt{2} = 24 = |\det(A)|$；$\sigma_1^2 + \sigma_2^2 = 32 + 18 = 50 = 4^2 + 4^2 + (-3)^2 + 3^2 = \|A\|_F^2$！）
+
+求对应的单位正交特征向量 $\mathbf{v}_1, \mathbf{v}_2$：
+- 当 $\lambda_1 = 32$ 时，$(A^T A - 32 I_2)\mathbf{v}_1 = \begin{bmatrix} -7 & 7 \\ 7 & -7 \end{bmatrix}\mathbf{v}_1 = \mathbf{0}$，单位化得 $\mathbf{v}_1 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix}$；
+- 当 $\lambda_2 = 18$ 时，$(A^T A - 18 I_2)\mathbf{v}_2 = \begin{bmatrix} 7 & 7 \\ 7 & 7 \end{bmatrix}\mathbf{v}_2 = \mathbf{0}$，单位化得 $\mathbf{v}_2 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ -1 \end{bmatrix}$。
+
+**第 2 步：用 $\mathbf{u}_i = \frac{1}{\sigma_i} A \mathbf{v}_i$ 严格锁定左奇异向量**
+
+$$
+\mathbf{u}_1 = \frac{1}{\sigma_1} A \mathbf{v}_1 = \frac{1}{4\sqrt{2}} \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix} \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix} = \frac{1}{8} \begin{bmatrix} 8 \\ 0 \end{bmatrix} = \begin{bmatrix} 1 \\ 0 \end{bmatrix}
+$$
+
+$$
+\mathbf{u}_2 = \frac{1}{\sigma_2} A \mathbf{v}_2 = \frac{1}{3\sqrt{2}} \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix} \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ -1 \end{bmatrix} = \frac{1}{6} \begin{bmatrix} 0 \\ -6 \end{bmatrix} = \begin{bmatrix} 0 \\ -1 \end{bmatrix}
+$$
+
+注意 $\mathbf{u}_2 = \begin{bmatrix} 0 \\ -1 \end{bmatrix}$ 这里的**负号**！它完全由 $\mathbf{v}_2$ 的符号所锁定。
+
+**第 3 步：拼装分解式并反向乘积核验**
+
+$$
+A = U \Sigma V^T = \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix} \begin{bmatrix} 4\sqrt{2} & 0 \\ 0 & 3\sqrt{2} \end{bmatrix} \begin{bmatrix} 1/\sqrt{2} & 1/\sqrt{2} \\ 1/\sqrt{2} & -1/\sqrt{2} \end{bmatrix}
+$$
+
+让我们分别核验矩阵乘积与秩 1 外积之和：
+
+$$
+U \Sigma V^T = \begin{bmatrix} 4\sqrt{2} & 0 \\ 0 & -3\sqrt{2} \end{bmatrix} \begin{bmatrix} 1/\sqrt{2} & 1/\sqrt{2} \\ 1/\sqrt{2} & -1/\sqrt{2} \end{bmatrix} = \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix} = A
+$$
+
+$$
+\sigma_1 \mathbf{u}_1 \mathbf{v}_1^T + \sigma_2 \mathbf{u}_2 \mathbf{v}_2^T = 4\sqrt{2}\begin{bmatrix} 1 \\ 0 \end{bmatrix}\frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \end{bmatrix} + 3\sqrt{2}\begin{bmatrix} 0 \\ -1 \end{bmatrix}\frac{1}{\sqrt{2}}\begin{bmatrix} 1 & -1 \end{bmatrix} = \begin{bmatrix} 4 & 4 \\ 0 & 0 \end{bmatrix} + \begin{bmatrix} 0 & 0 \\ -3 & 3 \end{bmatrix} = A
+$$
+
+设想一下：如果某位同学偷懒单独去算 $A A^T = \begin{bmatrix} 32 & 0 \\ 0 & 18 \end{bmatrix}$，一看是对角矩阵，顺手就取标准基 $\mathbf{u}_1 = [1, 0]^T, \mathbf{u}_2 = [0, 1]^T$，那么乘起来会变成 $\begin{bmatrix} 4 & 4 \\ 3 & -3 \end{bmatrix} \ne A$，第二行彻底变号！这就是为什么课程反复告诫绝不能独立求解 $A^T A$ 和 $AA^T$！
+
+---
+
+### 算例 2：长方形秩亏缺矩阵的 Thin SVD vs. Full SVD
+
+考察一个 $3 \times 2$ 的秩 1 矩阵：
+
+$$
+A = \begin{bmatrix} 3 & 4 \\ 6 & 8 \\ 6 & 8 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix} \begin{bmatrix} 3 & 4 \end{bmatrix}
+$$
+
+- 此处矩阵的秩 $r = 1$。无需直接算 $A^T A$，我们已经一眼看出行向量方向为 $[3, 4]^T$（模长 $\sqrt{3^2+4^2} = 5$），列向量方向为 $[1, 2, 2]^T$（模长 $\sqrt{1^2+2^2+2^2} = 3$）！
+- 归一化得到第 1 对奇异向量：
+  $$
+  \mathbf{v}_1 = \frac{1}{5} \begin{bmatrix} 3 \\ 4 \end{bmatrix}, \qquad \mathbf{u}_1 = \frac{1}{3} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}
+  $$
+  检验 $A \mathbf{v}_1 = \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix} (5) = 15 \left(\frac{1}{3}\begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}\right) = 15 \mathbf{u}_1$，于是唯一非零奇异值为 $\sigma_1 = 15$！
+- **Thin SVD（$r = 1$）**：只需保留有效部分，立刻写成紧凑乘积：
+  $$
+  A = U_1 \Sigma_1 V_1^T = \left(\frac{1}{3}\begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}\right) [15] \left(\frac{1}{5}\begin{bmatrix} 3 & 4 \end{bmatrix}\right)
+  $$
+- **Full SVD（$3 \times 3, 3 \times 2, 2 \times 2$）**：必须补齐两个零空间的标准正交基！
+  - 在 $\operatorname{Null}(A) \subseteq \mathbb{R}^2$（$\dim = 2 - 1 = 1$）中，找与 $\mathbf{v}_1$ 正交的单位向量：$\mathbf{v}_2 = \frac{1}{5}\begin{bmatrix} -4 \\ 3 \end{bmatrix}$；
+  - 在 $\operatorname{Null}(A^T) \subseteq \mathbb{R}^3$（$\dim = 3 - 1 = 2$）中，找两两正交且与 $\mathbf{u}_1$ 正交的单位向量：
+    注意到 $\mathbf{u}_2 = \frac{1}{3}\begin{bmatrix} 2 \\ 1 \\ -2 \end{bmatrix}$ 与 $\mathbf{u}_3 = \frac{1}{3}\begin{bmatrix} 2 \\ -2 \\ 1 \end{bmatrix}$ 满足 $\mathbf{u}_1^T \mathbf{u}_2 = \mathbf{u}_1^T \mathbf{u}_3 = \mathbf{u}_2^T \mathbf{u}_3 = 0$，且模长均为 $1$！
+
+于是得到整数根号干净无杂质的 Full SVD：
+
+$$
+A = \underbrace{\frac{1}{3}\begin{bmatrix} 1 & 2 & 2 \\ 2 & 1 & -2 \\ 2 & -2 & 1 \end{bmatrix}}_{U \in \mathbb{R}^{3 \times 3}} \underbrace{\begin{bmatrix} 15 & 0 \\ 0 & 0 \\ 0 & 0 \end{bmatrix}}_{\Sigma \in \mathbb{R}^{3 \times 2}} \underbrace{\frac{1}{5}\begin{bmatrix} 3 & 4 \\ -4 & 3 \end{bmatrix}}_{V^T \in \mathbb{R}^{2 \times 2}}
+$$
+
+这组分解不仅还原了 $A$，还一口气把四个基本子空间全部用**标准正交基**打包交付给了我们！
+
+---
+
+## 四、四个基本子空间的终极升级、矩阵范数与极分解
+
+### 1. 线性代数基本定理的巅峰形态
+
+在模块一（第 10 讲）和模块二（第 14 讲）中，我们费尽心力用消元法 $R = \operatorname{rref}(A)$ 找出了四个基本子空间的基，并且证明了行空间与零空间正交、列空间与左零空间正交。但 RREF 给出的基向量**并不正交**，长度也参差不齐。
+
+SVD 直接为四大基本子空间同时配备了**终极标准正交基**：
+
+| 基本子空间 | 所在空间 | 维数 | SVD 标准正交基 | 矩阵列块记号 |
+| :--- | :---: | :---: | :--- | :---: |
+| **行空间 $\operatorname{Row}(A)$** | $\mathbb{R}^n$ | $r$ | $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ | $V_r$ |
+| **零空间 $\operatorname{Null}(A)$** | $\mathbb{R}^n$ | $n - r$ | $\{\mathbf{v}_{r+1}, \dots, \mathbf{v}_n\}$ | $V_{n-r}$ |
+| **列空间 $\operatorname{Col}(A)$** | $\mathbb{R}^m$ | $r$ | $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ | $U_r$ |
+| **左零空间 $\operatorname{Null}(A^T)$** | $\mathbb{R}^m$ | $m - r$ | $\{\mathbf{u}_{r+1}, \dots, \mathbf{u}_m\}$ | $U_{m-r}$ |
+
+在 SVD 的“对角坐标系”下，矩阵 $A$ 对整个宇宙的作用完全透明化：
+- 输入空间 $\mathbb{R}^n = \operatorname{Row}(A) \oplus \operatorname{Null}(A)$ 中任何向量 $\mathbf{x} = \sum_{i=1}^n (\mathbf{v}_i^T \mathbf{x}) \mathbf{v}_i$；
+- 经 $A$ 作用后，零空间分量（$i \gt r$）全部灰飞烟灭，行空间分量（$i \le r$）以一一双射分别放大 $\sigma_i$ 倍落入 $\operatorname{Col}(A)$：$A\mathbf{x} = \sum_{i=1}^r \sigma_i (\mathbf{v}_i^T \mathbf{x}) \mathbf{u}_i$！
+
+<SvdFourSubspacesOrthonormalMapDiagram />
+
+### 2. 谱范数、Frobenius 范数与条件数
+
+利用正交矩阵 $U, V$ 严格保持向量 $\ell_2$ 欧氏范数不变的性质，奇异值直接控制了矩阵的所有核心度量不变量：
+- **谱范数（Spectral Norm / Induced $\ell_2$-Norm）**：矩阵对单位向量的最大拉伸倍数恰好等于最大奇异值：
+  $$
+  \|A\|_2 := \max_{\|\mathbf{x}\|_2 = 1} \|A\mathbf{x}\|_2 = \sigma_1
+  $$
+  且最大值恰好在输入方向 $\mathbf{x} = \pm \mathbf{v}_1$ 处取到！当 $r = n \le m$ 时，最小拉伸倍数为 $\min_{\|\mathbf{x}\|_2=1}\|A\mathbf{x}\|_2 = \sigma_n$（在 $\mathbf{v}_n$ 处取到）。
+- **Frobenius 范数（Frobenius Norm）**：矩阵所有元素平方和的平方根，等于奇异值向量的欧氏长度：
+  $$
+  \|A\|_F := \sqrt{\sum_{i=1}^m \sum_{j=1}^n a_{ij}^2} = \sqrt{\operatorname{tr}(A^T A)} = \sqrt{\sum_{i=1}^r \sigma_i^2}
+  $$
+- **$\ell_2$ 条件数（Condition Number）**：衡量线性方程组求解或优化曲面各向异性（“扁平狭长程度”）的指标：
+  $$
+  \kappa_2(A) = \frac{\sigma_1}{\sigma_r}
+  $$
+  当 $A \in \mathbb{R}^{n \times n}$ 可逆时，$\|A^{-1}\|_2 = \frac{1}{\sigma_n}$，此时 $\kappa_2(A) = \|A\|_2 \|A^{-1}\|_2 = \frac{\sigma_1}{\sigma_n}$。若 $\sigma_1 / \sigma_n \gg 1$，则椭球极度扁平，数值求解极度病态。
+
+### 3. 一行导出极分解（Polar Decomposition）
+
+作为 SVD 的顺理成章的推论，对于任意方阵 $A \in \mathbb{R}^{n \times n}$，在 $A = U\Sigma V^T$ 中间巧妙插入一个 $I_n = V^T V$：
+
+$$
+A = U \Sigma V^T = \underbrace{(U V^T)}_{Q} \underbrace{(V \Sigma V^T)}_{S} = Q S
+$$
+
+请看这两部分的性质：
+- $Q = U V^T$ 是两个正交矩阵的乘积，故 $Q$ 依然是**正交矩阵**（纯粹的刚体旋转/反射）；
+- $S = V \Sigma V^T$ 是实对称半正定矩阵（实际上就是 $S = (A^T A)^{1/2}$，纯粹沿正交主轴 $\mathbf{v}_i$ 拉伸 $\sigma_i$ 倍）；当 $A$ 可逆时 $S$ 严格正定，且 $Q, S$ 均唯一。
+
+这正是复数极坐标分解 $z = e^{i\theta} \cdot r$ 向高维矩阵空间的完美推广！而在第 34 讲中，我们还将见证 SVD 如何直接给出适用于任意长方形奇异矩阵的终极求逆公式——**Moore-Penrose 伪逆（Pseudoinverse）** $A^+ = V \Sigma^+ U^T$。
+
+---
+
+<PitfallAlert title="常见直觉陷阱与网传笔记勘误 (Pitfalls & Errata)">
+
+### 1. 致命错误 #1：分别独立求解 $A^T A$ 与 $AA^T$ 的特征向量来拼装 $V$ 和 $U$！
+在许多非正规网络笔记中常写：“求 SVD 就是分别算 $A^T A$ 的特征向量组成 $V$、再算 $A A^T$ 的特征向量组成 $U$。”**这是全书最危险的错误写法！**
+- **符号反转错配**：特征向量乘以 $-1$ 仍然是特征向量。正如我们在算例 1 中对 $A = \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix}$ 演示的，独立求解 $AA^T = \operatorname{diag}(32, 18)$ 会自然选出 $\mathbf{u}_2 = [0, 1]^T$，从而拼出错误矩阵 $\begin{bmatrix} 4 & 4 \\ 3 & -3 \end{bmatrix} \ne A$！
+- **重特征值子空间灾难**：当存在重奇异值（例如 $\sigma_1 = \sigma_2 = 5$）时，对应的特征子空间维数 $\ge 2$，其中**任何一组**标准正交基都是合法特征基！若独立求 $U$ 和 $V$，两者的基可能在二维特征平面内相差一个任意旋转角 $\theta$，导致 $U\Sigma V^T$ 完全不是 $A$！
+- **唯一铁律**：选定 $A^T A$ 的标准正交特征基 $\mathbf{v}_1,\dots,\mathbf{v}_r$ 后，**必须用 $\mathbf{u}_i = \frac{1}{\sigma_i} A \mathbf{v}_i$ 锁死**前 $r$ 个左奇异向量（或当 $m \lt n$ 时从 $AA^T$ 求出 $\mathbf{u}_1,\dots,\mathbf{u}_r$ 后，用 $\mathbf{v}_i = \frac{1}{\sigma_i} A^T \mathbf{u}_i$ 锁死前 $r$ 个右奇异向量）。只有零特征值对应的零空间 $\operatorname{Null}(A)$ 与 $\operatorname{Null}(A^T)$ 才可以独立挑选标准正交基！
+
+### 2. 混淆奇异值 $\sigma_i$ 与特征值绝对值 $|\lambda_i|$
+许多初学者误以为方阵的奇异值就是特征值的绝对值。**错！**
+考察最简单的剪切幂零矩阵：
+
+$$
+A = \begin{bmatrix} 0 & 2 \\ 0 & 0 \end{bmatrix}
+$$
+
+它的两个特征值全部为零（$\lambda_1 = \lambda_2 = 0$），然而计算 $A^T A = \begin{bmatrix} 0 & 0 \\ 0 & 4 \end{bmatrix}$ 立得奇异值为 $\sigma_1 = 2, \sigma_2 = 0$！
+- **本质原因**：特征值衡量的是特殊不变方向上的拉伸，而奇异值衡量的是整个单位球面上的最大几何伸缩。非正规矩阵（$A^T A \ne A A^T$）的特征向量不正交（此处甚至只有 1 个特征向量），能通过剪切产生远超谱半径的几何放大！
+- **什么时候才相等？** 只有当方阵是**正规矩阵（Normal Matrix）**（即 $A^T A = A A^T$ 或复情形 $A^H A = A A^H$，包括对称矩阵、反对称矩阵和正交矩阵）时，才成立 $\sigma_i = |\lambda_i|$；而对一般对称矩阵（含负特征值），奇异值是特征值的**绝对值** $|\lambda_i|$，且左奇异向量还需把负特征值对应的负号吸收进 $\mathbf{u}_i = \operatorname{sgn}(\lambda_i)\mathbf{q}_i$ 中，以保持 $\sigma_i \ge 0$。
+
+### 3. 奇异值唯一，但奇异值分解矩阵 $U, V$ 并不唯一
+对于任意给定矩阵 $A$：
+- 奇异值序列 $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_r \gt 0$ 是**绝对唯一**的；
+- 当奇异值互异（$\sigma_1 \gt \sigma_2 \gt \dots \gt \sigma_r \gt 0$）时，奇异方向只差**成对的同步变号**（将 $\mathbf{u}_i, \mathbf{v}_i$ 同时变为 $-\mathbf{u}_i, -\mathbf{v}_i$，外积 $(-\mathbf{u}_i)(-\mathbf{v}_i)^T = \mathbf{u}_i \mathbf{v}_i^T$ 不变）；
+- 当存在重奇异值或零空间（dim $\ge 2$）时，该子空间内可以同时施加任意正交变换，因此 $U, V$ 有无穷多种合法选择。
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l30-svd-circle-ellipse"
+  title="SVD 单位圆到椭圆三步几何与最优低秩截断交互画布"
+  description={"调节 $2\\times 2$ 矩阵的奇异值 $\\sigma_1, \\sigma_2$ 与输入/输出正交旋转角，实时观察 $V^T \\to \\Sigma \\to U$ 如何把单位圆上的正交主轴 $(\\mathbf{v}_1, \\mathbf{v}_2)$ 映为椭圆半轴 $(\\sigma_1 \\mathbf{u}_1, \\sigma_2 \\mathbf{u}_2)$，并对比秩 1 截断 $A_1 = \\sigma_1 \\mathbf{u}_1 \\mathbf{v}_1^T$ 的近似误差。"}
+/>
+
+---
+
+<KeyTakeaways items={[
+  "SVD 的普适威力：任意实矩阵 $A \\in \\mathbb{R}^{m \\times n}$（无论长方形、奇异还是亏损）均可分解为 $A = U \\Sigma V^T$，其中 $U \\in \\mathbb{R}^{m\\times m}$、$V \\in \\mathbb{R}^{n\\times n}$ 均为正交矩阵，$\\Sigma \\in \\mathbb{R}^{m\\times n}$ 仅在左上角有非负降序奇异值 $\\sigma_1 \\ge \\dots \\ge \\sigma_r \\gt 0$。",
+  "几何三步曲：$A = U \\Sigma V^T$ 将任意线性映射拆解为输入正交旋转/反射（$V^T$）$\\to$ 坐标轴向纯拉伸（$\\Sigma$）$\\to$ 输出正交旋转/反射（$U$），保证至少存在一组输入正交基 $\\{\\mathbf{v}_i\\}$ 经 $A$ 映射后仍保持输出正交 $A\\mathbf{v}_i = \\sigma_i \\mathbf{u}_i$。",
+  "唯一构造铁律：从 $A^T A$（若 $m \\lt n$ 则改从更小的 $A A^T$）求出非零特征值 $\\sigma_i^2$ 与特征基，再用 $\\mathbf{u}_i = \\frac{1}{\\sigma_i} A\\mathbf{v}_i$（或 $\\mathbf{v}_i = \\frac{1}{\\sigma_i} A^T\\mathbf{u}_i$）严格锁定另一侧奇异向量，彻底杜绝独立求解导致的符号或旋转失配。",
+  "四大子空间终极统一：$\\{\\mathbf{v}_1,\\dots,\\mathbf{v}_r\\}$ 是 $\\operatorname{Row}(A)$ 标准正交基，$\\{\\mathbf{v}_{r+1},\\dots,\\mathbf{v}_n\\}$ 是 $\\operatorname{Null}(A)$ 标准正交基；$\\{\\mathbf{u}_1,\\dots,\\mathbf{u}_r\\}$ 是 $\\operatorname{Col}(A)$ 标准正交基，$\\{\\mathbf{u}_{r+1},\\dots,\\mathbf{u}_m\\}$ 是 $\\operatorname{Null}(A^T)$ 标准正交基。",
+  "紧凑 SVD 与秩 1 积木：$A = U_r \\Sigma_r V_r^T = \\sum_{i=1}^r \\sigma_i \\mathbf{u}_i \\mathbf{v}_i^T$ 将矩阵拆解为 $r$ 个相互正交的单位秩 1 外积之和；且谱范数 $\\|A\\|_2 = \\sigma_1$、Frobenius 范数 $\\|A\\|_F = \\sqrt{\\sum_{i=1}^r \\sigma_i^2}$、条件数 $\\kappa_2(A) = \\sigma_1/\\sigma_r$。",
+  "警惕特征值混淆：一般方阵的 $\\sigma_i \\ne |\\lambda_i|$（如幂零矩阵 $\\lambda_1=\\lambda_2=0$ 但 $\\sigma_1 \\gt 0$）；仅当方阵为正规矩阵（$A^T A = A A^T$）时才有 $\\sigma_i = |\\lambda_i|$。"
+]} />
+
+---
+
+## 五、课后直觉训练题
+
+<ProblemSet title="第 30 讲 课后习题集" description="涵盖长方形矩阵对偶 SVD 计算、奇异值与特征值辨析、符号锁定陷阱、正交不变性与矩阵范数证明，以及极分解与正交 Procrustes 最优对齐。">
+
+<ExerciseCard id="l30-ex1" tier="L1" title="2×3 矮胖矩阵的对偶奇异值分解与秩 1 展开">
+
+考察如下满行秩长方形矩阵 $A \in \mathbb{R}^{2 \times 3}$：
+
+$$
+A = \begin{bmatrix} 3 & 2 & 2 \\ 2 & 3 & -2 \end{bmatrix}
+$$
+
+1. 因为行数 $m = 2$ 小于列数 $n = 3$，请先对较小的 $2 \times 2$ 对称矩阵 $A A^T$ 进行正交对角化，求出非零奇异值 $\sigma_1 \ge \sigma_2 \gt 0$ 与左奇异向量 $\mathbf{u}_1, \mathbf{u}_2$；
+2. **禁止单独求解 $A^T A$**，请利用锁定公式 $\mathbf{v}_i = \frac{1}{\sigma_i} A^T \mathbf{u}_i$ 求出前两个右奇异向量 $\mathbf{v}_1, \mathbf{v}_2$，并求出 $\operatorname{Null}(A)$ 的单位基向量 $\mathbf{v}_3$；
+3. 写出 $A$ 的紧凑分解（Thin SVD）$U_2 \Sigma_2 V_2^T$、完全分解（Full SVD）$U \Sigma V^T$ 以及秩 1 外积之和 $\sigma_1 \mathbf{u}_1 \mathbf{v}_1^T + \sigma_2 \mathbf{u}_2 \mathbf{v}_2^T$，并验证乘积还原回 $A$。
+
+<ProgressiveHint hints={[
+  "计算 $AA^T$ 时注意每一行与自身的点积都是 $3^2 + 2^2 + 2^2 = 17$，两行点积为 $6 + 6 - 4 = 8$，这是一个对称的 $2\\times 2$ 矩阵 $\\begin{bmatrix} 17 & 8 \\\\ 8 & 17 \\end{bmatrix}$。",
+  "对于形如 $\\begin{bmatrix} a & b \\\\ b & a \\end{bmatrix}$ 的对称矩阵，特征值直接为 $a + b$ 与 $a - b$，特征向量分别为 $[1, 1]^T$ 与 $[1, -1]^T$（单位化后）。",
+  "求 $\\mathbf{v}_3 \\in \\operatorname{Null}(A)$ 时，也可以直接利用它必须同时正交于 $\\mathbf{v}_1$ 和 $\\mathbf{v}_2$（即向量叉积 $\\mathbf{v}_1 \\times \\mathbf{v}_2$）来快速求出并单位化！"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+
+对于 $2 \times 3$ 矩阵，$A^T A$ 是 $3 \times 3$ 而 $A A^T$ 只有 $2 \times 2$，因此从行空间/列空间的对偶侧 $AA^T$ 切入能省去一半以上计算量。因为对称矩阵 $\begin{bmatrix} 17 & 8 \\ 8 & 17 \end{bmatrix}$ 两行之和相同，其特征向量天然指向 $45^\circ$ 和 $-45^\circ$，特征值凑巧是完美的平方数 $25$ 与 $9$（对应整数奇异值 $\sigma_1 = 5, \sigma_2 = 3$）。锁定 $\mathbf{v}_i = \frac{1}{\sigma_i} A^T \mathbf{u}_i$ 后，零空间维度只有 $3 - 2 = 1$，只需找一根同时垂直于两行（或垂直于 $\mathbf{v}_1, \mathbf{v}_2$）的单位直线即可补全 $3 \times 3$ 正交阵 $V$！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+**第 1 步：计算 $A A^T$ 的特征分解**
+
+$$
+A A^T = \begin{bmatrix} 3 & 2 & 2 \\ 2 & 3 & -2 \end{bmatrix} \begin{bmatrix} 3 & 2 \\ 2 & 3 \\ 2 & -2 \end{bmatrix} = \begin{bmatrix} 17 & 8 \\ 8 & 17 \end{bmatrix}
+$$
+
+特征方程为 $(17 - \lambda)^2 - 64 = 0$，解得降序特征值为 $\lambda_1 = 25, \lambda_2 = 9$。因此非零奇异值为：
+
+$$
+\sigma_1 = \sqrt{25} = 5, \qquad \sigma_2 = \sqrt{9} = 3
+$$
+
+求对应的单位正交左奇异向量：
+- $\lambda_1 = 25$：$(A A^T - 25 I_2)\mathbf{u}_1 = \begin{bmatrix} -8 & 8 \\ 8 & -8 \end{bmatrix}\mathbf{u}_1 = \mathbf{0} \implies \mathbf{u}_1 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix}$；
+- $\lambda_2 = 9$：$(A A^T - 9 I_2)\mathbf{u}_2 = \begin{bmatrix} 8 & 8 \\ 8 & 8 \end{bmatrix}\mathbf{u}_2 = \mathbf{0} \implies \mathbf{u}_2 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ -1 \end{bmatrix}$。
+
+**第 2 步：锁定右奇异向量并补齐零空间基**
+利用 $\mathbf{v}_i = \frac{1}{\sigma_i} A^T \mathbf{u}_i$：
+
+$$
+\mathbf{v}_1 = \frac{1}{5} \begin{bmatrix} 3 & 2 \\ 2 & 3 \\ 2 & -2 \end{bmatrix} \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix} = \frac{1}{5\sqrt{2}} \begin{bmatrix} 5 \\ 5 \\ 0 \end{bmatrix} = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix}
+$$
+
+$$
+\mathbf{v}_2 = \frac{1}{3} \begin{bmatrix} 3 & 2 \\ 2 & 3 \\ 2 & -2 \end{bmatrix} \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ -1 \end{bmatrix} = \frac{1}{3\sqrt{2}} \begin{bmatrix} 1 \\ -1 \\ 4 \end{bmatrix}
+$$
+
+（核验：$\|\mathbf{v}_2\|_2^2 = \frac{1+1+16}{18} = 1$，且 $\mathbf{v}_1^T \mathbf{v}_2 = \frac{1-1+0}{6} = 0$，自动正交归一！）
+
+求 $\mathbf{v}_3 \in \operatorname{Null}(A)$：由 $\mathbf{v}_3 \perp \mathbf{v}_1$ 知其形如 $[a, -a, b]^T$。代入第一行 $3a - 2a + 2b = 0 \implies a = -2b$。取 $b = -1$ 得方向向量 $[2, -2, -1]^T$，模长为 $\sqrt{4+4+1} = 3$，单位化得：
+
+$$
+\mathbf{v}_3 = \frac{1}{3} \begin{bmatrix} 2 \\ -2 \\ -1 \end{bmatrix}
+$$
+
+（核验：$A\mathbf{v}_3 = \frac{1}{3}[6-4-2, \; 4-6+2]^T = \mathbf{0}$，且 $\mathbf{v}_2^T \mathbf{v}_3 = \frac{2+2-4}{9\sqrt{2}} = 0$。）
+
+**第 3 步：写出 Thin SVD、Full SVD 与秩 1 展开**
+- **Thin SVD**：
+  $$
+  A = \underbrace{\frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}}_{U_2 \in \mathbb{R}^{2\times 2}} \underbrace{\begin{bmatrix} 5 & 0 \\ 0 & 3 \end{bmatrix}}_{\Sigma_2 \in \mathbb{R}^{2\times 2}} \underbrace{\begin{bmatrix} 1/\sqrt{2} & 1/\sqrt{2} & 0 \\ 1/(3\sqrt{2}) & -1/(3\sqrt{2}) & 4/(3\sqrt{2}) \end{bmatrix}}_{V_2^T \in \mathbb{R}^{2\times 3}}
+  $$
+- **Full SVD**：
+  $$
+  A = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} 5 & 0 & 0 \\ 0 & 3 & 0 \end{bmatrix} \begin{bmatrix} 1/\sqrt{2} & 1/\sqrt{2} & 0 \\ 1/(3\sqrt{2}) & -1/(3\sqrt{2}) & 4/(3\sqrt{2}) \\ 2/3 & -2/3 & -1/3 \end{bmatrix}
+  $$
+- **秩 1 展开与还原核验**：
+  $$
+  5 \mathbf{u}_1 \mathbf{v}_1^T + 3 \mathbf{u}_2 \mathbf{v}_2^T = \frac{5}{2}\begin{bmatrix} 1 & 1 & 0 \\ 1 & 1 & 0 \end{bmatrix} + \frac{1}{2}\begin{bmatrix} 1 & -1 & 4 \\ -1 & 1 & -4 \end{bmatrix} = \begin{bmatrix} 3 & 2 & 2 \\ 2 & 3 & -2 \end{bmatrix} = A
+  $$
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l30-ex2" tier="L2" title="概念辨析：奇异值与特征值绝对值的关系">
+
+判断下述命题是否正确：
+
+“设 $A \in \mathbb{R}^{n \times n}$ 为实方阵。若 $\sigma_1 \ge \dots \ge \sigma_n \ge 0$ 是 $A$ 的奇异值，$\lambda_1, \dots, \lambda_n \in \mathbb{C}$ 是 $A$ 的特征值，则必有 $\{\sigma_i\} = \{|\lambda_i|\}$；特别地，若 $A$ 的所有特征值均为 $0$，则 $A$ 的所有奇异值也必全为 $0$（即 $A = O$）。”
+
+<TrueFalseInteractive
+  id="l30-tf1"
+  correct={false}
+  quickFeedback={"错误！特征值只反映少数特征方向上的伸缩，非对称剪切矩阵即便所有特征值全为 $0$，也能把某些单位向量拉伸到非零长度。典型反例是幂零矩阵 $A = \\begin{bmatrix} 0 & 2 \\\\ 0 & 0 \\end{bmatrix}$：$\\lambda_1 = \\lambda_2 = 0$，但 $\\sigma_1 = 2, \\sigma_2 = 0$。只有当 $A$ 为正规矩阵（$A^T A = A A^T$）时才成立 $\\sigma_i = |\\lambda_i|$。"}
+/>
+
+<ProgressiveHint hints={[
+  "检验命题的后半句：有哪些非零矩阵的所有特征值都是 $0$？（提示：严格上三角幂零矩阵）。",
+  "对任何非零矩阵 $A \\ne O$，其 Frobenius 范数平方 $\\|A\\|_F^2 = \\sum_{i=1}^n \\sigma_i^2 \\gt 0$，因此不可能所有奇异值都是 $0$！",
+  "只有当矩阵 $A$ 能够被单个酉矩阵（或正交矩阵）对角化时（即正规矩阵 $A^T A = A A^T$），$U$ 和 $V$ 才能退化为同一组特征向量，从而使 $\\sigma_i = |\\lambda_i|$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+
+特征值是**同方向**上的放大倍数，而奇异值是**跨方向**（把单位圆变成椭圆）的主半轴伸缩倍数。想象一个极端的水平错切/投影变换 $A = \begin{bmatrix} 0 & 2 \\ 0 & 0 \end{bmatrix}$：它把 $x$ 轴压成零向量，把 $y$ 轴上的 $[0,1]^T$ 旋转 90 度并拉长两倍送到 $[2,0]^T$。因为没有哪条直线经过变换还保持原方向不变（除了 $x$ 轴被压成 $0$），它的特征值全都是 $0$；但单位圆明明被拉成了一根长度为 $2$ 的线段，最大奇异值毫无疑问是 $\sigma_1 = 2$！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+该命题**错误**。
+
+**反例构造**：取严格上三角非零矩阵（幂零矩阵）：
+
+$$
+A = \begin{bmatrix} 0 & 2 \\ 0 & 0 \end{bmatrix}
+$$
+
+1. 计算特征值：$\det(A - \lambda I_2) = \lambda^2 = 0 \implies \lambda_1 = \lambda_2 = 0$。
+2. 计算奇异值：
+   $$
+   A^T A = \begin{bmatrix} 0 & 0 \\ 2 & 0 \end{bmatrix} \begin{bmatrix} 0 & 2 \\ 0 & 0 \end{bmatrix} = \begin{bmatrix} 0 & 0 \\ 0 & 4 \end{bmatrix}
+   $$
+   其特征值为 $4$ 与 $0$，故奇异值为 $\sigma_1 = 2 \ne 0 = |\lambda_1|$，$\sigma_2 = 0$。
+
+**深层代数联系（Schur 不等式与正规矩阵充要条件）**：
+事实上，对于任意方阵 $A \in \mathbb{R}^{n \times n}$，仅有两种全局关系始终成立：
+1. 行列式乘积守恒：$\prod_{i=1}^n \sigma_i = \sqrt{\det(A^T A)} = |\det(A)| = \prod_{i=1}^n |\lambda_i|$；
+2. 能量界（Schur 不等式）：$\sum_{i=1}^n \sigma_i^2 = \|A\|_F^2 \ge \sum_{i=1}^n |\lambda_i|^2$。
+
+结合 Schur 三角化定理可知，上述不等式取等号（以及全部满足 $\{\sigma_i\} = \{|\lambda_i|\}$）**当且仅当** $A$ 是**正规矩阵（Normal Matrix）**（即 $A^T A = A A^T$，包括实对称、实反对称与正交矩阵）。对非正规矩阵，非正交特征向量之间的“夹角耦合”会抬高奇异值，使 $\sigma_1 \ge \max_i |\lambda_i|$！
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l30-ex3" tier="L2" title="辨析题：独立求解 AᵀA 与 AAᵀ 的拼装合法性">
+
+判断下述命题是否正确：
+
+“对任意矩阵 $A \in \mathbb{R}^{m \times n}$，只要先将 $A^T A$ 正交对角化得到 $A^T A = V D_1 V^T$（对角元降序），再**独立地**将 $A A^T$ 正交对角化得到 $A A^T = U D_2 U^T$（对角元降序），用公有非零对角元的平方根构造 $\Sigma$，那么无论 $U$ 和 $V$ 当初选了哪组标准正交特征向量，乘积 $U \Sigma V^T$ 必然等于原矩阵 $A$。”
+
+<TrueFalseInteractive
+  id="l30-tf2"
+  correct={false}
+  quickFeedback={"错误！即使所有奇异值互异，特征向量也至少差一个正负号自由度（反例：$A = \\operatorname{diag}(1, -2)$，$A^T A = A A^T = \\operatorname{diag}(1, 4)$，若独立选取同一组 $U = V$ 必然得到 $\\operatorname{diag}(2, 1)$ 或 $\\operatorname{diag}(1, 2) \\ne A$）；当奇异值出现重根时，两者还可能相差特征子空间内的任意旋转！"}
+/>
+
+<ProgressiveHint hints={[
+  "拿最简单的对角矩阵 $A = -I_2$ 或 $A = \\begin{bmatrix} 1 & 0 \\\\ 0 & -2 \\end{bmatrix}$ 试一试：$A^T A$ 和 $A A^T$ 分别是多少？",
+  "从同一组 $A^T A$ 和 $A A^T$ 矩阵出发，能区分 $A$ 与 $-A$ 吗？显然 $(-A)^T(-A) = A^T A$ 且 $(-A)(-A)^T = A A^T$！仅凭这两个平方矩阵根本无法唯一确定 $A$ 本身。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+
+这是线性代数最妙的反证直觉之一：矩阵 $A^T A$ 和 $AA^T$ 相当于实数的“平方 $x^2$”。把 $A$ 换成 $-A$，或者把某些行/列反号，平方矩阵 $A^T A$ 和 $AA^T$ **一模一样**！如果你只看两个平方矩阵各自求解 $V$ 和 $U$，相当于手里握着 $x^2 = 9$ 和 $y^2 = 9$ 却不去检查原方程的耦合关系，最终拼出来的 $U \Sigma V^T$ 根本无法知道正负号该朝哪边！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+该命题**错误**。提供两个层面的极简反例：
+
+**反例 1（奇异值互异时的符号失配）：**
+设 $A = \begin{bmatrix} 1 & 0 \\ 0 & -2 \end{bmatrix}$。计算：
+
+$$
+A^T A = A A^T = \begin{bmatrix} 1 & 0 \\ 0 & 4 \end{bmatrix}
+$$
+
+降序奇异值为 $\sigma_1 = 2, \sigma_2 = 1$，故 $\Sigma = \begin{bmatrix} 2 & 0 \\ 0 & 1 \end{bmatrix}$。
+对 $A^T A$ 选取标准正交特征基 $\mathbf{v}_1 = [0, 1]^T, \mathbf{v}_2 = [1, 0]^T$，即 $V = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$。
+若**独立地**求解 $A A^T$ 时也顺手选取相同的标准正交特征基 $\mathbf{u}_1 = [0, 1]^T, \mathbf{u}_2 = [1, 0]^T$（即 $U = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$，这完全满足 $AA^T = U D_2 U^T$），则拼装结果为：
+
+$$
+U \Sigma V^T = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} \begin{bmatrix} 2 & 0 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix} \ne \begin{bmatrix} 1 & 0 \\ 0 & -2 \end{bmatrix} = A
+$$
+
+唯有使用耦合规则 $\mathbf{u}_1 = \frac{1}{\sigma_1} A\mathbf{v}_1 = \frac{1}{2}\begin{bmatrix} 0 \\ -2 \end{bmatrix} = \begin{bmatrix} 0 \\ -1 \end{bmatrix}$ 锁定负号，才能还原出 $A$！
+
+**反例 2（重奇异值时的子空间旋转失配）：**
+设 $A = \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix}$（$90^\circ$ 旋转矩阵），则 $A^T A = A A^T = I_2$（双重奇异值 $\sigma_1 = \sigma_2 = 1$）。若独立取 $U = I_2, V = I_2$（均合法对角化了 $I_2$），则 $U\Sigma V^T = I_2 \ne A$！必须通过 $U = A V \Sigma^{-1}$ 才能锁定两者之间对应的 $90^\circ$ 旋转相位。
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l30-ex4" tier="L3" title="无计算证明：矩阵谱范数、Frobenius 范数与正交不变性">
+
+设实矩阵 $A \in \mathbb{R}^{m \times n}$ 具有奇异值分解 $A = U\Sigma V^T$（秩为 $r \ge 1$，奇异值 $\sigma_1 \ge \dots \ge \sigma_r \gt 0$）。不借助拉格朗日乘子法，仅用 SVD 与正交变换的保长性质证明：
+
+1. 矩阵的谱范数满足 $\|A\|_2 := \max_{\|\mathbf{x}\|_2 = 1} \|A\mathbf{x}\|_2 = \sigma_1$，并指出使最大值取到的单位向量 $\mathbf{x}^*$；当列满秩（$r = n \le m$）时，证明 $\min_{\|\mathbf{x}\|_2 = 1} \|A\mathbf{x}\|_2 = \sigma_n$；
+2. 矩阵的 Frobenius 范数满足 $\|A\|_F := \sqrt{\sum_{i,j} a_{ij}^2} = \sqrt{\sum_{i=1}^r \sigma_i^2}$；
+3. **正交不变性（Orthogonal Invariance）**：对任意正交矩阵 $Q_1 \in \mathbb{R}^{m \times m}$ 与 $Q_2 \in \mathbb{R}^{n \times n}$，证明矩阵 $B = Q_1 A Q_2$ 拥有与 $A$ 完全相同的奇异值序列，从而 $\|Q_1 A Q_2\|_2 = \|A\|_2$ 且 $\|Q_1 A Q_2\|_F = \|A\|_F$。
+
+<ProgressiveHint hints={[
+  "第 1 问：设 $\\mathbf{y} = V^T \\mathbf{x}$。因为 $V$ 正交，当 $\\mathbf{x}$ 遍历单位球面时，$\\mathbf{y}$ 也正好遍历 $\\|\\mathbf{y}\\|_2 = 1$！再利用 $U$ 的保长性 $\\|U \\mathbf{z}\\|_2 = \\|\\mathbf{z}\\|_2$ 化简 $\\|A\\mathbf{x}\\|_2^2$。",
+  "第 2 问：利用矩阵元素平方和等于迹公式 $\\|A\\|_F^2 = \\operatorname{tr}(A^T A)$，以及迹的循环不变性 $\\operatorname{tr}(XY) = \\operatorname{tr}(YX)$。",
+  "第 3 问：把 $A = U\\Sigma V^T$ 直接代入 $B = Q_1 A Q_2$，观察 $(Q_1 U)$ 与 $(Q_2^T V)$ 是否仍为正交矩阵！"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+
+SVD 在高维空间中起到了“坐标架”的作用。正交矩阵 $V^T$ 和 $U$ 就像刚体旋转，绝不改变向量的欧氏长度；因此想看 $A$ 最多能把单位球拉伸多长，直接看中间对角矩阵 $\Sigma$ 就够了！对角线乘积最大只能取到 $\sigma_1$（把全部单位长度孤注一掷投到 $\mathbf{v}_1$ 方向），而所有元素平方和（Frobenius 范数）在旋转下守恒，自然也只剩 $\Sigma$ 对角线元素的平方和。更妙的是，给 $A$ 左乘或右乘任意正交旋转 $Q_1, Q_2$，不过是更换了一套输入/输出旋转角，椭球半轴长度 $\sigma_i$ 一丝一毫不会改变！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+**第 1 问证明（谱范数与最小奇异值刻画）：**
+对任意单位向量 $\mathbf{x} \in \mathbb{R}^n$（$\|\mathbf{x}\|_2 = 1$），令 $\mathbf{y} = V^T \mathbf{x} \in \mathbb{R}^n$。
+由于 $V$ 是正交矩阵，保长性给出 $\|\mathbf{y}\|_2 = \|V^T \mathbf{x}\|_2 = \|\mathbf{x}\|_2 = 1$（即 $\sum_{i=1}^n y_i^2 = 1$）。
+同时 $U$ 也是正交矩阵，故对任何向量均保持 $\ell_2$ 范数不变：
+
+$$
+\|A\mathbf{x}\|_2^2 = \|U (\Sigma V^T \mathbf{x})\|_2^2 = \|\Sigma \mathbf{y}\|_2^2 = \sum_{i=1}^r \sigma_i^2 y_i^2
+$$
+
+因为 $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_r \gt 0$ 且 $y_i^2 \ge 0$：
+
+$$
+\|A\mathbf{x}\|_2^2 = \sum_{i=1}^r \sigma_i^2 y_i^2 \le \sigma_1^2 \sum_{i=1}^r y_i^2 \le \sigma_1^2 \sum_{i=1}^n y_i^2 = \sigma_1^2 \|\mathbf{y}\|_2^2 = \sigma_1^2
+$$
+
+故对所有单位向量恒有 $\|A\mathbf{x}\|_2 \le \sigma_1$。而当取 $\mathbf{x}^* = \pm \mathbf{v}_1$（即 $\mathbf{y} = \pm \mathbf{e}_1$）时，上式严格取等号：$\|A\mathbf{v}_1\|_2 = \|\sigma_1 \mathbf{u}_1\|_2 = \sigma_1$。因此 $\|A\|_2 = \sigma_1$。
+
+当列满秩 $r = n \le m$ 时，有 $\sigma_1 \ge \dots \ge \sigma_n \gt 0$ 且求和上界正好遍历全部 $n$ 项：
+
+$$
+\|A\mathbf{x}\|_2^2 = \sum_{i=1}^n \sigma_i^2 y_i^2 \ge \sigma_n^2 \sum_{i=1}^n y_i^2 = \sigma_n^2
+$$
+
+当取 $\mathbf{x} = \pm \mathbf{v}_n$ 时等号成立，故 $\min_{\|\mathbf{x}\|_2 = 1} \|A\mathbf{x}\|_2 = \sigma_n$。
+
+**第 2 问证明（Frobenius 范数）：**
+按定义展开 $A^T A$ 的对角线元素，第 $j$ 个对角元为 $(A^T A)_{jj} = \sum_{i=1}^m a_{ij}^2$，故：
+
+$$
+\|A\|_F^2 = \sum_{i=1}^m \sum_{j=1}^n a_{ij}^2 = \operatorname{tr}(A^T A)
+$$
+
+代入 $A^T A = V (\Sigma^T \Sigma) V^T$，利用迹的循环不变性 $\operatorname{tr}(XY) = \operatorname{tr}(YX)$ 及 $V^T V = I_n$：
+
+$$
+\|A\|_F^2 = \operatorname{tr}\!\left(V (\Sigma^T \Sigma) V^T\right) = \operatorname{tr}\!\left((\Sigma^T \Sigma) V^T V\right) = \operatorname{tr}(\Sigma^T \Sigma) = \sum_{i=1}^r \sigma_i^2
+$$
+
+两边开方即得 $\|A\|_F = \sqrt{\sum_{i=1}^r \sigma_i^2}$。
+
+**第 3 问证明（正交不变性）：**
+将 $A = U\Sigma V^T$ 代入 $B = Q_1 A Q_2$：
+
+$$
+B = Q_1 (U \Sigma V^T) Q_2 = (Q_1 U) \, \Sigma \, (Q_2^T V)^T
+$$
+
+验证左右两个新矩阵 $\tilde{U} := Q_1 U \in \mathbb{R}^{m\times m}$ 与 $\tilde{V} := Q_2^T V \in \mathbb{R}^{n\times n}$ 的正交性：
+
+$$
+\tilde{U}^T \tilde{U} = U^T Q_1^T Q_1 U = U^T I_m U = I_m
+$$
+
+$$
+\tilde{V}^T \tilde{V} = V^T Q_2 Q_2^T V = V^T I_n V = I_n
+$$
+
+故 $B = \tilde{U} \Sigma \tilde{V}^T$ 就是矩阵 $B$ 的一个合法 SVD！由奇异值的唯一性，矩阵 $B$ 与 $A$ 拥有完全相同的奇异值矩阵 $\Sigma$。结合第 1、2 问立即得出 $\|Q_1 A Q_2\|_2 = \|A\|_2$ 且 $\|Q_1 A Q_2\|_F = \|A\|_F$。
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l30-ex5" tier="L4" title="综合挑战：极分解 (Polar Decomposition) 与正交 Procrustes 最优对齐">
+
+设方阵 $A \in \mathbb{R}^{n \times n}$ 具有 SVD 分解 $A = U \Sigma V^T$（$U, V \in \mathbb{R}^{n \times n}$ 正交，$\Sigma = \operatorname{diag}(\sigma_1, \dots, \sigma_n)$ 且 $\sigma_i \ge 0$）。
+
+1. **极分解构造与性质**：定义 $Q = U V^T$ 和 $S = V \Sigma V^T$。证明 $A = Q S$，其中 $Q$ 为正交矩阵，$S$ 为实对称半正定矩阵（当 $A$ 可逆时 $S$ 严格正定）。
+2. **最近正交矩阵逼近定理**：记全体 $n \times n$ 正交矩阵集合为 $O(n) = \{W \in \mathbb{R}^{n \times n} \mid W^T W = I_n\}$。证明在 Frobenius 范数意义下，距矩阵 $A$ 最近的正交矩阵恰为极分解中的正交因子 $Q = U V^T$：
+   $$
+   \min_{W \in O(n)} \|A - W\|_F = \|A - U V^T\|_F = \sqrt{\sum_{i=1}^n (\sigma_i - 1)^2}
+   $$
+3. **推广——正交 Procrustes 点云对齐问题**：给定两组配对的高维点云矩阵 $X, Y \in \mathbb{R}^{N \times d}$，欲寻找正交旋转矩阵 $W \in O(d)$ 使对齐残差 $\|X W - Y\|_F$ 最小。证明该优化问题的闭式全局最优解为 $W^* = \tilde{U} \tilde{V}^T$，其中 $X^T Y = \tilde{U} \tilde{\Sigma} \tilde{V}^T$ 为 $d \times d$ 交叉协方差矩阵的 SVD！
+
+<ProgressiveHint hints={[
+  "第 2 问：将 $\\|A - W\\|_F^2 = \\operatorname{tr}((A-W)^T(A-W)) = \\|A\\|_F^2 + \\|W\\|_F^2 - 2\\operatorname{tr}(A^T W)$ 展开，其中 $\\|W\\|_F^2 = n$ 是常数，因此只需**最大化**内积 $\\operatorname{tr}(A^T W)$。",
+  "将 $A^T = V\\Sigma U^T$ 代入迹并利用循环不变性：$\\operatorname{tr}(V\\Sigma U^T W) = \\operatorname{tr}(\\Sigma (U^T W V))$。注意到 $Z = U^T W V$ 仍是一个正交矩阵！",
+  "第 3 问：利用正交矩阵 $W$ 保列范数性质化简 $\\|XW\\|_F^2 = \\|X\\|_F^2$，把目标函数 $\\|XW - Y\\|_F^2$ 同样化归为最大化 $\\operatorname{tr}((X^T Y)^T W)$！"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+
+复数有极坐标分解 $z = e^{i\theta} \cdot r$，其中 $r \ge 0$ 是纯伸缩、$e^{i\theta}$ 是单位圆上的纯旋转。方阵的极分解 $A = Q S$ 就是高维线性代数中的“复数极坐标”：先由正定矩阵 $S$ 沿正交主轴做无旋转的纯拉伸，再由正交矩阵 $Q$ 做刚体旋转！如果你想在所有刚体旋转（正交矩阵）中挑一个跟 $A$ 长得最像的，直觉上你只需把拉伸倍数 $\sigma_i$ 全部“强行压回 $1$”，只留下旋转因子 $Q = U V^T$——正交 Procrustes 点云对齐算法（广泛用于三维点云配准 ICP、跨语言词向量空间对齐与结构生物学蛋白质结构叠合）正是靠这个一行 SVD 闭式解统治了半个世纪！
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+**第 1 问证明（极分解）：**
+直接相乘并利用 $V^T V = I_n$：
+
+$$
+Q S = (U V^T)(V \Sigma V^T) = U (V^T V) \Sigma V^T = U \Sigma V^T = A
+$$
+
+- 验证 $Q$ 的正交性：$Q^T Q = (U V^T)^T (U V^T) = V U^T U V^T = V I_n V^T = I_n$，故 $Q \in O(n)$。
+- 验证 $S$ 的实对称半正定性：$S^T = (V \Sigma V^T)^T = V \Sigma^T V^T = V \Sigma V^T = S$；对任意 $\mathbf{x} \in \mathbb{R}^n$，令 $\mathbf{y} = V^T \mathbf{x}$，则：
+  $$
+  \mathbf{x}^T S \mathbf{x} = \mathbf{y}^T \Sigma \mathbf{y} = \sum_{i=1}^n \sigma_i y_i^2 \ge 0
+  $$
+  当 $A$ 可逆时，所有 $\sigma_i \gt 0$，上式对 $\mathbf{x} \ne \mathbf{0}$（即 $\mathbf{y} \ne \mathbf{0}$）严格大于 $0$，故 $S$ 严格正定。
+
+**第 2 问证明（最近正交矩阵逼近）：**
+对任意正交矩阵 $W \in O(n)$，展开 Frobenius 范数平方：
+
+$$
+\|A - W\|_F^2 = \operatorname{tr}\!\left((A - W)^T(A - W)\right) = \|A\|_F^2 + \|W\|_F^2 - 2\operatorname{tr}(A^T W)
+$$
+
+因为 $W$ 正交，每列模长平方均为 $1$，故 $\|W\|_F^2 = \operatorname{tr}(W^T W) = \operatorname{tr}(I_n) = n$。从而极小化 $\|A - W\|_F$ 等价于**最大化** $\operatorname{tr}(A^T W)$。
+
+将 $A^T = V \Sigma U^T$ 代入，利用迹的循环不变性：
+
+$$
+\operatorname{tr}(A^T W) = \operatorname{tr}(V \Sigma U^T W) = \operatorname{tr}\!\left(\Sigma (U^T W V)\right)
+$$
+
+令 $Z := U^T W V$。因为 $U, W, V$ 均为 $n \times n$ 正交矩阵，其乘积 $Z$ 也是正交矩阵。正交矩阵的每一列欧氏范数为 $1$，故其每一个对角元素必满足 $|z_{ii}| \le \sqrt{\sum_{k=1}^n z_{ki}^2} = 1$。由于 $\sigma_i \ge 0$：
+
+$$
+\operatorname{tr}(\Sigma Z) = \sum_{i=1}^n \sigma_i z_{ii} \le \sum_{i=1}^n \sigma_i \cdot 1 = \sum_{i=1}^n \sigma_i
+$$
+
+当且仅当对所有 $\sigma_i \gt 0$ 均有 $z_{ii} = 1$ 时（特别地，取 $Z = I_n$）上述上界达到极大值 $\sum_{i=1}^n \sigma_i$。此时：
+
+$$
+U^T W^* V = I_n \iff W^* = U V^T = Q
+$$
+
+此时对应的最小逼近误差平方为：
+
+$$
+\|A - U V^T\|_F^2 = \sum_{i=1}^n \sigma_i^2 + n - 2\sum_{i=1}^n \sigma_i = \sum_{i=1}^n (\sigma_i - 1)^2
+$$
+
+开方即得 $\|A - U V^T\|_F = \sqrt{\sum_{i=1}^n (\sigma_i - 1)^2}$。
+
+**第 3 问证明（正交 Procrustes 问题）：**
+展开点云对齐误差平方：
+
+$$
+\|X W - Y\|_F^2 = \operatorname{tr}\!\left((XW - Y)^T (XW - Y)\right) = \|XW\|_F^2 + \|Y\|_F^2 - 2\operatorname{tr}(Y^T X W)
+$$
+
+利用 $W^T W = I_d$ 与迹的循环不变性：
+
+$$
+\|XW\|_F^2 = \operatorname{tr}(W^T X^T X W) = \operatorname{tr}(X^T X W W^T) = \operatorname{tr}(X^T X) = \|X\|_F^2
+$$
+
+因此最小化 $\|XW - Y\|_F$ 等价于最大化 $\operatorname{tr}(Y^T X W) = \operatorname{tr}\!\left((X^T Y)^T W\right)$。设 $X^T Y \in \mathbb{R}^{d \times d}$ 的 SVD 为 $X^T Y = \tilde{U} \tilde{\Sigma} \tilde{V}^T$，则：
+
+$$
+\operatorname{tr}\!\left((X^T Y)^T W\right) = \operatorname{tr}(\tilde{V} \tilde{\Sigma} \tilde{U}^T W) = \operatorname{tr}\!\left(\tilde{\Sigma} (\tilde{U}^T W \tilde{V})\right)
+$$
+
+与第 2 问完全同构！当取正交矩阵 $\tilde{U}^T W^* \tilde{V} = I_d$，即：
+
+$$
+W^* = \tilde{U} \tilde{V}^T
+$$
+
+时，上式达到全局最大 $\sum_{i=1}^d \tilde{\sigma}_i$，从而使点云对齐误差 $\|XW - Y\|_F$ 达到全局极小值！
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>
+
+---
+
+<FrontierAIReading
+  id="AI-13"
+  title="大模型权重奇异值谱、Eckart-Young 最优低秩截断与 Attention W_Qᵀ W_K 双线性瓶颈"
+  paperRef="Eckart & Young (1936) · Elhage et al. (2021) A Mathematical Framework for Transformer Circuits"
+>
+
+### 1. Eckart-Young-Mirsky 定理：为什么 SVD 截断是数学上不可超越的压缩极限？
+
+在第一、二节中，我们看到奇异值分解把任意权重矩阵 $W \in \mathbb{R}^{m \times n}$ 写成按能量从高到低排列的秩 1 积木之和：
+
+$$
+W = \sum_{i=1}^r \sigma_i \mathbf{u}_i \mathbf{v}_i^T, \qquad \sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_r \gt 0
+$$
+
+如果我们预算有限，只允许用秩不超过 $k$（$k \lt r$）的矩阵 $B$ 来近似 $W$（比如为了把高维矩阵存储拆成两个细长因子 $B = L R$，$L \in \mathbb{R}^{m\times k}, R \in \mathbb{R}^{k\times n}$），只需保留前 $k$ 个奇异分量：
+
+$$
+W_k := \sum_{i=1}^k \sigma_i \mathbf{u}_i \mathbf{v}_i^T = U_k \Sigma_k V_k^T
+$$
+
+**Eckart-Young-Mirsky 定理（1936 / 1960）**给出了一项振聋发聩的绝对最优保证：不论在**谱范数**还是 **Frobenius 范数**下，没有任何秩 $\le k$ 的矩阵能比 $W_k$ 更接近 $W$！
+
+$$
+\min_{\operatorname{rank}(B) \le k} \|W - B\|_2 = \|W - W_k\|_2 = \sigma_{k+1}
+$$
+
+$$
+\min_{\operatorname{rank}(B) \le k} \|W - B\|_F = \|W - W_k\|_F = \sqrt{\sum_{i=k+1}^r \sigma_i^2}
+$$
+
+**五步维数交叉法秒证谱范数最优性（仅需第 10 讲零空间维数！）**：
+设 $B \in \mathbb{R}^{m \times n}$ 是**任意**满足 $\operatorname{rank}(B) \le k$ 的矩阵。
+1. 由秩-零度定理，$\dim \operatorname{Null}(B) = n - \operatorname{rank}(B) \ge n - k$；
+2. 考察前 $k+1$ 个右奇异向量张成的子空间 $\mathcal{V}_{k+1} := \operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_{k+1}\} \subseteq \mathbb{R}^n$，其维数为 $k+1$；
+3. 因为这两个子空间的维数之和 $(n - k) + (k + 1) = n + 1 \gt n$，在 $n$ 维空间 $\mathbb{R}^n$ 中它们**必定交于至少一条非零直线**！即存在单位向量 $\mathbf{z} \in \operatorname{Null}(B) \cap \mathcal{V}_{k+1}$（$\|\mathbf{z}\|_2 = 1$）；
+4. 写为正交坐标 $\mathbf{z} = \sum_{i=1}^{k+1} c_i \mathbf{v}_i$（$\sum_{i=1}^{k+1} c_i^2 = 1$），且 $B\mathbf{z} = \mathbf{0}$；
+5. 由谱范数定义与勾股定理：
+   $$
+   \|W - B\|_2^2 \ge \|(W - B)\mathbf{z}\|_2^2 = \|W\mathbf{z}\|_2^2 = \sum_{i=1}^{k+1} \sigma_i^2 c_i^2 \ge \sigma_{k+1}^2 \sum_{i=1}^{k+1} c_i^2 = \sigma_{k+1}^2
+   $$
+   两边开方立得 $\|W - B\|_2 \ge \sigma_{k+1} = \|W - W_k\|_2$！证毕。
+
+---
+
+### 2. Transformer 多头注意力 $W_{QK}^h$ 的双线性低秩瓶颈（Elhage et al., 2021）
+
+在 Anthropic 著名的《A Mathematical Framework for Transformer Circuits》工作（Elhage et al., 2021）中，作者直接用矩阵秩与奇异值谱剖解了 Transformer 自注意力的结构性瓶颈。
+
+设模型隐状态维数为 $d_{\text{model}}$（如 Llama-3 8B 中 $d_{\text{model}} = 4096$），共有 $H$ 个注意力头，单头维数为 $d_{\text{head}} = d_{\text{model}} / H$（如 $H = 32, d_{\text{head}} = 128$）。
+对于第 $h$ 个注意力头，词元 $t$ 与 $s$ 的隐状态列向量分别为 $\mathbf{x}_t, \mathbf{x}_s \in \mathbb{R}^{d_{\text{model}}}$。使用 PyTorch 常见的投影权重矩阵 $W_Q^h, W_K^h \in \mathbb{R}^{d_{\text{model}} \times d_{\text{head}}}$（行向量约定 $\mathbf{q}_t^h = \mathbf{x}_t^T W_Q^h$，$\mathbf{k}_s^h = \mathbf{x}_s^T W_K^h$），注意力打分矩阵（Attention Logit）本质上是一个在输入特征空间上的**双线性型（Bilinear Form）**：
+
+$$
+\text{score}_h(t, s) = \frac{1}{\sqrt{d_{\text{head}}}} \mathbf{x}_t^T \underbrace{\left( W_Q^h (W_K^h)^T \right)}_{W_{QK}^h \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}} \mathbf{x}_s
+$$
+
+（注：若按列向量映射习惯写权重矩阵为 $\tilde{W}_Q^h, \tilde{W}_K^h \in \mathbb{R}^{d_{\text{head}} \times d_{\text{model}}}$，即 $\mathbf{q}_t^h = \tilde{W}_Q^h \mathbf{x}_t, \mathbf{k}_s^h = \tilde{W}_K^h \mathbf{x}_s$，则中间的 $d_{\text{model}} \times d_{\text{model}}$ 双线性打分矩阵恰好记为 $W_{QK}^h = (\tilde{W}_Q^h)^T \tilde{W}_K^h$。）
+
+无论采用哪种转置记号，看这个 $d_{\text{model}} \times d_{\text{model}}$ 庞然大物的**矩阵秩**：
+
+$$
+\operatorname{rank}(W_{QK}^h) \le \min\!\left(\operatorname{rank}(W_Q^h), \, \operatorname{rank}(W_K^h)\right) \le d_{\text{head}} \ll d_{\text{model}}
+$$
+
+从 SVD 的视角来看，$W_{QK}^h$ 最多只能有 $d_{\text{head}}$（例如 128）个非零奇异值，其余至少 $d_{\text{model}} - d_{\text{head}} = 3968$ 个奇异值严格为零！
+这直接带来了两个决定现代大模型架构演进的核心洞察：
+1. **单头注意力是极低秩的双线性过滤器**：每个单头注意力至多只能从 $d_{\text{model}}$ 维残差流中读取一个 $d_{\text{head}}$ 维的“查询子空间”（左奇异向量 $\mathbf{u}_1,\dots,\mathbf{u}_{d_{\text{head}}}$）去匹配另一个 $d_{\text{head}}$ 维的“键子空间”（右奇异向量 $\mathbf{v}_1,\dots,\mathbf{v}_{d_{\text{head}}}$）。如果只有 1 个头哪怕做满 4096 维投影计算量等价，多头并行（$H$ 个低秩双线性核相加 $\sum_{h=1}^H W_{QK}^h$）能分别独立聚焦语法、指代、位置感应（Induction Head）等不同低秩子空间！
+2. **MLA（Multi-Head Latent Attention, DeepSeek-V2/V3）的 SVD 灵感**：正因为各个头的 KV 矩阵存在大量冗余低秩结构，MLA 直接在注意力输入端学习一个低秩联合压缩潜向量 $c_t^{KV} \in \mathbb{R}^{d_c}$（$d_c \ll H d_{\text{head}}$），推理时只需缓存极窄的 $c_t^{KV}$ 并在数学上把上投影矩阵吸收到 $W_Q$ 侧构成联合 $W_{QK}$ 矩阵，用线性代数低秩分解一举省下超过 90% 的 KV Cache 显存！
+
+---
+
+### 3. 从激活感知压缩（SVD-LLM）到正交梯度优化（Muon）
+
+最后，SVD 在近年大模型压缩与高效训练中也正站在风口浪尖：
+- **为什么朴素权重 SVD 压缩会崩掉，而 SVD-LLM（Wang et al., 2024）能成功？**
+  虽然预训练大模型权重矩阵往往呈现显著的奇异值衰减，但直接对权重 $W$ 做 Eckart-Young 截断 $\min \|W - W_k\|_F$ 隐含了一个危险假设：**所有输入特征方向能量相等**（协方差 $X X^T \propto I$）。然而大模型激活存在极强的各向异性离群值（Outliers）。真正决定每层特征失真的是输出激活误差 $\|(W - W_k) X\|_F$！SVD-LLM 利用第 28 讲的 Cholesky 分解对激活协方差做白化 $X X^T = S S^T$，转而对白化后矩阵 $W S$ 做 SVD 截断再右乘 $S^{-1}$——于是奇异值截断误差与真实激活输出误差之间建立了严格的 $1:1$ 等距映射！
+- **Muon 优化器（Jordan et al., 2024）与极分解正交化**：
+  在训练二维线性层权重 $W \in \mathbb{R}^{m \times n}$ 时，梯度/动量矩阵 $G = U\Sigma V^T$ 常常条件数极高（$\sigma_1 \gg \sigma_r$），导致优化步长全被少数主奇异方向垄断。Muon 优化器使用快速 Newton-Schulz 矩阵迭代近似**极分解正交因子**：
+  $$
+  G = U\Sigma V^T \;\longmapsto\; \operatorname{Polar}(G) = U_r V_r^T
+  $$
+  这等价于把所有非零奇异值**强行拉平为 $1$**，让模型在所有正交特征子空间里以完全一致的速度均衡学习！
+
+<CollapsibleCode language="python" title="eckart_young_and_attention_rank_svd.py">
+```python
+"""
+验证第 30 讲 AI-13 核心定理：
+1. Full SVD vs Thin SVD 重构等价性
+2. Eckart-Young-Mirsky 最优低秩截断定理（谱范数误差 = sigma_{k+1}, Frobenius 误差 = sqrt(sum sigma^2)）
+3. Attention W_QK = W_Q @ W_K^T 的双线性秩瓶颈 (rank <= d_head)
+4. 极分解正交化 G = U Sigma V^T -> U V^T 将所有非零奇异值拉平为 1.0 (Muon 思想)
+"""
+import torch
+
+def verify_svd_and_ai_connections():
+    torch.manual_seed(30)
+
+    # 1. 验证 Thin SVD 与 Full SVD
+    m, n = 64, 48
+    A = torch.randn(m, n)
+    # 故意制造重尾奇异值谱，模拟真实神经网络权重
+    U0, _, Vh0 = torch.linalg.svd(A, full_matrices=False)
+    decay_spectrum = torch.exp(-0.15 * torch.arange(min(m, n), dtype=torch.float32))
+    W = U0 @ torch.diag(decay_spectrum) @ Vh0
+
+    U_full, S_full, Vh_full = torch.linalg.svd(W, full_matrices=True)
+    U_thin, S_thin, Vh_thin = torch.linalg.svd(W, full_matrices=False)
+
+    Sigma_full = torch.zeros(m, n)
+    Sigma_full[:n, :n] = torch.diag(S_full)
+    err_full = torch.norm(W - U_full @ Sigma_full @ Vh_full).item()
+    err_thin = torch.norm(W - U_thin @ torch.diag(S_thin) @ Vh_thin).item()
+    print("=" * 68)
+    print(f"1. Full SVD 重构误差: {err_full:.2e} | Thin SVD 重构误差: {err_thin:.2e}")
+
+    # 2. 验证 Eckart-Young-Mirsky 最优低秩截断定理
+    k = 10
+    W_k = (U_thin[:, :k] * S_thin[:k]) @ Vh_thin[:k, :]
+    spec_err = torch.linalg.matrix_norm(W - W_k, ord=2).item()
+    frob_err = torch.linalg.matrix_norm(W - W_k, ord="fro").item()
+
+    theo_spec_err = S_thin[k].item()                    # sigma_{k+1} (0-indexed k)
+    theo_frob_err = torch.sqrt(torch.sum(S_thin[k:] ** 2)).item()
+
+    # 构造一个随机秩 k 矩阵对比（验证没有任何秩 k 矩阵能超越 W_k）
+    B_rand = torch.randn(m, k) @ torch.randn(k, n)
+    rand_frob = torch.linalg.matrix_norm(W - B_rand, ord="fro").item()
+
+    print("\n2. Eckart-Young-Mirsky 定理验证 (截断秩 k = 10):")
+    print(f"   谱范数误差 ||W - W_k||_2   = {spec_err:.6f}  | 理论值 sigma_{{k+1}} = {theo_spec_err:.6f}")
+    print(f"   Frobenius  ||W - W_k||_F   = {frob_err:.6f}  | 理论值 sqrt(sum)  = {theo_frob_err:.6f}")
+    print(f"   对比随机秩-k 近似 Frobenius = {rand_frob:.6f} (严格劣于 Eckart-Young 最优解)")
+
+    # 3. 验证单头注意力 W_QK = W_Q @ W_K^T 的秩瓶颈
+    d_model = 512
+    d_head = 64
+    W_Q = torch.randn(d_model, d_head) / (d_head ** 0.5)
+    W_K = torch.randn(d_model, d_head) / (d_head ** 0.5)
+    W_QK = W_Q @ W_K.T  # shape: (512, 512)
+
+    S_qk = torch.linalg.svdvals(W_QK)
+    effective_rank = int((S_qk > 1e-5).sum().item())
+    tail_max_sv = S_qk[d_head].item()
+    print("\n3. Transformer Attention W_QK = W_Q @ W_K^T 双线性瓶颈:")
+    print(f"   矩阵尺寸: {tuple(W_QK.shape)}, 单头维度 d_head = {d_head}")
+    print(f"   前 d_head 个奇异值中最小者 sigma_{d_head}   = {S_qk[d_head - 1].item():.6f}")
+    print(f"   第 d_head+1 个奇异值      sigma_{d_head + 1}   = {tail_max_sv:.2e} (严格截断为 0!)")
+    print(f"   数值秩 rank(W_QK) = {effective_rank} <= d_head ({d_head}) << d_model ({d_model})")
+
+    # 4. 验证极分解正交化 G -> U V^T (Muon 梯度谱拉平)
+    G = U_thin @ torch.diag(torch.linspace(100.0, 0.1, n)) @ Vh_thin
+    U_g, _, Vh_g = torch.linalg.svd(G, full_matrices=False)
+    G_ortho = U_g @ Vh_g
+    S_ortho = torch.linalg.svdvals(G_ortho)
+    print("\n4. 极分解正交化 Polar(G) = U V^T (Muon 思想):")
+    print(f"   原梯度条件数 kappa(G) = {100.0 / 0.1:.1f}")
+    print(f"   正交化后奇异值范围: [{S_ortho.min().item():.6f}, {S_ortho.max().item():.6f}] (全部拉平为 1.0!)")
+    print("=" * 68)
+
+if __name__ == "__main__":
+    verify_svd_and_ai_connections()
+```
+</CollapsibleCode>
+
+</FrontierAIReading>

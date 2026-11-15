@@ -1,0 +1,791 @@
+---
+title: "第 35 讲：全课程期末总串讲：线性代数终极全景图"
+ocwId: "L34"
+videoEpisode: "P35"
+textbookRef: "Course Grand Finale"
+---
+
+在 MIT 18.06 线性代数的最后一堂课上，Gilbert Strang 教授站在黑板前，回望我们从第 01 讲一路攀登而来的漫长旅途。从最初平面上两条直线的交点 $A\mathbf{x} = \mathbf{b}$，到如今站在**奇异值分解（Singular Value Decomposition, SVD）**与 **Moore-Penrose 伪逆（Moore-Penrose Pseudoinverse）**的巅峰，这门课程看似囊括了数十个概念与公式，但剥去繁杂的计算外衣，整座线性代数大厦其实仅仅立于**两大核心支柱**与**一种贯穿始终的几何灵魂**之上：
+
+1. **两大核心支柱（The Two Pillars）**：
+   - **支柱一：四个基本子空间（The Four Fundamental Subspaces）**——在输入空间 $\mathbb{R}^n$ 与输出空间 $\mathbb{R}^m$ 之间确立了完美的维数守恒、$90^\circ$ **正交补（Orthogonal Complement）**剖分以及 SVD 正交双射桥梁；
+   - **支柱二：四大矩阵分解（The Four Great Factorizations）**——高斯消元 $PA = LU$、正交化 $A = QR$、谱对角化 $A = S\Lambda S^{-1}$（及其对称皇冠 $A = Q\Lambda Q^T$）与终极万能分解 $A = U\Sigma V^T$。每一种分解都是把“抽象的矩阵结构”转化为“可计算的几何动作”。
+2. **一种几何灵魂（One Geometric Spirit）**：
+   无论方程组有解还是无解，无论矩阵是方阵还是长方形、可逆还是奇异，**$A\mathbf{x}$ 永远是 $A$ 的各列向量的线性组合（Linear Combination）**，而最优近似的本质永远是**向子空间作正交投影（Orthogonal Projection）**。
+
+本讲将用一张终极思维导图、三部曲核心定理、全课程矩阵分解对照总表、三块跨模块罗塞塔石碑、十大致命误区终极巡检与六道期末综合压轴大题，为你把 35 讲的全部知识铸成一块浑然一体的终身认知晶体。
+
+<GrandFinaleFourSubspacesFactorizationsDiagram />
+
+---
+
+## 一、支柱一：线性代数基本定理三部曲（从第 06 讲到第 34 讲的终极闭环）
+
+先不急着看抽象定理，我们用 Gilbert Strang 最钟爱的方式——**用一个极简的 $3\times 2$ 整数矩阵**，亲手把线性代数基本定理的全部三部分（Part I 维数、Part II 正交补、Part III SVD 正交基与伪逆）一次看穿。
+
+### 1. Tier 1 几何与数值解剖：一个 $3\times 2$ 秩 1 矩阵的“全身 X 光”
+
+考察如下非方阵、秩亏缺的矩阵 $A \in \mathbb{R}^{3\times 2}$：
+
+$$
+A = \begin{bmatrix} 3 & 4 \\ 6 & 8 \\ 6 & 8 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix} \begin{bmatrix} 3 & 4 \end{bmatrix}
+$$
+
+无需复杂计算，仅凭列视角与秩 1 外积分解，我们一眼看透它的全部几何解剖：
+
+1. **基本定理 Part I（维数守恒）**：
+   $A$ 的第二列恰好是第一列的 $\frac{4}{3}$ 倍，第二、三行都是第一行的 $2$ 倍，故秩 $r = \operatorname{rank}(A) = 1$（这里 $m = 3, n = 2$）。于是：
+   - 输入空间 $\mathbb{R}^2$ 中：$\dim\operatorname{Row}(A) = r = 1$，$\dim\operatorname{Null}(A) = n - r = 2 - 1 = 1$；
+   - 输出空间 $\mathbb{R}^3$ 中：$\dim\operatorname{Col}(A) = r = 1$，$\dim\operatorname{Null}(A^T) = m - r = 3 - 1 = 2$。
+2. **基本定理 Part II（正交补双分）**：
+   - 在 $\mathbb{R}^2$ 中，行空间 $\operatorname{Row}(A) = \operatorname{span}\{[3, 4]^T\}$ 是一条直线；零空间 $\operatorname{Null}(A)$ 满足 $3x_1 + 4x_2 = 0$，即 $\operatorname{Null}(A) = \operatorname{span}\{[-4, 3]^T\}$。显然 $[3, 4] \cdot [-4, 3]^T = -12 + 12 = 0$，二者严格 $90^\circ$ 互为正交补！
+   - 在 $\mathbb{R}^3$ 中，列空间 $\operatorname{Col}(A) = \operatorname{span}\{[1, 2, 2]^T\}$ 是一条直线；左零空间 $\operatorname{Null}(A^T)$ 满足 $y_1 + 2y_2 + 2y_3 = 0$，是由两个独立法向量 $[-2, 1, 0]^T$ 与 $[-2, 0, 1]^T$ 张成的二维平面，且与 $[1, 2, 2]^T$ 垂直，正好是 $\operatorname{Col}(A)$ 的正交补平面！
+3. **基本定理 Part III（SVD 配齐标准正交基与伪逆双射）**：
+   把行向量 $[3, 4]^T$（长度 $\sqrt{3^2+4^2} = 5$）和列向量 $[1, 2, 2]^T$（长度 $\sqrt{1^2+2^2+2^2} = 3$）分别单位化：
+   $$
+   \mathbf{v}_1 = \frac{1}{5}\begin{bmatrix} 3 \\ 4 \end{bmatrix}, \quad \mathbf{v}_2 = \frac{1}{5}\begin{bmatrix} -4 \\ 3 \end{bmatrix}; \qquad \mathbf{u}_1 = \frac{1}{3}\begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}
+   $$
+   再对 $\operatorname{Null}(A^T)$ 的基作一次 Gram-Schmidt 正交化，补齐 $\mathbf{u}_2 = \frac{1}{\sqrt{5}}\begin{bmatrix} -2 \\ 1 \\ 0 \end{bmatrix}$、$\mathbf{u}_3 = \frac{1}{3\sqrt{5}}\begin{bmatrix} -2 \\ -4 \\ 5 \end{bmatrix}$。于是唯一非零奇异值为 $\sigma_1 = 3 \times 5 = 15$，满足：
+   $$
+   A\mathbf{v}_1 = 15\mathbf{u}_1, \qquad A\mathbf{v}_2 = \mathbf{0}, \qquad A^+\mathbf{u}_1 = \frac{1}{15}\mathbf{v}_1, \qquad A^+\mathbf{u}_2 = A^+\mathbf{u}_3 = \mathbf{0}
+   $$
+   其中 Moore-Penrose 伪逆 $A^+ = \frac{1}{15}\mathbf{v}_1 \mathbf{u}_1^T = \frac{1}{225}\begin{bmatrix} 3 & 6 & 6 \\ 4 & 8 & 8 \end{bmatrix}$ 在一条直线的行空间 $\operatorname{Row}(A)$ 与一条直线的列空间 $\operatorname{Col}(A)$ 之间把线性映射**彻底变成一个标量倍率 $15$ 及其倒数 $\frac{1}{15}$**！
+
+### 2. Tier 2 严格形式化：线性代数基本定理三部曲
+
+<TheoremCard title="线性代数基本定理完整三部曲（Part I, II, III）" termEn="The Fundamental Theorem of Linear Algebra (Parts I, II, III)">
+
+设 $A \in \mathbb{R}^{m\times n}$ 为任意实矩阵，其秩为 $r = \operatorname{rank}(A)$（$0 \le r \le \min(m,n)$）。记列空间 $\operatorname{Col}(A)$（Strang 记号 $C(A)$）、零空间 $\operatorname{Null}(A)$（Strang 记号 $N(A)$）、行空间 $\operatorname{Row}(A) = \operatorname{Col}(A^T)$ 及左零空间 $\operatorname{Null}(A^T)$。则：
+
+1. **第一部分：维数定理（Dimensions）**：
+   - $\operatorname{Row}(A), \operatorname{Null}(A) \subseteq \mathbb{R}^n$，且 $\dim\operatorname{Row}(A) = r$，$\dim\operatorname{Null}(A) = n - r$（满足秩-零度定理 $\dim\operatorname{Row}(A) + \dim\operatorname{Null}(A) = n$）；
+   - $\operatorname{Col}(A), \operatorname{Null}(A^T) \subseteq \mathbb{R}^m$，且 $\dim\operatorname{Col}(A) = r$，$\dim\operatorname{Null}(A^T) = m - r$（满足 $\dim\operatorname{Col}(A) + \dim\operatorname{Null}(A^T) = m$）。
+   - 若将矩阵视为抽象线性变换 $T: \mathbb{R}^n \to \mathbb{R}^m$（$T(\mathbf{x}) = A\mathbf{x}$），则 $\ker(T) = \operatorname{Null}(A)$ 且 $\operatorname{Im}(T) = \operatorname{Col}(A)$。
+2. **第二部分：正交补直和分解（Orthogonal Complements）**：
+   - 在 $\mathbb{R}^n$ 中，行空间与零空间互为正交补：
+     $$
+     \operatorname{Null}(A) = \operatorname{Row}(A)^\perp \quad \text{且} \quad \mathbb{R}^n = \operatorname{Row}(A) \oplus \operatorname{Null}(A)
+     $$
+     任一输入向量 $\mathbf{x} \in \mathbb{R}^n$ 均有**唯一**正交分解 $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$（$\mathbf{x}_r \in \operatorname{Row}(A), \mathbf{x}_n \in \operatorname{Null}(A)$），且满足勾股定理 $\|\mathbf{x}\|_2^2 = \|\mathbf{x}_r\|_2^2 + \|\mathbf{x}_n\|_2^2$。
+   - 在 $\mathbb{R}^m$ 中，列空间与左零空间互为正交补：
+     $$
+     \operatorname{Null}(A^T) = \operatorname{Col}(A)^\perp \quad \text{且} \quad \mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T)
+     $$
+     任一目标向量 $\mathbf{b} \in \mathbb{R}^m$ 均有**唯一**正交分解 $\mathbf{b} = \mathbf{p} + \mathbf{e}$（投影 $\mathbf{p} \in \operatorname{Col}(A)$，正交残差 $\mathbf{e} \in \operatorname{Null}(A^T)$）。
+3. **第三部分：SVD 标准正交基与对角化双射（Orthonormal Bases & Diagonalization via SVD）**：
+   存在正交矩阵 $U = [\mathbf{u}_1, \dots, \mathbf{u}_m] \in \mathbb{R}^{m\times m}$、正交矩阵 $V = [\mathbf{v}_1, \dots, \mathbf{v}_n] \in \mathbb{R}^{n\times n}$ 以及唯一正奇异值 $\sigma_1 \ge \dots \ge \sigma_r \gt 0$，使得 $A = U\Sigma V^T$，同时为四个基本子空间配备标准正交基：
+   - $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ 为 $\operatorname{Row}(A)$ 的标准正交基；$\{\mathbf{v}_{r+1}, \dots, \mathbf{v}_n\}$ 为 $\operatorname{Null}(A)$ 的标准正交基；
+   - $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ 为 $\operatorname{Col}(A)$ 的标准正交基；$\{\mathbf{u}_{r+1}, \dots, \mathbf{u}_m\}$ 为 $\operatorname{Null}(A^T)$ 的标准正交基。
+   映射 $A$ 限制在 $\operatorname{Row}(A) \to \operatorname{Col}(A)$ 上是一个以 $A^+$（由 $A^+ = V\Sigma^+ U^T$ 给出）为逆的**保维线性双射**：
+   $$
+   A\mathbf{v}_i = \sigma_i \mathbf{u}_i, \quad A^T\mathbf{u}_i = \sigma_i \mathbf{v}_i, \quad A^+\mathbf{u}_i = \frac{1}{\sigma_i}\mathbf{v}_i \quad (1 \le i \le r)
+   $$
+   而对于两个零空间，$A\mathbf{v}_j = \mathbf{0}$（$j \gt r$）且 $A^+\mathbf{u}_k = \mathbf{0}$（$k \gt r$）；并且 $A^+ A = V_r V_r^T = P_{\operatorname{Row}(A)}$，$A A^+ = U_r U_r^T = P_{\operatorname{Col}(A)}$。
+
+</TheoremCard>
+
+<ProofCollapse title="展开基本定理三部曲完整证明（串联 RREF 消元、内积对偶与 SVD）">
+
+**第 1 步（Part I 维数守恒）**：  
+对 $A \in \mathbb{R}^{m\times n}$ 执行高斯-若尔当消元得到唯一简化行阶梯形（Reduced Row Echelon Form, RREF）$R = \operatorname{rref}(A)$。由于初等行变换左乘可逆消元积 $E$ 不改变零空间（$A\mathbf{x} = \mathbf{0} \iff EA\mathbf{x} = \mathbf{0}$），也不改变行向量的线性组合空间（$\operatorname{Row}(A) = \operatorname{Row}(R)$）。设 $R$ 有 $r$ 个非零行（即 $r$ 个主元列），则：
+- $R$ 的 $r$ 个非零行在各自的主元列处有唯一非零首 $1$，故必线性无关，从而 $\dim\operatorname{Row}(A) = \dim\operatorname{Row}(R) = r$；
+- 其余 $n - r$ 个自由变量各自唯一生成一条特解向量（构成零空间矩阵 $N$ 的 $n-r$ 个线性无关列），故 $\dim\operatorname{Null}(A) = n - r$；
+- 至于 $\operatorname{Col}(A)$，设 $A$ 的 $r$ 个主元列构成子矩阵 $A_{\text{piv}}$，则 $R$ 中主元列彼此线性无关且其余非主元列均为其线性组合；由于 $A = E^{-1}R$ 在列之间保持完全相同的线性相关性（$A\mathbf{c} = \mathbf{0} \iff R\mathbf{c} = \mathbf{0}$），$A$ 的那 $r$ 个主元列同样线性无关且张成 $\operatorname{Col}(A)$，故 $\dim\operatorname{Col}(A) = r = \dim\operatorname{Row}(A)$！将 $A$ 替换为 $A^T$（不改变秩），立即得 $\dim\operatorname{Null}(A^T) = m - r$。
+
+**第 2 步（Part II 正交补）**：  
+设 $\mathbf{x} \in \operatorname{Null}(A)$，则 $A\mathbf{x} = \mathbf{0}$ 逐行展开即为 $\mathbf{r}_i^T \mathbf{x} = 0$（对 $A$ 的第 $i$ 行 $\mathbf{r}_i^T$，$i=1,\dots,m$）。任意行空间向量 $\mathbf{y} = A^T\mathbf{z}$ 与 $\mathbf{x}$ 的内积满足 $\mathbf{y}^T \mathbf{x} = (A^T\mathbf{z})^T\mathbf{x} = \mathbf{z}^T(A\mathbf{x}) = 0$，故 $\operatorname{Null}(A) \subseteq \operatorname{Row}(A)^\perp$。反向若 $\mathbf{x} \in \operatorname{Row}(A)^\perp$，则 $\mathbf{x}$ 与 $A$ 的每一行正交，即 $A\mathbf{x} = \mathbf{0}$，故 $\mathbf{x} \in \operatorname{Null}(A)$。于是 $\operatorname{Null}(A) = \operatorname{Row}(A)^\perp$。将 $A$ 替换为 $A^T$ 即得 $\operatorname{Null}(A^T) = \operatorname{Col}(A)^\perp$。又因为正交的向量只在 $\mathbf{0}$ 处相交（$\mathbf{w} \in V \cap V^\perp \implies \|\mathbf{w}\|_2^2 = \mathbf{w}^T\mathbf{w} = 0 \implies \mathbf{w} = \mathbf{0}$），再结合 Part I 维数相加分别等于 $n$ 和 $m$，直和分解 $\mathbb{R}^n = \operatorname{Row}(A) \oplus \operatorname{Null}(A)$ 与 $\mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T)$ 严格成立。
+
+**第 3 步（Part III SVD 标准正交基与伪逆双射）**：  
+考察实对称半正定矩阵 $A^T A \in \mathbb{R}^{n\times n}$。由引理 $\operatorname{Null}(A^T A) = \operatorname{Null}(A)$（第 16 讲），$\operatorname{rank}(A^T A) = r$。由实对称矩阵谱定理（第 26 讲），存在标准正交特征基 $\{\mathbf{v}_1,\dots,\mathbf{v}_n\}$，使前 $r$ 个对应正特征值 $\sigma_i^2 \gt 0$，后 $n-r$ 个对应特征值 $0$。对 $j \gt r$，$A^T A\mathbf{v}_j = \mathbf{0} \implies \|A\mathbf{v}_j\|_2^2 = 0 \implies A\mathbf{v}_j = \mathbf{0}$，故 $\{\mathbf{v}_{r+1},\dots,\mathbf{v}_n\}$ 是 $\operatorname{Null}(A)$ 的标准正交基；由正交补唯一性，$\{\mathbf{v}_1,\dots,\mathbf{v}_r\}$ 必为 $\operatorname{Row}(A)$ 的标准正交基。对 $1 \le i \le r$ 锁定 $\mathbf{u}_i = \frac{1}{\sigma_i}A\mathbf{v}_i \in \operatorname{Col}(A)$，直接计算内积 $\mathbf{u}_i^T \mathbf{u}_j = \frac{1}{\sigma_i\sigma_j}\mathbf{v}_i^T A^T A\mathbf{v}_j = \delta_{ij}$，故 $\{\mathbf{u}_1,\dots,\mathbf{u}_r\}$ 自动成为 $\operatorname{Col}(A)$ 的标准正交基，且 $A^T \mathbf{u}_i = \frac{1}{\sigma_i}A^T A\mathbf{v}_i = \sigma_i\mathbf{v}_i$。最后在 $\operatorname{Null}(A^T)$ 中用 Gram-Schmidt 补齐 $\{\mathbf{u}_{r+1},\dots,\mathbf{u}_m\}$。构造 $A^+ = V\Sigma^+ U^T = \sum_{i=1}^r \frac{1}{\sigma_i}\mathbf{v}_i \mathbf{u}_i^T$，即立得 $A^+\mathbf{u}_i = \frac{1}{\sigma_i}\mathbf{v}_i$（$i\le r$）、$A^+\mathbf{u}_k = \mathbf{0}$（$k \gt r$）、$A^+A = \sum_{i=1}^r \mathbf{v}_i\mathbf{v}_i^T = P_{\operatorname{Row}(A)}$ 与 $AA^+ = \sum_{i=1}^r \mathbf{u}_i\mathbf{u}_i^T = P_{\operatorname{Col}(A)}$。
+
+</ProofCollapse>
+
+---
+
+## 二、支柱二：四大矩阵分解全景对照表（The Four Great Factorizations）
+
+在 MIT 18.06 中，我们一共建立了四座主力矩阵分解引擎（外加两座面向特殊退化或对称结构的补充分解：**Cholesky / $LDL^T$ 分解**与 **Jordan 标准形（Jordan Canonical Form）**）。真正的高手在拿到一个矩阵时，第一反应不是埋头苦算，而是根据需求**瞬间选对分解工具**。
+
+<DefinitionCard title="全课程矩阵分解体系全景对照总表" termEn="Master Comparison of the Four Great Factorizations (+ Cholesky & Jordan)">
+
+| 分解名称 | 适用范围与矩阵形状 | 显式保留 / 揭示的子空间 | 核心代数与几何不变量 | 求解的核心问题与方程 | 复杂度与数值稳定性 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **1. 高斯消元分解**<br/>$PA = LU$<br/>（对称版 $A = LDL^T$ / Cholesky $A = R^T R$） | 任意 $A \in \mathbb{R}^{m\times n}$（常用方阵）；对称无行交换时 $A=LDL^T$；SPD 时 $A = R^T R$ | 保留 $\operatorname{Row}(A)$ 与 $\operatorname{Null}(A)$；$U$ 主元列指示 $\operatorname{Col}(A)$ 的基；**改变** $\operatorname{Col}(A)$ 本身 | $\det(A) = \pm \prod_{i=1}^n u_{ii}$；主元个数等于 $\operatorname{rank}(A)$；对称矩阵主元正负号个数与特征值一致 | 精确线性方程组 $A\mathbf{x} = \mathbf{b}$；特解 $N = [-F; I]$；**彻底破坏特征值** | $\mathcal{O}(\frac{1}{3}n^3)$ 消元 + $\mathcal{O}(n^2)$ 回代；选主元置换 $P$ 保障消元数值稳定 |
+| **2. 正交三角分解**<br/>$A = QR$ | 列满秩矩阵 $A \in \mathbb{R}^{m\times n}$（$\operatorname{rank}(A) = n \le m$），含 $m=n$ 可逆方阵 | $Q \in \mathbb{R}^{m\times n}$ 的列直接构成 $\operatorname{Col}(A)$ 的**标准正交基** | 保超平行体体积：方阵时 $\operatorname{Vol}(A) = \lvert\det A\rvert = \prod_{i=1}^n r_{ii}$；列长与夹角信息编码在 $R$ 中 | 最小二乘正规方程解耦为 $R\hat{\mathbf{x}} = Q^T\mathbf{b}$；投影矩阵简化为 $P = QQ^T$ | $\mathcal{O}(2mn^2 - \frac{2}{3}n^3)$；条件数（Condition Number）$\kappa(R) = \kappa(A)$，**极度稳健**（不平方放大条件数） |
+| **3. 谱分解 / 对角化**<br/>$A = S\Lambda S^{-1}$<br/>实对称：$A = Q\Lambda Q^T$<br/>（复酉：$U\Lambda U^H$；亏损：$MJM^{-1}$） | $S\Lambda S^{-1}$：仅限具备 $n$ 个无关特征向量的**方阵**；$Q\Lambda Q^T$：任意**实对称**方阵 $A=A^T$；$MJM^{-1}$：任意方阵 | 对角化要求特征向量张满 $\mathbb{C}^n$；对称矩阵中不同特征值对应特征子空间**两两正交**；零特征空间即 $\operatorname{Null}(A)$ | 相似不变量：特征多项式、$\operatorname{tr}(A) = \sum \lambda_i$、$\det(A) = \prod \lambda_i$、代数/几何重数、Jordan 块个数 | 离散幂迭代 $\mathbf{u}_k = A^k \mathbf{u}_0$；连续 ODE $\mathbf{u}(t) = e^{At}\mathbf{u}_0$；马尔可夫稳态（$\lambda_1 = 1$）；SPD 二次型最小化与主轴椭球 | 迭代求解（QR 算法）；对称矩阵与正交变换 $Q$ 条件数 $\kappa(Q)=1$ 极其稳定；一般 $S$ 若接近共线则高度病态 |
+| **4. 奇异值分解**<br/>$A = U\Sigma V^T$<br/>（复矩阵 $A = U\Sigma V^H$） | **地球上任意矩阵** $A \in \mathbb{R}^{m\times n}$（零条件限制：长方/对称/奇异/亏损通吃） | **同时**给出全部四个基本子空间的标准正交基：$V_r, V_{n-r}, U_r, U_{m-r}$ | 唯一非负奇异值 $\sigma_i = \sqrt{\lambda_i(A^T A)}$；$\lVert A\rVert_2 = \sigma_1$；$\lVert A\rVert_F = \sqrt{\sum \sigma_i^2}$；$\kappa_2(A) = \sigma_1/\sigma_r$ | Eckart-Young 最优秩 $k$ 逼近 $A_k = \sum_{i=1}^k \sigma_i\mathbf{u}_i\mathbf{v}_i^T$；**伪逆通解** $\mathbf{x}^+ = A^+\mathbf{b} = V\Sigma^+U^T\mathbf{b}$ | 数值最可靠的分解；通过双对角化 + 隐式 QR 求解；无需构造病态 $A^T A$ 即可直接计算 $\sigma_i$ 与基向量 |
+
+</DefinitionCard>
+
+> **基变换与坐标无关视角（第 31–32 讲的画龙点睛）**：  
+> 从线性算子 $T: V \to W$ 的抽象视角看，四大分解不过是在**主动挑选最聪明的输入基与输出基**！
+> - 若要求输入基与输出基**必须相同**，能把矩阵彻底压成对角阵的极限便是**特征基 $S$**（$A = S\Lambda S^{-1}$），仅当 $A$ 为实对称（或正规）矩阵时这组基才能同时做到标准正交（$Q\Lambda Q^T$）；
+> - 若允许输入基 $V$ 与输出基 $U$ **各自独立正交化**，则**任何**矩阵 $A$ 都能被一步压成纯粹的对角拉伸 $\Sigma$（$A = U\Sigma V^T$）！换基公式 $M^{-1} A M$ 与 $U^T A V$ 分别统治了“同空间演化系统”与“跨空间几何映射”两大世界。
+
+---
+
+## 三、跨模块罗塞塔石碑：三大终极统一定理
+
+期末复习最高效的心法，是看清看似分散在四本讲义中的结论，如何在更深层次上归于同一块基石。以下三大**罗塞塔石碑（Rosetta Stone）定理**完整打通了全课程的 35 讲。
+
+### 1. 定理 A：方阵可逆性与满秩的十二重等价刻画
+
+<TheoremCard title="定理 A：方阵可逆性与满秩的十二重终极等价定理" termEn="The Grand Equivalence of Invertibility and Full Rank">
+
+设 $A \in \mathbb{R}^{n\times n}$ 为实方阵。以下十二条横跨四个模块的命题**彼此充要等价**（即同时成立，或同时不成立）：
+
+1. **逆矩阵存在（Module I）**：存在唯一矩阵 $A^{-1} \in \mathbb{R}^{n\times n}$ 使得 $A^{-1} A = A A^{-1} = I_n$；
+2. **唯一解性质（Module I）**：对任意 $\mathbf{b} \in \mathbb{R}^n$，方程组 $A\mathbf{x} = \mathbf{b}$ 存在唯一解；
+3. **满秩与 RREF（Module I）**：$\operatorname{rank}(A) = n$，等价地，简化行阶梯形 $\operatorname{rref}(A) = I_n$；
+4. **消元主元（Module I）**：经过行交换置换 $P$ 执行高斯消元 $PA = LU$ 时，$U$ 具有全部 $n$ 个非零主元（$u_{ii} \ne 0, \forall i$）；
+5. **平凡零空间（Module I）**：$\operatorname{Null}(A) = \{\mathbf{0}\}$ 且 $\operatorname{Null}(A^T) = \{\mathbf{0}\}$；
+6. **列/行满张成基（Module I）**：$A$ 的 $n$ 个列向量（及 $n$ 个行向量）线性无关，各自构成 $\mathbb{R}^n$ 的一组基（$\operatorname{Col}(A) = \operatorname{Row}(A) = \mathbb{R}^n$）；
+7. **QR 分解可逆（Module II）**：$A = QR$ 存在且上三角矩阵 $R$ 的对角元严格全正（$r_{ii} \gt 0$）；
+8. **正规阵正定（Module II & IV）**：矩阵 $A^T A$（以及 $A A^T$）严格对称正定（SPD），且在任意 $\mathbf{b}$ 下最小二乘解退化为精确解 $(A^TA)^{-1}A^T\mathbf{b} = A^{-1}\mathbf{b}$；
+9. **行列式非零（Module III）**：$\det(A) \ne 0$，等价地，列向量张成的 $n$ 维超平行体体积 $\operatorname{Vol}(A) = \lvert\det A\rvert \gt 0$；
+10. **谱不含零（Module III）**：$\lambda = 0$ 不是 $A$ 的特征值（即对所有特征值 $\lambda_i \in \mathbb{C}$ 均有 $\lambda_i \ne 0$）；
+11. **全部奇异值严格正（Module IV）**：$A$ 的全部 $n$ 个奇异值严格大于零（$\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_n \gt 0$），且伪逆精确退化为普通逆（$A^+ = A^{-1}$）；
+12. **单侧逆即双侧逆（Module IV）**：$A$ 存在左逆或右逆（当且仅当方阵具有单侧逆时，该单侧逆必唯一且等于 $A^{-1}$）。
+
+**长方形矩阵 $A \in \mathbb{R}^{m\times n}$（$m \ne n$）的重要分叉**：当 $m \ne n$ 时，双侧逆 $A^{-1}$ 永不存在，上述命题分裂为两套独立体系：
+- **列满秩（$r = n \lt m$）**：等价于 $\operatorname{Null}(A) = \{\mathbf{0}\}$、存在非唯一左逆 $A_L^{-1} = (A^TA)^{-1}A^T$、$A^TA$ 为 SPD、$\sigma_n \gt 0$、解至多一个（无解时用最小二乘）；
+- **行满秩（$r = m \lt n$）**：等价于 $\operatorname{Null}(A^T) = \{\mathbf{0}\}$、$\operatorname{Col}(A) = \mathbb{R}^m$、存在非唯一右逆 $A_R^{-1} = A^T(AA^T)^{-1}$、对任何 $\mathbf{b}$ 均有无穷多解（用伪逆挑最短范数解）。
+
+</TheoremCard>
+
+<ProofCollapse title="展开定理 A 核心等价闭环的简洁逻辑链证明">
+
+- $(1) \implies (2)$：若存在 $A^{-1}$，则对任意 $\mathbf{b}$ 有解 $\mathbf{x} = A^{-1}\mathbf{b}$；若 $A\mathbf{x}_1 = A\mathbf{x}_2 = \mathbf{b}$，左乘 $A^{-1}$ 得 $\mathbf{x}_1 = \mathbf{x}_2$。
+- $(2) \implies (5) \implies (3)$：令 $\mathbf{b} = \mathbf{0}$，唯一解意味着 $\operatorname{Null}(A) = \{\mathbf{0}\}$。由秩-零度定理 $\operatorname{rank}(A) = n - 0 = n$，于是每个行、列都有主元，$\operatorname{rref}(A) = I_n$。
+- $(3) \implies (4) \implies (9)$：满秩意味着消元每步总能找到非零主元，得到 $n$ 个非零对角元 $u_{ii}$；由行列式行交换与乘法性质，$\det(A) = (\det P)^{-1} \prod_{i=1}^n u_{ii} \ne 0$。
+- $(9) \iff (10)$：由特征多项式常数项，$\det(A) = \det(A - 0\cdot I) = \prod_{i=1}^n \lambda_i$，积非零当且仅当没有任何特征值为 $0$。
+- $(5) \iff (8) \iff (11)$：由 $\operatorname{Null}(A^T A) = \operatorname{Null}(A)$，零空间平凡当且仅当 $\mathbf{x}^T A^T A \mathbf{x} = \|A\mathbf{x}\|_2^2 \gt 0$（$\forall \mathbf{x} \ne \mathbf{0}$），即 $A^T A$ 严格 SPD；SPD 矩阵的全部 $n$ 个特征值 $\sigma_i^2 \gt 0$，即 $\sigma_n \gt 0$。此时 $A^+ = V\Sigma^{-1} U^T = (U\Sigma V^T)^{-1} = A^{-1}$。
+- $(9) \implies (1)$：伴随矩阵公式直接构造出唯一双向逆 $A^{-1} = \frac{1}{\det A} C^T$，闭环完成！
+
+</ProofCollapse>
+
+---
+
+### 2. 定理 B：从精确解到最小二乘再到最小范数伪逆的求解统一
+
+在全课程的第 01–08 讲，我们学习 $A\mathbf{x} = \mathbf{b}$；在第 15–17 讲，方程无解时升级为最小二乘 $A^T A\hat{\mathbf{x}} = A^T\mathbf{b}$；到第 34 讲，当 $A$ 连列都不满秩（不仅无精确解、而且最小二乘解还有无穷多个）时，SVD 与伪逆 $A^+$ 给出终极唯一解。**这三种求解并非孤立技巧，而是同一个变分投影问题在不同秩情形下的逐级退化！**
+
+<TheoremCard title="定理 B：线性方程求解的三重变分与投影统一定理" termEn="Unified Solvability: Exact, Least Squares, and Minimum-Norm Pseudoinverse">
+
+设任意矩阵 $A \in \mathbb{R}^{m\times n}$（$\operatorname{rank}(A) = r$）与观测向量 $\mathbf{b} \in \mathbb{R}^m$。考察如下双重极小化问题：首先极小化残差范数 $\|A\mathbf{x} - \mathbf{b}\|_2$，在所有达到最小残差的解集合中再挑选欧氏长度 $\|\mathbf{x}\|_2$ 最小者。
+
+1. **一般全局结论（第 34 讲 SVD 与伪逆通解）**：该双重极小化问题永远存在**唯一**最优解 $\mathbf{x}^+ \in \mathbb{R}^n$，其闭式表达式为：
+   $$
+   \mathbf{x}^+ = A^+ \mathbf{b} = V\Sigma^+ U^T \mathbf{b} = \sum_{i=1}^r \frac{\mathbf{u}_i^T \mathbf{b}}{\sigma_i} \mathbf{v}_i
+   $$
+   几何上，$\mathbf{x}^+$ 必完全位于行空间 $\operatorname{Row}(A)$ 中（零空间分量为 $\mathbf{0}$），且 $A\mathbf{x}^+ = \mathbf{p} = P_{\operatorname{Col}(A)}\mathbf{b}$ 是 $\mathbf{b}$ 在 $\operatorname{Col}(A)$ 上的正交投影。全部最小二乘解构成仿射流形 $\mathcal{S}_{\text{LS}} = \mathbf{x}^+ + \operatorname{Null}(A)$，任取其中另一解 $\hat{\mathbf{x}} = \mathbf{x}^+ + \mathbf{x}_n$（$\mathbf{x}_n \in \operatorname{Null}(A) \setminus \{\mathbf{0}\}$），必严格满足 $\|\hat{\mathbf{x}}\|_2^2 = \|\mathbf{x}^+\|_2^2 + \|\mathbf{x}_n\|_2^2 \gt \|\mathbf{x}^+\|_2^2$。
+2. **特例 1：列满秩系统（$r = n \le m$，第 15–17 讲）**：此时 $\operatorname{Null}(A) = \{\mathbf{0}\}$，$\mathcal{S}_{\text{LS}}$ 退化为单点。矩阵 $A^T A$ 可逆，伪逆退化为经典左逆 $A^+ = (A^T A)^{-1} A^T$，解为正规方程唯一解：
+   $$
+   \mathbf{x}^+ = \hat{\mathbf{x}} = (A^T A)^{-1} A^T \mathbf{b} = R^{-1} Q^T \mathbf{b}
+   $$
+3. **特例 2：行满秩系统（$r = m \lt n$，第 34 讲）**：此时 $\operatorname{Col}(A) = \mathbb{R}^m$，最小残差必为 $0$（无穷多精确解）。矩阵 $AA^T$ 可逆，伪逆退化为极小范数右逆 $A^+ = A^T(A A^T)^{-1}$，精确选出唯一最短解：
+   $$
+   \mathbf{x}^+ = A^T (AA^T)^{-1} \mathbf{b}
+   $$
+4. **特例 3：方阵可逆系统（$r = m = n$，第 01–04 讲）**：以上退化交汇，存在唯一零误差精确解 $\mathbf{x}^+ = A^{-1}\mathbf{b} = U^{-1} L^{-1} P \mathbf{b}$。
+
+</TheoremCard>
+
+<ProofCollapse title="展开定理 B 双重勾股定理与特征投影证明">
+
+将任意向量 $\mathbf{x} \in \mathbb{R}^n$ 分解为行空间与零空间的正交直和 $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$（$\mathbf{x}_r \in \operatorname{Row}(A), \mathbf{x}_n \in \operatorname{Null}(A)$），同时将 $\mathbf{b} \in \mathbb{R}^m$ 分解为列空间与左零空间的正交直和 $\mathbf{b} = \mathbf{p} + \mathbf{e}$（其中 $\mathbf{p} = P_{\operatorname{Col}(A)}\mathbf{b} \in \operatorname{Col}(A), \mathbf{e} \in \operatorname{Null}(A^T)$）。
+
+**第一步：极小化残差**。注意 $A\mathbf{x} = A\mathbf{x}_r + A\mathbf{x}_n = A\mathbf{x}_r \in \operatorname{Col}(A)$。由于 $A\mathbf{x}_r - \mathbf{p} \in \operatorname{Col}(A)$ 与 $\mathbf{e} \in \operatorname{Col}(A)^\perp$ 正交，输出空间勾股定理给出：
+$$
+\|A\mathbf{x} - \mathbf{b}\|_2^2 = \|(A\mathbf{x}_r - \mathbf{p}) - \mathbf{e}\|_2^2 = \|A\mathbf{x}_r - \mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2 \ge \|\mathbf{e}\|_2^2
+$$
+等号成立当且仅当 $A\mathbf{x}_r = \mathbf{p}$。由于 $A$ 在 $\operatorname{Row}(A) \to \operatorname{Col}(A)$ 上是一一双射（基本定理 Part III），满足 $A\mathbf{x}_r = \mathbf{p}$ 的 $\mathbf{x}_r \in \operatorname{Row}(A)$ 唯一存在，正是 $\mathbf{x}^+ = A^+\mathbf{p} = A^+\mathbf{b}$（因为 $A^+\mathbf{e} = \mathbf{0}$）。
+
+**第二步：极小化向量范数**。对任意使残差最小化的解 $\hat{\mathbf{x}} = \mathbf{x}^+ + \mathbf{x}_n$，由输入空间正交性 $\mathbf{x}^+ \perp \mathbf{x}_n$，再次使用勾股定理：
+$$
+\|\hat{\mathbf{x}}\|_2^2 = \|\mathbf{x}^+\|_2^2 + \|\mathbf{x}_n\|_2^2 \ge \|\mathbf{x}^+\|_2^2
+$$
+当且仅当 $\mathbf{x}_n = \mathbf{0}$ 时取严格极小值。利用 $A = U\Sigma V^T$，$A\mathbf{x}_r = \mathbf{p}$ 在 $U,V$ 正交基下化为 $\sigma_i(\mathbf{v}_i^T \mathbf{x}_r) = \mathbf{u}_i^T \mathbf{b}$（$1\le i\le r$），立即得到 $\mathbf{x}^+ = \sum_{i=1}^r \frac{\mathbf{u}_i^T\mathbf{b}}{\sigma_i}\mathbf{v}_i = V\Sigma^+ U^T \mathbf{b} = A^+\mathbf{b}$。当 $r=n$ 时 $A^T A = V_r\Sigma_r^2 V_r^T \implies (A^TA)^{-1}A^T = V_r\Sigma_r^{-1}U_r^T = A^+$；当 $r=m$ 时同理得 $A^T(AA^T)^{-1} = A^+$。
+
+</ProofCollapse>
+
+---
+
+### 3. 定理 C：动力演化、马尔可夫稳态与实对称二次型优化的谱统一
+
+<TheoremCard title="定理 C：谱分解、动力稳定性与二次型极值统一定理" termEn="Spectral Unity: Discrete Powers, Continuous ODEs, Markov Steady State, and Quadratic Forms">
+
+1. **一般对角化动力系统（Module III, $A \in \mathbb{C}^{n\times n}$ 可对角化为 $A = S\Lambda S^{-1}$）**：
+   - **离散系统 $\mathbf{u}_{k+1} = A\mathbf{u}_k$**：通解 $\mathbf{u}_k = \sum_{i=1}^n c_i \lambda_i^k \mathbf{x}_i$。系统渐近稳定（$\lim_{k\to\infty}\mathbf{u}_k = \mathbf{0}$）$\iff$ 谱半径 $\rho(A) = \max_i \lvert\lambda_i\rvert \lt 1$。
+   - **连续系统 $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$**：通解 $\mathbf{u}(t) = e^{At}\mathbf{u}(0) = \sum_{i=1}^n c_i e^{\lambda_i t}\mathbf{x}_i$。系统渐近稳定（$\lim_{t\to\infty}\mathbf{u}(t) = \mathbf{0}$）$\iff$ 全谱实部严格为负 $\operatorname{Re}(\lambda_i) \lt 0$（对 $2\times 2$ 实矩阵等价于 $\operatorname{tr}(A) \lt 0$ 且 $\det(A) \gt 0$）。
+   - **正马尔可夫链（Markov Matrix $M$，$m_{ij} \gt 0$ 且 $\mathbf{1}^T M = \mathbf{1}^T$）**：恒有主特征值 $\lambda_1 = 1$ 且其余 $\lvert\lambda_i\rvert \lt 1$（$i\ge 2$）；全 1 左特征向量 $\mathbf{1}^T$ 强迫所有瞬态模态正交于 $\mathbf{1}$（$\mathbf{1}^T\mathbf{x}_i = 0$），故总概率守恒且 $\lim_{k\to\infty} M^k\mathbf{u}_0 = \mathbf{u}_\infty \in \operatorname{Null}(M - I)$；对应连续马尔可夫生成元 $\frac{d\mathbf{u}}{dt} = (M - I)\mathbf{u}$ 具有特征值 $\mu_i = \lambda_i - 1$，以同样的方式收敛到同一个稳态 $\mathbf{u}_\infty$！
+   - （注：若 $A$ 不可对角化，需用 Jordan 标准形 $A = MJM^{-1}$；稳定性判据 $\lvert\lambda_i\rvert \lt 1$ 与 $\operatorname{Re}(\lambda_i) \lt 0$ 依然充要成立，因为指数衰减压倒多项式因子 $k^p$ 或 $t^p$！）
+2. **实对称矩阵与二次型极值（Module IV, $A = A^T \in \mathbb{R}^{n\times n}$）**：
+   - **谱定理**：$A = Q\Lambda Q^T = \sum_{i=1}^n \lambda_i \mathbf{q}_i\mathbf{q}_i^T$，全部特征值必为实数（$\lambda_1 \ge \dots \ge \lambda_n \in \mathbb{R}$），且存在标准正交特征基 $Q$。
+   - **Rayleigh 商界定（Rayleigh Quotient）**：对任意非零 $\mathbf{x} \in \mathbb{R}^n$，令 $\mathbf{y} = Q^T\mathbf{x}$，则：
+     $$
+     \lambda_{\min} \le \frac{\mathbf{x}^T A \mathbf{x}}{\mathbf{x}^T \mathbf{x}} = \frac{\sum_{i=1}^n \lambda_i y_i^2}{\sum_{i=1}^n y_i^2} \le \lambda_{\max}
+     $$
+   - **正定矩阵五大等价判据（SPD）**：实对称矩阵 $A$ 正定 $\iff$ (i) $\forall\mathbf{x}\ne\mathbf{0}, \mathbf{x}^T A\mathbf{x} \gt 0$；(ii) 全部特征值 $\lambda_i \gt 0$；(iii) 全部顺序主子式 $\Delta_k \gt 0$；(iv) 无行交换消元主元全正 $d_i \gt 0$；(v) 存在列满秩矩阵 $R$ 使 $A = R^T R$（Cholesky 分解）。此时等势面 $\mathbf{x}^T A\mathbf{x} = 1$ 为主轴沿 $\mathbf{q}_i$、半轴长为 $\frac{1}{\sqrt{\lambda_i}}$ 的 $n$ 维超椭球，二次能量 $\frac{1}{2}\mathbf{x}^T A\mathbf{x} - \mathbf{b}^T\mathbf{x}$ 具有唯一严格全局极小值点 $\mathbf{x}^* = A^{-1}\mathbf{b}$。
+
+</TheoremCard>
+
+<ProofCollapse title="展开定理 C 谱稳定性与 Rayleigh 商极值统一证明">
+
+**第一部分（动力系统与亏损矩阵补充）**：  
+当 $A = S\Lambda S^{-1}$ 时，$A^k = S\Lambda^k S^{-1}$ 与 $e^{At} = S e^{\Lambda t} S^{-1}$ 直接把系统分解为 $n$ 个独立的标量模态 $\lambda_i^k$ 与 $e^{\lambda_i t}$。对复特征值 $\lambda_i = \alpha_i + i\beta_i$，$\lvert\lambda_i^k\rvert = \lvert\lambda_i\rvert^k \to 0 \iff \lvert\lambda_i\rvert \lt 1$，且 $\lvert e^{\lambda_i t}\rvert = e^{\alpha_i t} \to 0 \iff \alpha_i = \operatorname{Re}(\lambda_i) \lt 0$。若 $A$ 出现 Jordan 块 $J_m(\lambda_i) = \lambda_i I_m + N$（其中 $N^m = O$），则 $J_m(\lambda_i)^k = \sum_{j=0}^{m-1}\binom{k}{j}\lambda_i^{k-j}N^j$ 与 $e^{J_m(\lambda_i)t} = e^{\lambda_i t}\sum_{j=0}^{m-1}\frac{t^j}{j!}N^j$。只要 $\lvert\lambda_i\rvert \lt 1$（或 $\operatorname{Re}(\lambda_i) \lt 0$），指数函数衰减速率严格压倒任意固定次数 $j \le m-1$ 的多项式增长，故系统仍严格趋于 $\mathbf{0}$。
+
+**第二部分（马尔可夫连续生成元与离散链同稳态）**：  
+若 $\mathbf{1}^T M = \mathbf{1}^T$，则 $\mathbf{1}^T (M - I) = \mathbf{0}^T$。于是连续系统的总概率导数满足 $\frac{d}{dt}(\mathbf{1}^T \mathbf{u}(t)) = \mathbf{1}^T \frac{d\mathbf{u}}{dt} = \mathbf{1}^T (M - I)\mathbf{u}(t) = 0$，概率和恒定为 $1$！同时 $M - I$ 的特征值为 $\mu_i = \lambda_i - 1$，除 $\mu_1 = 0$ 对应同一右特征向量 $\mathbf{u}_\infty$ 外，其余特征值满足 $\operatorname{Re}(\mu_i) = \operatorname{Re}(\lambda_i) - 1 \le \lvert\lambda_i\rvert - 1 \lt 0$，故 $e^{(M-I)t}\mathbf{u}(0) \to \mathbf{u}_\infty$。
+
+**第三部分（对称矩阵 Rayleigh 商与 SPD 几何）**：  
+因为 $Q^T Q = I_n$，作正交坐标变换 $\mathbf{x} = Q\mathbf{y}$（保持长度 $\|\mathbf{x}\|_2^2 = \|\mathbf{y}\|_2^2 = \sum y_i^2$）。此时二次型彻底消去交叉项：
+$$
+\mathbf{x}^T A\mathbf{x} = (Q\mathbf{y})^T (Q\Lambda Q^T)(Q\mathbf{y}) = \mathbf{y}^T \Lambda \mathbf{y} = \sum_{i=1}^n \lambda_i y_i^2
+$$
+于是 $\lambda_{\min} \sum y_i^2 \le \sum \lambda_i y_i^2 \le \lambda_{\max}\sum y_i^2$，两端同除以 $\sum y_i^2 \gt 0$ 即得 Rayleigh 商不等式，且在 $\mathbf{x} = \mathbf{q}_1$ 与 $\mathbf{x} = \mathbf{q}_n$ 处分别取到上下界。特别地，$\mathbf{x}^T A\mathbf{x} \gt 0$ 对所有非零向量成立当且仅当 $\lambda_{\min} \gt 0$（全部特征值严格正）；此时令 $y_i = \frac{z_i}{\sqrt{\lambda_i}}$，等势面化为标准椭圆方程 $\sum_{i=1}^n \lambda_i y_i^2 = 1 \iff \sum_{i=1}^n \frac{y_i^2}{(1/\sqrt{\lambda_i})^2} = 1$，半轴长恰为 $\frac{1}{\sqrt{\lambda_i}}$。
+
+</ProofCollapse>
+
+---
+
+## 四、全课程终极 Top 10 致命误区总巡检
+
+在走出 MIT 18.06 考场以及在未来一切科学与工程实践中使用线性代数之前，请务必把下面这 **10 条全课程最高频的致命概念陷阱**刻进骨髓：
+
+<PitfallAlert title="全课程终极 Top 10 致命误区与网传笔记勘误总巡检">
+
+1. **误区 1：高斯消元行变换不改变列空间？**  
+   **绝对错误！** 初等行变换 $EA = U$ 确实保持**行空间 $\operatorname{Row}(A)$** 与**零空间 $\operatorname{Null}(A)$** 完全不变，但它**彻底改变了列空间 $\operatorname{Col}(A)$**（以及左零空间 $\operatorname{Null}(A^T)$）！寻找 $\operatorname{Col}(A)$ 的基时，必须回到**原矩阵 $A$** 中提取与 $U$ 主元列编号相同的那些列，绝不可直接拿 $U$ 的非零列当 $\operatorname{Col}(A)$ 的基！
+2. **误区 2：两个子空间只在 $\mathbf{0}$ 处相交，就是正交补？**  
+   **混淆了“直和补”与“正交补”！** 若 $\mathbb{R}^2$ 中 $L_1 = \operatorname{span}\{[1, 0]^T\}$、$L_2 = \operatorname{span}\{[1, 1]^T\}$，它们确实满足 $L_1 \cap L_2 = \{\mathbf{0}\}$ 且 $\mathbb{R}^2 = L_1 \oplus L_2$，但它们夹角是 $45^\circ$ 而非 $90^\circ$，绝非正交补！**正交补（$V^\perp$）不仅要求零交集与维数相加等于总空间维数，还必须满足每一个向量两两内积为零（$\mathbf{v}^T\mathbf{w} = 0$）**。
+3. **误区 3：高瘦正交列矩阵 $Q \in \mathbb{R}^{m\times n}$（$m \gt n$）同时满足 $Q^T Q = I$ 和 $Q Q^T = I$？**  
+   **极度危险的伪投影陷阱！** 当 $Q$ 的列向量标准正交且 $m \gt n$ 时，$Q^T Q = I_n$ 永远成立；但反过来乘的 $Q Q^T$ 是 $m\times m$ 矩阵，其秩至多为 $n \lt m$，**绝对不等于 $I_m$**！实际上 $Q Q^T = P_{\operatorname{Col}(Q)}$ 是向 $Q$ 的列空间作正交投影的**投影矩阵**（特征值为 $n$ 个 $1$ 和 $m-n$ 个 $0$）。仅当 $Q$ 是**方阵**（$m = n$）时，$Q^T = Q^{-1}$ 才让 $Q Q^T = I_n$ 成立。
+4. **误区 4：行列式满足线性可加性 $\det(A+B) = \det A + \det B$ 与一倍提取 $\det(cA) = c\det A$？**  
+   **双双错误！** 行列式仅对**单个行**呈线性，对整矩阵既不可加也不满足一倍齐次：绝大多数情况下 $\det(A+B) \ne \det A + \det B$（例如 $\det(I_2 + I_2) = 4 \ne 1 + 1 = 2$）；且数乘整个 $n\times n$ 矩阵等于把 $n$ 行的公因子逐一提出，故 $\det(cA) = c^n \det(A)$，$\det(-A) = (-1)^n \det(A)$。
+5. **误区 5：高斯消元得到的上三角矩阵 $U$ 的主对角元就是 $A$ 的特征值？**  
+   **跨模块最大张冠李戴！** 初等行变换 $EA = U$ 保持解空间和 $\det(A) = \pm\det(U)$，但它**完全摧毁特征值与特征向量**！特征值只在**相似变换** $M^{-1}AM$ 下保持不变，而消元只是单侧左乘 $EA$。只有当矩阵本身**已经是三角矩阵**时，对角线元素才同时等于主元与特征值。
+6. **误区 6：矩阵可逆就一定可对角化，奇异（$\det A = 0$）就一定不可对角化？**  
+   **完全独立的两件事，毫无因果关系！** 可逆性看的是**有没有零特征值**（$\det A \ne 0$）；可对角化看的是**有没有凑足 $n$ 个线性无关特征向量**（每个特征值 $\operatorname{GM} = \operatorname{AM}$）。
+   - **可逆但不可对角化**：Jordan 块 $J = \begin{bmatrix} 2 & 1 \\ 0 & 2 \end{bmatrix}$（$\det J = 4 \ne 0$ 可逆，但 $\lambda=2$ 只有 $1$ 个特征向量，亏损！）；
+   - **奇异但可对角化**：$B = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}$（$\det B = 0$ 不可逆，但本身就是对角阵！）。
+7. **误区 7：只要特征值全为正（或顺序主子式全正），非对称矩阵也是正定矩阵？**  
+   **遗漏了最根本的“实对称前提”！** 取 $A = \begin{bmatrix} 1 & 10 \\ 0 & 1 \end{bmatrix}$，它不仅特征值全为 $+1 \gt 0$，顺序主子式也全为 $1 \gt 0$，甚至主元全为 $1 \gt 0$！但若取 $\mathbf{x} = [1, -1]^T$，则 $\mathbf{x}^T A\mathbf{x} = 1 - 10 + 1 = -8 \lt 0$！原因在于二次型 $\mathbf{x}^T A\mathbf{x} = \mathbf{x}^T \left(\frac{A+A^T}{2}\right)\mathbf{x}$ 只听命于 $A$ 的**对称部分** $\frac{A+A^T}{2}$（该例对称部分的特征值为 $1 \pm 5$，含负根 $-4$）。离开 $A = A^T$（或复域 $A = A^H$），一切正定判据统统失效。
+8. **误区 8：把“主元（Pivots）”、“特征值（Eigenvalues）”和“奇异值（Singular Values）”混为一谈！**  
+   - **主元 $\ne$ 特征值**：对对称阵 $A = \begin{bmatrix} 1 & 2 \\ 2 & 1 \end{bmatrix}$，主元为 $1, -3$，特征值为 $3, -1$。**唯一保真规律**（Sylvester 惯性定理）：实对称矩阵正主元、负主元的**个数**严格等于正特征值、负特征值的**个数**。
+   - **$\lvert$特征值$\rvert \ne$ 奇异值**：对剪切阵 $A = \begin{bmatrix} 1 & 2 \\ 0 & 1 \end{bmatrix}$，两特征值皆为 $\lambda_1 = \lambda_2 = 1$，但 $A^T A = \begin{bmatrix} 1 & 2 \\ 2 & 5 \end{bmatrix}$ 的特征值为 $3 \pm 2\sqrt{2}$，故奇异值为 $\sigma_1 = \sqrt{2}+1 \approx 2.414 \ne 1$、$\sigma_2 = \sqrt{2}-1 \approx 0.414 \ne 1$！仅当 $A$ 为正规矩阵（$A^TA = AA^T$，如对称阵或正交阵）时才有 $\sigma_i = \lvert\lambda_i\rvert$。
+9. **误区 9：算 SVD 时把 $A^T A$ 和 $AA^T$ 各自独立特征分解后直接拼装 $U$ 和 $V$？**  
+   **正负号与重特征空间旋转失配炸弹！** 特征向量乘以 $-1$ 仍然是单位特征向量。若独立求出 $\mathbf{v}_i$ 和 $\mathbf{u}_i$，很容易出现 $A\mathbf{v}_i = -\sigma_i \mathbf{u}_i$，拼回去得到完全错误的矩阵（或重奇异值平面内基向量角度错位）！**绝对铁律**：只分解一端（如先求 $A^T A$ 得 $V$），另一端的非零奇异方向**必须**由映射锁定公式 $\mathbf{u}_i = \frac{1}{\sigma_i} A\mathbf{v}_i$ 直接算出！
+10. **误区 10：认为 $(AB)^+ = B^+ A^+$ 总是成立，或混淆单侧逆与双侧逆！**  
+    **伪逆不满足通用反序律！** 取 $A = \begin{bmatrix} 1 & 0 \end{bmatrix}$、$B = \begin{bmatrix} 1 \\ 1 \end{bmatrix}$，则 $AB = [1]$，$(AB)^+ = [1]$；而 $A^+ = \begin{bmatrix} 1 \\ 0 \end{bmatrix}$、$B^+ = \begin{bmatrix} \frac{1}{2} & \frac{1}{2} \end{bmatrix}$，算得 $B^+ A^+ = [\frac{1}{2}] \ne [1]$！（仅当 $A,B$ 可逆、或 $A$ 列标准正交、或 $B$ 行标准正交等特定条件成立时 $(AB)^+ = B^+ A^+$ 才成立。）同时切记：长方形满秩矩阵的单侧左逆/右逆有**无穷多个**（可通过添加自由参数任意构造），而唯一具有几何最小二乘与最小范数灵魂的只是其中与子空间正交投影绑定的 **Moore-Penrose 伪逆 $A^+$**。
+
+</PitfallAlert>
+
+---
+
+## 五、交互沙盒与全课程核心要点速查
+
+<InteractiveCanvasSlot
+  id="l35-grand-finale-explorer"
+  title="全课程终极交互实验台：四大子空间 × 四大矩阵分解联动探索"
+  description={"自由选择任意 $2\\times 2$、$3\\times 2$ 或 $2\\times 3$ 矩阵（可逆、奇异、对称正定或剪切亏损），同步联动观测四个基本子空间正交剖分、$PA=LU$ 主元消元、$QR$ 体积变形、特征方向与 $\\operatorname{tr}-\\det$ 动力学相平面，以及单位圆在 SVD $U\\Sigma V^T$ 下变为椭圆的主轴全流程。"}
+/>
+
+<KeyTakeaways
+  title="MIT 18.06 全课程终极直觉速查（Key Takeaways）"
+  items={[
+    "**两大终极支柱**：全部 35 讲的骨架是四个基本子空间（$\\operatorname{Row}(A) \\perp \\operatorname{Null}(A)$ 于 $\\mathbb{R}^n$，$\\operatorname{Col}(A) \\perp \\operatorname{Null}(A^T)$ 于 $\\mathbb{R}^m$）与四大矩阵分解（$PA=LU$、$A=QR$、$S\\Lambda S^{-1}/Q\\Lambda Q^T$、$U\\Sigma V^T$）。",
+    "**线性代数基本定理三部曲**：Part I 锁定维数守恒（$r, n-r, m-r$）；Part II 确立正交补直和分解（$\\mathbb{R}^n = \\operatorname{Row}(A) \\oplus \\operatorname{Null}(A)$）；Part III 用 SVD 给全四子空间同时配备标准正交基，使 $A: \\operatorname{Row}(A) \\to \\operatorname{Col}(A)$ 成为以 $A^+$ 为逆的对角化双射。",
+    "**三大求解的统一**：无论方程精准有解（$A^{-1}\\mathbf{b}$）、无解过度决定（正规方程 $(A^T A)^{-1}A^T\\mathbf{b}$）还是秩亏缺多解（伪逆 $\\mathbf{x}^+ = A^+\\mathbf{b} = V\\Sigma^+ U^T\\mathbf{b}$），本质都是先将 $\\mathbf{b}$ 正交投影至 $\\operatorname{Col}(A)$，再取零空间分量为 $\\mathbf{0}$ 的唯一行空间原像。",
+    "**行列式与体积的几何桥梁**：行列式是方阵超平行体有向体积缩放因子（$\\lvert\\det A\\rvert = \\operatorname{Vol}(A) = \\prod r_{ii}$），其零点 $\\det(A-\\lambda I)=0$ 打开了谱分解与动力系统的大门。",
+    "**谱理论的统一与边界**：可对角化阵 $A=S\\Lambda S^{-1}$ 主宰离散幂 $A^k$（稳定 $\\iff \\rho(A)\\lt 1$）、连续流 $e^{At}$（稳定 $\\iff \\operatorname{Re}(\\lambda_i)\\lt 0$）与马尔可夫稳态（$\\lambda_1=1$）；对称矩阵升级为实谱与正交基 $Q\\Lambda Q^T$，正定（$\\lambda_i\\gt 0$）刻画凸极小值与主轴椭球；亏损阵由 Jordan 块 $MJM^{-1}$ 兜底。",
+    "**SVD 与低秩世界观**：任意矩阵都能拆成 $r$ 个正交秩 1 矩阵的加权和 $A = \\sum_{i=1}^r \\sigma_i \\mathbf{u}_i \\mathbf{v}_i^T$，由 $\\mathbf{u}_i = \\frac{1}{\\sigma_i}A\\mathbf{v}_i$ 严格锁死符号一致，前 $k$ 项截断 $A_k$ 在谱范数与 Frobenius 范数下均为最优秩 $k$ 逼近。"
+  ]}
+/>
+
+---
+
+## 六、MIT 18.06 期末终极综合压轴大考卷（6 道跨模块实战）
+
+以下六道综合题专门按照 MIT 18.06 期末考试的最高水准设计：**每一题都刻意跨越至少两个以上模块**，检验你是否真正打通了“子空间—投影—行列式—特征值—正定—SVD/伪逆”的全脉络。
+
+<ProblemSet
+  title="MIT 18.06 期末终极综合大考卷（6 道跨模块压轴题）"
+  description="少算多想、融会贯通：每道题均串联多个核心模块。请先独立构造几何与子空间思路，必要时逐级解锁 Hint，再对照双视角解析进行完备核验。"
+>
+
+### 习题 1（L1 难度）：四大子空间、秩 1 补投影与正定矩阵 $A^T A$ 综合检验
+
+<ExerciseCard
+  id="l35-ex1"
+  tier="L1"
+  title="四大子空间、秩 1 外积投影与对称正定矩阵 AᵀA"
+>
+
+考虑 $3\times 2$ 实矩阵 $A$ 与目标观测向量 $\mathbf{b} \in \mathbb{R}^3$：
+
+$$
+A = \begin{bmatrix} 1 & 1 \\ 1 & 0 \\ 0 & 1 \end{bmatrix}, \qquad \mathbf{b} = \begin{bmatrix} 3 \\ 0 \\ 0 \end{bmatrix}
+$$
+
+1. 写出矩阵 $A$ 的秩 $r$，以及全部四个基本子空间 $\operatorname{Row}(A)$、$\operatorname{Null}(A)$、$\operatorname{Col}(A)$、$\operatorname{Null}(A^T)$ 的维数与一组基向量；
+2. 构造对称矩阵 $S = A^T A$，利用“特征值”与“主元/顺序主子式”两种判据快速验证 $S$ 为严格**实对称正定矩阵（SPD）**；
+3. 求解最小二乘正规方程 $A^T A\hat{\mathbf{x}} = A^T\mathbf{b}$，求出 $\hat{\mathbf{x}}$、投影向量 $\mathbf{p} = A\hat{\mathbf{x}}$ 与残差 $\mathbf{e} = \mathbf{b} - \mathbf{p}$，验证正交分解 $\mathbf{b} = \mathbf{p} + \mathbf{e}$；
+4. **巧妙捷径**：不作三重矩阵乘法 $A(A^T A)^{-1}A^T$，而是利用左零空间单位化基构建**秩 1 投影矩阵** $P_\perp = \frac{\mathbf{n}\mathbf{n}^T}{\mathbf{n}^T\mathbf{n}}$，立即反推出 $\operatorname{Col}(A)$ 的投影矩阵 $P = I_3 - P_\perp$，并指出 $P$ 的全部特征值与迹 $\operatorname{tr}(P)$。
+
+<ProgressiveHint hints={[
+  "第 1 问：$A$ 的两列线性无关，故 $r = 2 = n$；$\\operatorname{Null}(A^T)$ 是一维直线，求解 $A^T \\mathbf{n} = \\mathbf{0}$ 即可一眼看出法向量 $\\mathbf{n}$。",
+  "第 2 问：算出 $S = A^T A = \\begin{bmatrix} 2 & 1 \\\\ 1 & 2 \\end{bmatrix}$，观察行和特征值与行列式。",
+  "第 4 问：因为 $\\mathbb{R}^3 = \\operatorname{Col}(A) \\oplus \\operatorname{Null}(A^T)$ 互为正交补，投影到二维平面等价于从单位阵中减去向一维法线方向的投影！"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+
+几何上，$A$ 的两列向量在三维空间 $\mathbb{R}^3$ 中张成一个过原点的二维倾斜平面 $\operatorname{Col}(A)$，它的正交补 $\operatorname{Null}(A^T)$ 是一条垂直于该平面的法线。
+
+直接计算 $3\times 3$ 投影矩阵 $P = A(A^T A)^{-1}A^T$ 要做三次矩阵乘法，但因为法线只有**一维**，向法线的投影就是一个极其简洁的**秩 1 外积矩阵** $\frac{\mathbf{n}\mathbf{n}^T}{\mathbf{n}^T\mathbf{n}}$！用全空间单位阵 $I_3$ 减去法线投影，瞬间就得到了平面的投影矩阵 $P$——这就是“模块一（四大子空间正交补 + 秩 1 积木）”与“模块二（正交投影）”联合发力的威力。
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**1. 四个基本子空间分析**：  
+$A$ 的两列 $[1, 1, 0]^T$ 与 $[1, 0, 1]^T$ 显然不成比例，故列满秩，$r = \operatorname{rank}(A) = 2$（这里 $m = 3, n = 2$）。
+- $\operatorname{Row}(A) = \mathbb{R}^2$（$\dim = 2$），基为 $\{[1, 0]^T, [0, 1]^T\}$；
+- $\operatorname{Null}(A) = \{\mathbf{0}\}$（$\dim = 2 - 2 = 0$）；
+- $\operatorname{Col}(A) = \operatorname{span}\{[1, 1, 0]^T, [1, 0, 1]^T\}$（$\dim = 2$）；
+- $\operatorname{Null}(A^T)$（$\dim = 3 - 2 = 1$）：解 $A^T \mathbf{n} = \begin{bmatrix} 1 & 1 & 0 \\ 1 & 0 & 1 \end{bmatrix}\begin{bmatrix} y_1 \\ y_2 \\ y_3 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix}$，得 $y_2 = -y_1, y_3 = -y_1$，取基向量 $\mathbf{n} = \begin{bmatrix} 1 \\ -1 \\ -1 \end{bmatrix}$。
+
+**2. 验证 $S = A^T A$ 为 SPD**：  
+计算得 $S = A^T A = \begin{bmatrix} 1 & 1 & 0 \\ 1 & 0 & 1 \end{bmatrix}\begin{bmatrix} 1 & 1 \\ 1 & 0 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}$，显然对称。
+- **顺序主子式与主元判据**：$\Delta_1 = 2 \gt 0$，$\Delta_2 = \det(S) = 4 - 1 = 3 \gt 0$（两主元为 $d_1 = 2 \gt 0, d_2 = \frac{3}{2} \gt 0$）；
+- **特征值判据**：$\lambda^2 - 4\lambda + 3 = (\lambda - 3)(\lambda - 1) = 0$，全部特征值 $\lambda_1 = 3 \gt 0, \lambda_2 = 1 \gt 0$。
+故 $S = A^T A$ 严格对称正定！
+
+**3. 最小二乘求解与正交分解**：  
+计算 $S^{-1} = \frac{1}{3}\begin{bmatrix} 2 & -1 \\ -1 & 2 \end{bmatrix}$ 与 $A^T\mathbf{b} = \begin{bmatrix} 3 \\ 3 \end{bmatrix}$，得：
+$$
+\hat{\mathbf{x}} = S^{-1} A^T\mathbf{b} = \frac{1}{3}\begin{bmatrix} 2 & -1 \\ -1 & 2 \end{bmatrix}\begin{bmatrix} 3 \\ 3 \end{bmatrix} = \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+$$
+$$
+\mathbf{p} = A\hat{\mathbf{x}} = \begin{bmatrix} 1 & 1 \\ 1 & 0 \\ 0 & 1 \end{bmatrix}\begin{bmatrix} 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 2 \\ 1 \\ 1 \end{bmatrix}, \qquad \mathbf{e} = \mathbf{b} - \mathbf{p} = \begin{bmatrix} 3 \\ 0 \\ 0 \end{bmatrix} - \begin{bmatrix} 2 \\ 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 1 \\ -1 \\ -1 \end{bmatrix}
+$$
+显然 $\mathbf{p} \in \operatorname{Col}(A)$，$\mathbf{e} = \mathbf{n} \in \operatorname{Null}(A^T)$，且 $\mathbf{p}^T\mathbf{e} = 2 - 1 - 1 = 0$。
+
+**4. 秩 1 补投影与 $P$ 的谱**：  
+$\mathbf{n}^T\mathbf{n} = 1^2 + (-1)^2 + (-1)^2 = 3$，故一维法线投影（秩 1 矩阵）为：
+$$
+P_\perp = \frac{\mathbf{n}\mathbf{n}^T}{\mathbf{n}^T\mathbf{n}} = \frac{1}{3}\begin{bmatrix} 1 \\ -1 \\ -1 \end{bmatrix}\begin{bmatrix} 1 & -1 & -1 \end{bmatrix} = \frac{1}{3}\begin{bmatrix} 1 & -1 & -1 \\ -1 & 1 & 1 \\ -1 & 1 & 1 \end{bmatrix}
+$$
+立刻得列空间投影矩阵：
+$$
+P = I_3 - P_\perp = \frac{1}{3}\begin{bmatrix} 2 & 1 & 1 \\ 1 & 2 & -1 \\ 1 & -1 & 2 \end{bmatrix}
+$$
+由于 $P$ 将 $\operatorname{Col}(A)$（$2$ 维）映为自身、将 $\operatorname{Null}(A^T)$（$1$ 维）压为 $\mathbf{0}$，其全部特征值为 $\{1, 1, 0\}$，迹 $\operatorname{tr}(P) = \frac{2+2+2}{3} = 2 = \operatorname{rank}(A)$。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### 习题 2（L2 难度）：$PA = LU$ 消元、$QR$ 分解与超平行六面体体积统一
+
+<ExerciseCard
+  id="l35-ex2"
+  tier="L2"
+  title="PA = LU 行置换消元、QR 正交分解与行列式体积"
+>
+
+考虑如下 $3\times 3$ 实方阵：
+
+$$
+A = \begin{bmatrix} 0 & 1 & 1 \\ 1 & 1 & 0 \\ 1 & 1 & 2 \end{bmatrix}
+$$
+
+1. 求出 $A$ 的带行置换消元分解 $PA = LU$（明确写出置换矩阵 $P$、单位下三角矩阵 $L$ 与上三角矩阵 $U$）；
+2. 对 $A$ 的列向量执行 Gram-Schmidt 正交化，写出标准正交矩阵 $Q$ 与主对角元全正的上三角矩阵 $R$，使 $A = QR$；
+3. 分别用 $PA = LU$ 与 $A = QR$ 计算 $\det(A)$、$\det(Q)$ 以及 $A$ 的三列所张成三维平行六面体的几何体积 $\operatorname{Vol}(A)$，并说明为何符号（手性定向）不同而体积一致；
+4. 设右端项为 $\mathbf{b} = \begin{bmatrix} 2 \\ 2 \\ 4 \end{bmatrix}$，简要对比利用 $PA = LU$ 与利用 $A = QR$ 求解 $A\mathbf{x} = \mathbf{b}$ 的各自步骤并给出唯一解 $\mathbf{x}$。
+
+<ProgressiveHint hints={[
+  "第 1 问：$A_{11} = 0$，第一步必须交换第 1 行与第 2 行，因此 $P$ 是一个置换矩阵，且 $\\det(P) = -1$。",
+  "第 2 问：列向量长度与投影都很干净，注意 $\\|\\mathbf{a}_1\\| = \\sqrt{2}$，消去 $\\mathbf{a}_1$ 方向后 $\\mathbf{v}_2 = [1, 0, 0]^T$ 恰好就是标准基向量！",
+  "第 3 问：行列式乘积 $\\det(A) = \\det(Q)\\det(R)$，而 $Q$ 包含一次镜像反射时 $\\det(Q) = -1$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+
+这是线性代数最经典的双重视角对照：$PA = LU$ 盯着**行**（通过行交换和行消元把方程变成阶梯形），而 $A = QR$ 盯着**列**（把斜角排列的三个列向量依次“扳直”成相互垂直的单位正交基）。
+
+虽然 $LU$ 和 $QR$ 的矩阵因子长得截然不同，但它们共同丈量了同一个几何事实——三根列向量撑开的平行六面体体积 $\operatorname{Vol}(A) = 2$！在 $LU$ 中它由置换后的主元对角线给出；在 $QR$ 中它由每根新向量垂直于前面张成底面的“净高” $r_{11}, r_{22}, r_{33}$ 连乘给出。
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**1. $PA = LU$ 行置换消元**：  
+由于第 $(1,1)$ 位置主元为 $0$，首先交换第 1、2 行，记置换矩阵 $P = \begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}$。于是：
+$$
+PA = \begin{bmatrix} 1 & 1 & 0 \\ 0 & 1 & 1 \\ 1 & 1 & 2 \end{bmatrix}
+$$
+第 3 行减去 $1$ 倍的第 1 行（消元乘数 $l_{31} = 1$），第 2 行主元已是 $1$ 且下方元素为 $0$（$l_{32} = 0$），立刻得到：
+$$
+L = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 1 & 0 & 1 \end{bmatrix}, \qquad U = \begin{bmatrix} 1 & 1 & 0 \\ 0 & 1 & 1 \\ 0 & 0 & 2 \end{bmatrix}
+$$
+核验乘积 $LU = \begin{bmatrix} 1 & 1 & 0 \\ 0 & 1 & 1 \\ 1 & 1 & 2 \end{bmatrix} = PA$，完全准确。
+
+**2. Gram-Schmidt 与 $A = QR$**：  
+记三列 $\mathbf{a}_1 = [0, 1, 1]^T$、$\mathbf{a}_2 = [1, 1, 1]^T$、$\mathbf{a}_3 = [1, 0, 2]^T$：
+- **第 1 列**：$r_{11} = \|\mathbf{a}_1\|_2 = \sqrt{2}$，$\mathbf{q}_1 = \frac{1}{\sqrt{2}}\begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix}$。
+- **第 2 列**：$r_{12} = \mathbf{q}_1^T\mathbf{a}_2 = \frac{2}{\sqrt{2}} = \sqrt{2}$，正交余量 $\mathbf{v}_2 = \mathbf{a}_2 - r_{12}\mathbf{q}_1 = \begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix} - \begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix}$。于是 $r_{22} = 1$，$\mathbf{q}_2 = \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix}$。
+- **第 3 列**：$r_{13} = \mathbf{q}_1^T\mathbf{a}_3 = \frac{2}{\sqrt{2}} = \sqrt{2}$，$r_{23} = \mathbf{q}_2^T\mathbf{a}_3 = 1$，正交余量 $\mathbf{v}_3 = \begin{bmatrix} 1 \\ 0 \\ 2 \end{bmatrix} - \begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix} - \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix} = \begin{bmatrix} 0 \\ -1 \\ 1 \end{bmatrix}$。于是 $r_{33} = \sqrt{2}$，$\mathbf{q}_3 = \frac{1}{\sqrt{2}}\begin{bmatrix} 0 \\ -1 \\ 1 \end{bmatrix}$。
+
+整理得：
+$$
+Q = \begin{bmatrix} 0 & 1 & 0 \\ 1/\sqrt{2} & 0 & -1/\sqrt{2} \\ 1/\sqrt{2} & 0 & 1/\sqrt{2} \end{bmatrix}, \qquad R = \begin{bmatrix} \sqrt{2} & \sqrt{2} & \sqrt{2} \\ 0 & 1 & 1 \\ 0 & 0 & \sqrt{2} \end{bmatrix}
+$$
+
+**3. 行列式、定向手性与三维体积**：  
+- 由 $PA = LU$：$\det(P) = -1$（单次行交换），$\det(L) = 1$，$\det(U) = 1\cdot 1\cdot 2 = 2$，故 $\det(A) = \det(P)^{-1}\det(U) = -2$。
+- 由 $A = QR$：$\det(R) = \prod_{i=1}^3 r_{ii} = \sqrt{2}\cdot 1\cdot\sqrt{2} = 2$；而沿第 2 列展开得 $\det(Q) = -1\cdot\left(\frac{1}{2}+\frac{1}{2}\right) = -1$（$Q$ 是一个带镜像反射的正交矩阵，改变左手/右手系定向），故 $\det(A) = \det(Q)\det(R) = -2$。
+- 三维体积 $\operatorname{Vol}(A) = \lvert\det A\rvert = \det(R) = 2$。
+
+**4. 两种算法求解 $A\mathbf{x} = \mathbf{b}$**：  
+- **$LU$ 路径**：先解 $L\mathbf{c} = P\mathbf{b} = \begin{bmatrix} 2 \\ 2 \\ 4 \end{bmatrix}$，得 $c_1 = 2, c_2 = 2, c_3 = 4 - 2 = 2$；再回代 $U\mathbf{x} = \mathbf{c}$：$2x_3 = 2 \implies x_3 = 1$，$x_2 + 1 = 2 \implies x_2 = 1$，$x_1 + 1 = 2 \implies x_1 = 1$。
+- **$QR$ 路径**：正交旋转计算 $Q^T\mathbf{b} = \begin{bmatrix} 3\sqrt{2} \\ 2 \\ \sqrt{2} \end{bmatrix}$，再回代 $R\mathbf{x} = Q^T\mathbf{b}$：$\sqrt{2}x_3 = \sqrt{2} \implies x_3 = 1$，$x_2 + 1 = 2 \implies x_2 = 1$，$\sqrt{2}(x_1 + 1 + 1) = 3\sqrt{2} \implies x_1 = 1$。
+两种路径给出同一唯一解 $\mathbf{x} = \begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix}$。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### 习题 3（L2 难度）：离散马尔可夫链、连续生成元 ODE 与 $\operatorname{tr}-\det$ 相平面
+
+<ExerciseCard
+  id="l35-ex3"
+  tier="L2"
+  title="离散马尔可夫转移、连续生成元 ODE 与迹-行列式稳定性"
+>
+
+本题探讨离散概率演化与连续微分方程系统之间的深层谱联系：
+
+**第一部分**：设两状态马尔可夫转移矩阵为 $M = \begin{bmatrix} 0.7 & 0.2 \\ 0.3 & 0.8 \end{bmatrix}$，初始分布为 $\mathbf{u}_0 = \begin{bmatrix} 1 \\ 0 \end{bmatrix}$。
+1. 求 $M$ 的特征值与特征向量，写出离散演化公式 $\mathbf{u}_k = M^k \mathbf{u}_0$ 与稳态极限 $\mathbf{u}_\infty$；
+2. 构造连续时间马尔可夫生成元（Continuous-Time Generator）$A = M - I_2$，求解线性微分方程初值问题 $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$（$\mathbf{u}(0) = \mathbf{u}_0$），并利用左零空间 $\operatorname{Null}(A^T)$ 证明系统总概率 $\mathbf{1}^T\mathbf{u}(t) \equiv 1$ 守恒且 $\lim_{t\to\infty}\mathbf{u}(t) = \mathbf{u}_\infty$。
+
+**第二部分**：考虑含参数 $c \in \mathbb{R}$ 的连续动力学系统 $\frac{d\mathbf{v}}{dt} = B_c\mathbf{v}$，其中 $B_c = \begin{bmatrix} -1 & 2 \\ c & -3 \end{bmatrix}$。
+3. 借助 $\operatorname{tr}(B_c)-\det(B_c)$ 稳定性相平面，精确划分 $c$ 的取值范围，指出原点平衡态何时为**稳定螺旋点（Stable Spiral）**、**稳定节点（Stable Node）**、**退化中性平衡**与**不稳定鞍点（Saddle）**。
+
+<ProgressiveHint hints={[
+  "第 1 问：$M$ 列和为 1，故 $\\lambda_1 = 1$；利用 $\\operatorname{tr}(M) = \\lambda_1 + \\lambda_2$ 一秒读出 $\\lambda_2$。",
+  "第 2 问：$A = M - I$ 与 $M$ 拥有完全相同的特征向量，特征值仅各自减去 $1$！",
+  "第 3 问：计算 $\\operatorname{tr}(B_c) = -4 \\lt 0$ 与 $\\det(B_c) = 3 - 2c$，再考察判别式 $\\Delta = (\\operatorname{tr} B_c)^2 - 4\\det(B_c)$ 的正负号。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+
+离散马尔可夫迭代 $\mathbf{u}_{k+1} = M\mathbf{u}_k$ 与连续微分方程 $\frac{d\mathbf{u}}{dt} = (M-I)\mathbf{u}$ 本质上是同一个转移过程的“离散电影帧”与“连续水流”！把 $M$ 平移成 $M-I$，相当于把离散稳定边界单位圆 $\lvert\lambda\rvert = 1$ 上的点 $\lambda_1 = 1$ 精确平移到连续稳定边界虚轴 $\operatorname{Re}(\mu) = 0$ 的原点处，其余 $\lvert\lambda_i\rvert \lt 1$ 的点全都被推入左半复平面 $\operatorname{Re}(\mu_i) \lt 0$，从而保障两者驶向一模一样的稳态！
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**1. 离散马尔可夫特征分解与稳态**：  
+$M$ 各列之和为 $1$，必有主特征值 $\lambda_1 = 1$；由 $\operatorname{tr}(M) = 0.7 + 0.8 = 1.5 = 1 + \lambda_2$ 得 $\lambda_2 = 0.5$。
+- 对 $\lambda_1 = 1$：$(M - I)\mathbf{x}_1 = \begin{bmatrix} -0.3 & 0.2 \\ 0.3 & -0.2 \end{bmatrix}\mathbf{x}_1 = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 2 \\ 3 \end{bmatrix}$，归一化稳态分布为 $\mathbf{u}_\infty = \begin{bmatrix} 0.4 \\ 0.6 \end{bmatrix}$。
+- 对 $\lambda_2 = 0.5$：$(M - 0.5I)\mathbf{x}_2 = \begin{bmatrix} 0.2 & 0.2 \\ 0.3 & 0.3 \end{bmatrix}\mathbf{x}_2 = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}$。
+
+将初值分解：$\mathbf{u}_0 = \begin{bmatrix} 1 \\ 0 \end{bmatrix} = 1\cdot\begin{bmatrix} 0.4 \\ 0.6 \end{bmatrix} + 0.6\cdot\begin{bmatrix} 1 \\ -1 \end{bmatrix}$。因此：
+$$
+\mathbf{u}_k = M^k \mathbf{u}_0 = \begin{bmatrix} 0.4 \\ 0.6 \end{bmatrix} + 0.6\,(0.5)^k \begin{bmatrix} 1 \\ -1 \end{bmatrix} \xrightarrow{k\to\infty} \mathbf{u}_\infty = \begin{bmatrix} 0.4 \\ 0.6 \end{bmatrix}
+$$
+
+**2. 连续生成元 ODE 与全概率守恒**：  
+$A = M - I_2 = \begin{bmatrix} -0.3 & 0.2 \\ 0.3 & -0.2 \end{bmatrix}$。其特征向量仍为 $\mathbf{u}_\infty$ 与 $\mathbf{x}_2$，特征值变为 $\mu_1 = 1 - 1 = 0$ 与 $\mu_2 = 0.5 - 1 = -0.5$。因此微分方程解为：
+$$
+\mathbf{u}(t) = e^{At}\mathbf{u}(0) = e^{0\cdot t}\begin{bmatrix} 0.4 \\ 0.6 \end{bmatrix} + 0.6\,e^{-0.5 t}\begin{bmatrix} 1 \\ -1 \end{bmatrix} = \begin{bmatrix} 0.4 + 0.6\,e^{-0.5 t} \\ 0.6 - 0.6\,e^{-0.5 t} \end{bmatrix}
+$$
+显然 $\lim_{t\to\infty}\mathbf{u}(t) = \mathbf{u}_\infty$。此外，由于 $A^T\mathbf{1} = (M^T - I)\mathbf{1} = \mathbf{0}$（全 1 向量 $\mathbf{1} \in \operatorname{Null}(A^T)$），总概率质量随时间的导数为：
+$$
+\frac{d}{dt}(\mathbf{1}^T \mathbf{u}(t)) = \mathbf{1}^T \frac{d\mathbf{u}}{dt} = \mathbf{1}^T A\mathbf{u}(t) = (A^T \mathbf{1})^T \mathbf{u}(t) = 0 \implies \mathbf{1}^T \mathbf{u}(t) \equiv \mathbf{1}^T\mathbf{u}(0) = 1
+$$
+
+**3. 参数相平面拓扑分类**：  
+对 $B_c = \begin{bmatrix} -1 & 2 \\ c & -3 \end{bmatrix}$，迹恒为负数 $\operatorname{tr}(B_c) = -1 - 3 = -4 \lt 0$，行列式 $\det(B_c) = 3 - 2c$，特征判别式为：
+$$
+\Delta = (\operatorname{tr} B_c)^2 - 4\det(B_c) = 16 - 4(3 - 2c) = 4 + 8c
+$$
+由此精确划分四类区域：
+- **稳定螺旋点（共轭复根且实部负：$\det \gt 0, \Delta \lt 0$）**：$3 - 2c \gt 0$ 且 $4 + 8c \lt 0 \implies c \lt -\frac{1}{2}$；
+- **稳定节点（两非正实根且严格负：$\det \gt 0, \Delta \ge 0$）**：$-\frac{1}{2} \le c \lt \frac{3}{2}$（含临界重根节点 $c = -\frac{1}{2}$）；
+- **退化中性平衡线（出现零特征值：$\det = 0$）**：$c = \frac{3}{2}$（特征值 $\lambda_1 = 0, \lambda_2 = -4$，所有轨线沿 $\mathbf{x}_2$ 方向收敛到直线上不同的稳定点）；
+- **不稳定鞍点（一正一负实根：$\det \lt 0$）**：$c \gt \frac{3}{2}$。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### 习题 4（L3 难度）：实对称谱分解 $Q\Lambda Q^T$、SPD 椭球主轴与无根号 Cholesky 分解
+
+<ExerciseCard
+  id="l35-ex4"
+  tier="L3"
+  title="实对称谱定理 QΛQᵀ、Cholesky 分解与二次型椭球几何"
+>
+
+考虑实对称矩阵：
+
+$$
+A = \begin{bmatrix} 4 & -6 \\ -6 & 13 \end{bmatrix}
+$$
+
+1. 求 $A$ 的正交对角化 $A = Q\Lambda Q^T$（保证 $\det(Q) = +1$，即 $Q$ 为纯旋转矩阵），并写出 $A$ 作为两个正交秩 1 投影矩阵之和的谱展开式 $\lambda_1 \mathbf{q}_1\mathbf{q}_1^T + \lambda_2 \mathbf{q}_2\mathbf{q}_2^T$；
+2. 利用高维无行交换高斯消元求出 $A = LDL^T$ 及 **Cholesky 分解** $A = R^T R$（其中 $R$ 为主对角元全正的上三角矩阵，结果竟不含任何根号！）；
+3. 借助第一问谱分解，几何描绘平面椭圆 $\mathbf{x}^T A\mathbf{x} = 16$ 的长短主轴方向、半轴长度与面积；
+4. 直接根据 $A$ 的特征值与主轴，写出 Rayleigh 商 $\frac{\mathbf{x}^T A\mathbf{x}}{\mathbf{x}^T\mathbf{x}}$ 的全局最大值与最小值，并求出使得二次型函数 $f(\mathbf{x}) = \frac{1}{2}\mathbf{x}^T A\mathbf{x} - \mathbf{b}^T\mathbf{x}$（其中 $\mathbf{b} = \begin{bmatrix} 2 \\ 5 \end{bmatrix}$）取严格极小值的唯一坐标 $\mathbf{x}^*$。
+
+<ProgressiveHint hints={[
+  "第 1 问：$\\operatorname{tr}(A) = 17$、$\\det(A) = 52 - 36 = 16$，一眼解出特征方程 $\\lambda^2 - 17\\lambda + 16 = 0$！",
+  "第 2 问：$R = \\sqrt{D} L^T$。由 $4$ 和 $d_2 = 4$，开平方全部是整数！",
+  "第 3 问：把等式 $\\lambda_1 y_1^2 + \\lambda_2 y_2^2 = 16$ 两端同除以 $16$，变成标准椭圆方程 $\\frac{y_1^2}{a^2} + \\frac{y_2^2}{b^2} = 1$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+
+这是模块四第 26 讲与第 28 讲的完美合璧。表面上看 $4x_1^2 - 12x_1 x_2 + 13x_2^2 = 16$ 是一个带有烦人交叉项 $-12x_1 x_2$ 的倾斜椭圆；一旦旋转到特征正交基 $Q$ 上（相当于沿着椭圆真实对称轴重画坐标网格），交叉项瞬间蒸发，变成端正的标准椭圆 $16y_1^2 + y_2^2 = 16$！
+
+Cholesky 分解 $A = R^T R$ 则是另一条完全不同的途径：它不求旋转，而是把 $A$ 看成某线性变换 $R$ 的内积矩阵（$\mathbf{x}^T A\mathbf{x} = \|R\mathbf{x}\|_2^2$），只需 $O(n^3/6)$ 的超快代数消元就能构造出来，而且直接宣告二次能量严格凸、极小值点唯一。
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**1. 实对称谱分解 $A = Q\Lambda Q^T$**：  
+计算特征多项式：$\operatorname{tr}(A) = 17$，$\det(A) = 4\times 13 - (-6)^2 = 52 - 36 = 16$。
+$$
+\lambda^2 - 17\lambda + 16 = (\lambda - 16)(\lambda - 1) = 0 \implies \lambda_1 = 16, \quad \lambda_2 = 1
+$$
+- 对 $\lambda_1 = 16$：$(A - 16I)\mathbf{q}_1 = \begin{bmatrix} -12 & -6 \\ -6 & -3 \end{bmatrix}\mathbf{q}_1 = \mathbf{0} \implies \mathbf{q}_1 = \frac{1}{\sqrt{5}}\begin{bmatrix} -1 \\ 2 \end{bmatrix}$；
+- 对 $\lambda_2 = 1$：$(A - I)\mathbf{q}_2 = \begin{bmatrix} 3 & -6 \\ -6 & 12 \end{bmatrix}\mathbf{q}_2 = \mathbf{0} \implies \mathbf{q}_2 = \frac{1}{\sqrt{5}}\begin{bmatrix} 2 \\ 1 \end{bmatrix}$。
+
+注意排列顺序：若取 $Q = [\mathbf{q}_2 \;\; \mathbf{q}_1] = \frac{1}{\sqrt{5}}\begin{bmatrix} 2 & -1 \\ 1 & 2 \end{bmatrix}$，则 $\det(Q) = \frac{4 - (-1)}{5} = +1$（纯旋转矩阵！），此时对应 $\Lambda = \begin{bmatrix} 1 & 0 \\ 0 & 16 \end{bmatrix}$；若保持 $\Lambda = \operatorname{diag}(16, 1)$ 且要求 $\det(Q) = +1$，只需把 $\mathbf{q}_2$ 反向取 $\mathbf{q}_2' = \frac{1}{\sqrt{5}}\begin{bmatrix} -2 \\ -1 \end{bmatrix}$，此时 $Q = \frac{1}{\sqrt{5}}\begin{bmatrix} -1 & -2 \\ 2 & -1 \end{bmatrix}$ 同样满足 $\det(Q) = \frac{1 + 4}{5} = +1$。谱展开均为：
+$$
+A = 16\mathbf{q}_1\mathbf{q}_1^T + 1\mathbf{q}_2\mathbf{q}_2^T = \frac{16}{5}\begin{bmatrix} 1 & -2 \\ -2 & 4 \end{bmatrix} + \frac{1}{5}\begin{bmatrix} 4 & 2 \\ 2 & 1 \end{bmatrix}
+$$
+
+**2. $LDL^T$ 与无根号 Cholesky 分解 $A = R^T R$**：  
+对第 2 行减去第 1 行的 $-\frac{6}{4} = -\frac{3}{2}$ 倍（即加上 $\frac{3}{2}$ 倍第 1 行）：
+$$
+\begin{bmatrix} 4 & -6 \\ -6 & 13 \end{bmatrix} \to \begin{bmatrix} 4 & -6 \\ 0 & 13 - \frac{3}{2}\cdot 6 \end{bmatrix} = \begin{bmatrix} 4 & -6 \\ 0 & 4 \end{bmatrix}
+$$
+分解出对角主元矩阵 $D = \begin{bmatrix} 4 & 0 \\ 0 & 4 \end{bmatrix}$ 与下三角矩阵 $L = \begin{bmatrix} 1 & 0 \\ -3/2 & 1 \end{bmatrix}$，验证 $A = L D L^T$。将 $\sqrt{D} = \begin{bmatrix} 2 & 0 \\ 0 & 2 \end{bmatrix}$ 均分给两侧，记 $R = \sqrt{D} L^T$：
+$$
+R = \begin{bmatrix} 2 & 0 \\ 0 & 2 \end{bmatrix}\begin{bmatrix} 1 & -3/2 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 2 & -3 \\ 0 & 2 \end{bmatrix}
+$$
+核验：$R^T R = \begin{bmatrix} 2 & 0 \\ -3 & 2 \end{bmatrix}\begin{bmatrix} 2 & -3 \\ 0 & 2 \end{bmatrix} = \begin{bmatrix} 4 & -6 \\ -6 & 13 \end{bmatrix} = A$！
+
+**3. 椭圆几何**：  
+令 $\mathbf{x} = y_1\mathbf{q}_1 + y_2\mathbf{q}_2$，等式 $\mathbf{x}^T A\mathbf{x} = 16$ 化为 $16y_1^2 + y_2^2 = 16$，即：
+$$
+\frac{y_1^2}{1^2} + \frac{y_2^2}{4^2} = 1
+$$
+因此：
+- **短半轴**：沿 $\mathbf{q}_1 = \frac{1}{\sqrt{5}}[-1, 2]^T$ 方向，半轴长 $a_1 = \sqrt{16/\lambda_1} = 1$；
+- **长半轴**：沿 $\mathbf{q}_2 = \frac{1}{\sqrt{5}}[2, 1]^T$ 方向，半轴长 $a_2 = \sqrt{16/\lambda_2} = 4$；
+- **椭圆面积**：$S = \pi a_1 a_2 = 4\pi$。
+
+**4. Rayleigh 商与全局极小点**：  
+由定理 C，$\frac{\mathbf{x}^T A\mathbf{x}}{\mathbf{x}^T\mathbf{x}}$ 的全局最大值为 $\lambda_{\max} = 16$（沿 $\mathbf{q}_1$ 方向取得），全局最小值为 $\lambda_{\min} = 1$（沿 $\mathbf{q}_2$ 方向取得）。  
+对于严格凸二次函数 $f(\mathbf{x})$，令梯度 $\nabla f(\mathbf{x}) = A\mathbf{x} - \mathbf{b} = \mathbf{0}$，利用 $A^{-1} = \frac{1}{16}\begin{bmatrix} 13 & 6 \\ 6 & 4 \end{bmatrix}$ 解得：
+$$
+\mathbf{x}^* = A^{-1}\mathbf{b} = \frac{1}{16}\begin{bmatrix} 13 & 6 \\ 6 & 4 \end{bmatrix}\begin{bmatrix} 2 \\ 5 \end{bmatrix} = \frac{1}{16}\begin{bmatrix} 56 \\ 32 \end{bmatrix} = \begin{bmatrix} 3.5 \\ 2 \end{bmatrix}
+$$
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### 习题 5（L4 难度）：完整奇异值分解（SVD）、Eckart-Young 最优低秩逼近与伪逆极小范数解
+
+<ExerciseCard
+  id="l35-ex5"
+  tier="L4"
+  title="完整 SVD 构造、Eckart-Young 最优秩 1 逼近与伪逆极小范数解"
+>
+
+考虑如下长方形行满秩矩阵 $A \in \mathbb{R}^{2\times 3}$：
+
+$$
+A = \begin{bmatrix} 2 & 5 & 4 \\ 6 & 3 & 0 \end{bmatrix}
+$$
+
+1. **聪明选边**：通过分解 $2\times 2$ 矩阵 $A A^T$ 求出 $A$ 的非零奇异值 $\sigma_1 \gt \sigma_2 \gt 0$ 与左奇异矩阵 $U = [\mathbf{u}_1 \;\; \mathbf{u}_2]$，随后利用严谨映射公式 $\mathbf{v}_i = \frac{1}{\sigma_i} A^T \mathbf{u}_i$（并补全 $\operatorname{Null}(A)$ 基向量 $\mathbf{v}_3$）构造完整奇异值分解 $A = U\Sigma V^T$；
+2. 依据 Eckart-Young 定理，写出 $A$ 在谱范数（$\|\cdot\|_2$）与 Frobenius 范数（$\|\cdot\|_F$）下的最优秩 1 近似矩阵 $A_1$，并求截断误差 $\|A - A_1\|_2$ 与 $\|A - A_1\|_F$；
+3. 构造 $A$ 的 Moore-Penrose 伪逆 $A^+ = V\Sigma^+ U^T \in \mathbb{R}^{3\times 2}$，并核验右逆恒等式 $A A^+ = I_2$（以及一般情形下 $A^+ A = P_{\operatorname{Row}(A)} \ne I_3$）；
+4. 对观测向量 $\mathbf{b} = \begin{bmatrix} 9 \\ 27 \end{bmatrix}$，计算伪逆解 $\mathbf{x}^+ = A^+\mathbf{b}$；对比通过令自由变量 $x_3 = 0$（或 $x_2 = 0$）算出的常规特解 $\mathbf{x}_0$，用具体数值证明 $\|\mathbf{x}^+\|_2 \lt \|\mathbf{x}_0\|_2$ 并解释其正交几何根源。
+
+<ProgressiveHint hints={[
+  "第 1 问：$A$ 是 $2\\times 3$ 胖矩阵，因此 $A A^T = \\begin{bmatrix} 45 & 27 \\\\ 27 & 45 \\end{bmatrix}$ 仅需 $2\\times 2$ 特征分解！元素对称（对角相等），特征向量立刻是 $[1,1]^T/\\sqrt{2}$ 与 $[1,-1]^T/\\sqrt{2}$。",
+  "第 2 问：$A_1 = \\sigma_1 \\mathbf{u}_1 \\mathbf{v}_1^T$ 竟然是一个纯整数矩阵！误差精确等于被截去的 $\\sigma_2$。",
+  "第 3–4 问：注意 $\\sigma_1 = 6\\sqrt{2}, \\sigma_2 = 3\\sqrt{2}$，平方根因子会与 $\\mathbf{u}_1, \\mathbf{u}_2$ 中的 $\\frac{1}{\\sqrt{2}}$ 完美抵消为简单分数 $\\frac{1}{36}$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+
+$A \in \mathbb{R}^{2\times 3}$ 代表一个**欠定系统（2 个方程、3 个未知数）**，它有无穷多组精确解沿着一维零空间直线排成一排。如果机械地套用常规 RREF 把自由变量 $x_3$ 设为 $0$，得到的只是解直线上一个恰好落在坐标平面上的“偏心特解” $\mathbf{x}_0$。
+
+只有通过 SVD 构造出的伪逆解 $\mathbf{x}^+ = A^+\mathbf{b}$，才会一刀砍掉所有零空间多余分量，笔直把解垂直落在 $\operatorname{Row}(A)$ 平面与解直线的唯一垂足点上——这正是**全局最短（极小欧氏范数）精确解**！
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**1. 完整奇异值分解 $A = U\Sigma V^T$**：  
+先算小尺寸矩阵 $A A^T \in \mathbb{R}^{2\times 2}$：
+$$
+A A^T = \begin{bmatrix} 2 & 5 & 4 \\ 6 & 3 & 0 \end{bmatrix}\begin{bmatrix} 2 & 6 \\ 5 & 3 \\ 4 & 0 \end{bmatrix} = \begin{bmatrix} 45 & 27 \\ 27 & 45 \end{bmatrix}
+$$
+因对称双对角元素相等，特征值与单位特征向量可直接心算得到：
+- $\lambda_1 = 45 + 27 = 72 \implies \sigma_1 = \sqrt{72} = 6\sqrt{2}$，$\mathbf{u}_1 = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ 1 \end{bmatrix}$；
+- $\lambda_2 = 45 - 27 = 18 \implies \sigma_2 = \sqrt{18} = 3\sqrt{2}$，$\mathbf{u}_2 = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ -1 \end{bmatrix}$。
+
+再用 $\mathbf{v}_i = \frac{1}{\sigma_i} A^T\mathbf{u}_i$ 严格锁定右奇异向量（防符号错配！）：
+$$
+\mathbf{v}_1 = \frac{1}{6\sqrt{2}}\begin{bmatrix} 2 & 6 \\ 5 & 3 \\ 4 & 0 \end{bmatrix}\frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ 1 \end{bmatrix} = \frac{1}{12}\begin{bmatrix} 8 \\ 8 \\ 4 \end{bmatrix} = \frac{1}{3}\begin{bmatrix} 2 \\ 2 \\ 1 \end{bmatrix}
+$$
+$$
+\mathbf{v}_2 = \frac{1}{3\sqrt{2}}\begin{bmatrix} 2 & 6 \\ 5 & 3 \\ 4 & 0 \end{bmatrix}\frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ -1 \end{bmatrix} = \frac{1}{6}\begin{bmatrix} -4 \\ 2 \\ 4 \end{bmatrix} = \frac{1}{3}\begin{bmatrix} -2 \\ 1 \\ 2 \end{bmatrix}
+$$
+最后求 $\operatorname{Null}(A)$：解 $6x_1 + 3x_2 = 0 \implies x_2 = -2x_1$，代入 $2x_1 + 5(-2x_1) + 4x_3 = 0 \implies x_3 = 2x_1$，归一化得 $\mathbf{v}_3 = \frac{1}{3}\begin{bmatrix} 1 \\ -2 \\ 2 \end{bmatrix}$。故完整分解为：
+$$
+U = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}, \quad \Sigma = \begin{bmatrix} 6\sqrt{2} & 0 & 0 \\ 0 & 3\sqrt{2} & 0 \end{bmatrix}, \quad V = \frac{1}{3}\begin{bmatrix} 2 & -2 & 1 \\ 2 & 1 & -2 \\ 1 & 2 & 2 \end{bmatrix}
+$$
+
+**2. Eckart-Young 最优秩 1 逼近 $A_1$**：  
+$$
+A_1 = \sigma_1 \mathbf{u}_1 \mathbf{v}_1^T = 6\sqrt{2}\left(\frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ 1 \end{bmatrix}\right)\left(\frac{1}{3}\begin{bmatrix} 2 & 2 & 1 \end{bmatrix}\right) = 2\begin{bmatrix} 2 & 2 & 1 \\ 2 & 2 & 1 \end{bmatrix} = \begin{bmatrix} 4 & 4 & 2 \\ 4 & 4 & 2 \end{bmatrix}
+$$
+截断误差矩阵 $A - A_1 = \sigma_2\mathbf{u}_2\mathbf{v}_2^T = \begin{bmatrix} -2 & 1 & 2 \\ 2 & -1 & -2 \end{bmatrix}$，因此精确误差为：
+$$
+\|A - A_1\|_2 = \sigma_2 = 3\sqrt{2}, \qquad \|A - A_1\|_F = \sqrt{\sigma_2^2} = \sigma_2 = 3\sqrt{2}
+$$
+
+**3. 构造 Moore-Penrose 伪逆 $A^+$**：  
+$$
+A^+ = \frac{1}{\sigma_1}\mathbf{v}_1\mathbf{u}_1^T + \frac{1}{\sigma_2}\mathbf{v}_2\mathbf{u}_2^T = \frac{1}{36}\begin{bmatrix} 2 & 2 \\ 2 & 2 \\ 1 & 1 \end{bmatrix} + \frac{1}{18}\begin{bmatrix} -2 & 2 \\ 1 & -1 \\ 2 & -2 \end{bmatrix} = \frac{1}{36}\begin{bmatrix} -2 & 6 \\ 4 & 0 \\ 5 & -3 \end{bmatrix}
+$$
+核验 $A A^+ = \frac{1}{36}\begin{bmatrix} 2 & 5 & 4 \\ 6 & 3 & 0 \end{bmatrix}\begin{bmatrix} -2 & 6 \\ 4 & 0 \\ 5 & -3 \end{bmatrix} = \frac{1}{36}\begin{bmatrix} 36 & 0 \\ 0 & 36 \end{bmatrix} = I_2$（严格右逆），而 $A^+ A = \mathbf{v}_1\mathbf{v}_1^T + \mathbf{v}_2\mathbf{v}_2^T = I_3 - \mathbf{v}_3\mathbf{v}_3^T = P_{\operatorname{Row}(A)} \ne I_3$。
+
+**4. 极小范数伪逆解 vs 自由变量特解**：  
+对 $\mathbf{b} = \begin{bmatrix} 9 \\ 27 \end{bmatrix}$：
+$$
+\mathbf{x}^+ = A^+\mathbf{b} = \frac{1}{36}\begin{bmatrix} -2 & 6 \\ 4 & 0 \\ 5 & -3 \end{bmatrix}\begin{bmatrix} 9 \\ 27 \end{bmatrix} = \frac{1}{36}\begin{bmatrix} 144 \\ 36 \\ -36 \end{bmatrix} = \begin{bmatrix} 4 \\ 1 \\ -1 \end{bmatrix}
+$$
+验算 $A\mathbf{x}^+ = \begin{bmatrix} 8+5-4 \\ 24+3+0 \end{bmatrix} = \begin{bmatrix} 9 \\ 27 \end{bmatrix} = \mathbf{b}$，欧氏范数平方 $\|\mathbf{x}^+\|_2^2 = 4^2 + 1^2 + (-1)^2 = 18$。  
+反观令自由变量 $x_3 = 0$ 的传统 RREF 特解：解 $6x_1 + 3x_2 = 27$ 与 $2x_1 + 5x_2 = 9$ 得 $\mathbf{x}_0 = \begin{bmatrix} 4.5 \\ 0 \\ 0 \end{bmatrix}$，其范数平方为 $\|\mathbf{x}_0\|_2^2 = 20.25 \gt 18$！二者之差恰是一个零空间向量：
+$$
+\mathbf{x}_0 - \mathbf{x}^+ = \begin{bmatrix} 0.5 \\ -1 \\ 1 \end{bmatrix} = \frac{3}{2}\mathbf{v}_3 \in \operatorname{Null}(A)
+$$
+且 $(\mathbf{x}^+)^T(\mathbf{x}_0 - \mathbf{x}^+) = 4(0.5) + 1(-1) + (-1)(1) = 0$，验证 $\|\mathbf{x}_0\|_2^2 = 18 + 2.25 = 20.25$ 严格符合勾股定理。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### 习题 6（L4 难度）：全课程 35 讲跨模块终极真伪大阅兵
+
+<ExerciseCard
+  id="l35-ex6"
+  tier="L4"
+  title="全课程 35 讲终极真伪判断大挑战（概念极限测试）"
+>
+
+以下 4 道命题横跨四个模块，专测核心概念边界。请仔细审视每一项前提条件（矩阵形状、对称性、可逆性、基变换），并在下方两道交互卡片中即时提交你对关键命题的判断：
+
+- **命题 1**：对于**任意**实矩阵 $A \in \mathbb{R}^{m\times n}$，如果将其与转置相乘构造出 $A^T A \in \mathbb{R}^{n\times n}$，则 $A^T A$ 必定是一个对称正定矩阵（SPD）。
+
+<TrueFalseInteractive
+  id="l35-tf1"
+  correct={false}
+  quickFeedback={"$A^T A$ 永远对称且至少半正定（$\\mathbf{x}^T A^T A \\mathbf{x} = \\|A\\mathbf{x}\\|_2^2 \\ge 0$），但严格正定（$\\gt 0$）要求 $\\operatorname{Null}(A) = \\{\\mathbf{0}\\}$ 即 $A$ 必须列满秩！若 $\\operatorname{rank}(A) \\lt n$，则存在零特征值。"}
+/>
+
+- **命题 2**：若方阵 $A \in \mathbb{R}^{n\times n}$ 的全部奇异值都等于 $1$（即 $\sigma_1 = \dots = \sigma_n = 1$），则 $A$ 必然是一个**正交矩阵**（满足 $A^T A = A A^T = I_n$）。
+
+<TrueFalseInteractive
+  id="l35-tf2"
+  correct={true}
+  quickFeedback={"完全正确！由 SVD 分解 $A = U\\Sigma V^T$，全部奇异值为 $1$ 意味着 $\\Sigma = I_n$，因此 $A = U V^T$ 为两个正交矩阵的乘积，本身必然是正交矩阵（所有特征值模长皆为 $1$，保长保角）！"}
+/>
+
+- **命题 3**：设可逆方阵 $A \in \mathbb{R}^{n\times n}$ 满足 $A$ 与其逆矩阵 $A^{-1}$ 拥有完全相同的四个基本子空间。
+- **命题 4**：在非标准基底下，同一线性算子 $T: \mathbb{R}^n \to \mathbb{R}^n$ 的矩阵表示由 $A$ 变为相似矩阵 $B = M^{-1}AM$，则 $A$ 与 $B$ 拥有相同的特征值、迹、行列式与秩，但特征向量坐标与奇异值一般**会发生改变**。
+
+请对以上全部 4 个命题给出严格证明或精准反例！
+
+<ProgressiveHint hints={[
+  "命题 1：试试一个带全零列或两列成比例的 $2\\times 2$ 矩阵，比如秩 1 矩阵。",
+  "命题 2：把 $\\Sigma = I_n$ 直接代回 $A = U\\Sigma V^T$，检验 $A^T A$。",
+  "命题 3：若 $A$ 可逆，其四个基本子空间究竟是什么？",
+  "命题 4：取一个非正交相似矩阵 $M$ 对对角阵作变换，观察 $M^{-1}AM$ 的奇异值是否与 $A$ 相同！"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+
+这四道题是检验你是否真正“毕业”的试金石：
+- 命题 1 考验对 $A^T A$ **正定 vs 半正定**的零空间直觉；
+- 命题 2 考验把 SVD 翻译回几何变换的本领——如果一个线性变换在所有方向上都既不拉伸也不压缩（全部奇异值 $\sigma_i = 1$），那它把单位球映回单位球，只能是刚体旋转或反射（正交矩阵）！
+- 命题 3 揭示了可逆矩阵的极大简并：两个满空间加上两个零空间，自然与 $A^{-1}$ 完全一致；
+- 命题 4 精准区分了**相似不变量**（谱、迹、行列式、秩）与**正交不变量**（奇异值）的边界：非正交的拉扯换基 $M$ 保持特征值，但改变长度尺度，因此会改变奇异值！
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**命题 1：错误（False）。**  
+对任意 $\mathbf{x} \in \mathbb{R}^n$，有 $\mathbf{x}^T(A^T A)\mathbf{x} = \|A\mathbf{x}\|_2^2 \ge 0$，因此 $A^T A$ 必定**对称半正定（Positive Semidefinite）**。然而要成为严格正定矩阵（SPD），必须满足 $\operatorname{Null}(A) = \{\mathbf{0}\}$（即 $A$ **列满秩**）。  
+*反例*：取 $A = \begin{bmatrix} 1 & 1 \\ 0 & 0 \end{bmatrix}$，则 $A^T A = \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix}$，特征值为 $\{2, 0\}$，取 $\mathbf{x} = [1, -1]^T \ne \mathbf{0}$ 时 $\mathbf{x}^T A^T A \mathbf{x} = 0$，并非严格正定。
+
+**命题 2：正确（True）。**  
+*证明*：设 $A \in \mathbb{R}^{n\times n}$ 的 SVD 为 $A = U\Sigma V^T$，其中 $U, V \in \mathbb{R}^{n\times n}$ 为正交矩阵。若全部奇异值 $\sigma_1 = \dots = \sigma_n = 1$，则 $\Sigma = I_n$，从而 $A = U I_n V^T = U V^T$。验证正交性：
+$$
+A^T A = (V U^T)(U V^T) = V(U^T U)V^T = V I_n V^T = I_n
+$$
+由于 $A$ 是方阵，$A^T A = I_n$ 蕴含 $A A^T = I_n$，因此 $A$ 必为正交矩阵。
+
+**命题 3：正确（True）。**  
+*证明*：因为 $A \in \mathbb{R}^{n\times n}$ 可逆，其逆矩阵 $A^{-1}$ 同样可逆。由定理 A（可逆性等价刻画），任何 $n\times n$ 可逆矩阵都满足：
+$$
+\operatorname{Col}(A) = \operatorname{Row}(A) = \mathbb{R}^n = \operatorname{Col}(A^{-1}) = \operatorname{Row}(A^{-1})
+$$
+$$
+\operatorname{Null}(A) = \operatorname{Null}(A^T) = \{\mathbf{0}\} = \operatorname{Null}(A^{-1}) = \operatorname{Null}((A^{-1})^T)
+$$
+故 $A$ 与 $A^{-1}$ 拥有完全相同的四个基本子空间。（注意：若 $A$ 不可逆，如幂零矩阵或一般秩亏阵，其列空间与行空间一般完全不同！）
+
+**命题 4：正确（True）。**  
+*证明与反例*：由第 29 讲相似矩阵性质，若 $B = M^{-1}AM$：
+- **不变量**：$\det(B - \lambda I) = \det(M^{-1}(A - \lambda I)M) = \det(A - \lambda I)$，故特征值、$\operatorname{tr}$、$\det$ 与 $\operatorname{rank}$（乘可逆阵不改秩）全不变；
+- **特征向量坐标**：若 $A\mathbf{x} = \lambda\mathbf{x}$，则 $B(M^{-1}\mathbf{x}) = \lambda(M^{-1}\mathbf{x})$，特征向量在旧基与新基下的坐标相差 $M^{-1}$；
+- **奇异值会变（除非 $M$ 正交）**：取 $A = \begin{bmatrix} 2 & 0 \\ 0 & 1 \end{bmatrix}$ 与非正交换基阵 $M = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}$，则 $B = M^{-1}AM = \begin{bmatrix} 2 & -1 \\ 0 & 1 \end{bmatrix}$。此时 $\sigma(A) = \{2, 1\}$，但 $\det(B^T B) = 4$ 且 $\operatorname{tr}(B^T B) = 4 + 1 + 1 = 6$，故 $B$ 的奇异值满足 $\sigma_1^2 + \sigma_2^2 = 6 \ne 2^2 + 1^2 = 5$（奇异值为 $\sqrt{3\pm\sqrt{5}}$），完全改变！这再次印证：特征值是在**一般可逆换基 $M^{-1}AM$** 下的不变量，而奇异值是仅在**正交换基 $U^T A V$** 下的欧氏长度不变量。
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>

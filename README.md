@@ -73,19 +73,19 @@ This project bridges both worlds with four strict design pillars:
 | **24** | L24 | P24 | Markov Matrices; Fourier Series | ✅ Live | 🗓️ Planned | **[AI-11]** Diffusion Forward Markov Chains (DDPM / D3PM) & Stationary Noise |
 | **25** | L24b | P25 | Quiz 2 Review (Modules II & III Synthesis) | ✅ Live | 🗓️ Planned | — |
 
-### Module IV: Positive Definite Matrices, SVD & Linear Transformations
+### Module IV: Positive Definite Matrices, SVD & Linear Transformations (10 / 10 `zh` Complete ✅)
 | Session | OCW # | Video P# | Topic | `zh` Status | `en` Status | Isolated Frontier AI Reading |
 | :---: | :---: | :---: | :--- | :---: | :---: | :--- |
-| **26** | L25 | P26 | Symmetric Matrices and Positive Definiteness ($A = Q\Lambda Q^T$) | 🗓️ Planned | 🗓️ Planned | — |
-| **27** | L26 | P27 | Complex Matrices; Fast Fourier Transform (FFT) | 🗓️ Planned | 🗓️ Planned | — |
-| **28** | L27 | P28 | Positive Definite Matrices and Minima ($\mathbf{x}^TA\mathbf{x} > 0$) | 🗓️ Planned | 🗓️ Planned | **[AI-12]** Diffusion Gaussian Noise Covariance Ellipsoids, Hessian & Fisher Info |
-| **29** | L28 | P29 | Similar Matrices and Jordan Form | 🗓️ Planned | 🗓️ Planned | — |
-| **30** | L29 | P30 | Singular Value Decomposition ($A = U\Sigma V^T$) | 🗓️ Planned | 🗓️ Planned | **[AI-13]** Weight Spectrum, Eckart-Young Low-Rank Approx & $W_Q^TW_K$ Bottleneck |
-| **31** | L30 | P31 | Linear Transformations and Their Matrices | 🗓️ Planned | 🗓️ Planned | — |
-| **32** | L31 | P32 | Change of Basis; Image Compression | 🗓️ Planned | 🗓️ Planned | **[AI-14]** Latent Space Basis Transforms: From Wavelets/DCT to Latent Diffusion |
-| **33** | L32 | P33 | Quiz 3 Review (Module IV Synthesis) | 🗓️ Planned | 🗓️ Planned | — |
-| **34** | L33 | P34 | Left and Right Inverses; Pseudoinverse ($A^+$) | 🗓️ Planned | 🗓️ Planned | **[AI-15]** Implicit Bias of Gradient Descent & Minimum-Norm Solution $A^+\mathbf{b}$ |
-| **35** | L34 | P35 | Final Course Review (The Grand Picture of Linear Algebra) | 🗓️ Planned | 🗓️ Planned | — |
+| **26** | L25 | P26 | Symmetric Matrices and Positive Definiteness ($A = Q\Lambda Q^T$) | ✅ Live | 🗓️ Planned | — |
+| **27** | L26 | P27 | Complex Matrices; Fast Fourier Transform (FFT) | ✅ Live | 🗓️ Planned | — |
+| **28** | L27 | P28 | Positive Definite Matrices and Minima ($\mathbf{x}^TA\mathbf{x} > 0$) | ✅ Live | 🗓️ Planned | **[AI-12]** Diffusion Gaussian Noise Covariance Ellipsoids, Hessian & Fisher Info |
+| **29** | L28 | P29 | Similar Matrices and Jordan Form | ✅ Live | 🗓️ Planned | — |
+| **30** | L29 | P30 | Singular Value Decomposition ($A = U\Sigma V^T$) | ✅ Live | 🗓️ Planned | **[AI-13]** Weight Spectrum, Eckart-Young Low-Rank Approx & $W_Q^TW_K$ Bottleneck |
+| **31** | L30 | P31 | Linear Transformations and Their Matrices | ✅ Live | 🗓️ Planned | — |
+| **32** | L31 | P32 | Change of Basis; Image Compression | ✅ Live | 🗓️ Planned | **[AI-14]** Latent Space Basis Transforms: From Wavelets/DCT to Latent Diffusion |
+| **33** | L32 | P33 | Quiz 3 Review (Module IV Synthesis) | ✅ Live | 🗓️ Planned | — |
+| **34** | L33 | P34 | Left and Right Inverses; Pseudoinverse ($A^+$) | ✅ Live | 🗓️ Planned | **[AI-15]** Implicit Bias of Gradient Descent & Minimum-Norm Solution $A^+\mathbf{b}$ |
+| **35** | L34 | P35 | Final Course Review (The Grand Picture of Linear Algebra) | ✅ Live | 🗓️ Planned | — |
 
 ---
 

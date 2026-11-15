@@ -1,0 +1,915 @@
+---
+title: "第 29 讲：相似矩阵与 Jordan 标准形"
+ocwId: "L28"
+videoEpisode: "P29"
+textbookRef: "§6.2, §8.3"
+---
+
+在前面的课程中，我们已经见过线性代数中最令人愉悦的“优等生”矩阵：
+- 在第 22 讲，只要方阵 $A$ 拥有 $n$ 个线性无关的特征向量，我们就能将它相似对角化为 $A = S\Lambda S^{-1}$（即 $\Lambda = S^{-1}AS$）；
+- 在第 26 讲与第 28 讲，实对称矩阵与复 Hermitian 矩阵更进一步——它们永远可以由正交矩阵 $Q$（或酉矩阵 $U$）完成正交对角化 $A = Q\Lambda Q^T$，同时兼顾特征值保真与正交几何刚性。
+
+然而，若把目光投向**全体复方阵空间 $\mathbb{C}^{n \times n}$**（包含非对称、不可对角化的**亏损矩阵（Defective Matrices）**），两个最根本的分类问题立刻摆在面前：
+1. 两个看起来完全不同的矩阵 $A$ 与 $B$，什么时候本质上只是“**同一个线性算子在两套不同坐标系下的矩阵表示**”？（这就是**矩阵相似（Matrix Similarity）**：$B = M^{-1} A M$。）
+2. 当一个矩阵因为特征向量不足而**无法对角化**时，通过可逆相似变换 $M^{-1}AM$，我们能把它化简到的**最简洁、最接近对角阵的“标准形”**究竟长什么样？（这就是经典的 **Jordan 标准形（Jordan Canonical Form, JCF）**。）
+
+---
+
+## 一、什么是相似矩阵？与合同、消元的本质分野
+
+### 1. 直觉起源：同一算子，换副坐标眼镜
+
+设想在向量空间中有一个固定的线性变换 $T$。在标准基下，输入 $\mathbf{x}$ 被映射为 $\mathbf{y} = A\mathbf{x}$。现在我们换用一组新的可逆基底（把新基向量按列排成可逆矩阵 $M$），使得原坐标与新坐标满足 $\mathbf{x} = M\tilde{\mathbf{x}}$、$\mathbf{y} = M\tilde{\mathbf{y}}$。将其代入 $\mathbf{y} = A\mathbf{x}$：
+
+$$
+M\tilde{\mathbf{y}} = A (M\tilde{\mathbf{x}}) \implies \tilde{\mathbf{y}} = (M^{-1} A M)\tilde{\mathbf{x}}
+$$
+
+于是，矩阵 $B = M^{-1} A M$ 描述的仍然是**完全相同的物理与几何变换**，只是穿上了另一套坐标系的外衣（这一观点将在第 32 讲“基变换”中得到全面展开）。
+
+在对比相似变换之前，我们必须先把它与前序课程中学过的另两种矩阵变换严格区分开来：
+
+1. **初等消元（行等价）：$U = E A$**
+   仅在左侧乘以可逆矩阵 $E$，保持行空间 $\operatorname{Row}(A)$、零空间 $\operatorname{Null}(A)$ 与 $\operatorname{rank}(A)$ 不变，但**会彻底破坏特征值**！例如：
+   $$
+   A = \begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix} \; (\lambda = 5, 0) \quad \xrightarrow{E_{21}} \quad U = \begin{bmatrix} 1 & 2 \\ 0 & 0 \end{bmatrix} \; (\lambda = 1, 0)
+   $$
+2. **合同变换（Congruence）：$C = M^T A M$（复矩阵用 $M^H A M$）**
+   这是第 28 讲研究二次型 $f(\mathbf{x}) = \mathbf{x}^T A \mathbf{x}$ 时出现的换基公式。合同变换保持对称性与特征值的正负惯性符号（Sylvester 惯性定理），但**会改变特征值的数值大小**！例如取 $A = \begin{bmatrix} 2 & 0 \\ 0 & 8 \end{bmatrix}$ 与 $M = \begin{bmatrix} 1 & 0 \\ 0 & 1/2 \end{bmatrix}$，则：
+   $$
+   C = M^T A M = \begin{bmatrix} 1 & 0 \\ 0 & 1/2 \end{bmatrix} \begin{bmatrix} 2 & 0 \\ 0 & 8 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 1/2 \end{bmatrix} = \begin{bmatrix} 2 & 0 \\ 0 & 2 \end{bmatrix}
+   $$
+   特征值由 $\{2, 8\}$ 变成了 $\{2, 2\}$！而如果对同一个 $A$ 做相似变换：
+   $$
+   B = M^{-1} A M = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 2 & 0 \\ 0 & 8 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 1/2 \end{bmatrix} = \begin{bmatrix} 2 & 0 \\ 0 & 8 \end{bmatrix}
+   $$
+   特征值 $\{2, 8\}$ 纹丝不动！
+3. **罕见的美妙交集**：当且仅当换基矩阵 $M = Q$ 是实正交矩阵（$Q^T = Q^{-1}$）或复酉矩阵（$U^H = U^{-1}$）时，**合同变换与相似变换合二为一**：$Q^T A Q = Q^{-1} A Q$。这正是第 26 讲中实对称谱分解 $A = Q \Lambda Q^T$ 既能保留对称性、又能精确保留全部特征值的深层原因。
+
+### 2. 相似关系的严格定义
+
+<DefinitionCard title="相似矩阵与相似等价类" termEn="Similar Matrices & Similarity Equivalence">
+
+设方阵 $A, B \in \mathbb{C}^{n \times n}$（若讨论实矩阵，也可限定 $A, B \in \mathbb{R}^{n \times n}$）。若存在一个**可逆矩阵（Invertible Matrix）** $M \in \mathbb{C}^{n \times n}$（即 $\det(M) \ne 0$），使得：
+
+$$
+B = M^{-1} A M
+$$
+
+则称矩阵 $B$ **相似于（Similar to）**矩阵 $A$，记作 $A \sim B$。此变换称为对 $A$ 的**相似变换（Similarity Transformation）**。
+
+容易验证，“$\sim$” 是集合 $\mathbb{C}^{n \times n}$ 上的一个严格**等价关系（Equivalence Relation）**：
+1. **自反性（Reflexive）**：取 $M = I_n$，有 $A = I_n^{-1} A I_n \implies A \sim A$；
+2. **对称性（Symmetric）**：若 $B = M^{-1} A M$，则 $A = M B M^{-1} = (M^{-1})^{-1} B (M^{-1}) \implies B \sim A$；
+3. **传递性（Transitive）**：若 $B = M_1^{-1} A M_1$ 且 $C = M_2^{-1} B M_2$，则 $C = (M_1 M_2)^{-1} A (M_1 M_2)$，其中 $M_1 M_2$ 仍可逆，故 $A \sim C$。
+
+因此，整个矩阵空间 $\mathbb{C}^{n \times n}$ 被相似关系分割为互不相交的**相似等价类（Similarity Classes / Orbits）**；同一轨道内的矩阵互为相似变换，不同轨道之间绝无可能通过任何可逆的 $M^{-1}(\cdot)M$ 相互转化。
+
+</DefinitionCard>
+
+> **实数域 vs. 复数域注记**：若两个实矩阵 $A, B \in \mathbb{R}^{n\times n}$ 在复数域上相似（存在可逆复矩阵 $M \in \mathbb{C}^{n\times n}$ 使 $B = M^{-1}AM$），实际上必存在可逆**实**矩阵 $M_{\mathbb{R}} \in \mathbb{R}^{n\times n}$ 使 $B = M_{\mathbb{R}}^{-1} A M_{\mathbb{R}}$。不过为了保证所有特征值都在数域内存在并顺利写出 Jordan 分解，我们在本讲统一在复数域 $\mathbb{C}^{n \times n}$ 下陈述核心定理。
+
+<SimilarityOrbitAndInvariantsDiagram />
+
+---
+
+## 二、相似不变量定理：什么在 $M^{-1}AM$ 下纹丝不动？
+
+既然同属一条相似轨道的矩阵本质上是同一个线性算子，那么属于算子自身的内在几何与谱属性，绝不应该随着坐标系矩阵 $M$ 的改变而变化。
+
+<TheoremCard title="相似不变量定理" termEn="Similarity Invariants Theorem">
+
+设 $A, B \in \mathbb{C}^{n \times n}$ 相似，即存在可逆矩阵 $M \in \mathbb{C}^{n \times n}$ 使得 $B = M^{-1} A M$。则 $A$ 与 $B$ 必然共享以下全部**相似不变量（Similarity Invariants）**：
+
+1. **特征多项式相同**：$p_B(\lambda) = \det(B - \lambda I_n) = \det(A - \lambda I_n) = p_A(\lambda)$；
+2. **全部特征值及其代数重数相同**：$A$ 与 $B$ 拥有完全相同的特征值集合，且每个特征值 $\lambda_i$ 的代数重数 $\operatorname{AM}(\lambda_i)$ 完全相等；
+3. **迹（Trace）相等**：$\operatorname{tr}(B) = \operatorname{tr}(A)$；
+4. **行列式（Determinant）相等**：$\det(B) = \det(A)$；
+5. **矩阵幂、多项式与矩阵指数保持相似**：对任意整数 $k \ge 1$ 与任意多项式 $f(t)$，有
+   $$
+   B^k = M^{-1} A^k M, \qquad f(B) = M^{-1} f(A) M, \qquad e^{Bt} = M^{-1} e^{At} M
+   $$
+6. **秩与各阶平移幂的秩全等**：$\operatorname{rank}(B) = \operatorname{rank}(A)$，且更一般地，对任意复数 $\lambda \in \mathbb{C}$ 与任意正整数 $k \ge 1$，均有：
+   $$
+   \operatorname{rank}\!\left((B - \lambda I_n)^k\right) = \operatorname{rank}\!\left((A - \lambda I_n)^k\right)
+   $$
+7. **几何重数（独立特征向量个数）全等**：对任意特征值 $\lambda$，
+   $$
+   \operatorname{GM}_B(\lambda) = \dim \operatorname{Null}(B - \lambda I_n) = \dim \operatorname{Null}(A - \lambda I_n) = \operatorname{GM}_A(\lambda)
+   $$
+   且若 $\mathbf{x}_A$ 是 $A$ 对应 $\lambda$ 的特征向量，则 $\mathbf{x}_B = M^{-1} \mathbf{x}_A$ 就是 $B$ 对应 $\lambda$ 的特征向量（线性同构 $\mathbf{x}_A \mapsto M^{-1}\mathbf{x}_A$）。
+
+</TheoremCard>
+
+<ProofCollapse title="展开严格代数证明：相似不变量定理与迹的循环不变性">
+
+设 $B = M^{-1} A M$，其中 $M \in \mathbb{C}^{n \times n}$ 可逆。
+
+**1. 特征多项式、特征值与代数重数：**
+利用单位矩阵满足 $M^{-1} (\lambda I_n) M = \lambda M^{-1} M = \lambda I_n$，构造偏移矩阵：
+$$
+B - \lambda I_n = M^{-1} A M - M^{-1} (\lambda I_n) M = M^{-1} (A - \lambda I_n) M
+$$
+两端取行列式，由行列式乘法公式 $\det(XY) = \det(X)\det(Y)$ 及 $\det(M^{-1})\det(M) = \det(I_n) = 1$：
+$$
+\det(B - \lambda I_n) = \det(M^{-1}) \det(A - \lambda I_n) \det(M) = \det(A - \lambda I_n)
+$$
+两矩阵的特征多项式作为 $\lambda$ 的多项式完全恒等，因此它们的所有根（特征值）及重数（代数重数 $\operatorname{AM}(\lambda)$）必然完全一致。
+
+**2. 迹的循环不变性（Cyclic Property of Trace）与 $\operatorname{tr}(B) = \operatorname{tr}(A)$：**
+先证引理：对任意两个 $n \times n$ 矩阵 $X, Y \in \mathbb{C}^{n \times n}$，恒有 $\operatorname{tr}(XY) = \operatorname{tr}(YX)$。
+直接按矩阵乘法定义展开对角线之和：
+$$
+\operatorname{tr}(XY) = \sum_{i=1}^n (XY)_{ii} = \sum_{i=1}^n \sum_{k=1}^n x_{ik} y_{ki} = \sum_{k=1}^n \sum_{i=1}^n y_{ki} x_{ik} = \sum_{k=1}^n (YX)_{kk} = \operatorname{tr}(YX)
+$$
+现在令 $X = M^{-1}$、$Y = AM$，立刻得到：
+$$
+\operatorname{tr}(B) = \operatorname{tr}(M^{-1}(AM)) = \operatorname{tr}((AM)M^{-1}) = \operatorname{tr}(A (MM^{-1})) = \operatorname{tr}(A I_n) = \operatorname{tr}(A)
+$$
+（注：$\operatorname{tr}(A) = \sum \lambda_i$ 与 $\det(A) = \prod \lambda_i$ 亦可直接由特征多项式系数相等导出，但用循环性直接证明 $\operatorname{tr}(M^{-1}AM) = \operatorname{tr}(A)$ 甚至无需计算特征值！）
+
+**3. 行列式：**
+$$
+\det(B) = \det(M^{-1} A M) = \det(M^{-1}) \det(A) \det(M) = \det(A)
+$$
+
+**4. 矩阵幂与指数：**
+当 $k = 2$ 时，$B^2 = (M^{-1} A M)(M^{-1} A M) = M^{-1} A (M M^{-1}) A M = M^{-1} A^2 M$。由数学归纳法，对所有 $k \ge 1$ 成立 $B^k = M^{-1} A^k M$。线性组合即得 $f(B) = M^{-1} f(A) M$；代入指数幂级数 $e^{Bt} = \sum_{k=0}^\infty \frac{t^k}{k!} B^k = M^{-1}\left(\sum_{k=0}^\infty \frac{t^k}{k!} A^k\right) M = M^{-1} e^{At} M$。
+
+**5. 平移幂的秩 $\operatorname{rank}((B-\lambda I_n)^k) = \operatorname{rank}((A-\lambda I_n)^k)$：**
+由（1）与（4），对任意 $\lambda \in \mathbb{C}$ 与 $k \ge 1$，有：
+$$
+(B - \lambda I_n)^k = \left(M^{-1}(A - \lambda I_n)M\right)^k = M^{-1} (A - \lambda I_n)^k M
+$$
+因为左乘可逆矩阵 $M^{-1}$ 不改变列空间维数，右乘可逆矩阵 $M$ 仅对列做可逆线性组合而不改变列空间，故左、右乘可逆矩阵严格保秩：
+$$
+\operatorname{rank}\!\left((B - \lambda I_n)^k\right) = \operatorname{rank}\!\left((A - \lambda I_n)^k\right)
+$$
+当 $k = 1, \lambda = 0$ 时即得 $\operatorname{rank}(B) = \operatorname{rank}(A)$。
+
+**6. 几何重数与特征向量映射：**
+由秩-零度定理，$\dim \operatorname{Null}(B - \lambda I_n) = n - \operatorname{rank}(B - \lambda I_n) = n - \operatorname{rank}(A - \lambda I_n) = \dim \operatorname{Null}(A - \lambda I_n)$。
+具体地，若 $A\mathbf{x}_A = \lambda \mathbf{x}_A$（$\mathbf{x}_A \ne \mathbf{0}$），令 $\mathbf{x}_B = M^{-1} \mathbf{x}_A \ne \mathbf{0}$，则：
+$$
+B \mathbf{x}_B = (M^{-1} A M)(M^{-1} \mathbf{x}_A) = M^{-1} A \mathbf{x}_A = M^{-1}(\lambda \mathbf{x}_A) = \lambda (M^{-1} \mathbf{x}_A) = \lambda \mathbf{x}_B
+$$
+由于 $M^{-1}$ 可逆，映射 $\mathbf{x}_A \mapsto M^{-1}\mathbf{x}_A$ 构成了 $\operatorname{Null}(A - \lambda I_n)$ 与 $\operatorname{Null}(B - \lambda I_n)$ 之间的线性同构。$\blacksquare$
+
+</ProofCollapse>
+
+---
+
+## 三、反例觉醒：特征值、迹与行列式全同，就一定相似吗？
+
+在初学特征值时，一个极易产生的直觉误区是：“如果两个矩阵拥有完全相同的特征值、迹和行列式，它们一定相似吧？”
+正如上面图 29-1 右半部分（以 $\operatorname{tr}=4, \det=4, \lambda=2$ 为例）所揭示的：**绝对不是！**
+
+让我们仔细剖析 Gilbert Strang 教授在课堂上经典的 $2 \times 2$ 矩阵族——它们全部满足特征值 $\lambda_1 = \lambda_2 = 4$、迹 $\operatorname{tr} = 8$、行列式 $\det = 16$：
+
+$$
+A_1 = \begin{bmatrix} 4 & 0 \\ 0 & 4 \end{bmatrix}, \qquad
+A_2 = \begin{bmatrix} 4 & 1 \\ 0 & 4 \end{bmatrix}, \qquad
+A_3 = \begin{bmatrix} 5 & 1 \\ -1 & 3 \end{bmatrix}
+$$
+
+我们来逐一检验这三员“同谱兄弟”的血缘关系：
+
+### 1. $A_1$ 为何孤立成群（$A_1 \not\sim A_2$ 且 $A_1 \not\sim A_3$）？
+
+先看几何重数。计算偏移矩阵 $A_i - 4I_2$ 的零空间维数：
+- 对 $A_1 = 4I_2$：
+  $$
+  A_1 - 4I_2 = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \implies \operatorname{rank}(A_1 - 4I_2) = 0 \implies \operatorname{GM}_{A_1}(4) = 2 - 0 = 2
+  $$
+  $A_1$ 拥有 **2 个**线性无关的特征向量（整个 $\mathbb{C}^2$ 都是它的特征空间）。更直接地说，对任意可逆矩阵 $M$，恒有 $M^{-1} (4I_2) M = 4 M^{-1}M = 4I_2$——**标量矩阵 $4I_2$ 的相似轨道里只有它自己这一个矩阵！**
+- 对 $A_2 = \begin{bmatrix} 4 & 1 \\ 0 & 4 \end{bmatrix}$：
+  $$
+  A_2 - 4I_2 = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} \implies \operatorname{rank}(A_2 - 4I_2) = 1 \implies \operatorname{GM}_{A_2}(4) = 2 - 1 = 1
+  $$
+  $A_2$ **只有 1 个**线性无关的特征向量 $\mathbf{e}_1 = \begin{bmatrix} 1 \\ 0 \end{bmatrix}$。由相似不变量定理第 7 条，相似矩阵必须有相同的几何重数，因此 $A_1$ 与 $A_2$ **绝不相似**！
+
+### 2. $A_3$ 看起来满是数字，它跟 $A_2$ 相似吗？
+
+先检验 $A_3$ 的特征多项式与偏移矩阵：
+$$
+\operatorname{tr}(A_3) = 5 + 3 = 8, \quad \det(A_3) = 5 \cdot 3 - 1 \cdot (-1) = 16 \implies p_{A_3}(\lambda) = (\lambda - 4)^2
+$$
+计算 $A_3 - 4I_2$：
+$$
+A_3 - 4I_2 = \begin{bmatrix} 1 & 1 \\ -1 & -1 \end{bmatrix}
+$$
+它的秩也是 $1$，从而几何重数 $\operatorname{GM}_{A_3}(4) = 2 - 1 = 1$！这说明 $A_3$ 也是亏损矩阵，它与 $A_2$ 很有可能在同一条相似轨道上。让我们直接**构造可逆矩阵 $M$** 来验证 $M^{-1} A_3 M = A_2$（等价于 $A_3 M = M A_2$）：
+
+1. 求 $A_3$ 的唯一特征向量 $\mathbf{v}_1$（满足 $(A_3 - 4I_2)\mathbf{v}_1 = \mathbf{0}$）：
+   $$
+   \begin{bmatrix} 1 & 1 \\ -1 & -1 \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_1 + x_2 = 0 \implies \mathbf{v}_1 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+   $$
+2. 由于缺少第二个特征向量，我们退一步寻找满足 $(A_3 - 4I_2)\mathbf{v}_2 = \mathbf{v}_1$ 的**广义特征向量** $\mathbf{v}_2$（即 $A_3 \mathbf{v}_2 = 4\mathbf{v}_2 + \mathbf{v}_1$）：
+   $$
+   \begin{bmatrix} 1 & 1 \\ -1 & -1 \end{bmatrix} \begin{bmatrix} y_1 \\ y_2 \end{bmatrix} = \begin{bmatrix} 1 \\ -1 \end{bmatrix} \implies y_1 + y_2 = 1
+   $$
+   任取一个最简单的特解 $\mathbf{v}_2 = \begin{bmatrix} 1 \\ 0 \end{bmatrix}$。
+3. 拼出可逆换基矩阵 $M = \begin{bmatrix} \mathbf{v}_1 & \mathbf{v}_2 \end{bmatrix} = \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix}$（$\det(M) = 1 \ne 0$，逆矩阵 $M^{-1} = \begin{bmatrix} 0 & -1 \\ 1 & 1 \end{bmatrix}$），直接计算：
+   $$
+   M^{-1} A_3 M = \begin{bmatrix} 0 & -1 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} 5 & 1 \\ -1 & 3 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} = \begin{bmatrix} 1 & -3 \\ 4 & 4 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} = \begin{bmatrix} 4 & 1 \\ 0 & 4 \end{bmatrix} = A_2
+   $$
+
+完美命中！因此，$A_2 \sim A_3$（它们都属于 Jordan 块 $J_2(4)$ 的相似轨道），而两者都与 $A_1 = 4I_2$ 截然不相似。事实上，在 $2 \times 2$ 矩阵中，**任何**特征值为 $\lambda_1 = \lambda_2 = 4$ 且不是 $4I_2$ 的矩阵（例如 $\begin{bmatrix} 4 & 0 \\ 7 & 4 \end{bmatrix}$、$\begin{bmatrix} 6 & 2 \\ -2 & 2 \end{bmatrix}$ 等），全部都相似于 $A_2 = \begin{bmatrix} 4 & 1 \\ 0 & 4 \end{bmatrix}$！
+
+---
+
+## 四、Jordan 标准形定理与广义特征向量链
+
+当 $n$ 阶方阵 $A$ 亏损（特征向量不足 $n$ 个）时，我们退而求其次：既然不能把所有非对角元素全部清零变成对角阵 $\Lambda$，我们最多可以把矩阵通过相似变换 $M^{-1}AM$ 化简到什么程度？答案就是 **Camille Jordan** 发现的终极分类标准形。
+
+### 1. 原子积木：Jordan 块与“1 对 1 定律”
+
+<DefinitionCard title="Jordan 块与广义特征向量链" termEn="Jordan Block & Generalized Eigenvector Chain">
+
+1. **Jordan 块（Jordan Block）**：
+   对于复数 $\lambda \in \mathbb{C}$ 与正整数 $k \ge 1$，一个 $k \times k$ 的 Jordan 块 $J_k(\lambda)$ 定义为主对角线全为 $\lambda$、**第一超对角线（Superdiagonal）**全为 $1$、其余位置全为 $0$ 的上双对角矩阵：
+   $$
+   J_k(\lambda) = \begin{bmatrix}
+   \lambda & 1 & 0 & \cdots & 0 \\
+   0 & \lambda & 1 & \cdots & 0 \\
+   \vdots & \vdots & \ddots & \ddots & \vdots \\
+   0 & 0 & 0 & \ddots & 1 \\
+   0 & 0 & 0 & \cdots & \lambda
+   \end{bmatrix}_{k \times k} = \lambda I_k + N_k
+   $$
+   其中 $N_k$ 是超对角线全为 $1$ 的标准移位幂零矩阵（$N_k^k = 0$，但 $N_k^{k-1} \ne 0$）。当 $k = 1$ 时，$J_1(\lambda) = [\lambda]$ 就是普通的 $1 \times 1$ 对角元。
+
+2. **广义特征向量（Generalized Eigenvector）**：
+   设 $A \in \mathbb{C}^{n \times n}$ 且 $\lambda$ 为其特征值。若非零向量 $\mathbf{v} \in \mathbb{C}^n$ 满足存在正整数 $m \ge 1$ 使：
+   $$
+   (A - \lambda I_n)^m \mathbf{v} = \mathbf{0}
+   $$
+   则称 $\mathbf{v}$ 为 $A$ 对应于特征值 $\lambda$ 的广义特征向量（当 $m=1$ 时即普通特征向量）。
+
+</DefinitionCard>
+
+为什么 Jordan 块是最简积木？只需计算 $(J_k(\lambda) - \lambda I_k)\mathbf{x} = N_k \mathbf{x} = \mathbf{0}$：
+
+$$
+\begin{bmatrix}
+0 & 1 & 0 & \cdots & 0 \\
+0 & 0 & 1 & \cdots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+0 & 0 & 0 & \cdots & 1 \\
+0 & 0 & 0 & \cdots & 0
+\end{bmatrix}
+\begin{bmatrix} x_1 \\ x_2 \\ \vdots \\ x_{k-1} \\ x_k \end{bmatrix}
+=
+\begin{bmatrix} x_2 \\ x_3 \\ \vdots \\ x_k \\ 0 \end{bmatrix}
+=
+\begin{bmatrix} 0 \\ 0 \\ \vdots \\ 0 \\ 0 \end{bmatrix}
+\implies x_2 = x_3 = \dots = x_k = 0
+$$
+
+只有第一个分量 $x_1$ 是自由变量！这意味着无论 $k$ 取 $1, 2, 3$ 还是 $100$：
+- $\operatorname{rank}(J_k(\lambda) - \lambda I_k) = k - 1$，从而 $\dim \operatorname{Null}(J_k(\lambda) - \lambda I_k) = 1$。
+- **每一个 Jordan 块 $J_k(\lambda)$ 对外只贡献恰好 1 个线性无关的特征向量**（即标准基向量 $\mathbf{e}_1$）！
+
+那么该块对应的另外 $k-1$ 个基向量 $\mathbf{e}_2, \dots, \mathbf{e}_k$ 在做什么？注意到 $N_k \mathbf{e}_j = \mathbf{e}_{j-1}$（$j = 2, \dots, k$）。在原矩阵 $A$ 的坐标系中（将 $M$ 对应该块的 $k$ 列记为 $\mathbf{v}_1, \mathbf{v}_2, \dots, \mathbf{v}_k$），由 $A M = M J$ 的逐列比较立即得到一条首尾相扣的**Jordan 链（Jordan Chain）**：
+
+$$
+\begin{aligned}
+(A - \lambda I_n)\mathbf{v}_1 &= \mathbf{0} \quad &\iff \quad A\mathbf{v}_1 &= \lambda \mathbf{v}_1 \quad (\text{1 个真特征向量}) \\
+(A - \lambda I_n)\mathbf{v}_2 &= \mathbf{v}_1 \quad &\iff \quad A\mathbf{v}_2 &= \lambda \mathbf{v}_2 + \mathbf{v}_1 \\
+&\;\;\vdots && \;\;\vdots \\
+(A - \lambda I_n)\mathbf{v}_k &= \mathbf{v}_{k-1} \quad &\iff \quad A\mathbf{v}_k &= \lambda \mathbf{v}_k + \mathbf{v}_{k-1}
+\end{aligned}
+$$
+
+超对角线上的每一个 **$1$**，在代数上恰好就是将上一阶广义特征向量 $\mathbf{v}_j$ 在减法偏移 $(A - \lambda I_n)$ 下**耦合映射到前一个向量 $\mathbf{v}_{j-1}$** 的纽带，直到最终在真特征向量 $\mathbf{v}_1$ 处跌落为零！
+
+### 2. Jordan 标准形主定理
+
+<TheoremCard title="Jordan 标准形定理" termEn="Jordan Canonical Form Theorem">
+
+对于**任意**复方阵 $A \in \mathbb{C}^{n \times n}$，均存在可逆矩阵 $M \in \mathbb{C}^{n \times n}$，使得 $A$ 相似于如下分块对角矩阵 $J$（称为 $A$ 的 **Jordan 标准形**）：
+
+$$
+M^{-1} A M = J = \begin{bmatrix}
+J_1 & & & \\
+& J_2 & & \\
+& & \ddots & \\
+& & & J_s
+\end{bmatrix} = \operatorname{diag}(J_1, J_2, \dots, J_s)
+$$
+
+其中每个对角块 $J_i = J_{k_i}(\lambda_i)$ 是一个 $k_i \times k_i$ 的 Jordan 块（$\sum_{i=1}^s k_i = n$，允许不同块带有相同的特征值 $\lambda_i$）。
+
+**唯一性与核心推论**：
+1. **块分布唯一性**：在不计对角块 $J_1, \dots, J_s$ 排列顺序的意义下，矩阵 $A$ 的 Jordan 标准形 $J$ 是**唯一确定**的。因此：
+   $$
+   A \sim B \iff A \text{ 与 } B \text{ 具有完全相同的 Jordan 标准形（忽略块的次序）}
+   $$
+2. **1 对 1 对应法则（块数 $=$ 特征向量数）**：
+   - Jordan 块的总个数 $s$，严格等于矩阵 $A$ 的**线性无关特征向量的最大总数**；
+   - 对任意给定特征值 $\lambda_0$，属于 $\lambda_0$ 的 Jordan 块个数等于其**几何重数** $\operatorname{GM}(\lambda_0) = \dim\operatorname{Null}(A - \lambda_0 I_n)$；
+   - 属于 $\lambda_0$ 的所有 Jordan 块的阶数之和等于其**代数重数** $\operatorname{AM}(\lambda_0)$。
+3. **可对角化判据再统一**：
+   $$
+   A \text{ 可对角化} \iff \text{所有 Jordan 块尺寸均为 } 1 \times 1 \iff s = n \iff \forall i,\; \operatorname{GM}(\lambda_i) = \operatorname{AM}(\lambda_i)
+   $$
+
+</TheoremCard>
+
+<ProofCollapse title="展开定理核心构造思路与唯一性证明（广义特征子空间分解 + 秩降公式）">
+
+完整的 Jordan 定理证明分为“**存在性**”与“**唯一性**”两部分，其核心思想均建立在子空间维数与矩阵秩之上：
+
+#### 第一部分：存在性纲要（两步剥离）
+1. **按不同特征值分解为广义特征子空间直和**：
+   设 $A \in \mathbb{C}^{n \times n}$ 的互异特征值为 $\lambda_1, \dots, \lambda_r$，代数重数分别为 $m_1, \dots, m_r$（$\sum m_i = n$）。定义广义特征子空间：
+   $$
+   G_{\lambda_i} = \operatorname{Null}\!\left((A - \lambda_i I_n)^n\right)
+   $$
+   利用多项式互素分解与贝祖等式（Bézout's Identity）可证：每个 $G_{\lambda_i}$ 都是 $A$-不变子空间，维数恰等于 $\operatorname{AM}(\lambda_i) = m_i$，且全空间可直和分解为：
+   $$
+   \mathbb{C}^n = G_{\lambda_1} \oplus G_{\lambda_2} \oplus \dots \oplus G_{\lambda_r}
+   $$
+   在各不变子空间的拼接基底下，$A$ 化为分块对角阵，每个 $m_i \times m_i$ 块可写成 $\lambda_i I_{m_i} + N_i$，其中 $N_i = (A - \lambda_i I_n)|_{G_{\lambda_i}}$ 是幂零算子（$N_i^{m_i} = 0$）。
+2. **对幂零算子 $N$ 按链分解（对维数 $m$ 作归纳）**：
+   只需证明任意幂零算子 $N: V \to V$（$N^m = 0$）都能找到由若干条互不相交的链 $\{\mathbf{v}, N\mathbf{v}, \dots, N^{k-1}\mathbf{v}\}$ 构成的基底。对空间维数 $\dim V$ 归纳：取像空间 $W = \operatorname{Im}(N)$，因为 $N$ 幂零且不可逆，故 $\dim W \lt \dim V$。由归纳假设，$N|_W$ 在 $W$ 中有一组链基底。将每条链的链头（必在 $\operatorname{Im}(N)$ 中）逆向回拉一个原像，将链延长 1 节，再在 $\operatorname{Null}(N)$ 中补齐尚未被像空间链尾覆盖的剩余特征方向（对应长度为 $1$ 的链），即可严密验证这组向量线性无关且总数恰好等于 $\dim V$！
+
+#### 第二部分：唯一性严格证明（秩降计数公式）
+设 $A$ 相似于某 Jordan 标准形 $J$。我们来反推对于给定特征值 $\lambda_0$，尺寸恰好为 $m$ 的 Jordan 块究竟有多少个。
+令 $B = A - \lambda_0 I_n$。由相似不变量定理，对任意整数 $p \ge 0$，均有：
+$$
+\operatorname{rank}(B^p) = \operatorname{rank}\!\left((J - \lambda_0 I_n)^p\right)
+$$
+注意到分块对角阵幂的秩等于各个对角块幂的秩之和：
+- 若某对角块的特征值 $\lambda_j \ne \lambda_0$，则 $J_{k_j}(\lambda_j) - \lambda_0 I_{k_j}$ 对角线为非零常数 $\lambda_j - \lambda_0 \ne 0$，它可逆，因此它的任意次幂 $p$ 均**满秩**（贡献秩为 $k_j$，对零度贡献为 $0$，且在前后相减时完全消去！）。
+- 若某对角块属于 $\lambda_0$，尺寸为 $k \times k$，即 $N_k^p$：每乘一次 $N_k$，矩阵对角线向上推移一条，秩减少 $1$，直到全零。故：
+  $$
+  \operatorname{rank}(N_k^p) = \max(0,\, k - p) \implies \operatorname{nullity}(N_k^p) = k - \operatorname{rank}(N_k^p) = \min(p, k)
+  $$
+于是，当 $p$ 从 $p-1$ 增大到 $p$ 时，只有尺寸满足 $k \ge p$ 的 $\lambda_0$-块才会使 $\operatorname{rank}(N_k^p)$ 再降 $1$（尺寸 $k \lt p$ 的块早已成零矩阵，秩不再下降！）。因此定义**第 $p$ 步秩降（Weyr 特征数）**：
+$$
+\Delta_p(\lambda_0) \coloneqq \operatorname{rank}\!\left((A - \lambda_0 I_n)^{p-1}\right) - \operatorname{rank}\!\left((A - \lambda_0 I_n)^p\right) = \big(\text{特征值 } \lambda_0 \text{ 下尺寸 } \ge p \text{ 的 Jordan 块总数}\big)
+$$
+从而尺寸**恰好等于 $p$** 的 Jordan 块个数 $b_p(\lambda_0)$ 为：
+$$
+b_p(\lambda_0) = \Delta_p(\lambda_0) - \Delta_{p+1}(\lambda_0)
+$$
+因为等式右端全部只依赖于 $A$ 自身的幂次秩 $\operatorname{rank}((A-\lambda_0 I_n)^p)$，而这些秩在任何相似变换下完全不变，故每种尺寸、每个特征值的 Jordan 块数目 $b_p(\lambda_0)$ 被矩阵 $A$ **绝对唯一锁定**！$\blacksquare$
+
+</ProofCollapse>
+
+<JordanCanonicalBlocksStructureDiagram />
+
+---
+
+## 五、实战鉴别：$4 \times 4$ 矩阵家族与 $\operatorname{rank}((A - \lambda I)^k)$ 的决胜作用
+
+在 $2 \times 2$ 和 $3 \times 3$ 矩阵中，知道每个特征值的代数重数 $\operatorname{AM}(\lambda)$ 与几何重数 $\operatorname{GM}(\lambda)$，就已经足以唯一确定所有的 Jordan 块尺寸（例如 $3$ 拆成 $1$ 个块只能是 $3$；拆成 $2$ 个块只能是 $2+1$；拆成 $3$ 个块只能是 $1+1+1$）。
+
+然而，**一旦矩阵阶数达到 $n = 4$**，奇迹的“平局”出现了！如果 $\operatorname{AM}(\lambda) = 4$ 且 $\operatorname{GM}(\lambda) = 2$（即共有 $2$ 个 Jordan 块），整数 $4$ 拆成 $2$ 个正整数之和有**两种完全不同**的方案：
+- **$3 + 1$ 分划**：$J_3(\lambda) \oplus J_1(\lambda)$
+- **$2 + 2$ 分划**：$J_2(\lambda) \oplus J_2(\lambda)$
+
+这两个矩阵拥有完全相同的特征多项式、相同的特征值、相同的迹、相同的行列式，甚至连**几何重数（特征向量个数）也一模一样**（都是 $2$）！但它们**绝对不相似**！怎么把它们区分开？唯一的方法就是按照上面证明的秩降定理，多算一次平方 $(A - \lambda I_4)^2$ 的秩！
+
+让我们用两个具体的 $4 \times 4$ 矩阵来亲自验证：
+
+$$
+P_1 = \begin{bmatrix} 2 & 1 & 0 & 2 \\ 0 & 2 & 0 & 0 \\ 0 & 0 & 2 & 1 \\ 0 & 0 & 0 & 2 \end{bmatrix}, \qquad
+P_2 = \begin{bmatrix} 2 & 1 & 0 & 1 \\ 0 & 2 & 1 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 2 \end{bmatrix}
+$$
+
+两者都是上三角矩阵，特征值一目了然：$\lambda_1 = \lambda_2 = \lambda_3 = \lambda_4 = 2$（$\operatorname{AM}(2) = 4$）。分别构造幂零偏移 $B_i = P_i - 2I_4$：
+
+1. **一阶幂的秩（几何重数检查）**：
+   $$
+   B_1 = \begin{bmatrix} 0 & 1 & 0 & 2 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 0 & 0 \end{bmatrix}, \qquad
+   B_2 = \begin{bmatrix} 0 & 1 & 0 & 1 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix}
+   $$
+   - 对 $B_1$：第 $2, 4$ 列 $[1,0,0,0]^T$ 与 $[2,0,1,0]^T$ 线性无关，故 $\operatorname{rank}(B_1) = 2 \implies \operatorname{GM}(2) = 4 - 2 = 2$；
+   - 对 $B_2$：第 $1, 2$ 行 $[0,1,0,1]$ 与 $[0,0,1,0]$ 线性无关，故 $\operatorname{rank}(B_2) = 2 \implies \operatorname{GM}(2) = 4 - 2 = 2$。
+   **到此为止，两者打成平手！**
+
+2. **二阶幂的秩（一锤定音）**：
+   直接做矩阵平方：
+   $$
+   B_1^2 = \begin{bmatrix} 0 & 1 & 0 & 2 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 0 & 0 \end{bmatrix}^2 = \begin{bmatrix} 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix} \implies \operatorname{rank}(B_1^2) = 0
+   $$
+   $$
+   B_2^2 = \begin{bmatrix} 0 & 1 & 0 & 1 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix}^2 = \begin{bmatrix} 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix} \implies \operatorname{rank}(B_2^2) = 1
+   $$
+   再算 $B_2^3 = B_2^2 B_2 = 0 \implies \operatorname{rank}(B_2^3) = 0$。
+
+3. **套用 Weyr 秩降计数公式还原标准形**：
+   - 对于 $P_1$（秩序列 $r_0=4, r_1=2, r_2=0$）：
+     $\Delta_1 = 4 - 2 = 2$（尺寸 $\ge 1$ 的块有 $2$ 个）；
+     $\Delta_2 = 2 - 0 = 2$（尺寸 $\ge 2$ 的块有 $2$ 个）；
+     $\Delta_3 = 0 - 0 = 0$（尺寸 $\ge 3$ 的块有 $0$ 个）。
+     故 $b_1 = 2 - 2 = 0$，$b_2 = 2 - 0 = 2$ —— **$P_1$ 相似于 $J_2(2) \oplus J_2(2)$**（两条 $2$ 阶链）！
+   - 对于 $P_2$（秩序列 $r_0=4, r_1=2, r_2=1, r_3=0$）：
+     $\Delta_1 = 4 - 2 = 2$，$\Delta_2 = 2 - 1 = 1$，$\Delta_3 = 1 - 0 = 1$，$\Delta_4 = 0$。
+     故 $b_1 = 2 - 1 = 1$，$b_2 = 1 - 1 = 0$，$b_3 = 1 - 0 = 1$ —— **$P_2$ 相似于 $J_3(2) \oplus J_1(2)$**（一条 $3$ 阶链配一个 $1$ 阶点）！
+
+我们甚至可以顺手写出把 $P_2$ 化为标准形的链基底 $M_2$：取 $3$ 阶链尾 $\mathbf{v}_3 = \mathbf{e}_3$，逆推 $\mathbf{v}_2 = B_2 \mathbf{v}_3 = \mathbf{e}_2$，$\mathbf{v}_1 = B_2 \mathbf{v}_2 = \mathbf{e}_1$（满足 $B_2 \mathbf{v}_1 = \mathbf{0}$）；再找独立的特征向量 $\mathbf{v}_4 = \mathbf{e}_4 - \mathbf{e}_2$（满足 $B_2(\mathbf{e}_4 - \mathbf{e}_2) = \mathbf{e}_1 - \mathbf{e}_1 = \mathbf{0}$），即得：
+
+$$
+M_2 = \begin{bmatrix} \mathbf{e}_1 & \mathbf{e}_2 & \mathbf{e}_3 & \mathbf{e}_4 - \mathbf{e}_2 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & -1 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix} \implies M_2^{-1} P_2 M_2 = \begin{bmatrix} 2 & 1 & 0 & 0 \\ 0 & 2 & 1 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 2 \end{bmatrix}
+$$
+
+---
+
+## 六、动力学终极揭秘：为什么 Jordan 块会催生 $t e^{\lambda t}$？
+
+在学习第 22 讲的矩阵幂 $\mathbf{u}_{k+1} = A\mathbf{u}_k$ 与第 23 讲的微分方程 $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$ 时，我们对亏损矩阵曾留下过一个悬念：如果矩阵不可对角化，系统到底怎么演化？
+
+现在有了 $A = M J M^{-1}$，答案变得极其透明：
+$$
+A^k = M J^k M^{-1}, \qquad e^{At} = M e^{Jt} M^{-1}
+$$
+而且对于分块对角阵 $J = \operatorname{diag}(J_1, \dots, J_s)$，求幂和求指数都能**逐块独立进行**：
+$$
+J^k = \operatorname{diag}\!\left(J_1^k, \dots, J_s^k\right), \qquad e^{Jt} = \operatorname{diag}\!\left(e^{J_1 t}, \dots, e^{J_s t}\right)
+$$
+
+现在只需计算单个 Jordan 块 $J_m(\lambda) = \lambda I_m + N_m$ 的幂与指数！关键魔法在于：**标量矩阵 $\lambda I_m$ 与幂零移位矩阵 $N_m$ 绝对可交换**（$(\lambda I_m) N_m = N_m (\lambda I_m)$）！
+
+### 1. 离散矩阵幂 $J_m(\lambda)^k$：组合数多项式权重
+
+因为 $\lambda I_m$ 与 $N_m$ 可交换，二项式定理直接成立；又因为 $N_m^m = 0$，级数在第 $m-1$ 项自动截断为有限和：
+
+$$
+J_m(\lambda)^k = (\lambda I_m + N_m)^k = \sum_{j=0}^{m-1} \binom{k}{j} \lambda^{k-j} N_m^j \quad (k \ge m-1)
+$$
+
+以 $2 \times 2$ 与 $3 \times 3$ Jordan 块为例：
+
+$$
+J_2(\lambda)^k = \begin{bmatrix} \lambda^k & k \lambda^{k-1} \\ 0 & \lambda^k \end{bmatrix}, \qquad
+J_3(\lambda)^k = \begin{bmatrix} \lambda^k & k \lambda^{k-1} & \frac{k(k-1)}{2}\lambda^{k-2} \\ 0 & \lambda^k & k \lambda^{k-1} \\ 0 & 0 & \lambda^k \end{bmatrix}
+$$
+
+**稳定性边界的精细判据**：
+- 若 $|\lambda| \lt 1$：即使出现多项式因子 $k\lambda^{k-1}$ 或 $k^2 \lambda^{k-2}$，指数衰减 $\lambda^k$ 依然会击败任何多项式增长，故 $k \to \infty$ 时仍收敛于 $0$（只是初期可能先短暂上升后衰减）；
+- 若 $|\lambda| = 1$（临界边界！）：如果该特征值对应的块全是 $1\times 1$，则 $|\lambda^k| = 1$ 系统保持有界（中立稳定）；一旦出现 $\ge 2 \times 2$ 的 Jordan 块，右上角项 $k \lambda^{k-1}$ 的模长等于 $k \to \infty$，系统**发散失稳**！
+
+### 2. 连续矩阵指数 $e^{J_m(\lambda)t}$：多项式-指数共振项 $t^j e^{\lambda t}$
+
+同样因为 $(\lambda t I_m)$ 与 $(t N_m)$ 可交换，利用第 23 讲的指数乘法法则（对可交换矩阵成立 $e^{X+Y} = e^X e^Y$）：
+
+$$
+e^{J_m(\lambda) t} = e^{\lambda t I_m + t N_m} = e^{\lambda t I_m} e^{t N_m} = e^{\lambda t} \left( I_m + t N_m + \frac{t^2}{2!} N_m^2 + \dots + \frac{t^{m-1}}{(m-1)!} N_m^{m-1} \right)
+$$
+
+展开成具体矩阵：
+
+$$
+e^{J_2(\lambda)t} = \begin{bmatrix} e^{\lambda t} & t e^{\lambda t} \\ 0 & e^{\lambda t} \end{bmatrix}, \qquad
+e^{J_3(\lambda)t} = \begin{bmatrix} e^{\lambda t} & t e^{\lambda t} & \frac{t^2}{2} e^{\lambda t} \\ 0 & e^{\lambda t} & t e^{\lambda t} \\ 0 & 0 & e^{\lambda t} \end{bmatrix}
+$$
+
+这就是常微分方程课程里学过“重根特征方程时为什么要乘上 $t$ 与 $t^2$”的**全部线性代数根源**！如果重根对应的特征向量足够（可对角化，块尺寸全为 $1$），解里**不会出现** $t e^{\lambda t}$；只有当几何重数亏损、出现 $m \times m$ 的 Jordan 块（$m \ge 2$）时，超对角线上的 $1$ 才会通过幂零矩阵指数 $e^{t N_m}$ 在解 $\mathbf{u}(t) = M e^{Jt} M^{-1}\mathbf{u}(0)$ 中精准生成 $t e^{\lambda t}, \dots, \frac{t^{m-1}}{(m-1)!} e^{\lambda t}$。
+
+物理上，当 $\operatorname{Re}(\lambda) = 0$（例如无阻尼振子的纯虚特征值 $\lambda = \pm i\omega$）且存在 $\ge 2\times 2$ Jordan 块时，解中会出现线性发散的振荡项 $t e^{i\omega t}$——这在力学与电路中正是**物理共振（Resonance）**！
+
+---
+
+<PitfallAlert title="常见直觉陷阱与网传笔记勘误 (Pitfall & Errata)">
+
+### 陷阱一：认为“特征值、迹、行列式相同 $\implies$ 矩阵相似”
+这是模块三/四最高频的考试陷阱！它们只是相似的**必要条件（Necessary Conditions）**，绝非充分条件：
+- 对 $2\times 2$ 矩阵，$4I_2$ 与 $\begin{bmatrix} 4 & 1 \\ 0 & 4 \end{bmatrix}$ 特征值、迹、行列式全同，但 $\operatorname{GM}(4)$ 分别是 $2$ 和 $1$，不相似；
+- 对 $4\times 4$ 矩阵，甚至连“特征值 + 几何重数全同”也不够：$J_3(2) \oplus J_1(2)$ 与 $J_2(2) \oplus J_2(2)$ 的特征值均为 $2$（$\operatorname{AM}=4$）且 $\operatorname{GM}(2)=2$，必须计算二阶幂秩 $\operatorname{rank}((A-2I)^2)$（分别为 $1$ 与 $0$）才能判明不相似！
+
+### 陷阱二：把相似变换 $M^{-1}AM$ 与合同变换 $M^T A M$（或 $M^H A M$）混淆
+相似变换 $M^{-1}AM$ 用于描述**线性算子**的基底切换，它**严格保特征值**，但一般**不保对称性**；
+合同变换 $M^T A M$ 用于描述**实二次型/双线性型**的基底切换，它**严格保对称性与惯性正负号**，但一般**改变特征值数值**。
+只有当 $M$ 是正交/酉矩阵（$M^{-1} = M^T$ 或 $M^{-1} = M^H$）时，两套公式才恰好重合。
+
+### 陷阱三：误以为 $k\times k$ Jordan 块有 $k$ 个特征向量，或纠结超对角 vs 次对角 $1$ 的写法
+1. 无论 $k$ 有多大，单个 Jordan 块 $J_k(\lambda)$ 永远只有**唯一 1 个**线性无关的特征向量（第 1 列位置对应的 $\mathbf{e}_1$），矩阵 $M$ 中其余 $k-1$ 列都是**广义特征向量**，不满足 $A\mathbf{v} = \lambda\mathbf{v}$！
+2. 少数教材将 $1$ 写在主对角线下方（**次对角线 Subdiagonal**，即 $J_k(\lambda)^T$）。这两种约定本质完全相同：只需用反序置换矩阵 $P_k = [\mathbf{e}_k, \dots, \mathbf{e}_1]$ 做相似变换，即有 $P_k^{-1} J_k(\lambda) P_k = J_k(\lambda)^T$，所以它们位于同一条相似轨道上。MIT 18.06 统一采用主对角线上方（超对角线）写 $1$。
+
+### 陷阱四：试图在浮点数值计算中直接计算 Jordan 标准形（数值病态性！）
+虽然 Jordan 标准形在纯数学理论分类与解析微分方程中无懈可击，但在计算机浮点数值计算中，**Jordan 分解是极度病态（Ill-posed）且不连续的**！
+考察极微小的矩阵扰动（取 $\varepsilon = 10^{-16}$）：
+$$
+A(0) = \begin{bmatrix} 4 & 1 \\ 0 & 4 \end{bmatrix} \quad (\text{1 个 } 2\times 2 \text{ 块，不可对角化}) \qquad \text{vs.} \qquad A(\varepsilon) = \begin{bmatrix} 4 & 1 \\ \varepsilon & 4 \end{bmatrix}
+$$
+只要 $\varepsilon \ne 0$（哪怕只有机器浮点舍入误差 $10^{-16}$ 这么大），$A(\varepsilon)$ 的特征值立即分裂为 $\lambda_\pm = 4 \pm \sqrt{\varepsilon} = 4 \pm 10^{-8}$（误差放大了 $10^8$ 倍！），且 $A(\varepsilon)$ 瞬间变成“可对角化”的两个 $1\times 1$ 块，但它的两个特征向量 $\begin{bmatrix} 1 \\ \pm 10^{-8} \end{bmatrix}$ 几乎完全共线，换基矩阵条件数 $\kappa(S) \sim 10^8$！
+因此，工程数值软件（如 LAPACK）从不直接求 Jordan 标准形，而是全面采用数值极其稳定的**Schur 分解（$A = U T U^H$，$U$ 为酉矩阵）**以及下一讲即将登场的线性代数皇冠——**奇异值分解（SVD，$A = U\Sigma V^T$）**！
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l29-similarity-jordan-sandbox"
+  title="相似轨道跃迁与 Jordan 广义特征链交互实验室"
+  description={"自由调节矩阵参数与换基矩阵 $M$，实时观察 $B = M^{-1} A M$ 下特征值、迹、行列式与各阶幂秩 $\\operatorname{rank}((A - \\lambda I)^k)$ 的绝对守恒性，并对比微扰 $\\varepsilon$ 下特征向量塌缩的数值病态现象。"}
+/>
+
+---
+
+<KeyTakeaways items={[
+  "矩阵相似（$B = M^{-1} A M$，$M$ 可逆）是 $\\mathbb{C}^{n \\times n}$ 上的等价关系，几何本质是同一个线性算子在不同坐标系下的矩阵表示；切勿与保对称不保特征值的合同变换 $M^T A M$ 或破坏特征值的消元 $EA$ 混淆。",
+  "相似不变量族：若 $B = M^{-1}AM$，则 $A$ 与 $B$ 必有完全相同的特征多项式、特征值与代数重数 $\\operatorname{AM}(\\lambda)$、迹 $\\operatorname{tr}(A)$、行列式 $\\det(A)$、秩 $\\operatorname{rank}(A)$，以及所有平移幂次秩 $\\operatorname{rank}((A-\\lambda I)^k)$ 和几何重数 $\\operatorname{GM}(\\lambda)$。",
+  "同谱未必相似：特征值、迹、行列式相等只是相似的必要非充分条件。$4I_2$（$\\operatorname{GM}=2$）与 $J_2(4)$（$\\operatorname{GM}=1$）同谱却绝不相似；而 $4 \\times 4$ 分划 $3+1$ 与 $2+2$ 甚至连 $\\operatorname{GM}(2)=2$ 都相同，必须依赖 $\\operatorname{rank}((A-\\lambda I)^2)$ 才可区分。",
+  "Jordan 标准形定理：任意复方阵 $A \\in \\mathbb{C}^{n\\times n}$ 均相似于分块对角阵 $J = \\operatorname{diag}(J_1, \\dots, J_s)$，且在不计块排列顺序下唯一。核心 1 对 1 定律：每个 Jordan 块 $J_k(\\lambda)$ 仅贡献 1 个真特征向量与 $k-1$ 个广义特征向量，故 Jordan 块总数 $s$ 严格等于独立特征向量总数。",
+  "Weyr 秩降计数法：第 $m$ 步秩降 $\\Delta_m = \\operatorname{rank}((A-\\lambda I)^{m-1}) - \\operatorname{rank}((A-\\lambda I)^m)$ 给出尺寸 $\\ge m$ 的 $\\lambda$-块数目，从而由 $b_m = \\Delta_m - \\Delta_{m+1}$ 可在无需手算广义特征向量的情况下唯一确定所有 Jordan 块尺寸。",
+  "Jordan 动力学的核心效应：超对角线上的 $1$ 在矩阵幂 $J_m(\\lambda)^k$ 中引入组合数多项式因子 $\\binom{k}{j}\\lambda^{k-j}$，在矩阵指数 $e^{J_m(\\lambda)t}$ 中引入多项式-指数因子 $t^j e^{\\lambda t}$（如 $t e^{\\lambda t}$），从而完满解释了亏损系统中的瞬态抬升与临界共振发散。"
+]} />
+
+---
+
+## 七、课后习题集
+
+<ProblemSet title="第 29 讲 课后习题集" description="涵盖相似不变量验证、同谱轨道分类、Weyr 秩降判定 Jordan 标准形、广义特征链构造以及 A 与 Aᵀ 相似与微分系统求解。">
+
+<ExerciseCard id="l29-ex1" tier="L1" title="2×2 矩阵族的相似判别与显式 Jordan 基构造">
+
+考察以下三个 $2 \times 2$ 矩阵：
+
+$$
+A = \begin{bmatrix} 3 & 1 \\ -1 & 1 \end{bmatrix}, \qquad
+B = \begin{bmatrix} 2 & 0 \\ 4 & 2 \end{bmatrix}, \qquad
+C = \begin{bmatrix} 2 & 0 \\ 0 & 2 \end{bmatrix}
+$$
+
+1. 分别计算 $A, B, C$ 的迹、行列式、特征值以及对应特征值的几何重数 $\operatorname{GM}(\lambda)$；
+2. 判断 $A, B, C$ 中哪两个矩阵彼此相似，哪一个与另外两个不相似；
+3. 显式构造一个可逆矩阵 $M \in \mathbb{R}^{2 \times 2}$，使得 $M^{-1} A M = J_2(2) = \begin{bmatrix} 2 & 1 \\ 0 & 2 \end{bmatrix}$，并直接验算 $A M = M J_2(2)$。
+
+<ProgressiveHint hints={[
+  "计算特征多项式会发现三者的特征值都是重根 $\\lambda_1 = \\lambda_2 = 2$，迹为 $4$，行列式为 $4$。",
+  "分别计算矩阵 $A - 2I_2$、$B - 2I_2$、$C - 2I_2$ 的秩，从而由 $\\operatorname{GM}(2) = 2 - \\operatorname{rank}(\\cdot - 2I_2)$ 区分是否可对角化。",
+  "构造 $M = [\\mathbf{v}_1 \\;\\; \\mathbf{v}_2]$：先解 $(A - 2I_2)\\mathbf{v}_1 = \\mathbf{0}$ 得真特征向量 $\\mathbf{v}_1$，再解 $(A - 2I_2)\\mathbf{v}_2 = \\mathbf{v}_1$ 得广义特征向量 $\\mathbf{v}_2$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+在 $2 \times 2$ 世界里，给定特征值 $\lambda_1 = \lambda_2 = 2$ 后，矩阵只有两条相似轨道：要么是对角阵 $2I_2$（拥有两个无关特征向量，轨道仅此一员），要么是所有非纯量阵组成的亏损轨道（只有一个特征向量，全部相似于 $J_2(2)$）。矩阵 $A$ 与 $B$ 虽然长相迥异（一个稠密，一个下三角），但它们都只有 1 个独立特征向量，所以必然流落同一条轨道！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问：谱指标与几何重数计算**
+- 对 $A = \begin{bmatrix} 3 & 1 \\ -1 & 1 \end{bmatrix}$：$\operatorname{tr}(A) = 4$，$\det(A) = 3 - (-1) = 4$，特征多项式 $\lambda^2 - 4\lambda + 4 = (\lambda - 2)^2$，特征值 $\lambda_1 = \lambda_2 = 2$。
+  $$
+  A - 2I_2 = \begin{bmatrix} 1 & 1 \\ -1 & -1 \end{bmatrix} \implies \operatorname{rank}(A - 2I_2) = 1 \implies \operatorname{GM}_A(2) = 2 - 1 = 1
+  $$
+- 对 $B = \begin{bmatrix} 2 & 0 \\ 4 & 2 \end{bmatrix}$：$\operatorname{tr}(B) = 4$，$\det(B) = 4$，特征值 $\lambda_1 = \lambda_2 = 2$。
+  $$
+  B - 2I_2 = \begin{bmatrix} 0 & 0 \\ 4 & 0 \end{bmatrix} \implies \operatorname{rank}(B - 2I_2) = 1 \implies \operatorname{GM}_B(2) = 2 - 1 = 1
+  $$
+- 对 $C = 2I_2$：$\operatorname{tr}(C) = 4$，$\det(C) = 4$，特征值 $\lambda_1 = \lambda_2 = 2$。
+  $$
+  C - 2I_2 = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \implies \operatorname{rank}(C - 2I_2) = 0 \implies \operatorname{GM}_C(2) = 2 - 0 = 2
+  $$
+
+**第 2 问：相似关系判定**
+$A$ 与 $B$ 的 Jordan 标准形均为单个 $2\times 2$ 块 $J_2(2)$，故 $A \sim B$；而 $C = 2I_2$ 的 Jordan 标准形为 $J_1(2) \oplus J_1(2)$（$\operatorname{GM}=2 \ne 1$），故 $C \not\sim A$ 且 $C \not\sim B$。
+
+**第 3 问：显式构造 $M$ 并验算**
+1. 求真特征向量 $\mathbf{v}_1$：解 $(A - 2I_2)\mathbf{v}_1 = \begin{bmatrix} 1 & 1 \\ -1 & -1 \end{bmatrix}\mathbf{v}_1 = \mathbf{0}$，取 $\mathbf{v}_1 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}$。
+2. 求广义特征向量 $\mathbf{v}_2$：解 $(A - 2I_2)\mathbf{v}_2 = \mathbf{v}_1$，即 $x_1 + x_2 = 1$，取特解 $\mathbf{v}_2 = \begin{bmatrix} 1 \\ 0 \end{bmatrix}$。
+3. 令 $M = \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix}$，显然 $\det(M) = 1 \ne 0$（可逆，且 $M^{-1} = \begin{bmatrix} 0 & -1 \\ 1 & 1 \end{bmatrix}$）。
+
+直接验算 $A M = M J_2(2)$：
+$$
+A M = \begin{bmatrix} 3 & 1 \\ -1 & 1 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} = \begin{bmatrix} 2 & 3 \\ -2 & -1 \end{bmatrix}, \qquad
+M J_2(2) = \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} \begin{bmatrix} 2 & 1 \\ 0 & 2 \end{bmatrix} = \begin{bmatrix} 2 & 3 \\ -2 & -1 \end{bmatrix}
+$$
+两端完全相等，从而 $M^{-1} A M = J_2(2)$ 严格成立。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l29-ex2" tier="L2" title="概念辨析：同特征多项式是否保证矩阵相似？">
+
+判断下述命题是否正确：
+
+**“若两个 $n \times n$ 复方阵 $A, B \in \mathbb{C}^{n \times n}$ 拥有完全相同的特征多项式（从而拥有完全相同的特征值、代数重数、迹与行列式），则 $A$ 与 $B$ 必定相似。”**
+
+<TrueFalseInteractive
+  id="l29-tf1"
+  correct={false}
+  quickFeedback={"错误！特征多项式相同只是相似的必要条件，而非充分条件。例如 $2I_2$ 与 $J_2(2) = \\begin{bmatrix} 2 & 1 \\\\ 0 & 2 \\end{bmatrix}$ 特征多项式同为 $(\\lambda - 2)^2$，但几何重数分别为 $2$ 和 $1$，绝不相似！"}
+/>
+
+<ProgressiveHint hints={[
+  "特征多项式只能决定特征值及其代数重数 $\\operatorname{AM}(\\lambda_i)$，却无法锁定几何重数 $\\operatorname{GM}(\\lambda_i)$ 与 Jordan 块拆分方式。",
+  "考察最简反例：$n=2$ 时的纯量矩阵 $\\lambda I_2$ 与 $2\\times 2$ Jordan 块 $J_2(\\lambda)$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+特征多项式只告诉你“每个特征值总共占用了多大的总维度（代数重数）”，却没有告诉你这片维度是被拆成了各自独立的 $1 \times 1$ 小房间（可对角化），还是串联成了一条锁链（大尺寸 Jordan 块）。只要存在重根（$\operatorname{AM} \ge 2$），同一个特征多项式之下就至少对应多个互不相似的 Jordan 轨道！
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**错误（False）**。
+
+**最简反例（$n=2$）**：
+取 $A = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}$ 与 $B = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}$。
+1. 两者的特征多项式完全相同：$\det(A - \lambda I_2) = \det(B - \lambda I_2) = \lambda^2$（特征值均为 $\lambda_1 = \lambda_2 = 0$，迹均为 $0$，行列式均为 $0$）；
+2. 但计算秩发现：$\operatorname{rank}(A) = 0$，而 $\operatorname{rank}(B) = 1$（从而 $\operatorname{GM}_A(0) = 2 \ne 1 = \operatorname{GM}_B(0)$）。
+由相似不变量定理，相似矩阵必须有相同的秩与几何重数，故 $A$ 与 $B$ 绝不相似。
+
+**进阶补充**：即使再补充“几何重数也相同”，当 $n \ge 4$ 时仍不能保证相似！例如 $J_3(0) \oplus J_1(0)$ 与 $J_2(0) \oplus J_2(0)$ 同特征多项式 $\lambda^4$、同几何重数 $\operatorname{GM}(0)=2$，但前者平方非零（秩 $1$），后者平方为零（秩 $0$），仍不相似。只有当所有特征值的全部 Jordan 块尺寸分布完全一致时，两矩阵才相似。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l29-ex3" tier="L2" tierLabel="L2/L3 · 维数逻辑与块唯一性辨析" title="概念辨析：特征多项式全同且每个特征值几何重数均为 1，是否必然相似？">
+
+判断下述命题是否正确：
+
+**“设 $A, B \in \mathbb{C}^{n \times n}$ 具有完全相同的特征多项式，且对于每一个特征值 $\lambda_i$，$A$ 与 $B$ 的几何重数均严格等于 $1$（即 $\operatorname{GM}_A(\lambda_i) = \operatorname{GM}_B(\lambda_i) = 1$）。则 $A$ 与 $B$ 必定相似！”**
+
+<TrueFalseInteractive
+  id="l29-tf2"
+  correct={true}
+  quickFeedback={"正确！当某个特征值 $\\lambda_i$ 的几何重数等于 $1$ 时，它只能贡献恰好 1 个 Jordan 块；又因为该块尺寸必须等于其代数重数 $m_i = \\operatorname{AM}(\\lambda_i)$，故只可能是唯一确定的最大块 $J_{m_i}(\\lambda_i)$！因此 $A$ 与 $B$ 拥有完全相同的 Jordan 标准形，必然相似。"}
+/>
+
+<ProgressiveHint hints={[
+  "记住核心 1 对 1 定律：特征值 $\\lambda_i$ 对应的 Jordan 块**个数**恰好等于它的几何重数 $\\operatorname{GM}(\\lambda_i)$。",
+  "所有属于 $\\lambda_i$ 的 Jordan 块尺寸之和等于代数重数 $\\operatorname{AM}(\\lambda_i) = m_i$。如果只允许有 $1$ 个块，这个块的尺寸还有别的选择吗？"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+刚在上一题记住了“特征多项式 + 几何重数全同也未必相似（如 $3+1$ vs $2+2$）”，本题马上就来考验你的条件边界感！为什么 $3+1$ 和 $2+2$ 能出现分歧？因为它们有 **2 个块**（$\operatorname{GM}=2$），才把总尺寸 $4$ 拆出了花样。如果规定每个特征值只有 **1 个块**（$\operatorname{GM}=1$），你只有唯一一种拼法——把所有重数全放进一个单独的巨型块 $J_{m_i}(\lambda_i)$ 里！没有任何分歧余地！
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**正确（True）**。
+
+**严格证明**：
+设 $A$ 与 $B$ 共同的特征多项式在 $\mathbb{C}$ 上分解为：
+$$
+p_A(\lambda) = p_B(\lambda) = \prod_{i=1}^r (\lambda_i - \lambda)^{m_i}
+$$
+其中 $\lambda_1, \dots, \lambda_r$ 为互异特征值，$m_i = \operatorname{AM}(\lambda_i) \ge 1$ 为各自相同的代数重数，满足 $\sum_{i=1}^r m_i = n$。
+
+考察任意一个特征值 $\lambda_i$：
+- 根据 Jordan 标准形定理，矩阵 $A$ 中属于 $\lambda_i$ 的 Jordan 块个数等于 $\operatorname{GM}_A(\lambda_i) = 1$；
+- 并且这些块的尺寸之和等于 $\operatorname{AM}_A(\lambda_i) = m_i$；
+- 既然只有 **1 个**块且尺寸之和为 $m_i$，这个块的尺寸必唯一为 $m_i \times m_i$，即 $J_{m_i}(\lambda_i)$。
+
+同理，由于 $\operatorname{GM}_B(\lambda_i) = 1$ 且 $\operatorname{AM}_B(\lambda_i) = m_i$，矩阵 $B$ 中属于 $\lambda_i$ 的 Jordan 块也唯一为 $J_{m_i}(\lambda_i)$。
+
+因此，$A$ 与 $B$ 相似于完全相同的 Jordan 标准形：
+$$
+J = \operatorname{diag}\!\left(J_{m_1}(\lambda_1),\, J_{m_2}(\lambda_2),\, \dots,\, J_{m_r}(\lambda_r)\right)
+$$
+由相似关系的对称性与传递性（$A \sim J$ 且 $B \sim J \implies A \sim B$），$A$ 与 $B$ 必定相似！$\blacksquare$
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l29-ex4" tier="L3" title="Weyr 秩降法则：不求广义特征向量确定 4×4 非三角矩阵的 Jordan 标准形">
+
+考虑如下非三角的 $4 \times 4$ 整数矩阵：
+
+$$
+A = \begin{bmatrix}
+0 & 1 & 0 & 0 \\
+-1 & 2 & 1 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
+1. 计算特征多项式 $\det(A - \lambda I_4)$，求出 $A$ 的全部特征值及代数重数；
+2. 令偏移矩阵 $B = A - \lambda I_4$，依次计算 $\operatorname{rank}(B)$、$\operatorname{rank}(B^2)$、$\operatorname{rank}(B^3)$；
+3. 无需计算任何广义特征向量，仅利用 Weyr 秩降序列 $\Delta_m = \operatorname{rank}(B^{m-1}) - \operatorname{rank}(B^m)$ 确定 $A$ 的唯一 Jordan 标准形 $J$，并给出直观解释为什么它不是 $J_2(1) \oplus J_2(1)$。
+
+<ProgressiveHint hints={[
+  "按第 4 行与第 3 行展开行列式 $\\det(A - \\lambda I_4)$，很快就能得到 $(1 - \\lambda)^2$ 乘以左上角 $2 \\times 2$ 块的行列式。",
+  "计算 $B = A - I_4$，仔细数清线性无关行的数目得 $\\operatorname{rank}(B) = 2$；然后动手算一下 $B^2$ 的 16 个元素，看它是不是零矩阵！",
+  "若 $B^2 \\ne 0$，则最大 Jordan 块的尺寸至少为 $3$，这直接排除了 $2+2$ 分划！"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+看到 $A$ 的右下角是 $1, 1$ 的下三角块，很容易立刻剥出两个 $\lambda = 1$；左上角的 $2\times 2$ 块 $\begin{bmatrix} 0 & 1 \\ -1 & 2 \end{bmatrix}$ 迹为 $2$、行列式为 $1$，也是两个 $\lambda = 1$！所以所有四个特征值全都是 $1$。算出 $B = A - I_4$ 的秩为 $2$ 后，我们知道一共有 $4-2=2$ 个块（只能是 $3+1$ 或 $2+2$）。接下来只需检查 $B^2$ 是否全为零：如果 $B^2 \ne 0$，说明存在长度至少为 $3$ 的链，瞬间锁定是 $3+1$！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问：特征多项式与代数重数**
+写出特征矩阵并按第 4 行、第 3 行连续展开：
+$$
+\det(A - \lambda I_4) = \det \begin{bmatrix}
+-\lambda & 1 & 0 & 0 \\
+-1 & 2-\lambda & 1 & 0 \\
+0 & 0 & 1-\lambda & 0 \\
+0 & 0 & 0 & 1-\lambda
+\end{bmatrix}
+= (1 - \lambda)^2 \det \begin{bmatrix} -\lambda & 1 \\ -1 & 2-\lambda \end{bmatrix}
+$$
+计算左上角 $2\times 2$ 行列式：$-\lambda(2-\lambda) - (-1)(1) = \lambda^2 - 2\lambda + 1 = (1 - \lambda)^2$。
+故特征多项式为：
+$$
+\det(A - \lambda I_4) = (1 - \lambda)^4
+$$
+矩阵 $A$ 有唯一特征值 $\lambda = 1$，代数重数 $\operatorname{AM}(1) = 4$。
+
+**第 2 问：偏移矩阵幂次的秩**
+令 $B = A - I_4$：
+$$
+B = \begin{bmatrix}
+-1 & 1 & 0 & 0 \\
+-1 & 1 & 1 & 0 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+$$
+1. $B$ 的第 1、2 行 $[-1, 1, 0, 0]$ 与 $[-1, 1, 1, 0]$ 显然线性无关，第 3、4 行为零行，故 $\operatorname{rank}(B) = 2$（几何重数 $\operatorname{GM}(1) = 4 - 2 = 2$，即恰好有 $2$ 个 Jordan 块）。
+2. 计算 $B^2$：
+   $$
+   B^2 = \begin{bmatrix}
+   -1 & 1 & 0 & 0 \\
+   -1 & 1 & 1 & 0 \\
+   0 & 0 & 0 & 0 \\
+   0 & 0 & 0 & 0
+   \end{bmatrix}
+   \begin{bmatrix}
+   -1 & 1 & 0 & 0 \\
+   -1 & 1 & 1 & 0 \\
+   0 & 0 & 0 & 0 \\
+   0 & 0 & 0 & 0
+   \end{bmatrix}
+   = \begin{bmatrix}
+   0 & 0 & 1 & 0 \\
+   0 & 0 & 1 & 0 \\
+   0 & 0 & 0 & 0 \\
+   0 & 0 & 0 & 0
+   \end{bmatrix}
+   $$
+   因为第 3 列 $[1, 1, 0, 0]^T$ 非零且其余列全为零，故 $\operatorname{rank}(B^2) = 1 \ne 0$！
+3. 计算 $B^3$：
+   $$
+   B^3 = B^2 B = \begin{bmatrix}
+   0 & 0 & 1 & 0 \\
+   0 & 0 & 1 & 0 \\
+   0 & 0 & 0 & 0 \\
+   0 & 0 & 0 & 0
+   \end{bmatrix}
+   \begin{bmatrix}
+   -1 & 1 & 0 & 0 \\
+   -1 & 1 & 1 & 0 \\
+   0 & 0 & 0 & 0 \\
+   0 & 0 & 0 & 0
+   \end{bmatrix} = 0 \implies \operatorname{rank}(B^3) = 0
+   $$
+
+**第 3 问：由 Weyr 秩降确定 Jordan 标准形**
+记 $r_0 = \operatorname{rank}(I_4) = 4, r_1 = 2, r_2 = 1, r_3 = 0$。计算每一步的秩降（尺寸 $\ge m$ 的块数）：
+- $\Delta_1 = r_0 - r_1 = 4 - 2 = 2$；
+- $\Delta_2 = r_1 - r_2 = 2 - 1 = 1$；
+- $\Delta_3 = r_2 - r_3 = 1 - 0 = 1$；
+- $\Delta_4 = 0 - 0 = 0$。
+
+由此求得各尺寸块的个数 $b_m = \Delta_m - \Delta_{m+1}$：
+- $1\times 1$ 块个数：$b_1 = \Delta_1 - \Delta_2 = 2 - 1 = 1$；
+- $2\times 2$ 块个数：$b_2 = \Delta_2 - \Delta_3 = 1 - 1 = 0$；
+- $3\times 3$ 块个数：$b_3 = \Delta_3 - \Delta_4 = 1 - 0 = 1$。
+
+因此，$A$ 的唯一 Jordan 标准形（至多差块的排列次序）为 $J_3(1) \oplus J_1(1)$：
+$$
+J = \begin{bmatrix}
+1 & 1 & 0 & 0 \\
+0 & 1 & 1 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+**直觉解释**：$J_2(1) \oplus J_2(1)$ 满足 $(J - I_4)^2 = 0$（最大链长仅 $2$），而本例中 $B^2 \ne 0$，证明存在能够承受两次偏移仍不为零的 $3$ 阶广义特征向量（具体即 $\mathbf{e}_3$，满足 $B^2 \mathbf{e}_3 = [1, 1, 0, 0]^T \ne \mathbf{0}$），因此必须包含一个 $3\times 3$ 块。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l29-ex5" tier="L4" title="MIT 18.06 终极挑战：证明任何方阵总与自身转置相似（A ∼ Aᵀ），并求解亏损常微分系统">
+
+本题包含两个在理论与动力学上极具代表性的高阶问题：
+
+1. **普遍对称定理（任何方阵均相似于其转置）**：
+   已知对于任意方阵 $A \in \mathbb{C}^{n \times n}$，显然 $\det(A^T - \lambda I_n) = \det(A - \lambda I_n)$，但这本身不足以证明相似（见题 2）。请利用 **Jordan 标准形定理**，严格证明：**任意复方阵 $A \in \mathbb{C}^{n \times n}$ 必定相似于其自身的转置矩阵 $A^T$**（即存在可逆矩阵 $W \in \mathbb{C}^{n \times n}$ 使得 $W^{-1} A W = A^T$）。
+   *（注意：这是普通的转置 $A^T$，不是共轭转置 $A^H$！）*
+
+2. **亏损微分方程组的精确解析解**：
+   利用 Jordan 分解 $A = M J M^{-1}$ 与矩阵指数公式 $e^{At} = M e^{Jt} M^{-1}$，求一阶线性微分方程组：
+   $$
+   \frac{d\mathbf{u}}{dt} = \begin{bmatrix} -1 & 1 \\ -1 & -3 \end{bmatrix} \mathbf{u}, \qquad \mathbf{u}(0) = \begin{bmatrix} 2 \\ 1 \end{bmatrix}
+   $$
+   的精确闭式解 $\mathbf{u}(t)$，直接验证其满足初始条件与微分方程，并判断 $t \to +\infty$ 时的渐近行为。
+
+<ProgressiveHint hints={[
+  "第 1 问先对单个 $k \\times k$ Jordan 块 $J_k(\\lambda)$ 证明 $J_k(\\lambda) \\sim J_k(\\lambda)^T$：考察反序置换矩阵 $P_k = [\\mathbf{e}_k, \\mathbf{e}_{k-1}, \\dots, \\mathbf{e}_1]$，计算 $P_k^{-1} J_k(\\lambda) P_k$（注意 $P_k^2 = I_k$）。",
+  "第 1 问再把对角块拼接起来得 $J^T = P J P^{-1}$，最后代入 $A = M J M^{-1}$ 的转置 $A^T = (M^{-1})^T J^T M^T$，由相似的传递性即证！",
+  "第 2 问先算特征多项式 $\\det(A - \\lambda I_2) = (\\lambda + 2)^2$，构造特征向量 $\\mathbf{v}_1$ 与广义特征向量 $\\mathbf{v}_2$ 得 $M$，再用 $e^{J_2(-2)t} = e^{-2t}\\begin{bmatrix} 1 & t \\\\ 0 & 1 \\end{bmatrix}$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+第 1 问极其优雅：把 Jordan 块的矩阵从左上角倒过来看（相当于把所有基向量反序排列 $\mathbf{e}_k, \dots, \mathbf{e}_1$），主对角线还是 $\lambda$，而原先主对角线上方的那条超对角线 $1$，在倒序坐标系里正好翻转到了主对角线下方成为次对角线 $1$——这正好就是 $J_k(\lambda)^T$！一旦每个标准积木都相似于自己的转置，任意由它们通过 $M$ 组装出来的复杂矩阵 $A$ 也必定相似于 $A^T$！
+第 2 问则让你亲眼看见不可对角化的亏损动力学矩阵如何通过 $M e^{Jt} M^{-1}$ 吐出带着时间乘法因子 $t e^{-2t}$ 的解析轨迹，由于 $-2 \lt 0$，指数衰减最终依然会彻底驯服线性因子 $t$，把状态拉回原点。
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问证明：$A \sim A^T$**
+
+**步骤 1（单个 Jordan 块与其转置相似）**：
+对任意 $k \times k$ Jordan 块 $J_k(\lambda)$，构造 $k \times k$ **反序置换矩阵（Reversal Permutation Matrix）** $P_k$（副对角线全为 $1$，其余全为 $0$）：
+$$
+P_k = \begin{bmatrix} \mathbf{e}_k & \mathbf{e}_{k-1} & \cdots & \mathbf{e}_1 \end{bmatrix} = \begin{bmatrix}
+0 & \cdots & 0 & 1 \\
+0 & \cdots & 1 & 0 \\
+\vdots & \cdot^{\cdot^{\cdot}} & \vdots & \vdots \\
+1 & \cdots & 0 & 0
+\end{bmatrix}
+$$
+显然 $P_k$ 是对称置换矩阵，满足 $P_k^2 = I_k$，故 $P_k^{-1} = P_k$。
+由于 $J_k(\lambda) = \lambda I_k + N_k$（其中 $N_k = \sum_{i=1}^{k-1} \mathbf{e}_i \mathbf{e}_{i+1}^T$），利用 $P_k \mathbf{e}_i = \mathbf{e}_{k+1-i}$ 计算共轭变换：
+$$
+P_k^{-1} N_k P_k = P_k \left( \sum_{i=1}^{k-1} \mathbf{e}_i \mathbf{e}_{i+1}^T \right) P_k = \sum_{i=1}^{k-1} (P_k \mathbf{e}_i)(P_k \mathbf{e}_{i+1})^T = \sum_{i=1}^{k-1} \mathbf{e}_{k+1-i} \mathbf{e}_{k-i}^T
+$$
+令索引变换 $j = k - i$（当 $i$ 从 $1$ 到 $k-1$ 时，$j$ 从 $k-1$ 到 $1$）：
+$$
+P_k^{-1} N_k P_k = \sum_{j=1}^{k-1} \mathbf{e}_{j+1} \mathbf{e}_j^T = N_k^T
+$$
+从而对整个 Jordan 块有：
+$$
+P_k^{-1} J_k(\lambda) P_k = \lambda P_k^{-1} I_k P_k + P_k^{-1} N_k P_k = \lambda I_k + N_k^T = J_k(\lambda)^T
+$$
+
+**步骤 2（整体 Jordan 标准形与其转置相似）**：
+根据 Jordan 标准形定理，存在可逆矩阵 $M \in \mathbb{C}^{n \times n}$ 使 $A = M J M^{-1}$，其中 $J = \operatorname{diag}(J_{k_1}(\lambda_1), \dots, J_{k_s}(\lambda_s))$。
+令分块对角置换矩阵 $P = \operatorname{diag}(P_{k_1}, \dots, P_{k_s})$（$P^{-1} = P$），则：
+$$
+P^{-1} J P = \operatorname{diag}\!\left(P_{k_1}^{-1} J_{k_1}(\lambda_1) P_{k_1}, \dots, P_{k_s}^{-1} J_{k_s}(\lambda_s) P_{k_s}\right) = \operatorname{diag}\!\left(J_{k_1}(\lambda_1)^T, \dots, J_{k_s}(\lambda_s)^T\right) = J^T
+$$
+即 $J \sim J^T$。
+
+**步骤 3（传递回原矩阵 $A$）**：
+对 $A = M J M^{-1}$ 两端同时取普通转置（注意 $(XYZ)^T = Z^T Y^T X^T$ 且 $(M^{-1})^T = (M^T)^{-1}$）：
+$$
+A^T = (M^{-1})^T J^T M^T = (M^T)^{-1} J^T M^T
+$$
+这说明 $A^T \sim J^T$！将 $J^T = P^{-1} J P$ 与 $J = M^{-1} A M$ 依次代入：
+$$
+A^T = (M^T)^{-1} P^{-1} (M^{-1} A M) P M^T = (M P M^T)^{-1} A (M P M^T)
+$$
+令 $W = M P M^T$，它是三个可逆矩阵之积因而必然可逆，且满足 $W^{-1} A W = A^T$。因此对任意方阵 $A \in \mathbb{C}^{n \times n}$，恒有 $A \sim A^T$！$\blacksquare$
+
+---
+
+**第 2 问求解：亏损微分方程系统**
+
+设系数矩阵 $A = \begin{bmatrix} -1 & 1 \\ -1 & -3 \end{bmatrix}$。
+1. **求特征值与 Jordan 分解**：
+   $\operatorname{tr}(A) = -4$，$\det(A) = (-1)(-3) - 1(-1) = 4$，特征多项式为：
+   $$
+   \lambda^2 + 4\lambda + 4 = (\lambda + 2)^2 = 0 \implies \lambda_1 = \lambda_2 = -2
+   $$
+   计算偏移矩阵 $A + 2I_2 = \begin{bmatrix} 1 & 1 \\ -1 & -1 \end{bmatrix}$，秩为 $1$，故 $\operatorname{GM}(-2) = 1$，不可对角化，Jordan 标准形为 $J = J_2(-2) = \begin{bmatrix} -2 & 1 \\ 0 & -2 \end{bmatrix}$。
+   - 真特征向量：$(A + 2I_2)\mathbf{v}_1 = \mathbf{0} \implies \mathbf{v}_1 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}$；
+   - 广义特征向量：$(A + 2I_2)\mathbf{v}_2 = \mathbf{v}_1 \implies x_1 + x_2 = 1$，取 $\mathbf{v}_2 = \begin{bmatrix} 1 \\ 0 \end{bmatrix}$。
+
+   由此构成换基矩阵及其逆：
+   $$
+   M = \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix}, \qquad M^{-1} = \begin{bmatrix} 0 & -1 \\ 1 & 1 \end{bmatrix}
+   $$
+   验证：$A M = \begin{bmatrix} -1 & 1 \\ -1 & -3 \end{bmatrix}\begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} = \begin{bmatrix} -2 & -1 \\ 2 & -1 \end{bmatrix} = \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix}\begin{bmatrix} -2 & 1 \\ 0 & -2 \end{bmatrix} = M J$，完全吻合！
+
+2. **计算矩阵指数与初值投影**：
+   Jordan 块的矩阵指数为：
+   $$
+   e^{Jt} = e^{-2t} \begin{bmatrix} 1 & t \\ 0 & 1 \end{bmatrix}
+   $$
+   将初值投影至 Jordan 链基底：
+   $$
+   M^{-1} \mathbf{u}(0) = \begin{bmatrix} 0 & -1 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} 2 \\ 1 \end{bmatrix} = \begin{bmatrix} -1 \\ 3 \end{bmatrix}
+   $$
+   从而得到通解：
+   $$
+   \mathbf{u}(t) = M e^{Jt} M^{-1}\mathbf{u}(0) = e^{-2t} \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} \begin{bmatrix} 1 & t \\ 0 & 1 \end{bmatrix} \begin{bmatrix} -1 \\ 3 \end{bmatrix} = e^{-2t} \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} \begin{bmatrix} -1 + 3t \\ 3 \end{bmatrix} = e^{-2t} \begin{bmatrix} 2 + 3t \\ 1 - 3t \end{bmatrix}
+   $$
+
+3. **直接验算与渐近分析**：
+   - 初值验证：$\mathbf{u}(0) = e^0 \begin{bmatrix} 2 + 0 \\ 1 - 0 \end{bmatrix} = \begin{bmatrix} 2 \\ 1 \end{bmatrix}$，准确匹配；
+   - 方程验证：求导得
+     $$
+     \frac{d\mathbf{u}}{dt} = -2 e^{-2t} \begin{bmatrix} 2 + 3t \\ 1 - 3t \end{bmatrix} + e^{-2t} \begin{bmatrix} 3 \\ -3 \end{bmatrix} = e^{-2t} \begin{bmatrix} -1 - 6t \\ -5 + 6t \end{bmatrix}
+     $$
+     同时计算右端项：
+     $$
+     A \mathbf{u}(t) = e^{-2t} \begin{bmatrix} -1 & 1 \\ -1 & -3 \end{bmatrix} \begin{bmatrix} 2 + 3t \\ 1 - 3t \end{bmatrix} = e^{-2t} \begin{bmatrix} -(2 + 3t) + (1 - 3t) \\ -(2 + 3t) - 3(1 - 3t) \end{bmatrix} = e^{-2t} \begin{bmatrix} -1 - 6t \\ -5 + 6t \end{bmatrix}
+     $$
+     左右两端逐分量完全恒等！
+   - 渐近行为：由于特征值 $\lambda = -2 \lt 0$，由洛必达法则 $\lim_{t \to +\infty} t e^{-2t} = 0$（指数衰减远强于任何线性多项式增长），因此 $\lim_{t \to +\infty} \mathbf{u}(t) = \begin{bmatrix} 0 \\ 0 \end{bmatrix}$，系统**渐近稳定**。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>

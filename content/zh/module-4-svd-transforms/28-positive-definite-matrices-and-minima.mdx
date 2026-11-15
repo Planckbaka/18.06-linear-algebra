@@ -1,0 +1,904 @@
+---
+title: "第 28 讲：正定矩阵与极小值"
+ocwId: "L27"
+videoEpisode: "P28"
+textbookRef: "§6.5"
+---
+
+在第 26 讲中，我们攻克了实对称矩阵的谱定理（Real Spectral Theorem）：任何实对称矩阵 $A = A^T \in \mathbb{R}^{n \times n}$ 都拥有全部为实数的特征值，并且可以正交对角化为 $A = Q\Lambda Q^T$。这一分解之所以如水晶般澄澈，是因为对称矩阵不仅消除了复特征值与亏损退化，还赋予了特征子空间相互正交的刚体几何结构。
+
+现在，Gilbert Strang 教授要问一个贯穿优化理论、结构力学、多元微积分与概率统计的终极问题：**在所有实对称矩阵中，哪一类矩阵能保证对应的高维能量曲面永远"向上开口"、在原点形成一个没有鞍点的完美碗状极小值？**
+
+这就是本讲的主角——**实对称正定矩阵（Symmetric Positive Definite Matrix, SPD）**。神奇的是，判断一个实对称矩阵是否正定，并非只有"检验 $\mathbf{x}^T A \mathbf{x} \gt 0$"这一条路：消元主元（Pivots）、左上角顺序主子式（Leading Principal Minors）、特征值（Eigenvalues）以及内积分解 $A = R^T R$ 这五条看似来自线性代数不同章节的线索，将在本讲汇流为一条**五位一体的等价定理**。
+
+---
+
+## 一、从 $2 \times 2$ 二次型能量碗与配方主元出发
+
+在线性代数中，与对称矩阵 $A \in \mathbb{R}^{n \times n}$ 绑定的标量能量函数 $\mathbf{x}^T A \mathbf{x}$ 称为**二次型（Quadratic Form）**。在多元微积分与物理学中，弹簧弹性势能、高斯概率指数、局部泰勒展开的二阶曲率项，无一不是 $\mathbf{x}^T A \mathbf{x}$ 的化身。
+
+我们先从最具体的 $2 \times 2$ 实对称矩阵出发，用"观察能量曲面 + 初中配方法"亲手触摸正定性的几何与代数脉搏。设：
+
+$$
+A = \begin{bmatrix} a & b \\ b & c \end{bmatrix}, \qquad \mathbf{x} = \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} \in \mathbb{R}^2
+$$
+
+将其二次型按分量完全展开：
+
+$$
+f(x_1, x_2) = \mathbf{x}^T A \mathbf{x} = \begin{bmatrix} x_1 & x_2 \end{bmatrix} \begin{bmatrix} a & b \\ b & c \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} = a x_1^2 + 2b x_1 x_2 + c x_2^2
+$$
+
+请注意交叉项 $2b x_1 x_2$ 是如何平均分配到两个非对角位置 $A_{12} = b$ 和 $A_{21} = b$ 上的：这样恰好保证了矩阵 $A = A^T$ 的对称性。
+
+### 1. 三个 $2 \times 2$ 具体案例：仅改右下角一个数，曲面如何剧变？
+
+考虑下面三个仅右下角元素 $c$ 不同的实对称矩阵：
+
+1. **完美能量碗（正定 SPD）**：取 $A_1 = \begin{bmatrix} 2 & 6 \\ 6 & 20 \end{bmatrix}$，二次型为 $f_1(x_1, x_2) = 2x_1^2 + 12x_1x_2 + 20x_2^2$。
+   对 $x_1$ 进行配方法（Complete the Square）：
+   $$
+   f_1(x_1, x_2) = 2(x_1 + 3x_2)^2 + 2x_2^2
+   $$
+   只要 $\mathbf{x} \ne \mathbf{0}$，两个平方项至少有一个严格大于零，且前面的系数 $2$ 和 $2$ 全为正数，因此必有 $f_1(\mathbf{x}) \gt 0$！它的三维图像是一个向四周无限陡峭抬升的椭圆抛物面碗，$(0, 0)$ 是唯一的严格全局极小值点。
+
+2. **临界退化槽谷（半正定 PSD）**：把右下角从 $20$ 降到 $18$，即 $A_2 = \begin{bmatrix} 2 & 6 \\ 6 & 18 \end{bmatrix}$。配方得：
+   $$
+   f_2(x_1, x_2) = 2(x_1 + 3x_2)^2 + 0 \cdot x_2^2
+   $$
+   此时 $f_2(\mathbf{x}) \ge 0$ 恒成立，但沿着整条直线 $x_1 = -3x_2$（即方向 $[-3, 1]^T$），能量始终贴地为零！碗底塌陷成了一条水平延展的"半圆柱槽谷"，矩阵奇异（$\det(A_2) = 0$，存在零特征值 $\lambda_2 = 0$）。
+
+3. **撕裂的马鞍面（不定 Indefinite）**：继续把右下角降到 $7$，即 $A_3 = \begin{bmatrix} 2 & 6 \\ 6 & 7 \end{bmatrix}$。配方得：
+   $$
+   f_3(x_1, x_2) = 2(x_1 + 3x_2)^2 - 11x_2^2
+   $$
+   平方项外面出现了一正（$+2$）一负（$-11$）两个符号！沿着 $[1, 0]^T$ 方向，$f_3(1, 0) = 2 \gt 0$（向上弯）；沿着 $[-3, 1]^T$ 方向，$f_3(-3, 1) = -11 \lt 0$（向下弯）。原点 $(0, 0)$ 不再是极小值点，而是一个危险的**鞍点（Saddle Point）**！
+
+### 2. 惊人的代数同构：配方的外系数就是高斯消元主元！
+
+对一般 $2 \times 2$ 二次型 $a x_1^2 + 2b x_1 x_2 + c x_2^2$（假设 $a \ne 0$）执行配方，我们立刻得到线性代数与中学代数之间最令人惊叹的恒等式：
+
+$$
+a x_1^2 + 2b x_1 x_2 + c x_2^2 = a\left(x_1 + \frac{b}{a}x_2\right)^2 + \left(c - \frac{b^2}{a}\right)x_2^2
+$$
+
+请盯紧两个平方括号外面的系数：
+- 第一个系数是 $d_1 = a$；
+- 第二个系数是 $d_2 = c - \frac{b^2}{a} = \frac{ac - b^2}{a} = \frac{\det(A_2)}{\det(A_1)}$！
+
+这**正是对矩阵 $A = \begin{bmatrix} a & b \\ b & c \end{bmatrix}$ 做高斯消元时得到的两个主元（Pivots）**！写成对称消元分解 $A = L D L^T$ 就是：
+
+$$
+\begin{bmatrix} a & b \\ b & c \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ b/a & 1 \end{bmatrix} \begin{bmatrix} d_1 & 0 \\ 0 & d_2 \end{bmatrix} \begin{bmatrix} 1 & b/a \\ 0 & 1 \end{bmatrix}, \qquad d_1 = a, \quad d_2 = \frac{ac - b^2}{a}
+$$
+
+不仅如此，将 $\mathbf{x}^T A \mathbf{x} = \mathbf{x}^T L D L^T \mathbf{x} = (L^T \mathbf{x})^T D (L^T \mathbf{x})$ 展开，令 $\mathbf{y} = L^T \mathbf{x}$，配方括号内的线性组合 $x_1 + \frac{b}{a}x_2$ 与 $x_2$ 恰好就是上三角矩阵 $L^T$ 作用在 $\mathbf{x}$ 上的分量！
+
+由此一目了然：对于 $2 \times 2$ 实对称矩阵，要让平方和恒正，当且仅当两个主元 $d_1 \gt 0, d_2 \gt 0$，即等价于**左上角 $1 \times 1$ 主元 $a \gt 0$ 且整体行列式 $ac - b^2 \gt 0$**！
+
+<DefinitionCard title="二次型、实对称正定矩阵与半正定矩阵" termEn="Quadratic Form, SPD & PSD Matrices">
+
+设 $A = A^T \in \mathbb{R}^{n \times n}$ 为 $n$ 阶**实对称矩阵（Real Symmetric Matrix）**，与之对应的实值函数 $f(\mathbf{x}) = \mathbf{x}^T A \mathbf{x}$ 称为**二次型（Quadratic Form）**。根据 $\mathbf{x}^T A \mathbf{x}$ 在全部非零实向量 $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$ 上的取值符号，将矩阵 $A$ 划分为五类定性（Definiteness）：
+
+1. **正定（Positive Definite, 记作 $A \succ 0$ 或简称 SPD）**：对所有非零实向量 $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$，严格满足：
+   $$
+   \mathbf{x}^T A \mathbf{x} \gt 0
+   $$
+2. **半正定（Positive Semidefinite, 记作 $A \succeq 0$ 或简称 PSD）**：对所有实向量 $\mathbf{x} \in \mathbb{R}^n$，满足：
+   $$
+   \mathbf{x}^T A \mathbf{x} \ge 0
+   $$
+3. **负定（Negative Definite, $A \prec 0$）**：对所有 $\mathbf{x} \ne \mathbf{0}$，均有 $\mathbf{x}^T A \mathbf{x} \lt 0$（等价于 $-A \succ 0$）。
+4. **半负定（Negative Semidefinite, $A \preceq 0$）**：对所有 $\mathbf{x} \in \mathbb{R}^n$，均有 $\mathbf{x}^T A \mathbf{x} \le 0$（等价于 $-A \succeq 0$）。
+5. **不定（Indefinite）**：存在非零向量 $\mathbf{x}_1, \mathbf{x}_2 \in \mathbb{R}^n$，使得 $\mathbf{x}_1^T A \mathbf{x}_1 \gt 0$ 且 $\mathbf{x}_2^T A \mathbf{x}_2 \lt 0$。
+
+**前提说明**：在 MIT 18.06 课程及绝大多数线性代数与优化文献中，"正定矩阵"默认已包含**实对称（$A = A^T$）**作为基本前提。对于任意非对称实方阵 $M$，恒有 $\mathbf{x}^T M \mathbf{x} = \mathbf{x}^T \left(\frac{M + M^T}{2}\right) \mathbf{x}$，因此二次型的能量形态完全由其对称部分决定。
+
+</DefinitionCard>
+
+---
+
+## 二、实对称正定矩阵的五大等价判据定理
+
+从 $2 \times 2$ 推广到任意 $n$ 维空间 $\mathbb{R}^n$，关于实对称正定矩阵存在五种截然不同但又完美等价的检验方法。无论是微积分求极值、数值线性代数求解大型稀疏方程组，还是统计与信号处理检验协方差阵合法性，本质上都在使用这五大判据之一。
+
+<TheoremCard title="实对称正定矩阵五大等价判据定理" termEn="The Five Equivalent Tests for SPD Matrices">
+
+设 $A = A^T \in \mathbb{R}^{n \times n}$ 为**实对称矩阵**。则以下五个条件**两两互为充要条件（$\iff$）**：
+
+1. **二次型能量判据（Quadratic Form Test）**：对一切非零列向量 $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$，均有
+   $$
+   \mathbf{x}^T A \mathbf{x} \gt 0
+   $$
+2. **特征值判据（Eigenvalue Test）**：$A$ 的全部 $n$ 个（实）特征值严格大于零，即
+   $$
+   \lambda_1, \lambda_2, \dots, \lambda_n \gt 0
+   $$
+3. **顺序主子式判据 / Sylvester 判据（Leading Principal Minors Test）**：$A$ 的全部 $n$ 个左上角**顺序主子阵（Leading Principal Submatrices）** $A_k = A_{1:k,\, 1:k}$ 的行列式（即**顺序主子式**）严格大于零，即
+   $$
+   \det(A_1) \gt 0, \quad \det(A_2) \gt 0, \quad \dots, \quad \det(A_n) = \det(A) \gt 0
+   $$
+4. **消元主元判据（Pivot Test）**：对 $A$ 执行无需行交换的高斯消元，得到对称分解 $A = L D L^T$（$L$ 为单位下三角矩阵），得到的全部 $n$ 个**主元（Pivots）**严格大于零，即
+   $$
+   d_1, d_2, \dots, d_n \gt 0
+   $$
+5. **满列秩内积分解判据（Full-Column-Rank Factorization $A = R^T R$）**：存在列满秩矩阵 $R \in \mathbb{R}^{m \times n}$（$m \ge n$ 且 $\operatorname{rank}(R) = n$，等价于 $\operatorname{Null}(R) = \{\mathbf{0}\}$），使得
+   $$
+   A = R^T R
+   $$
+   特别地，当 $m = n$ 时存在两种经典可逆方阵平方根分解：
+   - **Cholesky 分解（Cholesky Factorization）**：$A = L_c L_c^T$，其中 $L_c = L\sqrt{D}$ 为对角元严格为正的下三角矩阵（取 $R = L_c^T$）；
+   - **对称平方根分解（Symmetric Square Root）**：$A = A^{1/2} A^{1/2}$，其中 $A^{1/2} = Q \sqrt{\Lambda} Q^T \succ 0$。
+
+</TheoremCard>
+
+下面这张闭环等价网络图清晰展示了这五大判据如何首尾相扣（请注意顶部红色/琥珀色警示栏：**$A = A^T$ 是整个网络得以成立的基石**）：
+
+<SpdFiveTestsEquivalenceWebDiagram />
+
+<ProofCollapse title="五大等价判据定理的完整闭环证明（(1)⇒(2)⇒(5)⇒(1) 与 (1)⇒(3)⇔(4)⇒(5)）">
+
+为证明这五个命题两两等价，我们构建两条首尾闭合的蕴含链：
+- **主链 A**：$(1) \implies (2) \implies (5) \implies (1)$；
+- **主链 B**：$(1) \implies (3) \iff (4) \implies (5)$。
+
+由于两链均汇聚到同一闭环中，任意两条命题之间都存在有向逻辑通路，从而证明五者完全等价。**请注意前提 $A = A^T \in \mathbb{R}^{n \times n}$ 在每一步中的关键作用。**
+
+---
+
+**第一步：证明 $(1) \implies (2)$**
+由实对称矩阵谱定理（第 26 讲），存在由 $A$ 的标准正交特征向量构成的正交矩阵 $Q = [\mathbf{q}_1, \dots, \mathbf{q}_n]$，使得 $A\mathbf{q}_i = \lambda_i \mathbf{q}_i$（$\lambda_i \in \mathbb{R}$ 且 $\|\mathbf{q}_i\|_2 = 1$）。
+由于 $\mathbf{q}_i \ne \mathbf{0}$，将其代入条件 $(1)$：
+
+$$
+0 \lt \mathbf{q}_i^T A \mathbf{q}_i = \mathbf{q}_i^T (\lambda_i \mathbf{q}_i) = \lambda_i (\mathbf{q}_i^T \mathbf{q}_i) = \lambda_i \|\mathbf{q}_i\|_2^2 = \lambda_i
+$$
+
+因此全部特征值满足 $\lambda_i \gt 0$（$i = 1, \dots, n$）。
+
+---
+
+**第二步：证明 $(2) \implies (5)$**
+由实对称谱分解 $A = Q \Lambda Q^T$，其中 $\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n)$。因为条件 $(2)$ 保证所有 $\lambda_i \gt 0$，我们可以合法地在实数域内构造正对角平方根矩阵：
+
+$$
+\sqrt{\Lambda} = \operatorname{diag}\!\left(\sqrt{\lambda_1}, \sqrt{\lambda_2}, \dots, \sqrt{\lambda_n}\right)
+$$
+
+令 $R = \sqrt{\Lambda}\,Q^T \in \mathbb{R}^{n \times n}$。由于正交矩阵 $Q^T$ 可逆且 $\sqrt{\Lambda}$ 对角元全非零而可逆，乘积 $R$ 可逆，故 $\operatorname{rank}(R) = n$（列满秩）。验算乘积：
+
+$$
+R^T R = \left(\sqrt{\Lambda}\,Q^T\right)^T \left(\sqrt{\Lambda}\,Q^T\right) = Q \sqrt{\Lambda} \sqrt{\Lambda} Q^T = Q \Lambda Q^T = A
+$$
+
+这直接构造出了满足条件 $(5)$ 的 $R$（同时对称平方根 $A^{1/2} = Q\sqrt{\Lambda}Q^T$ 也满足 $A = A^{1/2} A^{1/2}$）。
+
+---
+
+**第三步：证明 $(5) \implies (1)$**
+假设存在列满秩矩阵 $R \in \mathbb{R}^{m \times n}$（$\operatorname{rank}(R) = n \implies \operatorname{Null}(R) = \{\mathbf{0}\}$）使得 $A = R^T R$。
+对任意非零向量 $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$，因为 $\operatorname{Null}(R) = \{\mathbf{0}\}$ 意味着只有零向量会被 $R$ 映为零，故必有 $R\mathbf{x} \ne \mathbf{0}$。于是：
+
+$$
+\mathbf{x}^T A \mathbf{x} = \mathbf{x}^T (R^T R) \mathbf{x} = (R\mathbf{x})^T (R\mathbf{x}) = \|R\mathbf{x}\|_2^2 \gt 0
+$$
+
+这就完成了闭环 A：$(1) \iff (2) \iff (5)$。
+
+---
+
+**第四步：证明 $(1) \implies (3)$**
+任取整数 $k \in \{1, 2, \dots, n\}$，考察左上角 $k$ 阶顺序主子阵 $A_k = A_{1:k,\, 1:k}$。显然 $A_k^T = A_k$ 也为实对称矩阵。
+对任意非零的 $k$ 维向量 $\mathbf{y} \in \mathbb{R}^k \setminus \{\mathbf{0}\}$，在其末尾补 $n - k$ 个零，构造 $n$ 维非零向量 $\mathbf{x} = \begin{bmatrix} \mathbf{y} \\ \mathbf{0}_{n-k} \end{bmatrix} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$。将 $A$ 按前 $k$ 维与后 $n-k$ 维分块：
+
+$$
+\mathbf{y}^T A_k \mathbf{y} = \begin{bmatrix} \mathbf{y}^T & \mathbf{0}^T \end{bmatrix} \begin{bmatrix} A_k & B \\ B^T & C \end{bmatrix} \begin{bmatrix} \mathbf{y} \\ \mathbf{0} \end{bmatrix} = \mathbf{x}^T A \mathbf{x} \gt 0
+$$
+
+这说明**正定矩阵的任意顺序主子阵 $A_k$ 本身也满足条件 $(1)$**！利用已证的 $(1) \implies (2)$，可知 $A_k$ 的全部 $k$ 个实特征值 $\mu_1, \dots, \mu_k$ 均严格大于零，从而其行列式（等于全部特征值之积）必为正：
+
+$$
+\det(A_k) = \prod_{j=1}^k \mu_j \gt 0 \qquad (\forall k = 1, 2, \dots, n)
+$$
+
+---
+
+**第五步：证明 $(3) \iff (4)$**
+核心事实：对矩阵 $A$ 执行无需行交换的高斯消元时，前 $k$ 步消元只用到左上角 $k \times k$ 子阵 $A_k$ 的行和列。若前 $k-1$ 个主元 $d_1, \dots, d_{k-1}$ 均非零，则 $A_k$ 可唯一分解为 $A_k = L_k D_k U_k$，其中 $L_k, U_k$ 均为主对角线全为 $1$ 的三角矩阵（故 $\det(L_k) = \det(U_k) = 1$），$D_k = \operatorname{diag}(d_1, \dots, d_k)$。两边取行列式得：
+
+$$
+\det(A_k) = \det(L_k)\det(D_k)\det(U_k) = d_1 d_2 \cdots d_k
+$$
+
+- **$(3) \implies (4)$**：采用数学归纳法。当 $k = 1$ 时，$d_1 = \det(A_1) \gt 0$，第一步主元非零且为正。假设前 $k-1$ 个主元 $d_1, \dots, d_{k-1} \gt 0$，因前 $k-1$ 步主元均非零，消元过程无需行交换即可顺利推进至第 $k$ 步，此时 $\det(A_k) = d_1 \cdots d_{k-1} d_k$，故：
+  $$
+  d_k = \frac{\det(A_k)}{\det(A_{k-1})} \gt 0
+  $$
+  归纳完成，全部 $n$ 个主元严格为正！
+- **$(4) \implies (3)$**：若无需行交换即可完成消元且所有 $d_1, \dots, d_n \gt 0$，则对每一个 $k$ 都有 $\det(A_k) = d_1 d_2 \cdots d_k \gt 0$。
+
+---
+
+**第六步：证明 $(4) \implies (5)$**
+若实对称矩阵 $A = A^T$ 无需行交换即可完成消元得到 $A = L D U$，由 LU 分解的唯一性及对称性 $A = A^T = U^T D L^T$，必有 $U = L^T$，即 $A = L D L^T$。
+因为所有主元 $d_i \gt 0$，可构造 $\sqrt{D} = \operatorname{diag}(\sqrt{d_1}, \dots, \sqrt{d_n})$。令下三角矩阵 $L_c = L\sqrt{D}$（Cholesky 因子，对角元为 $\sqrt{d_i} \gt 0$），取 $R = L_c^T = \sqrt{D}\,L^T \in \mathbb{R}^{n \times n}$。由于 $R$ 是对角元严格大于零的上三角矩阵，显然 $\operatorname{rank}(R) = n$，且：
+
+$$
+R^T R = (L\sqrt{D})(\sqrt{D}L^T) = L D L^T = A
+$$
+
+至此，两条闭环完全打通，五大判据两两等价得证。
+
+</ProofCollapse>
+
+### 用五大判据实战透视经典二阶差分三对角矩阵 $K_3$
+
+在计算力学与偏微分方程中，两端固定的一维弹簧串 / 二阶差分矩阵是 Gilbert Strang 教授最钟爱的正定矩阵范例：
+
+$$
+K_3 = \begin{bmatrix} 2 & -1 & 0 \\ -1 & 2 & -1 \\ 0 & -1 & 2 \end{bmatrix}
+$$
+
+让我们用五把标尺同时检验 $K_3$（每一步都是无需繁琐求根的直观验证）：
+1. **判据 (1) 二次型能量**：将 $\mathbf{x}^T K_3 \mathbf{x}$ 整理成各节弹簧势能之和：
+   $$
+   \mathbf{x}^T K_3 \mathbf{x} = 2x_1^2 + 2x_2^2 + 2x_3^2 - 2x_1x_2 - 2x_2x_3 = x_1^2 + (x_1 - x_2)^2 + (x_2 - x_3)^2 + x_3^2
+   $$
+   只要 $\mathbf{x} \ne \mathbf{0}$，四个平方项不可能同时为零，因此 $\mathbf{x}^T K_3 \mathbf{x} \gt 0$ 严格成立！
+2. **判据 (3) 顺序主子式**：$\det(K_1) = 2 \gt 0$，$\det(K_2) = 4 - 1 = 3 \gt 0$，$\det(K_3) = 2(4-1) - (-1)(-2) = 4 \gt 0$。
+3. **判据 (4) 消元主元**：$d_1 = 2$，$d_2 = \frac{3}{2}$，$d_3 = \frac{4}{3}$（恰好满足 $d_k = \frac{\det(K_k)}{\det(K_{k-1})} = \frac{k+1}{k} \gt 0$）。
+4. **判据 (2) 特征值**：由三对角特征多项式解得 $\lambda_1 = 2 - \sqrt{2} \approx 0.586 \gt 0$，$\lambda_2 = 2 \gt 0$，$\lambda_3 = 2 + \sqrt{2} \approx 3.414 \gt 0$。
+5. **判据 (5) $K_3 = R^T R$**：无需方阵，直接写出对应 4 根弹簧伸长量的关联矩阵（Incidence Matrix）：
+   $$
+   R = \begin{bmatrix} 1 & 0 & 0 \\ -1 & 1 & 0 \\ 0 & -1 & 1 \\ 0 & 0 & -1 \end{bmatrix} \in \mathbb{R}^{4 \times 3}
+   $$
+   显然 $\operatorname{Null}(R) = \{\mathbf{0}\}$（列满秩，$\operatorname{rank}(R) = 3$），且 $R^T R = K_3$，正对应判据 (1) 中的四个平方项 $\|R\mathbf{x}\|_2^2$！
+
+---
+
+## 三、半正定矩阵（PSD）与"全部主子式"的微妙边界
+
+在机器学习协方差估计、核方法（Kernel Matrix）与图拉普拉斯算子 $L = A^T A$ 中，我们经常遇到列向量未必线性无关的矩阵，此时能量非负但允许沿某些方向坍缩为零——这就是**半正定矩阵（Positive Semidefinite, PSD）**。
+
+<DefinitionCard title="实对称半正定矩阵的等价刻画" termEn="Characterization of PSD Matrices">
+
+设 $A = A^T \in \mathbb{R}^{n \times n}$ 为实对称矩阵。以下四个条件互为充要条件（$\iff$）：
+
+1. **能量非负**：对一切 $\mathbf{x} \in \mathbb{R}^n$，均有 $\mathbf{x}^T A \mathbf{x} \ge 0$；
+2. **特征值非负**：$A$ 的全部 $n$ 个实特征值满足 $\lambda_1, \lambda_2, \dots, \lambda_n \ge 0$；
+3. **允许列降秩的 Gram 分解**：存在矩阵 $R \in \mathbb{R}^{m \times n}$（不要求列满秩，$\operatorname{rank}(R) = \operatorname{rank}(A) \le n$），使得 $A = R^T R$；
+4. **全部主子式非负**：$A$ 的**全部（而非仅仅左上角顺序！）** $2^n - 1$ 个主子阵 $A_{I,I}$（其中 $I$ 遍历 $\{1, 2, \dots, n\}$ 的所有非空子集，同时取相同的行指标与列指标）的行列式均非负：
+   $$
+   \det(A_{I,I}) \ge 0 \qquad (\forall \varnothing \ne I \subseteq \{1, 2, \dots, n\})
+   $$
+
+</DefinitionCard>
+
+**Gram 矩阵与第 16 讲的呼应**：对于任意形状的实矩阵 $M \in \mathbb{R}^{m \times n}$，矩阵 $A = M^T M$ 天然满足实对称性 $(M^T M)^T = M^T M$ 与非负能量：
+
+$$
+\mathbf{x}^T (M^T M) \mathbf{x} = (M\mathbf{x})^T (M\mathbf{x}) = \|M\mathbf{x}\|_2^2 \ge 0
+$$
+
+因此任意 $M^T M$ 天生就是半正定矩阵（PSD）！回顾第 16 讲的核心定理 $\operatorname{Null}(M^T M) = \operatorname{Null}(M)$：当且仅当 $M$ 列满秩（$\operatorname{Null}(M) = \{\mathbf{0}\}$）时，上式才只在 $\mathbf{x} = \mathbf{0}$ 处取等号，即 $M^T M$ 才升级为严格正定（SPD）！
+
+**为何半正定不能只看"左上角顺序主子式 $\ge 0$"？**
+在正定矩阵中，严格的 $\det(A_k) \gt 0$ 阻止了除数为零，保证了高斯消元无需行交换就能一路推进到底。一旦允许等于零，消元主元可能出现 $d_1 = 0$，后面的负数就可能藏在被零屏蔽的右下角！例如考察极其简单的对角矩阵：
+
+$$
+B = \begin{bmatrix} 0 & 0 \\ 0 & -1 \end{bmatrix}
+$$
+
+它的两个**顺序主子式**分别为 $\det(B_1) = 0 \ge 0$ 与 $\det(B_2) = 0 \ge 0$，全都满足"$\ge 0$"！然而它的特征值是 $0$ 和 $-1$，取 $\mathbf{x} = [0, 1]^T$ 得 $\mathbf{x}^T B \mathbf{x} = -1 \lt 0$，根本不是半正定！罪魁祸首在于那个**非顺序的 $1 \times 1$ 主子式**（第 2 行第 2 列）：$\det(B_{\{2\},\{2\}}) = -1 \lt 0$。这正是为什么判断半正定必须检验**全部**主子式均 $\ge 0$。
+
+---
+
+## 四、多元微积分极小值与等高椭球主轴几何
+
+### 1. 二阶导数 Hessian 矩阵与局部极小值检验
+
+在一元微积分中，判断驻点 $f'(x^*) = 0$ 是否为极小值，只需检验二阶导数 $f''(x^*) \gt 0$。在 $n$ 元微积分中，设 $f: \mathbb{R}^n \to \mathbb{R}$ 二阶连续可微，在驻点（梯度为零）$\nabla f(\mathbf{x}^*) = \mathbf{0}$ 附近做二阶泰勒展开（设微小扰动为 $\Delta\mathbf{x} \in \mathbb{R}^n$）：
+
+$$
+f(\mathbf{x}^* + \Delta\mathbf{x}) = f(\mathbf{x}^*) + \underbrace{\nabla f(\mathbf{x}^*)^T \Delta\mathbf{x}}_{=0} + \frac{1}{2} \Delta\mathbf{x}^T H(\mathbf{x}^*) \Delta\mathbf{x} + o(\|\Delta\mathbf{x}\|_2^2)
+$$
+
+其中二阶导数矩阵称为 **Hessian 矩阵（黑塞矩阵）**，其元素为二阶偏导数：
+
+$$
+H(\mathbf{x}^*)_{ij} = \frac{\partial^2 f}{\partial x_i \partial x_j}(\mathbf{x}^*)
+$$
+
+由于二阶偏导数混合求导可交换（Clairaut 定理），$H(\mathbf{x}^*)$ 必然是一个**实对称矩阵**！于是高维多元函数的极值形态被完全归结为 Hessian 矩阵的定性：
+- 若 $H(\mathbf{x}^*) \succ 0$（**SPD**），则对任意非零微小扰动 $\Delta\mathbf{x}$，二阶主项 $\frac{1}{2}\Delta\mathbf{x}^T H \Delta\mathbf{x} \gt 0$，故 $\mathbf{x}^*$ 是**严格局部极小值点（Strict Local Minimum）**；
+- 若 $H(\mathbf{x}^*) \prec 0$（负定），则 $\mathbf{x}^*$ 是**严格局部极大值点**；
+- 若 $H(\mathbf{x}^*)$ 不定（特征值有正有负），则沿正特征值方向升高、沿负特征值方向下降，$\mathbf{x}^*$ 是**鞍点（Saddle Point）**；
+- 若 $H(\mathbf{x}^*)$ 仅半正定（存在零特征值），二阶导数在该零特征向量方向失去支配力，须由三阶及以上高阶导数决定（例如 $x_1^2 + x_2^4$ 在原点为极小，而 $x_1^2 - x_2^4$ 或 $x_1^2 + x_2^3$ 在原点均非极小）。
+
+### 2. 主轴定理与等高椭球几何：为什么特征值越大，半轴反而越短？
+
+现在把水平切片刀切在正定抛物面碗 $f(\mathbf{x}) = \mathbf{x}^T A \mathbf{x}$ 的高度 $1$ 处，观察它的等高面（Level Set）$\mathbf{x}^T A \mathbf{x} = 1$ 究竟是什么形状。
+
+由实对称谱分解 $A = Q \Lambda Q^T$（$Q^T Q = I_n$，$\lambda_1, \dots, \lambda_n \gt 0$），我们作正交旋转换基 $\mathbf{y} = Q^T \mathbf{x}$（等价于 $\mathbf{x} = Q\mathbf{y}$）。由于正交矩阵 $Q$ 保持长度和角度不变，$\mathbf{y}$ 只是把原坐标系旋转对齐到了 $A$ 的正交特征向量轴 $\{\mathbf{q}_1, \dots, \mathbf{q}_n\}$ 上！此时所有令人讨厌的交叉乘积项 $x_i x_j$（$i \ne j$）在瞬间烟消云散：
+
+$$
+\mathbf{x}^T A \mathbf{x} = \mathbf{x}^T Q \Lambda Q^T \mathbf{x} = (Q^T \mathbf{x})^T \Lambda (Q^T \mathbf{x}) = \mathbf{y}^T \Lambda \mathbf{y} = \sum_{i=1}^n \lambda_i y_i^2 = 1
+$$
+
+将上式改写为标准椭球方程：
+
+$$
+\sum_{i=1}^n \frac{y_i^2}{\left(1/\sqrt{\lambda_i}\right)^2} = 1
+$$
+
+这就是线性代数与解析几何中最具画面感的**主轴定理（Principal Axis Theorem）**：
+1. 方程 $\mathbf{x}^T A \mathbf{x} = 1$ 在 $\mathbb{R}^n$ 中是一个以原点为中心、主轴方向严格对齐单位特征向量 $\mathbf{q}_1, \dots, \mathbf{q}_n$ 的 **$n$ 维椭球（Ellipsoid）**；
+2. 沿第 $i$ 个特征轴 $\mathbf{q}_i$ 方向的**半轴长（Semi-Axis Length）**精准等于：
+   $$
+   a_i = \frac{1}{\sqrt{\lambda_i}}
+   $$
+3. **直觉规律**：特征值 $\lambda_i$ 越大 $\implies$ 能量碗沿 $\mathbf{q}_i$ 方向攀升越陡峭 $\implies$ 只需要走很短的距离就能触及高度 $1$ $\implies$ 等高椭球的该条半轴 $1/\sqrt{\lambda_i}$ **越短**！反之，最小特征值 $\lambda_{\min}$ 对应能量碗最平坦的"长峡谷"方向，半轴 $1/\sqrt{\lambda_{\min}}$ **最长**！
+
+<QuadraticBowlAndEllipsoidAxesDiagram />
+
+让我们用一个口算即可验证的旋转椭圆例题巩固这一直觉：考察矩阵 $A = \begin{bmatrix} 5 & 4 \\ 4 & 5 \end{bmatrix}$ 的等高线 $5x_1^2 + 8x_1x_2 + 5x_2^2 = 1$。
+- 特征值为 $\lambda_1 = 9$（对应单位特征向量 $\mathbf{q}_1 = \frac{1}{\sqrt{2}}[1, 1]^T$，沿 $45^\circ$ 方向），$\lambda_2 = 1$（对应 $\mathbf{q}_2 = \frac{1}{\sqrt{2}}[1, -1]^T$，沿 $-45^\circ$ 方向）。
+- 换元 $y_1 = \frac{x_1 + x_2}{\sqrt{2}}, y_2 = \frac{x_1 - x_2}{\sqrt{2}}$ 后，原方程精确化简为：
+  $$
+  9 y_1^2 + 1 y_2^2 = \frac{y_1^2}{(1/3)^2} + \frac{y_2^2}{1^2} = 1
+  $$
+- 椭圆沿 $45^\circ$ 方向被强力挤压成短半轴 $1/\sqrt{9} = \frac{1}{3}$，沿 $-45^\circ$ 方向伸展为长半轴 $1/\sqrt{1} = 1$！我们可以直接代点核验：点 $\frac{1}{3}\mathbf{q}_1 = \frac{1}{3\sqrt{2}}[1, 1]^T$ 代入二次型确实恰好等于 $1$。
+
+---
+
+## 五、常见直觉陷阱与网传笔记勘误
+
+<PitfallAlert title="正定矩阵三大致命直觉陷阱与严格勘误">
+
+### 陷阱 1（最高频致命错误）：遗忘"实对称 $A = A^T$"前提——正特征值绝不保证 $\mathbf{x}^T M \mathbf{x} \gt 0$！
+
+许多网传笔记只记住了"特征值全正就是正定"，或者"主元全正就是正定"，却把**前提条件 $A = A^T$** 抛诸脑后。一旦离开对称矩阵的保护伞，五大判据会瞬间分崩离析：
+
+- **反例 A（特征值、主元、顺序主子式全为 $+1$，但二次型竟然取负值！）**：
+  考察上三角非对称矩阵
+  $$
+  M = \begin{bmatrix} 1 & 10 \\ 0 & 1 \end{bmatrix}
+  $$
+  它的全部特征值为 $\lambda_1 = \lambda_2 = 1 \gt 0$，顺序主子式与消元主元也全是 $1 \gt 0$。然而，取测试向量 $\mathbf{x} = \begin{bmatrix} 1 \\ -1 \end{bmatrix}$，计算二次型：
+  $$
+  \mathbf{x}^T M \mathbf{x} = \begin{bmatrix} 1 & -1 \end{bmatrix} \begin{bmatrix} 1 & 10 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 1 \\ -1 \end{bmatrix} = x_1^2 + 10x_1x_2 + x_2^2 = 1 - 10 + 1 = -8 \lt 0
+  $$
+  **代数根因**：因为标量的转置等于自身，故 $\mathbf{x}^T M \mathbf{x} = \mathbf{x}^T M^T \mathbf{x}$，进而
+  $$
+  \mathbf{x}^T M \mathbf{x} = \mathbf{x}^T \left(\frac{M + M^T}{2}\right) \mathbf{x}
+  $$
+  **真正控制二次型能量的不是非对称矩阵 $M$ 本身，而是它的对称部分 $S = \frac{M + M^T}{2}$！** 在上例中，$S = \begin{bmatrix} 1 & 5 \\ 5 & 1 \end{bmatrix}$，其特征值为 $1 + 5 = 6$ 与 $1 - 5 = -4$（一正一负，不定矩阵！），这才是出现 $-8$ 的真正元凶。
+
+- **反例 B（二次型严格大于零，但矩阵既非对称也无正实特征值）**：
+  考察旋转拉伸矩阵
+  $$
+  M = \begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix} = I_2 + \begin{bmatrix} 0 & 2 \\ -2 & 0 \end{bmatrix}
+  $$
+  由于反对称部分的二次型恒为零（$2x_1x_2 - 2x_2x_1 = 0$），对一切 $\mathbf{x} \ne \mathbf{0}$ 均有 $\mathbf{x}^T M \mathbf{x} = x_1^2 + x_2^2 \gt 0$。但它不满足 $M = M^T$，其特征值是一对复数 $1 \pm 2i$，因此按照 MIT 18.06 标准定义，**非对称矩阵不归入 SPD 矩阵，在谈及正定时务必首先声明 $A = A^T$**！
+
+### 陷阱 2：误把"顺序主子式 $\ge 0$"当成半正定（PSD）的充分条件
+
+对于严格正定（SPD），只需检验左上角 $n$ 个**顺序主子式** $\det(A_k) \gt 0$ 即充要；但对于半正定（PSD），把 $\gt 0$ 放宽成 $\ge 0$ 后**定理立即失效**！
+如前所述，反例 $B = \begin{bmatrix} 0 & 0 \\ 0 & -1 \end{bmatrix}$ 的两个顺序主子式为 $\det(B_1) = 0 \ge 0$ 与 $\det(B_2) = 0 \ge 0$，但其特征值为 $0, -1$。半正定矩阵必须检验**所有** $2^n - 1$ 个主子式均 $\ge 0$。
+
+### 陷阱 3：将椭球半轴长误记为 $\lambda_i$ 或 $\sqrt{\lambda_i}$
+
+等高椭球方程为 $\sum \lambda_i y_i^2 = 1$，将其化为标准椭圆形式 $\sum \frac{y_i^2}{(1/\sqrt{\lambda_i})^2} = 1$ 后，半轴长是 **$1/\sqrt{\lambda_i}$**（在平方根下且在分母上）！特征值越大，对应半轴越短。
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l28-spd-ellipsoid-explorer"
+  title="2×2 二次型曲面与等高椭球主轴交互探索器"
+  description={"调节对称矩阵 $A = \\begin{bmatrix} a & b \\\\ b & c \\end{bmatrix}$ 的元素，实时联动观察 3D 能量曲面（正定抛物碗 / 半正定槽谷 / 不定鞍面）的形态切换、等高椭圆 $\\mathbf{x}^T A \\mathbf{x} = 1$ 沿特征向量 $\\mathbf{q}_1, \\mathbf{q}_2$ 的半轴长 $1/\\sqrt{\\lambda_i}$，以及五大判据指标（$\\lambda_i, d_i, \\det(A_k)$）的符号同步跳变。"}
+/>
+
+---
+
+<KeyTakeaways items={[
+  "前提决定生死：实对称前提 $A = A^T \\in \\mathbb{R}^{n\\times n}$ 是正定矩阵理论全部等价判据的基石；对于任意非对称方阵 $M$，二次型 $\\mathbf{x}^T M \\mathbf{x}$ 只受其对称部分 $S = (M+M^T)/2$ 支配。",
+  "SPD 五大等价充要判据：在 $A = A^T$ 下，(1) $\\mathbf{x}^T A \\mathbf{x} \\gt 0$ ($\\forall \\mathbf{x}\\ne\\mathbf{0}$)、(2) 全部特征值 $\\lambda_i \\gt 0$、(3) 全部顺序主子式 $\\det(A_k) \\gt 0$、(4) 消元主元 $d_i \\gt 0$、(5) $A = R^T R$（$R$ 列满秩，含 Cholesky $L_c L_c^T$ 与对称根 $A^{1/2}$）五者两两等价。",
+  "配方法即高斯消元：二元配方外系数 $d_1 = a$ 与 $d_2 = (ac-b^2)/a$ 正好是 $A = LDL^T$ 的主元；一般情形下顺序主子式满足 $\\det(A_k) = d_1 d_2 \\cdots d_k$。",
+  "半正定（PSD）边界：$\\mathbf{x}^T A \\mathbf{x} \\ge 0 \\iff \\lambda_i \\ge 0 \\iff A = R^T R$（允许 $R$ 列降秩）；但判断 PSD 不能只看顺序主子式 $\\ge 0$（反例 $[0,0;0,-1]$），必须检验全部主子式 $\\ge 0$。",
+  "多元极小值判定：在驻点 $\\nabla f(\\mathbf{x}^*) = \\mathbf{0}$ 处，若对称 Hessian 矩阵 $H(\\mathbf{x}^*) \\succ 0$，则必为严格局部极小值点；若 $H$ 特征值正负混合，则为鞍点。",
+  "椭球主轴定理：正定等高面 $\\mathbf{x}^T A \\mathbf{x} = 1$ 是沿单位特征向量 $\\mathbf{q}_i$ 方向对齐的椭球，半轴长为 $1/\\sqrt{\\lambda_i}$；特征值越大则曲率越陡、半轴越短。"
+]} />
+
+---
+
+## 六、线性代数直觉训练题
+
+<ProblemSet title="第 28 讲 课后直觉训练题" description="涵盖五大判据实战、非对称陷阱辨析、合同与逆矩阵保持性、无计算结构推理与能量极小化证明。">
+
+<ExerciseCard id="l28-ex1" tier="L1" title="含参 3×3 对称矩阵的正定区间、LDLᵀ 消元与 Cholesky 分解">
+
+设含实参数 $t \in \mathbb{R}$ 的三阶实对称矩阵为：
+
+$$
+A(t) = \begin{bmatrix} 1 & 2 & 0 \\ 2 & 5 & 2 \\ 0 & 2 & t \end{bmatrix}
+$$
+
+1. 利用**顺序主子式判据** $\det(A_k) \gt 0$，确定 $t$ 取何范围时 $A(t)$ 为正定矩阵（SPD），以及何范围时为半正定矩阵（PSD）；
+2. 取 $t = 6$，写出 $A(6)$ 的 $L D L^T$ 分解与下三角 Cholesky 分解 $A(6) = L_c L_c^T$（其中 $L_c = L\sqrt{D}$）；
+3. 写出二次型 $\mathbf{x}^T A(6) \mathbf{x}$ 对应的三个独立平方和（配方法结果）。
+
+<ProgressiveHint hints={[
+  "第 1 问：依次计算左上角 $1\\times 1$、$2\\times 2$、$3\\times 3$ 行列式 $\\det(A_1), \\det(A_2), \\det(A_3)$；注意半正定边界 $t=4$ 时需要检查 $\\mathbf{x}^T A(4) \\mathbf{x}$ 是否确实恒非负。",
+  "第 2 问：直接按高斯消元第 1 步（行 2 减去 $2\\times$ 行 1）和第 2 步（行 3 减去 $2\\times$ 新行 2）记录乘数到 $L$ 中，主元放入 $D$ 中。",
+  "第 3 问：由 $A = LDL^T$ 得 $\\mathbf{x}^T A \\mathbf{x} = (L^T\\mathbf{x})^T D (L^T\\mathbf{x}) = \\sum_{i=1}^3 d_i (L^T\\mathbf{x})_i^2$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+观察左上角 $2 \times 2$ 子阵 $[1, 2; 2, 5]$，它的行列式是 $5 - 4 = 1 \gt 0$，因此前两个主元都是 $1$。最后一个主元要撑起整个矩阵的正定性，就看消元到最后一步剩下的第 3 个对角元有多大：因为行 2 消元后 $[0, 1, 2]$ 再去消行 3 的 $[0, 2, t]$，会减掉 $2 \times 2 = 4$，所以第 3 个主元就是 $t - 4$！于是 $t \gt 4$ 正定，$t = 4$ 临界半正定，$t \lt 4$ 不定。
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问（顺序主子式与正定/半正定范围）：**
+依次计算各阶顺序主子式：
+- $\det(A_1) = 1 \gt 0$；
+- $\det(A_2) = \det \begin{bmatrix} 1 & 2 \\ 2 & 5 \end{bmatrix} = 5 - 4 = 1 \gt 0$；
+- 按第 1 列展开计算三阶行列式：
+  $$
+  \det(A_3) = 1 \cdot \det \begin{bmatrix} 5 & 2 \\ 2 & t \end{bmatrix} - 2 \cdot \det \begin{bmatrix} 2 & 2 \\ 0 & t \end{bmatrix} = (5t - 4) - 2(2t) = t - 4
+  $$
+
+由 SPD 五大等价判据定理中的**顺序主子式判据**，$A(t)$ 为实对称正定矩阵（SPD）当且仅当三个顺序主子式均严格大于零，即：
+
+$$
+t - 4 \gt 0 \iff t \gt 4
+$$
+
+当 $t = 4$ 时，将二次型直接配方为：
+
+$$
+\mathbf{x}^T A(4)\mathbf{x} = x_1^2 + 4x_1x_2 + 5x_2^2 + 4x_2x_3 + 4x_3^2 = (x_1 + 2x_2)^2 + (x_2 + 2x_3)^2 \ge 0
+$$
+
+平方和非负，故 $t = 4$ 时 $A(4)$ 为半正定矩阵（PSD）。若 $t \lt 4$，则 $\det(A(t)) \lt 0$，必有负特征值。综上所述，$A(t)$ 为 SPD $\iff t \gt 4$，$A(t)$ 为 PSD $\iff t \ge 4$。
+
+---
+
+**第 2 问（$t = 6$ 时的 $LDL^T$ 与 Cholesky 分解）：**
+对 $A(6)$ 执行无行交换消元：
+1. 第 2 行减去 $2$ 倍第 1 行（乘数 $l_{21} = 2$），第 3 行第 1 列已为 $0$（$l_{31} = 0$）：
+   $$
+   \begin{bmatrix} 1 & 2 & 0 \\ 0 & 1 & 2 \\ 0 & 2 & 6 \end{bmatrix}
+   $$
+2. 第 3 行减去 $2$ 倍新第 2 行（乘数 $l_{32} = 2$）：
+   $$
+   U = \begin{bmatrix} 1 & 2 & 0 \\ 0 & 1 & 2 \\ 0 & 0 & 2 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & 2 & 0 \\ 0 & 1 & 2 \\ 0 & 0 & 1 \end{bmatrix} = D L^T
+   $$
+
+得到 $A(6) = L D L^T$：
+
+$$
+A(6) = \begin{bmatrix} 1 & 0 & 0 \\ 2 & 1 & 0 \\ 0 & 2 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & 2 & 0 \\ 0 & 1 & 2 \\ 0 & 0 & 1 \end{bmatrix}
+$$
+
+将主元平方根 $\sqrt{D} = \operatorname{diag}(1, 1, \sqrt{2})$ 吸收到 $L$ 中，即得 Cholesky 因子 $L_c = L\sqrt{D}$：
+
+$$
+L_c = \begin{bmatrix} 1 & 0 & 0 \\ 2 & 1 & 0 \\ 0 & 2 & \sqrt{2} \end{bmatrix}, \qquad A(6) = L_c L_c^T
+$$
+
+---
+
+**第 3 问（二次型配方法平方和）：**
+由 $\mathbf{y} = L^T \mathbf{x} = \begin{bmatrix} x_1 + 2x_2 \\ x_2 + 2x_3 \\ x_3 \end{bmatrix}$，结合主元 $d_1 = 1, d_2 = 1, d_3 = 2$，立即得：
+
+$$
+\mathbf{x}^T A(6) \mathbf{x} = d_1 y_1^2 + d_2 y_2^2 + d_3 y_3^2 = (x_1 + 2x_2)^2 + (x_2 + 2x_3)^2 + 2x_3^2
+$$
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l28-ex2" tier="L2" title="判别题：正特征值与正顺序主子式对一般方阵是否保证二次型为正">
+
+判断下述命题是否正确：
+
+"若实方阵 $M \in \mathbb{R}^{n \times n}$ 的全部特征值均严格大于零，且其全部顺序主子式均严格大于零，则对任意非零向量 $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$，其二次型必定严格大于零，即 $\mathbf{x}^T M \mathbf{x} \gt 0$。"
+
+<TrueFalseInteractive
+  id="l28-tf1"
+  correct={false}
+  quickFeedback={"错误！题目刻意漏掉了核心前提「$M = M^T$ 为实对称矩阵」。取非对称矩阵 $M = \\begin{bmatrix} 1 & 10 \\\\ 0 & 1 \\end{bmatrix}$，其特征值与顺序主子式全为 $+1 \\gt 0$，但取 $\\mathbf{x} = [1, -1]^T$ 时 $\\mathbf{x}^T M \\mathbf{x} = -8 \\lt 0$！因为二次型由对称部分 $S = (M+M^T)/2$ 决定，而非 $M$ 本身的特征值。"}
+/>
+
+<ProgressiveHint hints={[
+  "检查题设中是否给定了「$M = M^T$ 实对称」这一前提条件。",
+  "尝试构造一个特征值全为 $1$ 的上三角非对称矩阵 $M = \\begin{bmatrix} 1 & k \\\\ 0 & 1 \\end{bmatrix}$，使交叉项 $k x_1 x_2$ 压倒平方项 $x_1^2 + x_2^2$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+特征值描述的是特征方向上的拉伸倍数，但对于非对称矩阵，非正交的特征向量（甚至像剪切矩阵那样亏损退化到只剩一条特征线）会在不同方向之间制造巨大的"剪切倾斜"。当你把向量插在两条轴的中间方向时，非对称部分与自身转置平均后形成的对称部分 $S = (M + M^T)/2$ 可以拥有很大的负特征值，把能量硬生生拉到零下！
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**错误**。原因在于缺失了**实对称前提 $M = M^T$**。
+
+**构造明确反例**：取 $2 \times 2$ 上三角非对称矩阵
+
+$$
+M = \begin{bmatrix} 1 & 10 \\ 0 & 1 \end{bmatrix} \ne M^T
+$$
+
+1. 检验条件：
+   - 特征值：因为 $M$ 为上三角矩阵，主对角元即为全部特征值，故 $\lambda_1 = \lambda_2 = 1 \gt 0$；
+   - 顺序主子式：$\det(M_1) = 1 \gt 0$，$\det(M_2) = \det(M) = 1 \gt 0$。
+2. 检验结论：取非零向量 $\mathbf{x} = \begin{bmatrix} 1 \\ -1 \end{bmatrix}$，计算二次型：
+   $$
+   \mathbf{x}^T M \mathbf{x} = \begin{bmatrix} 1 & -1 \end{bmatrix} \begin{bmatrix} 1 & 10 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 1 \\ -1 \end{bmatrix} = 1^2 + 10(1)(-1) + (-1)^2 = -8 \lt 0
+   $$
+
+**一般性机制说明**：对任意方阵 $M$，由于标量满足 $(\mathbf{x}^T M \mathbf{x})^T = \mathbf{x}^T M^T \mathbf{x}$，故恒有：
+
+$$
+\mathbf{x}^T M \mathbf{x} = \mathbf{x}^T \left(\frac{M + M^T}{2}\right) \mathbf{x}
+$$
+
+控制二次型符号的真正矩阵是对称部分 $S = \frac{M + M^T}{2} = \begin{bmatrix} 1 & 5 \\ 5 & 1 \end{bmatrix}$，其特征值为 $\mu_1 = 6, \mu_2 = -4 \lt 0$。因此，非对称矩阵的特征值与顺序主子式均无法控制二次型的定性。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l28-ex3" tier="L2" title="判别题：SPD 矩阵的逆矩阵 A⁻¹ 与可逆合同变换 Bᵀ A B 的正定封闭性">
+
+判断下述命题是否正确：
+
+"设 $A \in \mathbb{R}^{n \times n}$ 为实对称正定矩阵（$A \succ 0$），则 $A$ 必定可逆，且其逆矩阵 $A^{-1}$ 也一定是实对称正定矩阵；进一步地，对任意可逆方阵 $B \in \mathbb{R}^{n \times n}$，经过合同变换（Congruence Transformation）所得矩阵 $C = B^T A B$ 依然是实对称正定矩阵。"
+
+<TrueFalseInteractive
+  id="l28-tf2"
+  correct={true}
+  quickFeedback={"正确！因 $A$ 的特征值 $\\lambda_i \\gt 0$ 全非零，故 $A$ 可逆且 $(A^{-1})^T = A^{-1}$，特征值为 $1/\\lambda_i \\gt 0$ 故 $A^{-1} \\succ 0$；对可逆阵 $B$，$C^T = C$，且对任意 $\\mathbf{x} \\ne \\mathbf{0}$ 有 $B\\mathbf{x} \\ne \\mathbf{0}$，从而 $\\mathbf{x}^T (B^T A B)\\mathbf{x} = (B\\mathbf{x})^T A (B\\mathbf{x}) \\gt 0$。"}
+/>
+
+<ProgressiveHint hints={[
+  "首先由特征值 $\\lambda_i \\gt 0$ 判断 $\\det(A) = \\prod \\lambda_i \\gt 0$ 可逆，并利用 $(A^{-1})^T = (A^T)^{-1}$ 验证对称性，再用特征值或 $\\mathbf{x}^T A^{-1} \\mathbf{x}$ 检验正定性。",
+  "对于合同变换 $C = B^T A B$，将二次型改写为 $(B\\mathbf{x})^T A (B\\mathbf{x})$，并思考为什么 $B$ 可逆能保证 $\\mathbf{x} \\ne \\mathbf{0} \\implies B\\mathbf{x} \\ne \\mathbf{0}$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+几何上看，$A^{-1}$ 把正定椭球的长轴和短轴互换（半轴从 $1/\sqrt{\lambda_i}$ 变成 $\sqrt{\lambda_i}$），能量碗仍然向所有方向敞口向上，只是陡缓翻转，正定性毫发无损。而合同变换 $B^T A B$ 不过是做了一次可逆的线性坐标替换 $\mathbf{y} = B\mathbf{x}$：一个开口向上的碗，无论你在地面上怎样歪斜拉伸坐标网格（只要不把空间压扁降维），碗本身依然向上开口！
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**完全正确**。分两部分严格证明：
+
+**第一部分：$A$ 可逆且 $A^{-1} \succ 0$**
+1. **可逆性**：由 $A \succ 0$ 及 SPD 等价判据，全部特征值 $\lambda_i \gt 0$，故 $\det(A) = \prod_{i=1}^n \lambda_i \gt 0$，因此 $A$ 必定可逆。
+2. **对称性**：由 $A = A^T$ 及转置与求逆的可交换性，
+   $$
+   (A^{-1})^T = (A^T)^{-1} = A^{-1}
+   $$
+   故 $A^{-1}$ 为实对称矩阵。
+3. **正定性（双路径验证）**：
+   - 特征值路径：若 $A = Q\Lambda Q^T$，则 $A^{-1} = Q \Lambda^{-1} Q^T$，全部特征值为 $1/\lambda_i \gt 0$，故 $A^{-1} \succ 0$。
+   - 二次型路径：对任意 $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$，令 $\mathbf{y} = A^{-1}\mathbf{x} \ne \mathbf{0}$（因 $A^{-1}$ 可逆），则
+     $$
+     \mathbf{x}^T A^{-1} \mathbf{x} = (A\mathbf{y})^T \mathbf{y} = \mathbf{y}^T A^T \mathbf{y} = \mathbf{y}^T A \mathbf{y} \gt 0
+     $$
+
+**第二部分：$C = B^T A B \succ 0$**
+1. **对称性**：利用 $(MN)^T = N^T M^T$ 与 $A^T = A$：
+   $$
+   C^T = (B^T A B)^T = B^T A^T (B^T)^T = B^T A B = C
+   $$
+2. **正定性**：任取非零向量 $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$。因为矩阵 $B \in \mathbb{R}^{n \times n}$ 可逆，其零空间平凡（$\operatorname{Null}(B) = \{\mathbf{0}\}$），故 $\mathbf{y} = B\mathbf{x} \ne \mathbf{0}$。由 $A \succ 0$ 得：
+   $$
+   \mathbf{x}^T C \mathbf{x} = \mathbf{x}^T (B^T A B) \mathbf{x} = (B\mathbf{x})^T A (B\mathbf{x}) = \mathbf{y}^T A \mathbf{y} \gt 0
+   $$
+
+综上所述，$A^{-1}$ 与 $B^T A B$ 均为实对称正定矩阵。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l28-ex4" tier="L3" title="无计算结构推理：SPD 凸锥加和、矩阵乘积反例与主对角占优元">
+
+设 $A, B \in \mathbb{R}^{n \times n}$ 均为实对称正定矩阵（$A \succ 0, B \succ 0$）。无需计算任何特征值，完成以下推理：
+
+1. 证明 $A + B$ 必然是实对称正定矩阵；并回答矩阵乘积 $AB$ 是否必然是实对称正定矩阵？（若否，请构造一个 $2 \times 2$ 具体反例；并指出 $AB$ 成为 SPD 的充要条件。）
+2. 证明任意 SPD 矩阵 $A = [a_{ij}]$ 必须满足：所有对角元 $a_{ii} \gt 0$，且对任意 $i \ne j$ 必有 $a_{ii} a_{jj} \gt a_{ij}^2$；由此推导出：**SPD 矩阵中绝对值最大的元素必定位于主对角线上**！
+
+<ProgressiveHint hints={[
+  "第 1 问：两个向上开口的能量碗叠加 $\\mathbf{x}^T(A+B)\\mathbf{x} = \\mathbf{x}^T A\\mathbf{x} + \\mathbf{x}^T B\\mathbf{x}$ 会怎样？至于 $AB$，先检验对称性 $(AB)^T = B^T A^T = BA$！",
+  "第 2 问：在 $\\mathbf{x}^T A \\mathbf{x} \\gt 0$ 中分别代入标准基向量 $\\mathbf{e}_i$ 以及只在第 $i, j$ 分量非零的测试向量，考察 $2\\times 2$ 主子阵的正定性。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+第 1 问中，如果两只碗都在原点开口向上，把它们高度相加得到的依然是一只更陡的碗，因此正定矩阵对加法和正数乘封闭（几何上构成一个"凸锥"）；但两个对称矩阵相乘通常不再对称（除非它们可交换），甚至连"对称"这道入场券都拿不到！
+第 2 问中，把向量限制到第 $i$ 根坐标轴，就读出了第 $i$ 个对角元（必须为正）；限制到第 $i, j$ 两根坐标轴张成的平面，就切出了一个 $2 \times 2$ 小碗，它的行列式 $a_{ii}a_{jj} - a_{ij}^2$ 必须为正，从而强迫非对角交叉项 $|a_{ij}|$ 严格小于两个对角元的几何平均值 $\sqrt{a_{ii}a_{jj}}$——自然不可能超过较大的那个对角元！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问（$A + B$ 与 $AB$ 分析）：**
+- **$A + B \succ 0$ 的证明**：
+  1. 对称性：$(A + B)^T = A^T + B^T = A + B$。
+  2. 正定性：对任意 $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$，因 $A \succ 0$ 且 $B \succ 0$，有 $\mathbf{x}^T A \mathbf{x} \gt 0$ 与 $\mathbf{x}^T B \mathbf{x} \gt 0$，于是：
+     $$
+     \mathbf{x}^T (A + B) \mathbf{x} = \mathbf{x}^T A \mathbf{x} + \mathbf{x}^T B \mathbf{x} \gt 0
+     $$
+     故 $A + B$ 必为 SPD（实际上所有 $n$ 阶 SPD 矩阵在矩阵空间中构成一个开凸锥）。
+
+- **$AB$ 不一定为 SPD（反例与充要条件）**：
+  首先检验对称性：$(AB)^T = B^T A^T = BA$。一般而言 $AB \ne BA$，因此 $AB$ 甚至不是对称矩阵！
+  **具体 $2 \times 2$ 反例**：取两个显然 SPD 的矩阵
+  $$
+  A = \begin{bmatrix} 2 & 1 \\ 1 & 1 \end{bmatrix} \quad (\det = 1, \operatorname{tr} = 3), \qquad B = \begin{bmatrix} 1 & 0 \\ 0 & 4 \end{bmatrix}
+  $$
+  计算乘积：
+  $$
+  AB = \begin{bmatrix} 2 & 4 \\ 1 & 4 \end{bmatrix} \ne (AB)^T
+  $$
+  虽然 $AB$ 相似于 $A^{1/2} B A^{1/2}$ 从而仍拥有正实特征值，但由于它非对称，不符合 SPD 定义（且取 $\mathbf{x} = [1, -1]^T$ 得 $\mathbf{x}^T(AB)\mathbf{x} = 2 - 4 - 1 + 4 = 1$，而若加大非对角失衡，二次型同样可为负）。
+  **充要条件**：$AB$ 为 SPD 当且仅当 **$A$ 与 $B$ 乘法可交换（$AB = BA$）**。（因为若 $AB = BA$，由第 26 讲可知两对称矩阵可同时正交对角化 $A = Q\Lambda_A Q^T, B = Q\Lambda_B Q^T$，从而 $AB = Q(\Lambda_A\Lambda_B)Q^T$ 对称且特征值为正积 $\lambda_i(A)\lambda_i(B) \gt 0$。）
+
+---
+
+**第 2 问（对角元正性与最大元素在主对角线上）：**
+1. 对任意指标 $i \in \{1, \dots, n\}$，取标准基向量 $\mathbf{x} = \mathbf{e}_i \ne \mathbf{0}$，代入正定条件得：
+   $$
+   a_{ii} = \mathbf{e}_i^T A \mathbf{e}_i \gt 0
+   $$
+2. 对任意一对不同指标 $i \ne j$，在 $\operatorname{span}\{\mathbf{e}_i, \mathbf{e}_j\}$ 子空间中任取非零向量 $\mathbf{x} = u\,\mathbf{e}_i + v\,\mathbf{e}_j$（$[u, v]^T \ne \mathbf{0}$），代入 $\mathbf{x}^T A \mathbf{x} \gt 0$ 得：
+   $$
+   \begin{bmatrix} u & v \end{bmatrix} \begin{bmatrix} a_{ii} & a_{ij} \\ a_{ij} & a_{jj} \end{bmatrix} \begin{bmatrix} u \\ v \end{bmatrix} = \mathbf{x}^T A \mathbf{x} \gt 0
+   $$
+   这意味着任意 $2 \times 2$ 主子阵 $\begin{bmatrix} a_{ii} & a_{ij} \\ a_{ij} & a_{jj} \end{bmatrix}$ 本身都是 SPD 矩阵！由 SPD 的行列式判据必有其行列式严格为正：
+   $$
+   a_{ii} a_{jj} - a_{ij}^2 \gt 0 \implies |a_{ij}| \lt \sqrt{a_{ii} a_{jj}}
+   $$
+3. 利用均值不等式 $\sqrt{a_{ii} a_{jj}} \le \max(a_{ii}, a_{jj})$（因 $a_{ii}, a_{jj} \gt 0$），立刻得到对所有非对角元素（$i \ne j$）：
+   $$
+   |a_{ij}| \lt \max(a_{ii}, a_{jj}) \le \max_{1 \le k \le n} a_{kk}
+   $$
+   即**任何非对角元素的绝对值都严格小于至少一个主对角元**，因此矩阵中绝对值最大的元素不可能出现在非对角位置，必定位于主对角线上！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l28-ex5" tier="L4" title="MIT 18.06 综合挑战：二次能量全局极小化等价定理、加权最小二乘与椭球体积">
+
+本题将实对称正定矩阵与线性方程组求解、加权最小二乘及几何体积公式统一为一条主线：
+
+1. **最小势能原理（线性方程组与二次优化等价性）**：设 $A \in \mathbb{R}^{n \times n}$ 为实对称正定矩阵（$A \succ 0$），$\mathbf{b} \in \mathbb{R}^n$ 为给定向量。定义二次能量泛函：
+   $$
+   P(\mathbf{x}) = \frac{1}{2}\mathbf{x}^T A \mathbf{x} - \mathbf{b}^T \mathbf{x}
+   $$
+   记 $\mathbf{x}^* = A^{-1}\mathbf{b}$ 为线性方程组 $A\mathbf{x} = \mathbf{b}$ 的唯一解。**不借助微积分求导，仅用纯代数配方**证明恒等式：
+   $$
+   P(\mathbf{x}) - P(\mathbf{x}^*) = \frac{1}{2}(\mathbf{x} - \mathbf{x}^*)^T A (\mathbf{x} - \mathbf{x}^*)
+   $$
+   并说明由此如何直接锁定 $\mathbf{x}^*$ 是 $P(\mathbf{x})$ 在全空间 $\mathbb{R}^n$ 上的唯一全局极小值点。
+2. **正定加权最小二乘与三维椭球体积**：
+   - (a) 在广义最小二乘问题中，设 $M \in \mathbb{R}^{m \times n}$ 列满秩（$\operatorname{rank}(M) = n$），使用正定权重矩阵 $W \succ 0$（例如统计中的协方差逆矩阵 $\Sigma^{-1}$）最小化加权平方误差 $J(\mathbf{x}) = (M\mathbf{x} - \mathbf{y})^T W (M\mathbf{x} - \mathbf{y})$。证明对应的加权正规方程 $(M^T W M)\hat{\mathbf{x}} = M^T W \mathbf{y}$ 中的系数矩阵 $M^T W M$ 必然为 SPD，从而最优解 $\hat{\mathbf{x}}$ 存在且唯一；
+   - (b) 已知三维单位球体积为 $\frac{4}{3}\pi$。设三阶 SPD 矩阵 $A \in \mathbb{R}^{3 \times 3}$，导出三维实心椭球 $\{\mathbf{x} \in \mathbb{R}^3 \mid \mathbf{x}^T A \mathbf{x} \le 1\}$ 的体积公式（用 $\det(A)$ 表达）。
+
+<ProgressiveHint hints={[
+  "第 1 问：先利用 $A\\mathbf{x}^* = \\mathbf{b}$ 算出 $P(\\mathbf{x}^*) = -\\frac{1}{2}(\\mathbf{x}^*)^T A \\mathbf{x}^*$，再把 $\\frac{1}{2}(\\mathbf{x} - \\mathbf{x}^*)^T A (\\mathbf{x} - \\mathbf{x}^*)$ 展开对比。",
+  "第 2 问 (a)：检查 $(M^T W M)^T = M^T W M$，并对非零 $\\mathbf{x}$ 计算 $\\mathbf{x}^T (M^T W M)\\mathbf{x} = (M\\mathbf{x})^T W (M\\mathbf{x})$；利用 $M$ 列满秩可知 $M\\mathbf{x} \\ne \\mathbf{0}$。",
+  "第 2 问 (b)：椭球沿三个正交主轴的半轴长为 $a_i = 1/\\sqrt{\\lambda_i}$，且椭球体积等于 $\\frac{4}{3}\\pi a_1 a_2 a_3$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+第 1 问是有限元、弹簧平衡与共轭梯度法（Conjugate Gradient）的灵魂：求解 $A\mathbf{x} = \mathbf{b}$（当 $A \succ 0$）和寻找抛物面碗底 $\min P(\mathbf{x})$ 是完全同一件事！配方把碗底平移到了 $\mathbf{x}^*$，误差向量 $\mathbf{e} = \mathbf{x} - \mathbf{x}^*$ 只要不为零，就会在正定内积 $\frac{1}{2}\mathbf{e}^T A \mathbf{e}$ 下贡献严格正的惩罚能量。
+第 2 问 (b) 则把第 20 讲的体积缩放（行列式等于体积缩放率）与第 28 讲的椭球半轴长 $1/\sqrt{\lambda_i}$ 完美接榫：沿三个正交轴分别缩放 $1/\sqrt{\lambda_1}, 1/\sqrt{\lambda_2}, 1/\sqrt{\lambda_3}$ 倍，体积自然乘上 $\frac{1}{\sqrt{\lambda_1\lambda_2\lambda_3}} = \frac{1}{\sqrt{\det(A)}}$！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问（纯代数证明最小势能原理）：**
+首先计算在 $\mathbf{x}^* = A^{-1}\mathbf{b}$（即 $A\mathbf{x}^* = \mathbf{b}$）处的能量值：
+
+$$
+P(\mathbf{x}^*) = \frac{1}{2}(\mathbf{x}^*)^T A \mathbf{x}^* - \mathbf{b}^T \mathbf{x}^* = \frac{1}{2}(\mathbf{x}^*)^T \mathbf{b} - \mathbf{b}^T \mathbf{x}^* = -\frac{1}{2}\mathbf{b}^T \mathbf{x}^* = -\frac{1}{2}(\mathbf{x}^*)^T A \mathbf{x}^*
+$$
+
+现在展开右端正定二次偏差项，利用 $A = A^T$ 得 $(\mathbf{x}^*)^T A \mathbf{x} = \mathbf{x}^T A^T \mathbf{x}^* = \mathbf{x}^T A \mathbf{x}^* = \mathbf{x}^T \mathbf{b} = \mathbf{b}^T \mathbf{x}$：
+
+$$
+\begin{aligned}
+\frac{1}{2}(\mathbf{x} - \mathbf{x}^*)^T A (\mathbf{x} - \mathbf{x}^*)
+&= \frac{1}{2}\mathbf{x}^T A \mathbf{x} - \frac{1}{2}\mathbf{x}^T A \mathbf{x}^* - \frac{1}{2}(\mathbf{x}^*)^T A \mathbf{x} + \frac{1}{2}(\mathbf{x}^*)^T A \mathbf{x}^* \\
+&= \frac{1}{2}\mathbf{x}^T A \mathbf{x} - \mathbf{b}^T \mathbf{x} + \frac{1}{2}(\mathbf{x}^*)^T A \mathbf{x}^* \\
+&= P(\mathbf{x}) - P(\mathbf{x}^*)
+\end{aligned}
+$$
+
+由于 $A \succ 0$，对一切 $\mathbf{x} \in \mathbb{R}^n$ 均有 $\frac{1}{2}(\mathbf{x} - \mathbf{x}^*)^T A (\mathbf{x} - \mathbf{x}^*) \ge 0$，且等号成立**当且仅当** $\mathbf{x} - \mathbf{x}^* = \mathbf{0}$，即 $\mathbf{x} = \mathbf{x}^*$！因此：
+
+$$
+P(\mathbf{x}) \gt P(\mathbf{x}^*) \qquad (\forall \mathbf{x} \ne \mathbf{x}^*)
+$$
+
+$\mathbf{x}^* = A^{-1}\mathbf{b}$ 无需微积分即可严格证明为全空间 $\mathbb{R}^n$ 上的唯一全局极小值点。
+
+---
+
+**第 2 问（加权最小二乘与椭球体积）：**
+**(a) 证明 $M^T W M \succ 0$**：
+1. 对称性：由 $W^T = W$，$(M^T W M)^T = M^T W^T (M^T)^T = M^T W M$。
+2. 正定性：对任意非零向量 $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$，由于 $M \in \mathbb{R}^{m \times n}$ 列满秩（$\operatorname{Null}(M) = \{\mathbf{0}\}$），故 $M\mathbf{x} \in \mathbb{R}^m$ 必定非零。又因为 $W \succ 0$，于是：
+   $$
+   \mathbf{x}^T (M^T W M) \mathbf{x} = (M\mathbf{x})^T W (M\mathbf{x}) \gt 0
+   $$
+   （或将 $W = W^{1/2} W^{1/2}$ 分解，写为 $M^T W M = (W^{1/2}M)^T (W^{1/2}M)$，由于 $W^{1/2}$ 可逆且 $M$ 列满秩，乘积 $W^{1/2}M$ 仍列满秩。）
+   因此 $M^T W M$ 是 SPD 矩阵（必然可逆！），且对 $J(\mathbf{x})$ 展开利用第 1 问最小势能原理即知 $\hat{\mathbf{x}} = (M^T W M)^{-1} M^T W \mathbf{y}$ 是唯一全局最优解。
+
+**(b) 三维椭球体积公式**：
+由主轴定理，存在正交变换 $\mathbf{y} = Q^T \mathbf{x}$（正交矩阵 $|\det(Q)| = 1$ 保体积不变）将椭球 $\mathbf{x}^T A \mathbf{x} \le 1$ 映为标准正交坐标下的椭球：
+
+$$
+\frac{y_1^2}{(1/\sqrt{\lambda_1})^2} + \frac{y_2^2}{(1/\sqrt{\lambda_2})^2} + \frac{y_3^2}{(1/\sqrt{\lambda_3})^2} \le 1
+$$
+
+其三个半轴长分别为 $a_1 = 1/\sqrt{\lambda_1}, \; a_2 = 1/\sqrt{\lambda_2}, \; a_3 = 1/\sqrt{\lambda_3}$。三维椭球相当于将单位球沿三条垂直主轴分别线性缩放 $a_1, a_2, a_3$ 倍，因此体积为：
+
+$$
+V = \frac{4}{3}\pi a_1 a_2 a_3 = \frac{4}{3}\pi \frac{1}{\sqrt{\lambda_1 \lambda_2 \lambda_3}} = \frac{4\pi}{3\sqrt{\det(A)}}
+$$
+
+（从第 20 讲行列式体积观点亦可一步得出：$\mathbf{x} = A^{-1/2}\mathbf{u}$ 将单位球 $\|\mathbf{u}\|_2 \le 1$ 映为椭球，体积缩放因子恰好为 $|\det(A^{-1/2})| = \det(A)^{-1/2}$！）
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>
+
+---
+
+<FrontierAIReading
+  id="AI-12"
+  title="多元高斯协方差椭球几何（Score Diffusion）与损失景观 Hessian / 自然梯度 Fisher 信息矩阵"
+  paperRef="Song et al. (ICLR 2021) Score-Based Generative Modeling · Martens (2020) Natural Gradient Insights"
+>
+
+在学完本讲的实对称正定二次型、等高椭球主轴与 Hessian 极小值后，你会发现现代生成式 AI 与深度学习优化器最底层的几何直觉，几乎全部建立在 SPD 椭球与曲率矩阵之上。
+
+### 1. 多元高斯的马氏距离椭球与 Score-Based Diffusion 得分场
+
+设高维数据服从 $d$ 维多元高斯分布 $\mathcal{N}(\boldsymbol{\mu}, \Sigma)$，其中**协方差矩阵（Covariance Matrix）** $\Sigma \in \mathbb{R}^{d \times d}$ 为实对称正定矩阵（$\Sigma \succ 0$）。其概率密度函数为：
+
+$$
+p(\mathbf{x}) = \frac{1}{(2\pi)^{d/2}\sqrt{\det(\Sigma)}} \exp\!\left(-\frac{1}{2}(\mathbf{x} - \boldsymbol{\mu})^T \Sigma^{-1} (\mathbf{x} - \boldsymbol{\mu})\right)
+$$
+
+注意这里二次型中的矩阵不是 $\Sigma$，而是它的逆矩阵——**精度矩阵（Precision Matrix）** $A = \Sigma^{-1} = Q \Lambda^{-1} Q^T \succ 0$！套用本讲主轴定理：
+- 等概率密度面（即**马氏距离等高椭球, Mahalanobis Ellipsoid**）$(\mathbf{x} - \boldsymbol{\mu})^T \Sigma^{-1} (\mathbf{x} - \boldsymbol{\mu}) = c^2$ 沿着 $\Sigma$ 的特征向量 $\mathbf{q}_i$ 对齐；
+- 由于 $\Sigma^{-1}$ 的特征值是 $1/\lambda_i(\Sigma)$，半轴长为 $c / \sqrt{1/\lambda_i(\Sigma)} = c\sqrt{\lambda_i(\Sigma)}$：数据方差越大的主成分方向，等密度椭球拉得越长！
+
+而在连续扩散模型与得分生成模型（**Score-Based Generative Modeling**, Song et al., ICLR 2021）中，核心对象是概率密度的对数空间梯度——**得分函数（Score Function）** $\mathbf{s}(\mathbf{x}) = \nabla_{\mathbf{x}} \log p(\mathbf{x})$。对高斯密度求梯度，立即得到：
+
+$$
+\nabla_{\mathbf{x}} \log \mathcal{N}(\mathbf{x}; \boldsymbol{\mu}, \Sigma) = -\Sigma^{-1}(\mathbf{x} - \boldsymbol{\mu})
+$$
+
+**核心几何洞察**：为什么去噪扩散的得分向量 $-\Sigma^{-1}(\mathbf{x} - \boldsymbol{\mu})$ 并**不**直接沿着欧氏直线 $-(\mathbf{x} - \boldsymbol{\mu})$ 指向中心 $\boldsymbol{\mu}$？
+因为左乘正定矩阵 $\Sigma^{-1} = \sum_{i=1}^d \frac{1}{\lambda_i}\mathbf{q}_i \mathbf{q}_i^T$ 会对高方差平缓方向（$\lambda_i$ 大）轻柔牵引，而对低方差紧致约束方向（$\lambda_i$ 小，$\lambda_i^{-1}$ 极大）产生巨大的恢复力！当样本偏离真实图像/数据的薄流形法向时，$\Sigma^{-1}$ 的大特征值分量会猛烈地将噪声样本推回数据流形表面，随后才沿着流形切向缓慢游走。
+
+### 2. 神经网络损失景观 Hessian 条件数、曲率峡谷与自然梯度（Fisher 矩阵）
+
+在深度学习优化中，将参数 $\boldsymbol{\theta} \in \mathbb{R}^P$ 在局部极小值 $\boldsymbol{\theta}^*$ 附近做二阶展开：
+
+$$
+\mathcal{L}(\boldsymbol{\theta}) \approx \mathcal{L}(\boldsymbol{\theta}^*) + \frac{1}{2}(\boldsymbol{\theta} - \boldsymbol{\theta}^*)^T H (\boldsymbol{\theta} - \boldsymbol{\theta}^*), \qquad H = \nabla^2 \mathcal{L}(\boldsymbol{\theta}^*) \succ 0
+$$
+
+当不同参数方向的曲率差异极大时，Hessian 的**条件数（Condition Number）** $\kappa(H) = \frac{\lambda_{\max}(H)}{\lambda_{\min}(H)} \gg 1$。等损失面是一个极其狭长的"峡谷椭球"：
+- 沿着陡壁（$\lambda_{\max}$ 方向，短半轴 $1/\sqrt{\lambda_{\max}}$），一阶梯度极大；
+- 沿着谷底（$\lambda_{\min}$ 方向，长半轴 $1/\sqrt{\lambda_{\min}}$），一阶梯度微弱。
+
+这导致普通**梯度下降（Gradient Descent）** $\boldsymbol{\theta}_{k+1} = \boldsymbol{\theta}_k - \eta \nabla\mathcal{L}(\boldsymbol{\theta}_k)$ 陷入两难：步长 $\eta$ 稍大于 $2/\lambda_{\max}$，就会撞击陡壁发生震荡发散；步长被限制在 $\eta \lt 2/\lambda_{\max}$，沿谷底方向的收敛速度就会被拖慢 $\kappa(H)$ 倍！
+
+**二阶预条件与自然梯度（Natural Gradient）的破局**：
+如何把狭长病态峡谷瞬间"白化"成各向同性的正圆碗？
+- **牛顿法（Newton's Method）**：左乘 $H^{-1}$，即 $\Delta\boldsymbol{\theta} = -H^{-1}\nabla\mathcal{L}(\boldsymbol{\theta})$。但神经网络参数高达百亿维，且在非凸区域原始 Hessian $H$ 常常**不定（包含大量负特征值，把牛顿法引向鞍点甚至极大值！）**。
+- **费雪信息矩阵（Fisher Information Matrix, FIM）与自然梯度**：Martens (2020) 系统总结了用期望外积构造的曲率矩阵：
+  $$
+  F(\boldsymbol{\theta}) = \mathbb{E}_{\mathbf{x} \sim p_{\boldsymbol{\theta}}}\!\left[ \nabla_{\boldsymbol{\theta}} \log p_{\boldsymbol{\theta}}(\mathbf{x})\, \nabla_{\boldsymbol{\theta}} \log p_{\boldsymbol{\theta}}(\mathbf{x})^T \right]
+  $$
+  回顾本讲第 3 节：**任何外积平方 $\mathbf{g}\mathbf{g}^T$ 的期望天然满足 $\mathbf{v}^T F \mathbf{v} = \mathbb{E}[(\mathbf{v}^T \nabla\log p)^2] \ge 0$**！因此 Fisher 矩阵 $F$ 无需任何额外约束就**天生实对称半正定（$F \succeq 0$）**，加上微小阻尼项 $F + \epsilon I$ 即严格正定（SPD）！现代自适应与二阶优化器（从对角近似的 Adam，到 Kronecker 分块预条件的 K-FAC、Shampoo $G_L^{-1/4} G G_R^{-1/4}$，乃至正交化矩阵梯度的 Muon）本质上都在用高效的 SPD/正交变换驯服病态曲率椭球。
+
+<CollapsibleCode language="python" title="gaussian_ellipsoid_score_and_hessian.py">
+```python
+"""
+多元高斯协方差椭球（Score Diffusion 得分场）与病态 Hessian 峡谷预处理验证
+验证：
+1. SPD 矩阵特征值、Cholesky 分解与 Mahalanobis 等高椭球半轴长 1/sqrt(lambda)
+2. 高斯得分向量 -Sigma^{-1}(x - mu) 与径向向量 -(x - mu) 的各向异性对比
+3. 条件数 kappa=100 的病态二次型峡谷：一阶 GD 锯齿震荡 vs SPD 预处理一步到位
+"""
+import torch
+
+
+def verify_spd_ellipsoid_and_optimization():
+    torch.set_default_dtype(torch.float64)
+
+    # 1. 构造旋转后的 2x2 实对称正定协方差矩阵 Sigma
+    theta = torch.tensor(torch.pi / 6)  # 30 度旋转
+    c, s = torch.cos(theta), torch.sin(theta)
+    Q = torch.tensor([[c, -s], [s, c]])
+    # 协方差特征值：沿 q1 方差小 (0.25)，沿 q2 方差大 (4.0)
+    lam_sigma = torch.tensor([0.25, 4.0])
+    Sigma = Q @ torch.diag(lam_sigma) @ Q.T
+    Sigma = 0.5 * (Sigma + Sigma.T)  # 消除浮点微小不对称
+
+    # 精度矩阵 A = Sigma^{-1} 才是二次型 x^T A x = 1 的核心矩阵
+    A = torch.linalg.inv(Sigma)
+    eigvals_A, eigvecs_A = torch.linalg.eigh(A)
+    L_chol = torch.linalg.cholesky(A)
+
+    print("=" * 64)
+    print("1. 协方差 Sigma 与精度矩阵 A = Sigma^{-1} 的 SPD 检验:")
+    print(f"   A 的特征值 (按升序): {eigvals_A.tolist()} (理论值: [0.25, 4.0])")
+    print(f"   Cholesky 重构误差 ||A - L L^T||_F: {torch.norm(A - L_chol @ L_chol.T):.2e}")
+    semi_axes = 1.0 / torch.sqrt(eigvals_A)
+    print(f"   马氏等高椭圆 x^T A x = 1 半轴长 1/sqrt(lambda_A): {semi_axes.tolist()}")
+    print(f"   (等于 sqrt(lambda_Sigma) = {torch.sqrt(lam_sigma).tolist()}，方差大则轴更长！)")
+
+    # 2. Score Diffusion 得分函数向量场：s(x) = -Sigma^{-1}(x - mu)
+    mu = torch.zeros(2)
+    # 选取偏离流形（沿 q1 短轴与 q2 长轴等距）的测试点 x
+    x_sample = 1.0 * Q[:, 0] + 1.0 * Q[:, 1]
+    radial_dir = -(x_sample - mu)
+    score_vec = -A @ (x_sample - mu)
+
+    # 计算得分向量在正交主轴基下的分量
+    score_in_modal = Q.T @ score_vec
+    print("\n" + "=" * 64)
+    print("2. Score Diffusion 得分向量 -Sigma^{-1}(x - mu) 的各向异性牵引:")
+    print(f"   样本在主轴坐标的偏移 (Q^T x): [{(Q.T @ x_sample)[0]:.2f}, {(Q.T @ x_sample)[1]:.2f}]")
+    print(f"   普通径向方向 -(x - mu) 在主轴分量: [{(Q.T @ radial_dir)[0]:.2f}, {(Q.T @ radial_dir)[1]:.2f}]")
+    print(f"   真实得分场 -Sigma^{{-1}}(x - mu) 主轴分量: [{score_in_modal[0]:.2f}, {score_in_modal[1]:.2f}]")
+    print("   => 窄方差方向 q1 (lambda_Sigma=0.25) 恢复力被放大 16 倍（精度为 4.0 vs 0.25）！")
+
+    # 3. 损失景观病态峡谷：条件数 kappa = 100 时的梯度下降 vs 二阶预处理
+    H = Q @ torch.diag(torch.tensor([100.0, 1.0])) @ Q.T
+    b = torch.tensor([3.0, -2.0])
+    x_star = torch.linalg.solve(H, b)
+
+    def loss(x):
+        return 0.5 * (x @ H @ x) - (b @ x)
+
+    # 初始点选在斜对角上，同时激发陡壁与谷底两个模态
+    x0 = x_star + 2.0 * Q[:, 0] + 2.0 * Q[:, 1]
+
+    # 普通一阶 GD（最大安全步长受限于 2 / lambda_max = 0.02）
+    x_gd = x0.clone()
+    lr_gd = 0.018
+    for _ in range(50):
+        grad = H @ x_gd - b
+        x_gd = x_gd - lr_gd * grad
+
+    # 二阶牛顿/SPD 曲率预处理（步长 1.0，方向 -H^{-1} grad）
+    x_newton = x0.clone()
+    grad0 = H @ x_newton - b
+    x_newton = x_newton - torch.linalg.solve(H, grad0)
+
+    print("\n" + "=" * 64)
+    print("3. 条件数 kappa = 100 的病态 Hessian 峡谷优化对比:")
+    print(f"   初始误差 ||x0 - x*||_2:          {torch.norm(x0 - x_star):.6f}")
+    print(f"   普通 GD 迭代 50 步后误差:         {torch.norm(x_gd - x_star):.6f} (沿平缓谷底依然缓慢爬行)")
+    print(f"   SPD 曲率预处理 1 步后误差:        {torch.norm(x_newton - x_star):.2e} (正定逆曲率将其白化为正圆碗！)")
+    print("=" * 64)
+
+
+if __name__ == "__main__":
+    verify_spd_ellipsoid_and_optimization()
+```
+</CollapsibleCode>
+
+</FrontierAIReading>

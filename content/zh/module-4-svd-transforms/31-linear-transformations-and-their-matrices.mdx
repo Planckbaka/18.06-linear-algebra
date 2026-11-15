@@ -1,0 +1,783 @@
+---
+title: "第 31 讲：线性变换及其对应矩阵"
+ocwId: "L30"
+videoEpisode: "P31"
+textbookRef: "§8.1–8.2"
+---
+
+在此前的三十讲中，我们的出发点几乎总是**先写下一个具体矩阵 $A \in \mathbb{R}^{m \times n}$**，然后再去研究乘积 $\mathbf{x} \mapsto A\mathbf{x}$ 的列空间、零空间、正交投影、特征分解与奇异值分解。但在今天这讲中，Gilbert Strang 教授把镜头整个翻转过来，提出了线性代数最核心的抽象视角：**先有不依赖任何坐标系的“线性变换”，后有依赖于基底选择的“矩阵”**。
+
+想想看：平面上“绕原点逆时针旋转 $30^\circ$”、三维空间里“向某张过原点的平面作正交投影”、微积分里“对多项式求导 $\frac{d}{dt}$”——在还没有画坐标轴、没有挑基底之前，这些几何动作和函数算子本身就已经客观存在了！
+
+那么问题来了：**一个抽象的、甚至作用在多项式或矩阵空间上的算子，究竟怎样才能变成我们熟悉的普通矩形矩阵 $A \in \mathbb{R}^{m\times n}$？** 如果更换不同的输入基和输出基，矩阵 $A$ 又会如何从复杂稠密化简为极简的对角矩阵？本讲将彻底打通“抽象算子”与“具体矩阵”之间的双向桥梁。
+
+---
+
+## 一、无坐标的线性变换公理与“原点一票否决律”
+
+在引入任何坐标系或矩阵之前，我们先用最纯粹、无坐标（Coordinate-Free）的语言抓住“线性”的本质。
+
+### 1. 为什么线性如此特殊？
+
+一个线性规则的核心在于**叠加原理（Superposition Principle）**：整体组合的输出，精确等于各个部分分别输出后再组合。无论你的输入向量来自欧氏空间 $\mathbb{R}^n$、多项式空间 $\mathcal{P}_n$，还是矩阵空间 $\mathbb{R}^{p\times q}$，只要满足这一条规则，整个线性代数（四个基本子空间、秩、特征值、SVD）就能全部平移过去。
+
+<DefinitionCard title="线性变换与线性算子" termEn="Linear Transformation & Linear Operator">
+
+设 $V$ 与 $W$ 是实数域 $\mathbb{R}$ 上的两个向量空间（该定义对复数域 $\mathbb{C}$ 等一般域同样成立）。称映射 $T: V \to W$ 为从 $V$ 到 $W$ 的**线性变换（Linear Transformation）**，若对**所有**向量 $\mathbf{v}, \mathbf{w} \in V$ 以及**所有**实标量 $c, d \in \mathbb{R}$，恒有：
+
+$$
+T(c\mathbf{v} + d\mathbf{w}) = cT(\mathbf{v}) + dT(\mathbf{w})
+$$
+
+当输出空间与输入空间相同（即 $W = V$）时，常特别称 $T: V \to V$ 为 $V$ 上的**线性算子（Linear Operator）**。
+
+上述单条叠加公理完全等价于同时验证以下两条独立公理：
+1. **可加性（Additivity）**：对任意 $\mathbf{v}, \mathbf{w} \in V$，均有 $T(\mathbf{v} + \mathbf{w}) = T(\mathbf{v}) + T(\mathbf{w})$；
+2. **齐次性（Homogeneity）**：对任意 $c \in \mathbb{R}$ 与任意 $\mathbf{v} \in V$，均有 $T(c\mathbf{v}) = cT(\mathbf{v})$。
+
+</DefinitionCard>
+
+### 2. 两条立竿见影的代数推论
+
+直接从公理出发，不借助任何矩阵即可立刻推出两个极其有用的结构性质：
+
+1. **零元保持律（快速证伪测试）**：在齐次性中取标量 $c = 0$，立即得到：
+   $$
+   T(\mathbf{0}_V) = T(0 \cdot \mathbf{0}_V) = 0 \cdot T(\mathbf{0}_V) = \mathbf{0}_W
+   $$
+   **几何直觉**：线性变换必须把输入空间的原点 $\mathbf{0}_V$ 死死钉在输出空间的原点 $\mathbf{0}_W$ 上！只要你看到某个映射满足 $T(\mathbf{0}_V) \ne \mathbf{0}_W$，无需再做任何计算，**直接一票否决——它绝对不是线性变换**！
+2. **一般线性组合保持律**：利用数学归纳法反复套用公理，对任意有限个向量 $\mathbf{v}_1, \dots, \mathbf{v}_k \in V$ 与任意标量 $c_1, \dots, c_k \in \mathbb{R}$，均有：
+   $$
+   T\left(\sum_{j=1}^k c_j \mathbf{v}_j\right) = \sum_{j=1}^k c_j T(\mathbf{v}_j)
+   $$
+   同时，把直线 $\mathbf{v}_0 + t\mathbf{d}$（$t \in \mathbb{R}$）送入 $T$，得到 $T(\mathbf{v}_0) + t T(\mathbf{d})$：线性变换永远把直线映成直线（当 $T(\mathbf{d}) = \mathbf{0}_W$ 时退化为一个点），把平行等距的网格映成平行等距的网格。
+
+---
+
+## 二、正反图谱：几何线性变换、抽象算子与非线性“伪装者”
+
+判断一个映射是不是线性变换，最好的训练方式是把真正的线性算子和几种在几何或代数上“看起来很规则”的非线性**伪装者（Impostors）**放在一起对照。
+
+### 1. $\mathbb{R}^2$ 中的典型几何线性变换（完全无需坐标定义）
+
+- **旋转（Rotation $R_\theta$）**：将平面上的每个向量绕原点逆时针旋转角度 $\theta$。向量的缩放与相加在旋转前后完全同步（把平行四边形整体旋转 $\theta$，对角线仍是旋转后的和向量），且原点保持不动。如果在直角坐标系下写出，它对应矩阵 $\begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix}$。
+- **关于过原点直线的反射（Reflection $H$）**：例如关于 $45^\circ$ 直线 $y = x$ 的镜像反射，将 $(x, y)$ 翻折为 $(y, x)$。原点在镜面上所以不动，保持了线性叠加性。注意反射不要求保持定向（$\det(H) = -1$）。
+- **向过原点子空间的正交投影（Orthogonal Projection $P$）**：例如把 $\mathbb{R}^2$ 中每个向量正交投影到与 $x$ 轴夹角为 $30^\circ$ 的过原点直线 $L$ 上。投影把二维平面压扁到一维直线（不可逆、奇异），但这**丝毫不影响它的线性性**！线性只要求满足 $P(c\mathbf{x} + d\mathbf{y}) = cP(\mathbf{x}) + dP(\mathbf{y})$，从不要求可逆或保维。
+- **错切（Shear）**：如 $T(x_1, x_2) = (x_1 + 2x_2, x_2)$，把正方形推成斜平行四边形。它虽改变了夹角，但原点不动且所有平行网格线仍然保持平行与等距。
+
+### 2. 超越 $\mathbb{R}^n$ 的抽象向量空间线性算子
+
+线性代数真正的威力在于：**向量不一定非得是一列数字**！只要空间里定义了合法的加法和数乘，照样有线性变换：
+
+- **微积分求导算子（Differentiation Operator）**：令 $\mathcal{P}_n$ 表示次数不超过 $n$ 的实系数多项式构成的向量空间（$\dim \mathcal{P}_n = n + 1$）。定义求导映射 $D = \frac{d}{dt}: \mathcal{P}_3 \to \mathcal{P}_2$ 为 $D(p) = p'$。由微积分基本法则：
+  $$
+  \frac{d}{dt}(c\, p(t) + d\, q(t)) = c\, p'(t) + d\, q'(t)
+  $$
+  因此，**求导算子是一个货真价实的线性变换**！
+- **定积分算子（Integration Operator）**：定义 $J: \mathcal{P}_2 \to \mathcal{P}_3$ 为 $(Jq)(t) = \int_0^t q(s)\,ds$。由积分的线性性，$(J(c\, q_1 + d\, q_2))(t) = c(Jq_1)(t) + d(Jq_2)(t)$，它同样是线性变换。
+- **矩阵空间上的算子**：在 $V = \mathbb{R}^{n \times n}$ 上，固定矩阵 $M \in \mathbb{R}^{n\times n}$，左乘映射 $T_M(X) = MX$ 以及转置映射 $T_{\text{tr}}(X) = X^T$ 均满足 $T_{\text{tr}}(cX + dY) = cX^T + dY^T$，都是线性算子！
+
+### 3. 四类经典的非线性“伪装者”（Impostors）
+
+以下四个映射在工程与习题中极易被误判为线性变换，请务必逐一识别它们破坏了哪条公理：
+
+1. **仿射平移（Affine Translation）**：$T(\mathbf{x}) = \mathbf{x} + \mathbf{v}_0$（其中 $\mathbf{v}_0 \ne \mathbf{0}$），以及更一般的仿射变换（Affine Transformation）$T(\mathbf{x}) = A\mathbf{x} + \mathbf{b}$（$\mathbf{b} \ne \mathbf{0}$）。
+   - **破绽**：它确实把直线映成直线、保持平行网格，但它移动了原点：$T(\mathbf{0}) = \mathbf{b} \ne \mathbf{0}$！同时齐次性也彻底崩塌：$T(2\mathbf{x}) = 2A\mathbf{x} + \mathbf{b} \ne 2(A\mathbf{x} + \mathbf{b}) = 2T(\mathbf{x})$。因此，**仿射变换不是线性变换**。
+2. **欧氏长度 / 范数（Euclidean Norm）**：$T(\mathbf{x}) = \|\mathbf{x}\|_2 : \mathbb{R}^2 \to \mathbb{R}$。
+   - **破绽**：它满足 $T(\mathbf{0}) = 0$，躲过了原点测试，但同时破坏了可加性与齐次性！取标准基向量 $\mathbf{e}_1 = [1, 0]^T$ 与 $\mathbf{e}_2 = [0, 1]^T$：
+     $$
+     T(\mathbf{e}_1 + \mathbf{e}_2) = \left\|\begin{bmatrix} 1 \\ 1 \end{bmatrix}\right\|_2 = \sqrt{2} \ne 1 + 1 = T(\mathbf{e}_1) + T(\mathbf{e}_2)
+     $$
+     而且对负标量 $c = -1$，$T(-\mathbf{e}_1) = \|-\mathbf{e}_1\|_2 = +1 \ne -1 = -T(\mathbf{e}_1)$。
+3. **逐分量平方（Elementwise Squaring）**：$T(x_1, x_2) = (x_1^2, x_2^2)$。虽有 $T(\mathbf{0}) = \mathbf{0}$，但 $T(2\mathbf{x}) = 4T(\mathbf{x}) \ne 2T(\mathbf{x})$。
+4. **矩阵行列式（Determinant）**：$T(A) = \det(A) : \mathbb{R}^{n\times n} \to \mathbb{R}$（$n \ge 2$）。
+   - **破绽**：行列式只对**单个行或单个列**分别线性（即所谓“多重线性 Multilinear”），但把整个矩阵作为输入时严重非线性：$\det(2I_2) = 2^2 \det(I_2) = 4 \ne 2\det(I_2)$，且 $\det(I_2 + (-I_2)) = \det(O) = 0 \ne 1 + 1 = \det(I_2) + \det(-I_2)$。
+
+<LinearTransformationGeometryExamplesDiagram />
+
+---
+
+## 三、核空间、值域与“基底完全决定律”
+
+在矩阵语言里，我们有极其核心的零空间 $\operatorname{Null}(A)$ 与列空间 $\operatorname{Col}(A)$。对于无坐标的抽象线性变换 $T: V \to W$，它们对应两个不依赖任何基底的内蕴子空间。
+
+<DefinitionCard title="线性变换的核与值域" termEn="Kernel & Range (Image) of a Linear Transformation">
+
+设 $T: V \to W$ 为实向量空间之间的线性变换，定义：
+1. **$T$ 的核（Kernel，亦称抽象零空间）**：所有被 $T$ 压扁至零向量的输入元素集合，它是输入空间 $V$ 的一个子空间：
+   $$
+   \ker(T) = \{\mathbf{v} \in V \mid T(\mathbf{v}) = \mathbf{0}_W\} \subseteq V
+   $$
+2. **$T$ 的值域 / 像（Range / Image）**：所有输出结果的集合，它是输出空间 $W$ 的一个子空间：
+   $$
+   \operatorname{Im}(T) = \{T(\mathbf{v}) \in W \mid \mathbf{v} \in V\} \subseteq W
+   $$
+
+若 $V$ 为有限维空间，则抽象的**秩-零度定理（Rank-Nullity Theorem）**成立：
+
+$$
+\dim \ker(T) + \dim \operatorname{Im}(T) = \dim V
+$$
+
+</DefinitionCard>
+
+为什么 $\ker(T)$ 一定是 $V$ 的子空间、$\operatorname{Im}(T)$ 一定是 $W$ 的子空间？直接验证封闭性即可：若 $\mathbf{v}_1, \mathbf{v}_2 \in \ker(T)$，则 $T(c\mathbf{v}_1 + d\mathbf{v}_2) = cT(\mathbf{v}_1) + dT(\mathbf{v}_2) = c\mathbf{0}_W + d\mathbf{0}_W = \mathbf{0}_W$，故线性组合仍在 $\ker(T)$ 中；同理，若 $\mathbf{y}_1 = T(\mathbf{v}_1), \mathbf{y}_2 = T(\mathbf{v}_2) \in \operatorname{Im}(T)$，则 $c\mathbf{y}_1 + d\mathbf{y}_2 = T(c\mathbf{v}_1 + d\mathbf{v}_2) \in \operatorname{Im}(T)$。待我们选定基底将 $T$ 写成矩阵 $A$ 后，$\ker(T)$ 将精确对应 $\operatorname{Null}(A)$，$\operatorname{Im}(T)$ 将精确对应 $\operatorname{Col}(A)$！
+
+接下来是支撑起“为什么一个有限大小的矩阵竟然能完全代表整个无穷向量空间上的变换”的根本定理：
+
+<TheoremCard title="基底完全决定定理" termEn="Unique Determination of a Linear Transformation on a Basis">
+
+设 $V$ 与 $W$ 为实向量空间，且 $\mathcal{B}_V = \{\mathbf{v}_1, \mathbf{v}_2, \dots, \mathbf{v}_n\}$ 是 $V$ 的一组基。对于输出空间 $W$ 中**任意**给定的 $n$ 个向量 $\mathbf{y}_1, \mathbf{y}_2, \dots, \mathbf{y}_n \in W$（允许重复、允许为零、允许线性相关），存在**唯一**的线性变换 $T: V \to W$ 使得：
+
+$$
+T(\mathbf{v}_j) = \mathbf{y}_j \quad (\forall j = 1, 2, \dots, n)
+$$
+
+</TheoremCard>
+
+<ProofCollapse title="展开严格证明：为何只需指定 n 个基向量的去向即可锁死全空间？">
+
+**1. 存在性（Existence）：**
+因为 $\mathcal{B}_V = \{\mathbf{v}_1, \dots, \mathbf{v}_n\}$ 是 $V$ 的一组基，根据第 9 讲“基的唯一表示定理”，$V$ 中任意向量 $\mathbf{v}$ 都可以**唯一地**展开为线性组合：
+
+$$
+\mathbf{v} = c_1 \mathbf{v}_1 + c_2 \mathbf{v}_2 + \dots + c_n \mathbf{v}_n
+$$
+
+由此我们构造映射 $T: V \to W$ 为：
+
+$$
+T(\mathbf{v}) := c_1 \mathbf{y}_1 + c_2 \mathbf{y}_2 + \dots + c_n \mathbf{y}_n
+$$
+
+由于系数 $c_1, \dots, c_n$ 唯一确定，该映射良定义（Well-defined）。显然，取 $\mathbf{v} = \mathbf{v}_j$ 时系数 $c_j = 1$ 其余为 $0$，故 $T(\mathbf{v}_j) = \mathbf{y}_j$。再检验线性性：设 $\mathbf{u} = \sum_{j=1}^n a_j \mathbf{v}_j$ 且 $\mathbf{w} = \sum_{j=1}^n b_j \mathbf{v}_j$，对任意 $\alpha, \beta \in \mathbb{R}$ 有：
+
+$$
+\alpha \mathbf{u} + \beta \mathbf{w} = \sum_{j=1}^n (\alpha a_j + \beta b_j) \mathbf{v}_j
+$$
+
+代入 $T$ 的定义立即得：
+
+$$
+T(\alpha \mathbf{u} + \beta \mathbf{w}) = \sum_{j=1}^n (\alpha a_j + \beta b_j) \mathbf{y}_j = \alpha \sum_{j=1}^n a_j \mathbf{y}_j + \beta \sum_{j=1}^n b_j \mathbf{y}_j = \alpha T(\mathbf{u}) + \beta T(\mathbf{w})
+$$
+
+故 $T$ 确为线性变换。
+
+**2. 唯一性（Uniqueness）：**
+假设还有另一个线性变换 $S: V \to W$ 同样满足 $S(\mathbf{v}_j) = \mathbf{y}_j$（$j=1,\dots,n$）。那么对空间 $V$ 中的任意向量 $\mathbf{v} = \sum_{j=1}^n c_j \mathbf{v}_j$，利用 $S$ 的线性性：
+
+$$
+S(\mathbf{v}) = S\left(\sum_{j=1}^n c_j \mathbf{v}_j\right) = \sum_{j=1}^n c_j S(\mathbf{v}_j) = \sum_{j=1}^n c_j \mathbf{y}_j = T(\mathbf{v})
+$$
+
+故 $S \equiv T$，线性变换被唯一确定。
+
+</ProofCollapse>
+
+**这条定理的直觉冲击力极大**：$\mathbb{R}^3$ 或 $\mathcal{P}_2$ 里有无穷多个向量，但你根本不需要逐个交代它们的命运；只要交代清楚 $n$ 个基向量去哪里了，线性公理就会像精密齿轮一样把剩下的无穷多个向量的去向全部自动锁死！
+
+---
+
+## 四、黄金构造法则：从任意两组基构造表示矩阵 $A$
+
+现在进入本讲（教材 §8.2）最核心的构造方法。要让抽象变换 $T: V \to W$ 落地为一个实数矩阵 $A \in \mathbb{R}^{m \times n}$，我们首先需要**坐标（Coordinates）**把抽象空间“数字化”。
+
+设 $\mathcal{B}_V = (\mathbf{v}_1, \mathbf{v}_2, \dots, \mathbf{v}_n)$ 是 $n$ 维空间 $V$ 的一组**有序基（Ordered Basis）**（注意顺序至关重要：交换两个基向量的位置，对应矩阵的列也会交换！）。对任意 $\mathbf{v} \in V$，存在唯一的实数 $x_1, \dots, x_n \in \mathbb{R}$ 使得 $\mathbf{v} = x_1 \mathbf{v}_1 + \dots + x_n \mathbf{v}_n$。我们把这些系数组成的列向量记为 $\mathbf{v}$ 在基 $\mathcal{B}_V$ 下的**坐标向量（Coordinate Vector）**：
+
+$$
+[\mathbf{v}]_{\mathcal{B}_V} = \begin{bmatrix} x_1 \\ x_2 \\ \vdots \\ x_n \end{bmatrix} \in \mathbb{R}^n
+$$
+
+同理，若 $\mathcal{B}_W = (\mathbf{w}_1, \dots, \mathbf{w}_m)$ 是 $m$ 维输出空间 $W$ 的一组有序基，则输出向量 $T(\mathbf{v}) \in W$ 也拥有唯一的输出坐标向量 $[T(\mathbf{v})]_{\mathcal{B}_W} \in \mathbb{R}^m$。
+
+**终极问题**：我们能否找到一个 $m \times n$ 的实矩阵 $A$，使得**在抽象空间做 $T$ 作用，等价于在坐标空间直接左乘矩阵 $A$**，即：
+
+$$
+[T(\mathbf{v})]_{\mathcal{B}_W} = A \, [\mathbf{v}]_{\mathcal{B}_V} \quad (\forall \mathbf{v} \in V)
+$$
+
+答案不仅存在且唯一，构造方法更是出奇地简单——Gilbert Strang 将其称为构造线性变换矩阵的**黄金法则（The Master Rule）**。
+
+<TheoremCard title="线性变换的矩阵表示定理（黄金构造法则）" termEn="Matrix Representation Theorem (The Master Rule)">
+
+设 $V$ 和 $W$ 为实数域 $\mathbb{R}$ 上的有限维向量空间，$\dim V = n$，$\dim W = m$。固定输入空间的有序基 $\mathcal{B}_V = (\mathbf{v}_1, \dots, \mathbf{v}_n)$ 与输出空间的有序基 $\mathcal{B}_W = (\mathbf{w}_1, \dots, \mathbf{w}_m)$，并设 $T: V \to W$ 为线性变换。
+
+则存在**唯一**的矩阵 $A = [T]_{\mathcal{B}_W \leftarrow \mathcal{B}_V} \in \mathbb{R}^{m \times n}$，使得对所有 $\mathbf{v} \in V$ 成立坐标交换公式：
+
+$$
+[T(\mathbf{v})]_{\mathcal{B}_W} = A \, [\mathbf{v}]_{\mathcal{B}_V}
+$$
+
+且矩阵 $A$ 的第 $j$ **列**（$j = 1, 2, \dots, n$）恰好等于第 $j$ 个输入基向量 $\mathbf{v}_j$ 经 $T$ 变换后在输出基 $\mathcal{B}_W$ 下的坐标向量：
+
+$$
+A = \Big[\, [T(\mathbf{v}_1)]_{\mathcal{B}_W} \;\Big|\; [T(\mathbf{v}_2)]_{\mathcal{B}_W} \;\Big|\; \cdots \;\Big|\; [T(\mathbf{v}_n)]_{\mathcal{B}_W} \,\Big]
+$$
+
+换言之，若将 $T(\mathbf{v}_j)$ 在输出基下展开为 $T(\mathbf{v}_j) = \sum_{i=1}^m a_{ij} \mathbf{w}_i$，则系数 $a_{ij}$ 就是矩阵 $A$ 的第 $i$ 行、第 $j$ 列元素。
+
+</TheoremCard>
+
+<ProofCollapse title="展开证明：为何 T(v_j) 的坐标必须按列填入，且如此构成的 A 唯一有效？">
+
+**1. 验证所构造的矩阵 $A$ 确实满足交换公式：**
+设 $A$ 的第 $j$ 列定义为 $\mathbf{a}_j := [T(\mathbf{v}_j)]_{\mathcal{B}_W} \in \mathbb{R}^m$，即 $T(\mathbf{v}_j) = \sum_{i=1}^m a_{ij}\mathbf{w}_i$。
+对任意 $\mathbf{v} \in V$，设其输入坐标为 $[\mathbf{v}]_{\mathcal{B}_V} = [x_1, x_2, \dots, x_n]^T$，也就是说 $\mathbf{v} = \sum_{j=1}^n x_j \mathbf{v}_j$。
+利用 $T$ 的线性性：
+
+$$
+T(\mathbf{v}) = T\left(\sum_{j=1}^n x_j \mathbf{v}_j\right) = \sum_{j=1}^n x_j T(\mathbf{v}_j) = \sum_{j=1}^n x_j \left(\sum_{i=1}^m a_{ij} \mathbf{w}_i\right) = \sum_{i=1}^m \left(\sum_{j=1}^n a_{ij} x_j\right) \mathbf{w}_i
+$$
+
+根据坐标向量定义的唯一性，$T(\mathbf{v})$ 在输出基 $\mathcal{B}_W$ 下的第 $i$ 个坐标正是 $\sum_{j=1}^n a_{ij} x_j = (A [\mathbf{v}]_{\mathcal{B}_V})_i$！因此：
+
+$$
+[T(\mathbf{v})]_{\mathcal{B}_W} = A \, [\mathbf{v}]_{\mathcal{B}_V}
+$$
+
+从列图像（Column Picture）看更直观：因为取坐标映射 $\mathbf{y} \mapsto [\mathbf{y}]_{\mathcal{B}_W}$ 本身就是线性同构，所以：
+
+$$
+[T(\mathbf{v})]_{\mathcal{B}_W} = \left[\sum_{j=1}^n x_j T(\mathbf{v}_j)\right]_{\mathcal{B}_W} = \sum_{j=1}^n x_j [T(\mathbf{v}_j)]_{\mathcal{B}_W} = \sum_{j=1}^n x_j \mathbf{a}_j = A \, [\mathbf{v}]_{\mathcal{B}_V}
+$$
+
+**2. 证明矩阵 $A$ 的唯一性：**
+假设存在任意矩阵 $M \in \mathbb{R}^{m\times n}$ 对所有 $\mathbf{v} \in V$ 均满足 $[T(\mathbf{v})]_{\mathcal{B}_W} = M [\mathbf{v}]_{\mathcal{B}_V}$。
+特别取 $\mathbf{v} = \mathbf{v}_j$（第 $j$ 个输入基向量）。由于 $\mathbf{v}_j = 0\mathbf{v}_1 + \dots + 1\mathbf{v}_j + \dots + 0\mathbf{v}_n$，其坐标向量恰为标准单位列向量 $[\mathbf{v}_j]_{\mathcal{B}_V} = \mathbf{e}_j \in \mathbb{R}^n$。
+代入公式得：
+
+$$
+[T(\mathbf{v}_j)]_{\mathcal{B}_W} = M \mathbf{e}_j = M \text{ 的第 } j \text{ 列}
+$$
+
+于是 $M$ 的每一列都被强制锁定为 $[T(\mathbf{v}_j)]_{\mathcal{B}_W}$，即 $M = A$。证毕！
+
+</ProofCollapse>
+
+### 矩阵乘法从何而来？——变换的复合！
+
+在模块一（第 3 讲）中，我们直接规定了矩阵乘法的“行点乘列”规则。现在，借助黄金构造法则，我们终于能回答那个根本性的哲学问题：**为什么矩阵乘法一定要那样定义，而不是逐元素相乘？**
+
+<TheoremCard title="变换复合对应矩阵乘法定理" termEn="Composition of Linear Transformations Equals Matrix Multiplication">
+
+设 $U, V, W$ 为 $\mathbb{R}$ 上的有限维向量空间，分别配备有序基 $\mathcal{B}_U$（维数 $p$）、$\mathcal{B}_V$（维数 $n$）和 $\mathcal{B}_W$（维数 $m$）。
+设 $T: U \to V$ 与 $S: V \to W$ 均为线性变换，其对应表示矩阵分别为：
+
+$$
+A = [T]_{\mathcal{B}_V \leftarrow \mathcal{B}_U} \in \mathbb{R}^{n \times p}, \qquad B = [S]_{\mathcal{B}_W \leftarrow \mathcal{B}_V} \in \mathbb{R}^{m \times n}
+$$
+
+则复合映射 $S \circ T : U \to W$（定义为 $(S \circ T)(\mathbf{u}) := S(T(\mathbf{u}))$）仍为线性变换，且其在 $\mathcal{B}_U, \mathcal{B}_W$ 下的表示矩阵恰好等于**矩阵乘积 $BA$**：
+
+$$
+[S \circ T]_{\mathcal{B}_W \leftarrow \mathcal{B}_U} = B A \in \mathbb{R}^{m \times p}
+$$
+
+</TheoremCard>
+
+<ProofCollapse title="展开证明：两行推导揭示矩阵乘法结合律的终极真相">
+
+**1. 线性性：** 对任意 $\mathbf{u}_1, \mathbf{u}_2 \in U$ 与 $c, d \in \mathbb{R}$：
+
+$$
+(S \circ T)(c\mathbf{u}_1 + d\mathbf{u}_2) = S(T(c\mathbf{u}_1 + d\mathbf{u}_2)) = S(cT(\mathbf{u}_1) + dT(\mathbf{u}_2)) = cS(T(\mathbf{u}_1)) + dS(T(\mathbf{u}_2))
+$$
+
+故 $S \circ T$ 确实是线性变换。
+
+**2. 矩阵乘积：** 对任意 $\mathbf{u} \in U$，连续使用两次坐标交换公式：
+
+$$
+[(S \circ T)(\mathbf{u})]_{\mathcal{B}_W} = [S(T(\mathbf{u}))]_{\mathcal{B}_W} = B \, [T(\mathbf{u})]_{\mathcal{B}_V} = B \left( A \, [\mathbf{u}]_{\mathcal{B}_U} \right) = (BA) \, [\mathbf{u}]_{\mathcal{B}_U}
+$$
+
+由矩阵表示定理的唯一性，表示 $S \circ T$ 的矩阵只能是 $BA$！证毕！
+
+</ProofCollapse>
+
+这真是一道绝妙的闪电：**矩阵乘法本质上就是线性变换的复合（先作用右边的 $A$，再作用左边的 $B$）**。也正因为函数复合天然满足结合律 $(R \circ S) \circ T = R \circ (S \circ T)$，矩阵乘法才无需任何繁琐的三重求和展开就自动满足结合律 $(CB)A = C(BA)$！
+
+<MatrixRepresentationFromBasesDiagram />
+
+---
+
+## 五、实战演练：微积分算子矩阵化与“好基底”的力量
+
+理论必须放到硬核实例里才能发光。下面我们看两个把 §8.1–8.2 精髓发挥到极致的案例：第一个把微积分里的求导和积分彻底变成了矩形矩阵；第二个展示同一线性变换在不同基底下如何从稠密矩阵化简为极简对角阵。
+
+### 1. 把微积分变成矩阵：求导 $A_{\text{diff}}$ 与定积分 $A_{\text{int}}$
+
+考虑三次及以下实多项式空间 $V = \mathcal{P}_3$（$\dim = 4$）和二次及以下实多项式空间 $W = \mathcal{P}_2$（$\dim = 3$）。分别选用自然单项式有序基：
+
+$$
+\mathcal{B}_V = (1,\, t,\, t^2,\, t^3), \qquad \mathcal{B}_W = (1,\, t,\, t^2)
+$$
+
+#### （1）构造求导算子 $D = \frac{d}{dt}: \mathcal{P}_3 \to \mathcal{P}_2$ 的矩阵
+
+按照黄金构造法则，把 $D$ 逐一作用在输入基 $\mathcal{B}_V$ 的 4 个向量上，并用输出基 $\mathcal{B}_W = (1, t, t^2)$ 写出坐标：
+- $D(1) = 0 = 0\cdot 1 + 0\cdot t + 0\cdot t^2 \implies [D(1)]_{\mathcal{B}_W} = [0, 0, 0]^T$
+- $D(t) = 1 = 1\cdot 1 + 0\cdot t + 0\cdot t^2 \implies [D(t)]_{\mathcal{B}_W} = [1, 0, 0]^T$
+- $D(t^2) = 2t = 0\cdot 1 + 2\cdot t + 0\cdot t^2 \implies [D(t^2)]_{\mathcal{B}_W} = [0, 2, 0]^T$
+- $D(t^3) = 3t^2 = 0\cdot 1 + 0\cdot t + 3\cdot t^2 \implies [D(t^3)]_{\mathcal{B}_W} = [0, 0, 3]^T$
+
+将这 4 个坐标列向量**按列**并排拼起来，就得到 $3 \times 4$ 的**微分矩阵**：
+
+$$
+A_{\text{diff}} = [D]_{\mathcal{B}_W \leftarrow \mathcal{B}_V} = \begin{bmatrix} 0 & 1 & 0 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 3 \end{bmatrix} \in \mathbb{R}^{3 \times 4}
+$$
+
+检验一下！对于 $p(t) = 2 + 5t - 3t^2 + 4t^3$，其坐标为 $[p]_{\mathcal{B}_V} = [2, 5, -3, 4]^T$：
+
+$$
+A_{\text{diff}} [p]_{\mathcal{B}_V} = \begin{bmatrix} 0 & 1 & 0 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 3 \end{bmatrix} \begin{bmatrix} 2 \\ 5 \\ -3 \\ 4 \end{bmatrix} = \begin{bmatrix} 5 \\ -6 \\ 12 \end{bmatrix}
+$$
+
+翻译回 $\mathcal{B}_W$ 就是 $5 - 6t + 12t^2 = p'(t)$！
+
+不仅如此，四个基本子空间的全部信息瞬间活了过来：
+- **零空间**：$\operatorname{Null}(A_{\text{diff}}) = \operatorname{span}\{[1, 0, 0, 0]^T\}$，对应 $\ker(D) = \operatorname{span}\{1\}$——恰好就是**所有常数多项式求导均为零**！
+- **列空间**：$\operatorname{Col}(A_{\text{diff}}) = \mathbb{R}^3$，对应 $\operatorname{Im}(D) = \mathcal{P}_2$——每个二次多项式在 $\mathcal{P}_3$ 中都有原函数！行满秩 $r = 3$，且 $\dim \ker(D) + \dim \operatorname{Im}(D) = 1 + 3 = 4 = \dim \mathcal{P}_3$。
+
+#### （2）构造定积分算子 $J: \mathcal{P}_2 \to \mathcal{P}_3$ 并验证微积分基本定理
+
+反过来，定义积分算子 $(Jq)(t) = \int_0^t q(s)\,ds$（注意这里输入基是 $\mathcal{B}_W = (1, t, t^2)$，输出基是 $\mathcal{B}_V = (1, t, t^2, t^3)$）：
+- $J(1) = t \implies [0, 1, 0, 0]^T$
+- $J(t) = \frac{1}{2}t^2 \implies [0, 0, 1/2, 0]^T$
+- $J(t^2) = \frac{1}{3}t^3 \implies [0, 0, 0, 1/3]^T$
+
+于是 $J$ 的表示矩阵是一个 $4 \times 3$ 的**积分矩阵**：
+
+$$
+A_{\text{int}} = [J]_{\mathcal{B}_V \leftarrow \mathcal{B}_W} = \begin{bmatrix} 0 & 0 & 0 \\ 1 & 0 & 0 \\ 0 & 1/2 & 0 \\ 0 & 0 & 1/3 \end{bmatrix} \in \mathbb{R}^{4 \times 3}
+$$
+
+现在把微积分基本定理翻译成**矩阵乘法**（变换复合定理）：
+1. **先积分再求导（$D \circ J : \mathcal{P}_2 \to \mathcal{P}_2$）**：
+   $$
+   A_{\text{diff}} A_{\text{int}} = \begin{bmatrix} 0 & 1 & 0 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 3 \end{bmatrix} \begin{bmatrix} 0 & 0 & 0 \\ 1 & 0 & 0 \\ 0 & 1/2 & 0 \\ 0 & 0 & 1/3 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix} = I_3
+   $$
+   微积分第一基本定理 $\frac{d}{dt}\int_0^t q(s)\,ds = q(t)$ 在矩阵世界里竟然就是：$A_{\text{int}}$ 是 $A_{\text{diff}}$ 的一个**右逆（Right Inverse）**（因为 $A_{\text{diff}}$ 行满秩 $r = m = 3$）！
+2. **先求导再积分（$J \circ D : \mathcal{P}_3 \to \mathcal{P}_3$）**：
+   $$
+   A_{\text{int}} A_{\text{diff}} = \begin{bmatrix} 0 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix} \ne I_4
+   $$
+   为什么左上角出现了一个 $0$ 而不是 $1$？因为 $\int_0^t p'(s)\,ds = p(t) - p(0)$，**常数项 $p(0)$ 在求导过程中永久丢失了**！从秩的角度看，$3 \times 4$ 与 $4 \times 3$ 矩阵的乘积秩至多为 $3$，绝不可能变成秩为 $4$ 的单位矩阵 $I_4$——$A_{\text{diff}}$ 有右逆而没有左逆，矩阵的形状从根子上封死了微积分的单向信息损失！
+
+### 2. 换一组基底，矩阵瞬间变对角：标准基 vs. 特征基
+
+同样的线性变换在不同基底下长相天差地别。考察 $\mathbb{R}^2$ 上向直线 $L = \operatorname{span}\{[1, 2]^T\}$ 的正交投影算子 $P: \mathbb{R}^2 \to \mathbb{R}^2$。
+
+- **视角 A（在标准基 $\mathcal{E} = (\mathbf{e}_1, \mathbf{e}_2)$ 下，输入输出共用 $\mathcal{E}$）**：
+  利用单位方向向量与投影公式 $P\mathbf{x} = \frac{\mathbf{a}\mathbf{a}^T}{\mathbf{a}^T\mathbf{a}}\mathbf{x}$（$\mathbf{a} = [1, 2]^T$，$\mathbf{a}^T\mathbf{a} = 5$）：
+  $$
+  P(\mathbf{e}_1) = \frac{1}{5}\begin{bmatrix} 1 \\ 2 \end{bmatrix}, \qquad P(\mathbf{e}_2) = \frac{2}{5}\begin{bmatrix} 1 \\ 2 \end{bmatrix}
+  $$
+  按列拼装得到一个所有元素都非零的稠密矩阵：
+  $$
+  [P]_{\mathcal{E} \leftarrow \mathcal{E}} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix}
+  $$
+- **视角 B（在特征基 $\mathcal{B} = (\mathbf{v}_1, \mathbf{v}_2)$ 下，其中 $\mathbf{v}_1 = [1, 2]^T \in L$，$\mathbf{v}_2 = [-2, 1]^T \in L^\perp$）**：
+  再次套用黄金法则：
+  - $\mathbf{v}_1$ 本来就在直线 $L$ 上，投影不动：$P(\mathbf{v}_1) = \mathbf{v}_1 = 1\cdot \mathbf{v}_1 + 0\cdot \mathbf{v}_2 \implies [P(\mathbf{v}_1)]_{\mathcal{B}} = [1, 0]^T$；
+  - $\mathbf{v}_2$ 垂直于直线 $L$，投影归零：$P(\mathbf{v}_2) = \mathbf{0} = 0\cdot \mathbf{v}_1 + 0\cdot \mathbf{v}_2 \implies [P(\mathbf{v}_2)]_{\mathcal{B}} = [0, 0]^T$。
+  于是在特征基 $\mathcal{B}$ 下，**同一个几何投影 $P$** 的矩阵表示瞬间化简为极简对角阵：
+  $$
+  [P]_{\mathcal{B} \leftarrow \mathcal{B}} = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}
+  $$
+
+**两者之间如何用复合定理打通？** 令恒等算子 $\operatorname{id}(\mathbf{v}) = \mathbf{v}$ 负责“仅换基、不变换向量”。把 $\mathcal{B}$ 的基向量按标准基坐标列成**换基矩阵（Change-of-Basis Matrix）** $S = [\mathbf{v}_1 \;\; \mathbf{v}_2] = \begin{bmatrix} 1 & -2 \\ 2 & 1 \end{bmatrix}$，它正是 $[\operatorname{id}]_{\mathcal{E} \leftarrow \mathcal{B}}$（验证：$[\mathbf{v}]_{\mathcal{E}} = x_1 \mathbf{v}_1 + x_2 \mathbf{v}_2 = S[\mathbf{v}]_{\mathcal{B}}$），其逆 $S^{-1} = [\operatorname{id}]_{\mathcal{B} \leftarrow \mathcal{E}}$。根据复合定理：
+
+$$
+[P]_{\mathcal{B} \leftarrow \mathcal{B}} = [\operatorname{id}]_{\mathcal{B} \leftarrow \mathcal{E}} \, [P]_{\mathcal{E} \leftarrow \mathcal{E}} \, [\operatorname{id}]_{\mathcal{E} \leftarrow \mathcal{B}} = S^{-1} [P]_{\mathcal{E} \leftarrow \mathcal{E}} S
+$$
+
+验算一下：$S^{-1} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix}$，于是：
+
+$$
+\frac{1}{5}\begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix} \cdot \frac{1}{5}\begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix} \cdot \begin{bmatrix} 1 & -2 \\ 2 & 1 \end{bmatrix} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 2 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}
+$$
+
+**全课程的大一统图景在此合拢**：
+- 当算子满足 $V = W$ 且我们坚持输入输出**共用同一组基**（$\mathcal{B}_V = \mathcal{B}_W$）时，换基对应第 22 讲和第 29 讲的**相似变换（Similarity Transformation）** $S^{-1}AS$，理想目标就是特征对角阵 $\Lambda$（若亏损则退而求其次到若尔当标准形 $J$）；
+- 而当我们可以放开手脚，允许输入空间 $V$ 与输出空间 $W$ **分别挑选各自独立的两组标准正交基** $\mathcal{B}_V = (\mathbf{v}_1, \dots, \mathbf{v}_n)$ 与 $\mathcal{B}_W = (\mathbf{u}_1, \dots, \mathbf{u}_m)$ 时，任何线性变换 $T$（对应标准基矩阵 $A \in \mathbb{R}^{m\times n}$）在这对奇异基下的表示矩阵都是纯对角的奇异值矩阵 $\Sigma = U^T A V$（因为 $A\mathbf{v}_j = \sigma_j \mathbf{u}_j$，其输出坐标恰好是 $\sigma_j \mathbf{e}_j$）——这就是第 30 讲奇异值分解（SVD）最本质的“换基几何”！
+
+---
+
+<PitfallAlert title="常见直觉陷阱与概念雷区">
+
+### 1. 把仿射变换 $A\mathbf{x} + \mathbf{b}$ ($\mathbf{b} \ne \mathbf{0}$) 当成线性变换
+在深度学习“线性层（Linear Layer）”与信号处理“线性系统”中，人们常把 $\mathbf{y} = W\mathbf{x} + \mathbf{b}$ 口头简称为线性映射，甚至在中学阶段把 $y = kx + b$ 称为“一次线性函数”。**但在严格线性代数中，只要平移项 $\mathbf{b} \ne \mathbf{0}$，它就是仿射变换（Affine），绝对不是线性变换！** 检验标准永远只有一条：$T(\mathbf{0}) = \mathbf{0}$ 且 $T(c\mathbf{x} + d\mathbf{y}) = cT(\mathbf{x}) + dT(\mathbf{y})$。
+
+### 2. 把 $[T(\mathbf{v}_j)]_{\mathcal{B}_W}$ 错填进矩阵 $A$ 的“第 $j$ 行”而非“第 $j$ 列”
+这是初学 §8.2 时出现率高达 $80\%$ 的致命手误！请时刻记住：
+- 我们约定向量是**列向量**，且矩阵左乘列向量 $A[\mathbf{v}]_{\mathcal{B}_V}$ 是矩阵各**列**的线性组合；
+- 由于第 $j$ 个基向量的坐标是 $[\mathbf{v}_j]_{\mathcal{B}_V} = \mathbf{e}_j$，而 $A\mathbf{e}_j$ 提取出的正是 $A$ 的**第 $j$ 列**！
+如果你顺手把每个基向量变换后的坐标横着写进第 $j$ 行，你构造出来的实际上是**错误转置阵 $A^T$**！（微积分微分算子若横着填，求导矩阵会变成 $4\times 3$ 而不是 $3\times 4$，连维度都直接报错！）
+
+### 3. 误以为输入基和输出基必须相同，或者空间维数必须相等 ($m = n$)
+从第 22 讲到第 29 讲我们高频接触 $S^{-1}AS$，容易让人产生“线性变换只有方阵、且前后要用同一组基”的错觉。事实上：
+- 如微分算子 $\frac{d}{dt}: \mathcal{P}_3 \to \mathcal{P}_2$ 所示，输入空间与输出空间可以完全不同，维数 $n$ 与 $m$ 可以不同，表示矩阵一般是长方形 $m \times n$ 矩阵；
+- 即使 $V = W$，输入基 $\mathcal{B}_V$ 和输出基 $\mathcal{B}_W$ 依然可以各自独立选取；此时矩阵变换规律是 $B = Q^{-1} A P$（仅保持秩不变），而不是保持特征值的相似变换 $S^{-1}AS$（后者仅适用于前后共用同一组基 $\mathcal{B}_V = \mathcal{B}_W$ 的情形）！
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l31-linear-transform-bases"
+  title="线性变换的基底切换与矩阵表示实验室"
+  description={"自由调节输入基 $\\mathcal{B}_V$ 与输出基 $\\mathcal{B}_W$ 的基向量，实时观察同一几何变换 $T$ 的表示矩阵 $[T]_{\\mathcal{B}_W \\leftarrow \\mathcal{B}_V}$ 如何从一般稠密阵化简为对角阵或 SVD 标准形 $\\Sigma$，并对比仿射平移如何破坏原点不动律。"}
+/>
+
+---
+
+<KeyTakeaways items={[
+  "无坐标定义：映射 $T: V \\to W$ 是线性变换，当且仅当对任意 $\\mathbf{v},\\mathbf{w}\\in V$ 与 $c,d\\in \\mathbb{R}$ 满足 $T(c\\mathbf{v}+d\\mathbf{w})=cT(\\mathbf{v})+dT(\\mathbf{w})$；立即可推 $T(\\mathbf{0}_V)=\\mathbf{0}_W$，原点只要移动就一票否决。",
+  "警惕非线性伪装者：仿射平移 $A\\mathbf{x}+\\mathbf{b}$ ($\\mathbf{b}\\ne \\mathbf{0}$)、欧氏范数 $\\|\\mathbf{x}\\|_2$、逐元素平方 $x_i^2$ 与行列式 $\\det(A)$ ($n\\ge 2$) 均不是线性变换。",
+  "基底完全决定律：只要给定 $V$ 的一组基 $\\{\\mathbf{v}_1,\\dots,\\mathbf{v}_n\\}$ 及其像 $T(\\mathbf{v}_1),\\dots,T(\\mathbf{v}_n) \\in W$，全空间上唯一满足该要求的线性变换 $T$ 即被完全锁死。",
+  "黄金构造法则：固定输入基 $\\mathcal{B}_V$ 与输出基 $\\mathcal{B}_W$ 后，将 $T(\\mathbf{v}_j)$ 在输出基 $\\mathcal{B}_W$ 下的坐标列向量 $[T(\\mathbf{v}_j)]_{\\mathcal{B}_W}$ 纵着填作矩阵 $A$ 的第 $j$ 列，即可满足 $[T(\\mathbf{v})]_{\\mathcal{B}_W} = A[\\mathbf{v}]_{\\mathcal{B}_V}$。",
+  "变换复合等于矩阵乘法：先后施加 $T: U \\to V$ 与 $S: V \\to W$ 对应的复合算子 $S \\circ T$，其矩阵严格等于表示矩阵的乘积 $BA$，这也是矩阵乘法结合律的几何根源。",
+  "基的艺术：输入输出共用同一组基时换基对应相似变换 $S^{-1}AS$（第 22、29 讲）；允许各自独立挑选两组标准正交基时，任何线性映射都可对角化为奇异值矩阵 $\\Sigma = U^T A V$（第 30 讲 SVD）。"
+]} />
+
+---
+
+## 六、课后习题集
+
+<ProblemSet title="第 31 讲 课后习题集" description="涵盖非标准基下矩阵表示的逐列构造、线性公理的反例甄别、等价与相似变换辨析、微积分微分算子的幂零逆，以及矩阵空间转置算子的维数分解。">
+
+<ExerciseCard id="l31-ex1" tier="L1" title="在非标准泰勒基与斜基下逐列构造 2×3 表示矩阵">
+
+考虑线性变换 $T: \mathcal{P}_2 \to \mathbb{R}^2$，定义为对二次及以下多项式在两个点处求值：
+
+$$
+T(p) = \begin{bmatrix} p(1) \\ p(0) \end{bmatrix}
+$$
+
+现为输入空间 $V = \mathcal{P}_2$ 指定以 $t=1$ 为中心的泰勒有序基 $\mathcal{B}_V = \big(1,\, t-1,\, (t-1)^2\big)$，为输出空间 $W = \mathbb{R}^2$ 指定斜交有序基 $\mathcal{B}_W = \left(\mathbf{w}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix},\, \mathbf{w}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}\right)$。
+
+1. 验证 $T$ 是线性变换，并按照黄金构造法则求出表示矩阵 $A = [T]_{\mathcal{B}_W \leftarrow \mathcal{B}_V} \in \mathbb{R}^{2 \times 3}$；
+2. 给定多项式 $p(t) = 2 + 4(t-1) + 6(t-1)^2$，分别直接代公式计算 $T(p)$，以及通过矩阵乘法 $A[p]_{\mathcal{B}_V}$ 计算 $[T(p)]_{\mathcal{B}_W}$ 并还原回 $\mathbb{R}^2$，核对两者完全一致；
+3. 利用矩阵 $A$ 的零空间与列空间，求出 $\ker(T)$ 与 $\operatorname{Im}(T)$ 的一组基，并验证抽象秩-零度定理 $\dim \ker(T) + \dim \operatorname{Im}(T) = \dim \mathcal{P}_2$。
+
+<ProgressiveHint hints={[
+  "逐一将 $\\mathcal{B}_V$ 的三个基向量代入 $T(p) = [p(1), p(0)]^T$，注意 $(t-1)$ 和 $(t-1)^2$ 在 $t=1$ 处均等于 $0$。",
+  "对于任意目标向量 $[y_1, y_2]^T \\in \\mathbb{R}^2$，求它在斜基 $\\mathcal{B}_W$ 下的坐标 $(c_1, c_2)$，只需解 $c_1 \\mathbf{w}_1 + c_2 \\mathbf{w}_2 = [y_1, y_2]^T$，利用对称加减即可心算：$c_1 = (y_1 + y_2)/2$，$c_2 = (y_1 - y_2)/2$。",
+  "求出 $\\operatorname{Null}(A)$ 的基向量 $[0, 1, 1]^T$ 后，别忘了把它还原成 $\\mathcal{P}_2$ 中的具体多项式 $1\\cdot(t-1) + 1\\cdot(t-1)^2$！"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+求值映射 $p \mapsto [p(1), p(0)]^T$ 本质上就是把函数看成无穷维向量后只读取两个固定坐标分量，当然满足线性叠加。使用以 $t=1$ 为中心的基时，$T$ 的第 1 分量 $p(1)$ 立刻只和第一个基向量 $1$ 有关，后两个基向量在 $t=1$ 处全为零！而核空间 $\ker(T)$ 就是“同时在 $t=0$ 和 $t=1$ 处取零的二次多项式”，不用解矩阵就能猜出它只能是 $t(t-1)$ 的倍数——这正好与矩阵零空间完全吻合！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问：线性性验证与矩阵构造**
+
+对任意 $p, q \in \mathcal{P}_2$ 与 $c, d \in \mathbb{R}$：
+
+$$
+T(cp + dq) = \begin{bmatrix} (cp + dq)(1) \\ (cp + dq)(0) \end{bmatrix} = c\begin{bmatrix} p(1) \\ p(0) \end{bmatrix} + d\begin{bmatrix} q(1) \\ q(0) \end{bmatrix} = cT(p) + dT(q)
+$$
+
+故 $T$ 是线性变换。下面逐个把 $\mathcal{B}_V$ 的基向量送入 $T$ 并对输出基 $\mathcal{B}_W$ 展开（注意任意 $\mathbf{y} = [y_1, y_2]^T = \frac{y_1+y_2}{2}\mathbf{w}_1 + \frac{y_1-y_2}{2}\mathbf{w}_2$）：
+
+- **$j=1$**：$\mathbf{v}_1 = 1 \implies T(1) = \begin{bmatrix} 1 \\ 1 \end{bmatrix} = 1\cdot \mathbf{w}_1 + 0\cdot \mathbf{w}_2 \implies [T(1)]_{\mathcal{B}_W} = \begin{bmatrix} 1 \\ 0 \end{bmatrix}$；
+- **$j=2$**：$\mathbf{v}_2 = t-1 \implies T(t-1) = \begin{bmatrix} 0 \\ -1 \end{bmatrix} = -\frac{1}{2}\mathbf{w}_1 + \frac{1}{2}\mathbf{w}_2 \implies [T(t-1)]_{\mathcal{B}_W} = \begin{bmatrix} -1/2 \\ 1/2 \end{bmatrix}$；
+- **$j=3$**：$\mathbf{v}_3 = (t-1)^2 \implies T((t-1)^2) = \begin{bmatrix} 0 \\ 1 \end{bmatrix} = \frac{1}{2}\mathbf{w}_1 - \frac{1}{2}\mathbf{w}_2 \implies [T((t-1)^2)]_{\mathcal{B}_W} = \begin{bmatrix} 1/2 \\ -1/2 \end{bmatrix}$。
+
+将三个输出坐标列向量**按列**填入矩阵，即得：
+
+$$
+A = [T]_{\mathcal{B}_W \leftarrow \mathcal{B}_V} = \begin{bmatrix} 1 & -1/2 & 1/2 \\ 0 & 1/2 & -1/2 \end{bmatrix}
+$$
+
+**第 2 问：直接求值 vs. 矩阵乘法核对**
+
+- **直接代入定义**：$p(1) = 2 + 0 + 0 = 2$，$p(0) = 2 + 4(-1) + 6(-1)^2 = 4$，故 $T(p) = \begin{bmatrix} 2 \\ 4 \end{bmatrix}$。
+- **使用矩阵乘法**：在 $\mathcal{B}_V$ 下坐标为 $[p]_{\mathcal{B}_V} = [2, 4, 6]^T$。计算：
+  $$
+  [T(p)]_{\mathcal{B}_W} = A [p]_{\mathcal{B}_V} = \begin{bmatrix} 1 & -1/2 & 1/2 \\ 0 & 1/2 & -1/2 \end{bmatrix} \begin{bmatrix} 2 \\ 4 \\ 6 \end{bmatrix} = \begin{bmatrix} 2 - 2 + 3 \\ 0 + 2 - 3 \end{bmatrix} = \begin{bmatrix} 3 \\ -1 \end{bmatrix}
+  $$
+  还原回输出空间 $\mathbb{R}^2$：$3\mathbf{w}_1 - 1\mathbf{w}_2 = 3\begin{bmatrix} 1 \\ 1 \end{bmatrix} - \begin{bmatrix} 1 \\ -1 \end{bmatrix} = \begin{bmatrix} 2 \\ 4 \end{bmatrix}$，与直接计算严丝合缝！
+
+**第 3 问：核空间、值域与秩-零度定理**
+
+求解 $A\mathbf{c} = \mathbf{0}$：由第 2 行得 $\frac{1}{2}c_2 - \frac{1}{2}c_3 = 0 \implies c_2 = c_3$；代回第 1 行得 $c_1 = 0$。故 $\operatorname{Null}(A) = \operatorname{span}\{[0, 1, 1]^T\}$。还原到多项式空间 $\mathcal{P}_2$，该零空间对应基向量为 $(t-1) + (t-1)^2 = t(t-1)$，即：
+
+$$
+\ker(T) = \operatorname{span}\{t(t-1)\}, \qquad \dim \ker(T) = 1
+$$
+
+矩阵 $A$ 的前两列 $[1, 0]^T$ 与 $[-1/2, 1/2]^T$ 线性无关，故 $\operatorname{Col}(A) = \mathbb{R}^2$，从而 $\operatorname{Im}(T) = \mathbb{R}^2$（任意一组基如 $\{(1,0)^T, (0,1)^T\}$ 或 $\mathcal{B}_W$），$\dim \operatorname{Im}(T) = 2$。
+维数核验：$\dim \ker(T) + \dim \operatorname{Im}(T) = 1 + 2 = 3 = \dim \mathcal{P}_2$，完全成立。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l31-ex2" tier="L2" title="判别题：同时满足原点不动与全实数齐次性，足以判定线性变换吗？">
+
+判断下述命题是否正确：
+
+"设映射 $T: \mathbb{R}^2 \to \mathbb{R}$ 满足 $T(\mathbf{0}) = 0$，且对**所有**实数 $c \in \mathbb{R}$（包含正数、零和负数）与所有向量 $\mathbf{x} \in \mathbb{R}^2$ 均满足齐次性 $T(c\mathbf{x}) = cT(\mathbf{x})$，则 $T$ 必定是一个线性变换。"
+
+<TrueFalseInteractive
+  id="l31-tf1"
+  correct={false}
+  quickFeedback={"错误！齐次性即使对全部正负实数 $c \\in \\mathbb{R}$ 成立，也绝不自动蕴含可加性 $T(\\mathbf{x}+\\mathbf{y}) = T(\\mathbf{x}) + T(\\mathbf{y})$。经典反例是 $T(x_1, x_2) = (x_1^3 + x_2^3)^{1/3}$，它满足 $T(c\\mathbf{x}) = cT(\\mathbf{x})$，但 $T(\\mathbf{e}_1 + \\mathbf{e}_2) = 2^{1/3} \\neq 2 = T(\\mathbf{e}_1) + T(\\mathbf{e}_2)$。"}
+/>
+
+<ProgressiveHint hints={[
+  "把条件翻译成几何：齐次性只限制了沿着每一条穿过原点的射线（或直线）上函数必须按比例缩放，但它限制了不同射线之间的“等高线”形状吗？",
+  "对于任意 $c \\in \\mathbb{R}$（包括负数），$c^3$ 与开立方运算 $(\\cdot)^{1/3}$ 能完全把负号提出去！试试 $T(x_1, x_2) = \\sqrt[3]{x_1^3 + x_2^3}$。"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+线性变换要求函数的等高线 $T(x_1, x_2) = 1$ 在二维平面上必须是一条**直线**；而齐次性 $T(c\mathbf{x}) = cT(\mathbf{x})$ 只管“从原点出发沿着某一条固定方向往外走时成正比”，根本管不住等高线本身是直的还是弯的！随便画一条关于原点对称但不直的曲线（比如三次曲线 $x_1^3 + x_2^3 = 1$ 或星形线）作为等高线 $T=1$，再按比例向外辐射放大，就能造出无数满足全实数齐次性却不满足可加性的非线性反例。
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**错误**。反例如下：
+
+构造映射 $T: \mathbb{R}^2 \to \mathbb{R}$ 为：
+
+$$
+T(x_1, x_2) = \sqrt[3]{x_1^3 + x_2^3}
+$$
+
+1. **验证零元保持与全实数齐次性**：
+   显然 $T(0, 0) = 0$。对任意向量 $\mathbf{x} = [x_1, x_2]^T \in \mathbb{R}^2$ 与任意实数 $c \in \mathbb{R}$（无论正负或零，实立方根对实数唯一且保号）：
+   $$
+   T(c\mathbf{x}) = \sqrt[3]{(cx_1)^3 + (cx_2)^3} = \sqrt[3]{c^3 (x_1^3 + x_2^3)} = c \sqrt[3]{x_1^3 + x_2^3} = c T(\mathbf{x})
+   $$
+   因此 $T$ 严格满足全部实标量的齐次性。
+2. **验证可加性失效**：
+   取 $\mathbf{e}_1 = [1, 0]^T$ 与 $\mathbf{e}_2 = [0, 1]^T$，则：
+   $$
+   T(\mathbf{e}_1) = \sqrt[3]{1^3 + 0^3} = 1, \qquad T(\mathbf{e}_2) = \sqrt[3]{0^3 + 1^3} = 1
+   $$
+   故 $T(\mathbf{e}_1) + T(\mathbf{e}_2) = 2$。然而：
+   $$
+   T(\mathbf{e}_1 + \mathbf{e}_2) = T(1, 1) = \sqrt[3]{1^3 + 1^3} = \sqrt[3]{2} \approx 1.260 \ne 2
+   $$
+
+因此 $T$ 不是线性变换，可加性与齐次性两条公理缺一不可。
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l31-ex3" tier="L2" tierLabel="L2/L3 · 相似与等价辨析" title="判别题：线性算子在不同基底下得到的矩阵必定相似吗？">
+
+判断下述命题是否正确：
+
+"设 $T: V \to V$ 是有限维空间 $V$ 上的线性算子。若甲同学为输入空间与输出空间选定**同一组**基 $\mathcal{B}$ 得到方阵 $A = [T]_{\mathcal{B} \leftarrow \mathcal{B}}$，而乙同学为输入空间选基 $\mathcal{B}_1$、为输出空间选基 $\mathcal{B}_2$（允许 $\mathcal{B}_1 \ne \mathcal{B}_2$）得到方阵 $B = [T]_{\mathcal{B}_2 \leftarrow \mathcal{B}_1}$，则矩阵 $B$ 与 $A$ 必定**相似**（即存在可逆方阵 $S$ 使得 $B = S^{-1} A S$）。"
+
+<TrueFalseInteractive
+  id="l31-tf2"
+  correct={false}
+  quickFeedback={"错误！只有当乙同学也保证输入输出共用同一组基（$\\mathcal{B}_1 = \\mathcal{B}_2$）时，才成立相似变换 $B = S^{-1} A S$；当 $\\mathcal{B}_1 \\ne \\mathcal{B}_2$ 时，变换律是一般的矩阵等价 $B = Q^{-1} A P$，它连迹和特征值都不保！例如取恒等算子 $T = \\operatorname{id}$，当 $\\mathcal{B}_1 = (\\mathbf{e}_1, \\mathbf{e}_2)$ 而 $\\mathcal{B}_2 = (\\mathbf{e}_2, \\mathbf{e}_1)$ 时，有 $A = I_2$ 但 $B = \\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix}$，两者绝不相似。"}
+/>
+
+<ProgressiveHint hints={[
+  "回顾变换复合公式：$B = [\\operatorname{id}]_{\\mathcal{B}_2 \\leftarrow \\mathcal{B}} \\cdot [T]_{\\mathcal{B} \\leftarrow \\mathcal{B}} \\cdot [\\operatorname{id}]_{\\mathcal{B} \\leftarrow \\mathcal{B}_1}$。左右两边的换基矩阵还是互逆的关系吗？",
+  "试着取最简单的线性算子 $T = \\operatorname{id}: \\mathbb{R}^2 \\to \\mathbb{R}^2$。它在任何“同一组基”下的矩阵永远是 $I_2$，但如果把输出基的两个基向量交换顺序呢？"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+相似变换 $S^{-1}AS$ 之所以能死死锁住特征值与迹，全靠左右两边的变换阵互为逆矩阵——这要求“输入用的基”和“输出用的基”必须捆绑在一起同步更换！一旦像 SVD 或高斯消元那样把输入基 $\mathcal{B}_1$ 和输出基 $\mathcal{B}_2$ 拆开独立调整，左乘的矩阵和右乘的矩阵就彻底解耦成 $B = Q^{-1} A P$。此时 $B$ 和 $A$ 之间只保“秩”相等，特征值、迹、行列式全都可以面目全非！
+</SolutionIntuition>
+<SolutionRigorous>
+该命题**错误**。
+
+**一般变换公式（等价而非相似）：**
+设 $P = [\operatorname{id}]_{\mathcal{B} \leftarrow \mathcal{B}_1}$ 为 $\mathcal{B}_1$ 到 $\mathcal{B}$ 的换基阵，$Q = [\operatorname{id}]_{\mathcal{B} \leftarrow \mathcal{B}_2}$ 为 $\mathcal{B}_2$ 到 $\mathcal{B}$ 的换基阵（$P, Q$ 均可逆）。由复合定理：
+
+$$
+B = [T]_{\mathcal{B}_2 \leftarrow \mathcal{B}_1} = [\operatorname{id}]_{\mathcal{B}_2 \leftarrow \mathcal{B}} \, [T]_{\mathcal{B} \leftarrow \mathcal{B}} \, [\operatorname{id}]_{\mathcal{B} \leftarrow \mathcal{B}_1} = Q^{-1} A P
+$$
+
+因为一般 $\mathcal{B}_1 \ne \mathcal{B}_2$ 时 $P \ne Q$，故 $B$ 与 $A$ 只满足**矩阵等价（Matrix Equivalence）**，并不满足相似关系 $S^{-1}AS$。
+
+**极简反例：**
+取 $V = \mathbb{R}^2$ 上的恒等算子 $T = \operatorname{id}$（即 $T(\mathbf{x}) = \mathbf{x}$）。
+- 甲同学对输入和输出共用标准基 $\mathcal{B} = (\mathbf{e}_1, \mathbf{e}_2)$，得到 $A = [\operatorname{id}]_{\mathcal{B}\leftarrow \mathcal{B}} = I_2$（特征值为 $1, 1$，迹 $\operatorname{tr}(A) = 2$）。
+- 乙同学取输入基 $\mathcal{B}_1 = (\mathbf{e}_1, \mathbf{e}_2)$，但取反序的输出基 $\mathcal{B}_2 = (\mathbf{e}_2, \mathbf{e}_1)$。由黄金构造法则：
+  - $T(\mathbf{e}_1) = \mathbf{e}_1 = 0\cdot \mathbf{e}_2 + 1\cdot \mathbf{e}_1 \implies [0, 1]^T$；
+  - $T(\mathbf{e}_2) = \mathbf{e}_2 = 1\cdot \mathbf{e}_2 + 0\cdot \mathbf{e}_1 \implies [1, 0]^T$。
+  于是得到置换矩阵 $B = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$。
+
+然而对于任何可逆阵 $S$，均有 $S^{-1} I_2 S = I_2 \ne B$（况且 $\operatorname{tr}(B) = 0 \ne 2 = \operatorname{tr}(A)$，特征值为 $1, -1$），故 $B$ 与 $A$ 绝不相似！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l31-ex4" tier="L3" title="无计算子空间推理：幂零微分算子与多项式微分方程逆">
+
+考虑多项式空间 $\mathcal{P}_3$（以单项式有序基 $\mathcal{B} = (1, t, t^2, t^3)$ 表示）上的线性算子 $D = \frac{d}{dt}: \mathcal{P}_3 \to \mathcal{P}_3$，其表示矩阵为上三角矩阵：
+
+$$
+A_D = [D]_{\mathcal{B} \leftarrow \mathcal{B}} = \begin{bmatrix} 0 & 1 & 0 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 3 \\ 0 & 0 & 0 & 0 \end{bmatrix}
+$$
+
+1. **无需解任何代数方程组**，利用变换复合定理写出二阶线性微分算子 $L(p) = p'' - 2p' + p$ 在基 $\mathcal{B}$ 下的矩阵表示 $A_L$，并直接判定：$L: \mathcal{P}_3 \to \mathcal{P}_3$ 是否可逆？（换言之，对任意右端项 $q \in \mathcal{P}_3$，方程 $p'' - 2p' + p = q$ 在 $\mathcal{P}_3$ 内是否总有唯一解？）
+2. 从算子本质解释为什么 $A_D^4 = O$（称为**幂零算子 Nilpotent Operator**），并利用有限级数恒等式证明 $(I_4 - A_D)^{-1} = I_4 + A_D + A_D^2 + A_D^3$，从而口算出常微分方程 $p(t) - p'(t) = t^3$ 的唯一三次多项式特解 $p(t)$。
+
+<ProgressiveHint hints={[
+  "第 1 问：$p'' = (D \\circ D)(p)$ 对应矩阵 $A_D^2$！注意到 $A_D$ 是严格上三角矩阵，它和 $A_D^2$ 的主对角线元素全是 $0$，加上 $I_4$ 之后主对角线元素是什么？",
+  "第 2 问：任意三次多项式连续求导 $4$ 次必定化为零多项式，所以算子 $D^4 = 0$。在矩阵世界里做多项式乘法 $(I_4 - A_D)(I_4 + A_D + A_D^2 + A_D^3)$ 会消去哪些交叉项？",
+  "最后一步无需把 $4\\times 4$ 矩阵全写出来：直接把抽象算子恒等式 $(I - D)^{-1} = I + D + D^2 + D^3$ 作用到函数 $q(t) = t^3$ 上，心算一阶、二阶、三阶导数并相加即可！"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+求导算子把多项式每求导一次就降一次，求导 4 次就把所有三次以下的多项式全部送回零点（$D^4 = 0$），这正是第 29 讲里“若尔当幂零块”在微积分里的天然原型！既然 $D$ 的特征值全为 $0$，那么 $I - D$ 的特征值就全为 $1 \ne 0$，当然绝对可逆！更妙的是，平时无限不收敛的几何级数 $(1-x)^{-1} = 1 + x + x^2 + \cdots$，因为 $D^4 = 0$ 而在第 4 项处**精准截断**，变成了有限多项式 $I + D + D^2 + D^3$，直接把微分方程求特解变成了算几次导数的口算游戏！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问：$L$ 的矩阵表示与无计算可逆性判定**
+
+由变换复合定理，二阶求导算子 $D^2 = D \circ D$ 对应矩阵乘法 $A_D^2$；而算子的线性组合也对应矩阵的线性组合，故 $L = D^2 - 2D + \operatorname{id}$ 的表示矩阵为：
+
+$$
+A_L = A_D^2 - 2A_D + I_4
+$$
+
+观察到 $A_D$ 是**严格上三角矩阵**（主对角线及以下全为 $0$），严格上三角矩阵的乘积 $A_D^2$ 同样是严格上三角矩阵（实际上只剩第 $(1,3)$ 元素 $2$ 与第 $(2,4)$ 元素 $6$ 非零）。因此 $A_D^2 - 2A_D$ 主对角线及以下仍然全为 $0$，加上 $I_4$ 后，矩阵 $A_L$ 必定是一个**主对角线元素全部等于 $1$ 的上三角矩阵**：
+
+$$
+A_L = \begin{bmatrix} 1 & -2 & 2 & 0 \\ 0 & 1 & -4 & 6 \\ 0 & 0 & 1 & -6 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+因为上三角矩阵的行列式等于主对角线元素之积，无需任何行消元即可看出：
+
+$$
+\det(A_L) = 1 \times 1 \times 1 \times 1 = 1 \ne 0
+$$
+
+因此 $A_L$ 可逆，$\ker(L) = \{0\}$ 且 $\operatorname{Im}(L) = \mathcal{P}_3$。结论：对任意 $q \in \mathcal{P}_3$，方程 $p'' - 2p' + p = q$ 在 $\mathcal{P}_3$ 中恒有唯一三次多项式解。
+
+**第 2 问：幂零性与算子逆求特解**
+
+对空间 $\mathcal{P}_3$ 中的任意多项式 $p(t) = c_0 + c_1 t + c_2 t^2 + c_3 t^3$，连续求导四次恒有 $p^{(4)}(t) \equiv 0$，即算子 $D^4 = 0$。由同构对应与复合定理，矩阵必满足 $A_D^4 = O$（幂零矩阵）。
+
+计算矩阵乘积：
+
+$$
+(I_4 - A_D)(I_4 + A_D + A_D^2 + A_D^3) = I_4 + A_D + A_D^2 + A_D^3 - A_D - A_D^2 - A_D^3 - A_D^4 = I_4 - A_D^4 = I_4
+$$
+
+由于方阵的右逆即双边逆，立即证明 $(I_4 - A_D)^{-1} = I_4 + A_D + A_D^2 + A_D^3$，对应抽象算子逆 $(\operatorname{id} - D)^{-1} = \operatorname{id} + D + D^2 + D^3$。
+
+将该逆算子作用在方程 $(\operatorname{id} - D)(p) = t^3$ 上：
+
+$$
+p(t) = (\operatorname{id} + D + D^2 + D^3)(t^3) = t^3 + \frac{d}{dt}(t^3) + \frac{d^2}{dt^2}(t^3) + \frac{d^3}{dt^3}(t^3) = t^3 + 3t^2 + 6t + 6
+$$
+
+验算：$p'(t) = 3t^2 + 6t + 6$，相减得 $p(t) - p'(t) = t^3$，完全正确！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l31-ex5" tier="L4" title="MIT 18.06 综合挑战：矩阵空间上的转置算子与一般 n×n 维数分解">
+
+把 $2 \times 2$ 实矩阵整体看作一个 $4$ 维向量空间 $V = \mathbb{R}^{2 \times 2}$，并赋予标准有序基：
+
+$$
+E_{11} = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}, \quad E_{12} = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}, \quad E_{21} = \begin{bmatrix} 0 & 0 \\ 1 & 0 \end{bmatrix}, \quad E_{22} = \begin{bmatrix} 0 & 0 \\ 0 & 1 \end{bmatrix}
+$$
+
+定义 $V$ 上的**转置算子（Transpose Operator）** $T: V \to V$ 为 $T(X) = X^T$。
+
+1. 证明 $T$ 是线性算子，并写出 $T$ 在标准基 $\mathcal{E} = (E_{11}, E_{12}, E_{21}, E_{22})$ 下的 $4 \times 4$ 表示矩阵 $A = [T]_{\mathcal{E} \leftarrow \mathcal{E}}$；
+2. 求 $T$ 的全部特征值与特征子空间 $\ker(T - \operatorname{id})$、$\ker(T + \operatorname{id})$；找出一组由对称矩阵与反对称矩阵构成的 $V$ 的**特征基** $\mathcal{B}$，写出 $[T]_{\mathcal{B} \leftarrow \mathcal{B}}$；
+3. **推广到一般维数 $n$**：设 $T: \mathbb{R}^{n \times n} \to \mathbb{R}^{n \times n}$ 为一般 $n\times n$ 矩阵空间（维数 $n^2$）上的转置算子 $T(X) = X^T$。**无需写出 $n^2 \times n^2$ 矩阵**，直接用 $n$ 写出：
+   - 对称矩阵子空间 $\mathcal{S}_n = \ker(T - \operatorname{id})$ 的维数与反对称矩阵子空间 $\mathcal{A}_n = \ker(T + \operatorname{id})$ 的维数，并证明 $\mathbb{R}^{n\times n} = \mathcal{S}_n \oplus \mathcal{A}_n$；
+   - 转置算子 $T$ 的迹 $\operatorname{tr}(T)$ 与行列式 $\det(T)$ 的精确解析公式（检验 $n=2$ 与第 1 问结果一致）。
+
+<ProgressiveHint hints={[
+  "第 1 问：$T(E_{11}) = E_{11}$，$T(E_{12}) = E_{21}$，$T(E_{21}) = E_{12}$，$T(E_{22}) = E_{22}$。把它们在 $\\mathcal{E}$ 下的 $4$ 维坐标逐列摆出来即可得到一个 $4\\times 4$ 置换矩阵！",
+  "第 2 问：注意 $(X^T)^T = X \\implies T^2 = \\operatorname{id}$，所以任何特征值 $\\lambda$ 必满足 $\\lambda^2 = 1 \\implies \\lambda \\in \\{+1, -1\\}$。$T(X) = X$ 正是对称矩阵，$T(X) = -X$ 正是反对称矩阵！",
+  "第 3 问：一个 $n\\times n$ 对称矩阵有多少个自由元素（主对角线 + 上三角）？反对称矩阵主对角线必为 $0$，又有多少个自由元素？所有特征值乘积就是算子行列式 $\\det(T)$，特征值之和就是 $\\operatorname{tr}(T)$！"
+]} />
+
+<DualSolution>
+<SolutionIntuition>
+“转置”在普通人的眼里只是一个“把矩阵横竖翻一下”的符号操作，但站在第 31 讲的高度来看，它是 $n^2$ 维矩阵空间上一个完美的正交对称线性算子！它满足 $T^2 = I$（对合算子），把矩阵空间正交劈成两半：保持不动的对称矩阵（特征值 $+1$）和翻号的反对称矩阵（特征值 $-1$）。对角元在转置下纹丝不动（贡献 $+1$），每一对非对角元 $(E_{ij}, E_{ji})$ 在转置下互换位置（贡献一个 $+1$ 和一个 $-1$，迹相互抵消为 $0$，行列式贡献一个 $-1$）——看穿这一点，不用写出 $n^2 \times n^2$ 矩阵就能秒杀它的维数、迹与行列式！
+</SolutionIntuition>
+<SolutionRigorous>
+**第 1 问：线性性验证与 $4 \times 4$ 标准基表示矩阵**
+
+对任意 $X, Y \in \mathbb{R}^{2\times 2}$ 与 $c, d \in \mathbb{R}$，由矩阵转置性质：
+
+$$
+T(cX + dY) = (cX + dY)^T = cX^T + dY^T = cT(X) + dT(Y)
+$$
+
+故 $T$ 是线性算子。将标准基 $\mathcal{E} = (E_{11}, E_{12}, E_{21}, E_{22})$ 依次送入 $T$：
+- $T(E_{11}) = E_{11} \implies [1, 0, 0, 0]^T$
+- $T(E_{12}) = E_{21} \implies [0, 0, 1, 0]^T$
+- $T(E_{21}) = E_{12} \implies [0, 1, 0, 0]^T$
+- $T(E_{22}) = E_{22} \implies [0, 0, 0, 1]^T$
+
+按列装配得 $4 \times 4$ 对称置换矩阵：
+
+$$
+A = [T]_{\mathcal{E} \leftarrow \mathcal{E}} = \begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+可见 $\operatorname{tr}(A) = 1+0+0+1 = 2$，$\det(A) = -1$（因交换了第 2、3 行）。
+
+**第 2 问：特征值、特征子空间与特征基对角化**
+
+因为 $(X^T)^T = X$，故 $T^2 = \operatorname{id}$（即 $A^2 = I_4$）。若 $T(X) = \lambda X$（$X \ne O$），则 $X = T^2(X) = \lambda^2 X \implies \lambda^2 = 1 \implies \lambda \in \{1, -1\}$。
+- **对应 $\lambda = +1$**：特征方程 $T(X) = X \iff X^T = X$，即所有**对称矩阵**构成的子空间 $\ker(T - \operatorname{id})$。一组基为：
+  $$
+  \{E_{11},\; E_{22},\; E_{12} + E_{21}\} \quad (\dim = 3)
+  $$
+- **对应 $\lambda = -1$**：特征方程 $T(X) = -X \iff X^T = -X$，即所有**反对称矩阵**构成的子空间 $\ker(T + \operatorname{id})$。一组基为：
+  $$
+  \{E_{12} - E_{21}\} \quad (\dim = 1)
+  $$
+
+取特征基 $\mathcal{B} = (E_{11},\, E_{22},\, E_{12} + E_{21},\, E_{12} - E_{21})$，由黄金法则立即得对角表示矩阵：
+
+$$
+[T]_{\mathcal{B} \leftarrow \mathcal{B}} = \operatorname{diag}(1, 1, 1, -1) = \begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & -1 \end{bmatrix}
+$$
+
+**第 3 问：推广至一般 $n \times n$ 矩阵空间**
+
+1. **特征子空间维数与直和分解**：
+   - 对称子空间 $\mathcal{S}_n = \ker(T - \operatorname{id})$：由 $n$ 个主对角基矩阵 $E_{ii}$（$1 \le i \le n$）与 $\frac{n(n-1)}{2}$ 个对称非对角基矩阵 $E_{ij} + E_{ji}$（$1 \le i \lt j \le n$）张成，线性无关，故：
+     $$
+     \dim \mathcal{S}_n = n + \frac{n(n-1)}{2} = \frac{n(n+1)}{2}
+     $$
+   - 反对称子空间 $\mathcal{A}_n = \ker(T + \operatorname{id})$：主对角元必为 $0$，由 $\frac{n(n-1)}{2}$ 个反对称基矩阵 $E_{ij} - E_{ji}$（$1 \le i \lt j \le n$）张成，线性无关，故：
+     $$
+     \dim \mathcal{A}_n = \frac{n(n-1)}{2}
+     $$
+   - 核验交与和：若 $X \in \mathcal{S}_n \cap \mathcal{A}_n$，则 $X = X^T = -X \implies 2X = O \implies X = O$，故 $\mathcal{S}_n \cap \mathcal{A}_n = \{O\}$；且 $\dim \mathcal{S}_n + \dim \mathcal{A}_n = \frac{n(n+1)}{2} + \frac{n(n-1)}{2} = n^2 = \dim \mathbb{R}^{n\times n}$。因此 $\mathbb{R}^{n\times n} = \mathcal{S}_n \oplus \mathcal{A}_n$，任意矩阵均唯一分解为对称部与反对称部之和：$X = \frac{X + X^T}{2} + \frac{X - X^T}{2}$。
+
+2. **转置算子的迹与行列式**（因算子在特征基下完全对角化为 $\frac{n(n+1)}{2}$ 个 $+1$ 和 $\frac{n(n-1)}{2}$ 个 $-1$，而相似变换不改变迹与行列式）：
+   - **迹**：
+     $$
+     \operatorname{tr}(T) = \frac{n(n+1)}{2}(+1) + \frac{n(n-1)}{2}(-1) = n
+     $$
+     （几何上恰等于在标准基下不动基向量 $E_{11}, \dots, E_{nn}$ 的个数 $n$！）
+   - **行列式**：
+     $$
+     \det(T) = (+1)^{\frac{n(n+1)}{2}} (-1)^{\frac{n(n-1)}{2}} = (-1)^{\frac{n(n-1)}{2}}
+     $$
+     当 $n=2$ 时，$\operatorname{tr}(T) = 2$，$\det(T) = (-1)^1 = -1$，与第 1 问矩阵 $A$ 的直接计算结果分毫不差！
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>

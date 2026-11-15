@@ -85,6 +85,40 @@ import {
 } from '@/components/diagrams/lecture-24-diagrams';
 import { Module2And3SynthesisMapDiagram } from '@/components/diagrams/lecture-25-diagrams';
 import {
+  SpectralRankOneProjectionsDiagram,
+  SylvesterInertiaSignMatchDiagram,
+} from '@/components/diagrams/lecture-26-diagrams';
+import {
+  ComplexInnerProductAndUnitaryCircleDiagram,
+  FastFourierButterflyFactorizationDiagram,
+} from '@/components/diagrams/lecture-27-diagrams';
+import {
+  QuadraticBowlAndEllipsoidAxesDiagram,
+  SpdFiveTestsEquivalenceWebDiagram,
+} from '@/components/diagrams/lecture-28-diagrams';
+import {
+  SimilarityOrbitAndInvariantsDiagram,
+  JordanCanonicalBlocksStructureDiagram,
+} from '@/components/diagrams/lecture-29-diagrams';
+import {
+  SvdCircleToEllipsePipelineDiagram,
+  SvdFourSubspacesOrthonormalMapDiagram,
+} from '@/components/diagrams/lecture-30-diagrams';
+import {
+  LinearTransformationGeometryExamplesDiagram,
+  MatrixRepresentationFromBasesDiagram,
+} from '@/components/diagrams/lecture-31-diagrams';
+import {
+  ChangeOfBasisCommutativeDiagram,
+  WaveletAndDctCompressionBasisDiagram,
+} from '@/components/diagrams/lecture-32-diagrams';
+import { Module4Quiz3SynthesisMapDiagram } from '@/components/diagrams/lecture-33-diagrams';
+import {
+  LeftRightAndPseudoinverseSubspaceBijectionDiagram,
+  MinimumNormLeastSquaresGeometryDiagram,
+} from '@/components/diagrams/lecture-34-diagrams';
+import { GrandFinaleFourSubspacesFactorizationsDiagram } from '@/components/diagrams/lecture-35-diagrams';
+import {
   ProblemSet,
   ExerciseCard,
   TrueFalseInteractive,
@@ -199,6 +233,24 @@ const MDX_COMPONENTS = {
   MarkovSteadyStateSimplexDiagram,
   FourierFunctionSpaceProjectionDiagram,
   Module2And3SynthesisMapDiagram,
+  SpectralRankOneProjectionsDiagram,
+  SylvesterInertiaSignMatchDiagram,
+  ComplexInnerProductAndUnitaryCircleDiagram,
+  FastFourierButterflyFactorizationDiagram,
+  QuadraticBowlAndEllipsoidAxesDiagram,
+  SpdFiveTestsEquivalenceWebDiagram,
+  SimilarityOrbitAndInvariantsDiagram,
+  JordanCanonicalBlocksStructureDiagram,
+  SvdCircleToEllipsePipelineDiagram,
+  SvdFourSubspacesOrthonormalMapDiagram,
+  LinearTransformationGeometryExamplesDiagram,
+  MatrixRepresentationFromBasesDiagram,
+  ChangeOfBasisCommutativeDiagram,
+  WaveletAndDctCompressionBasisDiagram,
+  Module4Quiz3SynthesisMapDiagram,
+  LeftRightAndPseudoinverseSubspaceBijectionDiagram,
+  MinimumNormLeastSquaresGeometryDiagram,
+  GrandFinaleFourSubspacesFactorizationsDiagram,
   ProblemSet,
   ExerciseCard,
   TrueFalseInteractive,
