@@ -32,8 +32,8 @@ export default async function LangHomePage({
   const t = UI_STRINGS[lang];
   const isZh = lang === 'zh';
 
-  const featuredSessions = LECTURE_SESSIONS.filter(
-    (s) => s.seq === '01' || s.seq === '03'
+  const featuredSessions = LECTURE_SESSIONS.filter((s) =>
+    ['01', '03', '10', '16', '23', '30'].includes(s.seq)
   );
 
   return (
@@ -70,8 +70,8 @@ export default async function LangHomePage({
 
           <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
             {isZh
-              ? '全面勘误网传听课记录的维度遗漏与概念偏差：每讲标配自适应亮暗色静态数学 SVG、4–6 道「少算多想」分级直觉题；并在正文之外严格隔离挂载 15 篇 Transformer、Diffusion、LoRA、Mamba 强数学同构课后选读。'
-              : 'Built to eliminate the missing hypotheses and typos of informal transcripts: pairing Strang’s column-picture intuition with rigorous theorem cards, zero-rote-calculation exercises, and 15 strictly isolated post-lecture Frontier AI bridges.'}
+              ? '全套 35 讲中文主课与 35 个交互式数学实验台已全部上线：全面勘误网传听课记录的维度遗漏与概念偏差，每讲标配自适应亮暗色静态 SVG + 实时交互实验台 + 5–6 道「少算多想」直觉题；并在正文之外严格隔离挂载 15 篇 Transformer、Diffusion、LoRA、Mamba 强数学同构课后选读。'
+              : 'All 35 Chinese sessions and 35 interactive linear algebra sandboxes are now live — built to eliminate missing hypotheses and typos of informal transcripts with column-picture intuition, zero-rote-calculation exercises, and 15 strictly isolated Frontier AI bridges.'}
           </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -160,12 +160,12 @@ export default async function LangHomePage({
         <div className="mb-5 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold tracking-tight">
-              {isZh ? '首期上线标杆样板讲（Milestone 1）' : 'Featured Gold-Standard Sessions'}
+              {isZh ? '四大模块核心代表讲（全 35 讲及交互实验台已上线）' : 'Milestone Sessions Across All 4 Modules'}
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">
               {isZh
-                ? '包含完整三层递进正文、数学 SVG 图解、5 道交互分级直觉题及课后 AI 同构选读样板'
-                : 'Complete with three-tier exposition, mathematical SVGs, 5 interactive intuition exercises, and isolated AI bridge'}
+                ? '精选贯穿 Module I–IV 的 6 个里程碑章节：含三层递进正文、数学 SVG 图解、实时交互实验台、分级直觉题及 AI 选读'
+                : 'Six milestone lectures spanning Modules I–IV with interactive sandboxes, SVG diagrams, intuition exercises, and isolated AI bridges'}
             </p>
           </div>
           <Button variant="ghost" size="sm" asChild>
@@ -175,7 +175,7 @@ export default async function LangHomePage({
           </Button>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {featuredSessions.map((s) => (
             <Card key={s.slug} className="flex flex-col justify-between transition-shadow hover:shadow-md">
               <CardHeader>
