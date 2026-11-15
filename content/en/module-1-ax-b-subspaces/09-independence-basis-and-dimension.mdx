@@ -1,0 +1,444 @@
+---
+title: "Lecture 09: Independence, Basis, and Dimension"
+ocwId: "L09"
+videoEpisode: "P09"
+textbookRef: "§3.4"
+---
+
+If the first eight lectures finished assembling the "engine" of linear algebra—elimination, matrix inverses, $R = \operatorname{rref}(A)$, column spaces, and nullspaces—then MIT 18.06 Lecture 09 is the moment we give the entire subject its precise conceptual language. Today we rigorously define four of the most central words in modern mathematics: **Linear Independence**, **Span**, **Basis**, and **Dimension**.
+
+In many purely axiomatic textbooks, these four concepts trap beginners in tongue-twisting verbal games. In Professor Gilbert Strang's classroom, however, **every single abstract concept translates instantaneously into the familiar matrix language of rank $r$ and the nullspace**!
+
+---
+
+## 1. Core Warm-Up: Why Must More Than $m$ Vectors in $\mathbb{R}^m$ Be Linearly Dependent?
+
+Let us jump right in using an ironclad matrix law proved in Lecture 07. Suppose someone hands you **3 arbitrary vectors** $\mathbf{v}_1, \mathbf{v}_2, \mathbf{v}_3 \in \mathbb{R}^2$ in the 2D plane $\mathbb{R}^2$ (or **4 vectors** in 3D space $\mathbb{R}^3$). Could they possibly be "completely independent of one another, with zero redundancy"?
+
+**Absolutely impossible!** How can we be 100% certain without looking at a single number?
+Assemble those three 2D vectors side by side as the columns of a short-and-wide $2\times 3$ matrix $V = [\mathbf{v}_1 \; \mathbf{v}_2 \; \mathbf{v}_3] \in \mathbb{R}^{2\times 3}$:
+- The matrix has only $2$ rows, so it can have at most $r \le 2$ pivots;
+- Yet it has $3$ columns (unknowns), so there must be at least $3 - r \ge 1$ free variable!
+- Consequently, the homogeneous system $V\mathbf{c} = \mathbf{0}$ **is guaranteed to have a nonzero solution** $\mathbf{c} = (c_1, c_2, c_3)^T \neq \mathbf{0}$. Written out as a column combination, this says:
+
+$$
+c_1 \mathbf{v}_1 + c_2 \mathbf{v}_2 + c_3 \mathbf{v}_3 = \mathbf{0} \quad (\text{where } c_1, c_2, c_3 \text{ are not all } 0)
+$$
+
+This naturally leads to the rigorous definition of **linear independence** and **linear dependence**. Note carefully: **linear independence is a property of a *set of vectors* (a matrix itself is never called "linearly independent"—only the *columns* of a matrix can be linearly independent)!**
+
+<DefinitionCard
+  label="Definition 9.1"
+  title="Linear Independence, Span, and Basis of a Set of Vectors"
+>
+Let $\mathbf{v}_1, \mathbf{v}_2, \dots, \mathbf{v}_k \in \mathbb{R}^m$ be a sequence of vectors, and assemble them as the columns of the matrix $V = [\mathbf{v}_1 \; \cdots \; \mathbf{v}_k] \in \mathbb{R}^{m\times k}$:
+
+1. **Linearly Independent**: The vectors $\{\mathbf{v}_1, \dots, \mathbf{v}_k\}$ are **linearly independent** if the *only* linear combination that gives the zero vector, $c_1\mathbf{v}_1 + c_2\mathbf{v}_2 + \cdots + c_k\mathbf{v}_k = \mathbf{0}$, is the trivial combination $c_1 = c_2 = \cdots = c_k = 0$.
+   - **Equivalent Matrix Language**: $\{\mathbf{v}_1, \dots, \mathbf{v}_k\}$ are linearly independent $\iff \operatorname{Null}(V) = \{\mathbf{0}\} \iff \operatorname{rank}(V) = k$ (full column rank, with zero free variables!).
+   - Conversely, if there exist scalars not all zero such that $\sum_{i=1}^k c_i\mathbf{v}_i = \mathbf{0}$ (i.e., $\operatorname{Null}(V) \neq \{\mathbf{0}\}$ and $\operatorname{rank}(V) \lt k$), the vectors are **linearly dependent**. (In particular, any set of vectors containing the zero vector $\mathbf{0}$ is automatically linearly dependent, since $1\cdot\mathbf{0} = \mathbf{0}$!)
+
+2. **Spanning a Subspace**: If every vector in a subspace $S \subseteq \mathbb{R}^m$ can be written as a linear combination of $\mathbf{v}_1, \dots, \mathbf{v}_k$ (that is, $S = \operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_k\} = \operatorname{Col}(V)$), we say that this set of vectors **spans** the subspace $S$.
+
+3. **Basis for a Subspace**: A **basis** for a subspace $S$ is a sequence of vectors $\{\mathbf{v}_1, \dots, \mathbf{v}_d\} \subseteq S$ that simultaneously satisfies two "Goldilocks conditions":
+   - **① Linearly independent** (not too many—no redundancy: adding any extra vector from $S$ makes the set dependent);
+   - **② Spans the entire subspace $S$** (not too few—full coverage: removing any vector from the set leaves it unable to cover all of $S$).
+   (By convention, the basis of the zero subspace $S = \{\mathbf{0}\}$ is the empty set $\varnothing$, and its dimension is defined to be $0$.)
+</DefinitionCard>
+
+---
+
+## 2. The "Goldilocks Principle" of a Basis and Uniqueness of Coordinates
+
+Let us examine what makes a valid **basis** in the familiar 2D plane $\mathbb{R}^2$:
+- The most familiar **standard basis** consists of the two perpendicular coordinate-axis vectors $\mathbf{e}_1 = (1, 0)^T,\; \mathbf{e}_2 = (0, 1)^T$;
+- **Yet a basis is far from unique!** Pick any two non-collinear slanted vectors, say $\mathbf{v}_1 = (1, 2)^T$ and $\mathbf{v}_2 = (3, 1)^T$, and pack them into a $2\times 2$ square matrix:
+
+$$
+B = \begin{bmatrix} 1 & 3 \\ 2 & 1 \end{bmatrix}
+$$
+
+  Because $B$ is invertible ($r = 2$), its two columns are both linearly independent ($\operatorname{Null}(B)=\{\mathbf{0}\}$) and span the entire plane ($\operatorname{Col}(B)=\mathbb{R}^2$). Therefore, $\{(1,2)^T, (3,1)^T\}$ is a completely legitimate basis for $\mathbb{R}^2$!
+- Generalizing to $\mathbb{R}^n$: **$n$ vectors $\mathbf{v}_1, \dots, \mathbf{v}_n \in \mathbb{R}^n$ form a basis for the entire space $\mathbb{R}^n$ if and only if the $n\times n$ square matrix $B = [\mathbf{v}_1 \; \cdots \; \mathbf{v}_n]$ having them as columns is invertible!**
+
+<BasisGoldilocksDiagram caption="The Goldilocks principle for a basis in R^2: too few vectors fail to span the plane, too many vectors create redundancy (nontrivial nullspace), and exactly r = 2 independent vectors form a basis with unique coordinates." />
+
+<InteractiveCanvasSlot
+  id="l09-basis-independence-explorer"
+  title="Linear Independence, Oblique Coordinate Grid & Change-of-Basis Explorer"
+  description="Interactive sandbox: freely drag candidate basis vectors $\mathbf{v}_1, \mathbf{v}_2$ in $\mathbb{R}^2 / \mathbb{R}^3$, render the oblique parallelogram coordinate grid they span in real time, verify the uniqueness of expanding a target vector $\mathbf{b}$ in any basis, and observe grid collapse the instant the vectors become collinear."
+/>
+
+Why do mathematicians insist on requiring both "linear independence" and "spanning" at the same time? Because putting the two together produces a priceless treasure—**the existence and uniqueness of coordinates relative to a basis**: for any vector $\mathbf{b} \in S$, the *spanning* property guarantees that there exists at least one set of coefficients with $\mathbf{b} = c_1\mathbf{v}_1 + \cdots + c_d\mathbf{v}_d$. If there were a second set of coefficients $\mathbf{b} = d_1\mathbf{v}_1 + \cdots + d_d\mathbf{v}_d$, subtracting the two equations immediately yields $(c_1 - d_1)\mathbf{v}_1 + \cdots + (c_d - d_d)\mathbf{v}_d = \mathbf{0}$, and *linear independence* instantly forces $c_i = d_i$ for every $i$!
+
+---
+
+## 3. Invariance of Dimension and the Dimension Formulas for the Two Subspaces
+
+Although the same subspace $S$ has infinitely many different bases, a miracle occurs that supports the entire edifice of linear algebra: **no matter how wildly different two bases chosen by two different people for the same subspace $S$ may look, the *number* of vectors in their bases is guaranteed to be 100% identical!** This invariant integer—depending only on the subspace itself and never on the choice of basis—is called the **dimension** of the subspace $S$, denoted $\dim(S)$.
+
+Next, let us project the definition of dimension back onto the column space $\operatorname{Col}(A)$ and nullspace $\operatorname{Null}(A)$ of an arbitrary matrix $A \in \mathbb{R}^{m\times n}$ of rank $r$, testing it on our reduced row echelon form example from Lecture 07:
+
+$$
+A = \begin{bmatrix}
+\mathbf{1} & 2 & \mathbf{2} & 2 \\
+\mathbf{2} & 4 & \mathbf{6} & 8 \\
+\mathbf{3} & 6 & \mathbf{8} & 10
+\end{bmatrix}
+\quad \xrightarrow{\text{rref}} \quad
+R = \begin{bmatrix}
+\mathbf{1} & 2 & \mathbf{0} & -2 \\
+\mathbf{0} & 0 & \mathbf{1} & 2 \\
+\mathbf{0} & 0 & \mathbf{0} & 0
+\end{bmatrix}
+$$
+
+Look at the simpler matrix $R$ first: the pivot columns of $R$ are **Column 1 and Column 3** (namely $(1,0,0)^T$ and $(0,1,0)^T$), while free Column 2 is $2$ times Column 1, and free Column 4 is $-2$ times Column 1 plus $2$ times Column 3.
+Now comes the crucial question: **Do the columns of the original matrix $A$ obey the exact same linear dependency relations?**
+**100% yes!** Because $A\mathbf{x} = \mathbf{0} \iff R\mathbf{x} = \mathbf{0}$ (elementary row operations never alter the linear dependency coefficients among the columns!): since Column 2 $= 2\times$ Column 1 in $R$, Column 2 $(2,4,6)^T$ in the original matrix $A$ must also equal $2\times$ Column 1 $(1,2,3)^T$; and since Columns 1 and 3 are linearly independent in $R$, **Column 1 $(1,2,3)^T$ and Column 3 $(2,6,8)^T$ of the original matrix $A$ itself must also be linearly independent and span all of $\operatorname{Col}(A)$**!
+
+From this single observation flow the two most famous dimension formulas in linear algebra!
+
+<TheoremCard
+  label="Theorem 9.1"
+  title="Invariance of Dimension & the Rank-Nullity Theorem"
+>
+1. **Well-Definedness of Dimension (Invariance of Basis Size)**: Let $S \subseteq \mathbb{R}^m$ be any subspace. If $\{\mathbf{v}_1, \dots, \mathbf{v}_p\}$ and $\{\mathbf{w}_1, \dots, \mathbf{w}_q\}$ are both bases for $S$, then necessarily **$p = q$**. This unique integer is called the **dimension** of $S$, denoted $\dim(S) := p$.
+2. **Dimension of the Column Space & Standard Basis Extraction**: For any real matrix $A \in \mathbb{R}^{m\times n}$, the **$r$ pivot columns of the original matrix $A$** (corresponding to the column indices where pivots appear in $R$) form a basis for the column space $\operatorname{Col}(A)$. In particular, **the dimension of the column space equals the rank of the matrix**:
+
+$$
+\dim \operatorname{Col}(A) = \operatorname{rank}(A) = r
+$$
+
+3. **Dimension of the Nullspace & Rank-Nullity Conservation**: The $n - r$ **special solutions** constructed in Lecture 07 form a basis for the nullspace $\operatorname{Null}(A)$. Thus **the dimension of the nullspace (also called the nullity) equals the number of free variables $n - r$**:
+
+$$
+\dim \operatorname{Null}(A) = n - r \quad \Longleftrightarrow \quad \dim \operatorname{Col}(A) + \dim \operatorname{Null}(A) = n
+$$
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Proving Invariance of Dimension (p = q) in Three Lines Using Wide Matrices!">
+This is one of the most elegant short proofs in the entire textbook, showcasing the sheer power of matrix reasoning! Let the columns of $V = [\mathbf{v}_1 \; \cdots \; \mathbf{v}_p] \in \mathbb{R}^{m\times p}$ and $W = [\mathbf{w}_1 \; \cdots \; \mathbf{w}_q] \in \mathbb{R}^{m\times q}$ be two bases for the same subspace $S$. We prove by contradiction that $q \gt p$ is impossible:
+
+Suppose $q \gt p$. Since $\{\mathbf{v}_1, \dots, \mathbf{v}_p\}$ spans all of $S$ and each $\mathbf{w}_j \in S$, every vector $\mathbf{w}_j$ can be written as a linear combination of the columns of $V$: $\mathbf{w}_j = V\mathbf{a}_j$ for some coordinate vector $\mathbf{a}_j \in \mathbb{R}^p$. Stacking these $q$ columns side by side as a single matrix product gives:
+
+$$
+W = V A, \qquad \text{where the coefficient matrix is } A = \begin{bmatrix} \mathbf{a}_1 & \cdots & \mathbf{a}_q \end{bmatrix} \in \mathbb{R}^{p \times q}
+$$
+
+Look closely at the shape of the coefficient matrix $A$: **it has $p$ rows and $q$ columns, and we assumed more columns than rows ($q \gt p$)**! By **Theorem 7.1 Part 2** from Lecture 07 (every short-and-wide matrix has a nontrivial nullspace solution), there must exist a **nonzero vector** $\mathbf{x} \in \mathbb{R}^q \setminus \{\mathbf{0}\}$ such that $A\mathbf{x} = \mathbf{0}$! Multiplying both sides on the left by $V$ immediately yields:
+
+$$
+W\mathbf{x} = (VA)\mathbf{x} = V(A\mathbf{x}) = V\mathbf{0} = \mathbf{0}
+$$
+
+This means the columns of $W$ have a nontrivial linear combination that adds to zero—directly contradicting the assumption that $\{\mathbf{w}_1, \dots, \mathbf{w}_q\}$ is a basis (and therefore linearly independent)! Hence we must have $q \le p$. By complete symmetry, swapping the roles of $V$ and $W$ gives $p \le q$, so **$p = q$**. Q.E.D.!
+</ProofCollapse>
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+1. **Pitfall 1: Copying the pivot columns of $R = \operatorname{rref}(A)$ instead of the pivot columns of the original matrix $A$ when asked for a basis of $\operatorname{Col}(A)$! (The #1 midterm exam disaster!)**
+   Circle this in red three times: in the example above, the two pivot columns of $R$ are $(1,0,0)^T$ and $(0,1,0)^T$ (whose third components are both $0$). They span $\operatorname{Col}(R)$ and **do not even lie in $\operatorname{Col}(A)$**! You look at $R$ only to identify the **column indices** of the pivots (Columns 1 and 3), and then **you must go back to the original matrix $A$ to copy Column 1 $(1,2,3)^T$ and Column 3 $(2,6,8)^T$** as your basis vectors!
+2. **Pitfall 2: Saying "the dimension of matrix $A$ is $3\times 4$" or "the rank of a matrix equals its dimension"**
+   In precise mathematical terminology: **a matrix has a "size / shape ($m\times n$)" and a "rank ($r$)", never a "dimension"**! Only **vector spaces and subspaces** have a "dimension"—for example, "the dimension of the subspace $\operatorname{Col}(A)$ equals the rank $r$ of the matrix $A$."
+3. **Pitfall 3: Assuming that "any $d$ vectors in a $d$-dimensional subspace $S$ automatically form a basis"**
+   You must still verify *either* "linear independence" *or* "spanning $S$"! However, when the number of vectors **exactly matches the known dimension $d = \dim(S)$**, there is a tremendously useful labor-saving theorem (see Exercise `l09-ex3` below): inside a $d$-dimensional space, $d$ vectors are **linearly independent $\iff$ they span the entire space $S$** (check one half and the other half comes for free!).
+</PitfallAlert>
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "A set of vectors $\\{\\mathbf{v}_1, \\dots, \\mathbf{v}_k\\}$ is **linearly independent** $\\iff$ the matrix $V = [\\mathbf{v}_1\\;\\cdots\\;\\mathbf{v}_k]$ satisfies $\\operatorname{Null}(V) = \\{\\mathbf{0}\\} \\iff \\operatorname{rank}(V) = k$; any set of more than $m$ vectors in $\\mathbb{R}^m$ is necessarily linearly dependent.",
+    "A **basis** for a subspace $S$ is a sequence of vectors in $S$ that is both **linearly independent** and **spans $S$**; every basis for the same subspace contains the exact same number of vectors, and that number is defined as the **dimension $\\dim(S)$**.",
+    "To find a basis for $\\operatorname{Col}(A)$: row-reduce to $R$ to locate the pivot column indices, then **go back to the original matrix $A$ and extract those $r$ pivot columns** (never copy the columns of $R$!). Thus $\\dim\\operatorname{Col}(A) = r$.",
+    "To find a basis for $\\operatorname{Null}(A)$: directly take the **$n - r$ special solutions** to $R\\mathbf{x}=\\mathbf{0}$. Thus $\\dim\\operatorname{Null}(A) = n - r$, and the conservation law $\\dim\\operatorname{Col}(A) + \\dim\\operatorname{Null}(A) = n$ always holds."
+  ]}
+/>
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+<ExerciseCard id="l09-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="Foolproof Basis Extraction: Writing Bases and Dimensions for Both Col(A) and Null(A)">
+Given the $3\times 4$ matrix $A$ and its reduced row echelon form $R = \operatorname{rref}(A)$:
+
+$$
+A = \begin{bmatrix}
+2 & 4 & 1 & 5 \\
+-1 & -2 & 1 & 2 \\
+3 & 6 & 0 & 3
+\end{bmatrix}
+\quad \xrightarrow{\text{rref}} \quad
+R = \begin{bmatrix}
+1 & 2 & 0 & 1 \\
+0 & 0 & 1 & 3 \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+$$
+
+1. Write down the dimension and a basis for the column space $\operatorname{Col}(A)$ of matrix $A$ (careful: should you copy column vectors from $A$ or from $R$?), and also write down a basis for $\operatorname{Col}(R)$ to compare whether the two subspaces are equal!
+2. Write down the dimension and a basis for the nullspace $\operatorname{Null}(A)$ of matrix $A$, and verify the rank-nullity sum $r + (n - r) = 4$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Look at $R$: the two pivots $1$ sit in **Column 1** and **Column 3**! Thus the rank is $r = 2$. To write a basis for $\\operatorname{Col}(A)$, you must go back to the **original matrix $A$** and pull out Column 1, $(2, -1, 3)^T$, and Column 3, $(1, 1, 0)^T$!",
+    "The nullspace satisfies $\\operatorname{Null}(A) = \\operatorname{Null}(R)$, so you can read the two special solutions corresponding to the free variables $(x_2, x_4) = (1,0)$ and $(0,1)$ directly from $R$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. Stick to the golden rule—"use $R$ to find the column numbers, then go back to $A$ to fetch the actual vectors": the pivot columns are Column 1 and Column 3, so $\dim\operatorname{Col}(A) = 2$ and a basis for $\operatorname{Col}(A)$ is $\{(2, -1, 3)^T,\; (1, 1, 0)^T\}$. By contrast, a basis for $\operatorname{Col}(R)$ is $\{(1, 0, 0)^T,\; (0, 1, 0)^T\}$ (whose third component is identically $0$—a completely different plane from $\operatorname{Col}(A)$!).
+2. The nullspace never budges under row operations: $\dim\operatorname{Null}(A) = 4 - 2 = 2$. Flipping the signs of the free entries in $R$ immediately gives the special-solution basis $\{(-2, 1, 0, 0)^T,\; (-1, 0, -3, 1)^T\}$, and $2 + 2 = 4$ matches perfectly!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. From $R$, the pivots lie in Columns 1 and 3, so $\operatorname{rank}(A) = 2$:
+   - $\dim\operatorname{Col}(A) = \mathbf{2}$, and extracting Columns 1 and 3 of $A$ gives a basis for $\operatorname{Col}(A)$:
+
+$$
+\mathcal{B}_{\text{Col}(A)} = \left\{ \begin{bmatrix} 2 \\ -1 \\ 3 \end{bmatrix}, \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix} \right\}, \qquad
+\text{whereas } \mathcal{B}_{\text{Col}(R)} = \left\{ \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix} \right\} \neq \operatorname{Col}(A)
+$$
+
+2. The free variables are $x_2, x_4$ ($4 - 2 = 2$ in total), so $\dim\operatorname{Null}(A) = \mathbf{2}$, and the two special solutions form a basis for $\operatorname{Null}(A)$:
+
+$$
+\mathcal{B}_{\text{Null}(A)} = \left\{ \begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} -1 \\ 0 \\ -3 \\ 1 \end{bmatrix} \right\}
+$$
+
+   Conservation of dimension: $\dim\operatorname{Col}(A) + \dim\operatorname{Null}(A) = 2 + 2 = 4 = n$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l09-ex2" tier="L2" tierLabel="L2 · Conceptual True/False" title="Conceptual Check: Does 'Pairwise Non-Collinear' Guarantee That Three Vectors Are Linearly Independent?">
+Determine whether the following statement is true or false, and construct a minimal geometric counterexample in your head:
+
+> **Statement**: In 3D space $\mathbb{R}^3$, if three nonzero vectors $\mathbf{v}_1, \mathbf{v}_2, \mathbf{v}_3$ satisfy that **no two of them are collinear** (i.e., they are pairwise linearly independent: $\mathbf{v}_1 \nparallel \mathbf{v}_2,\; \mathbf{v}_2 \nparallel \mathbf{v}_3,\; \mathbf{v}_1 \nparallel \mathbf{v}_3$), then the three vectors taken together $\{\mathbf{v}_1, \mathbf{v}_2, \mathbf{v}_3\}$ must be linearly independent.
+
+<TrueFalseInteractive
+  id="l09-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! This is a classic logic trap for beginners: 'pairwise non-collinear' does nothing to prevent the three vectors from being coplanar! For example, on a tabletop, the x-axis unit vector $(1,0,0)^T$, the y-axis unit vector $(0,1,0)^T$, and the 45-degree diagonal vector $(1,1,0)^T$ have no two vectors collinear, yet $\mathbf{v}_1 + \mathbf{v}_2 - \mathbf{v}_3 = \mathbf{0}$, so the three together are strictly linearly dependent!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Lay three pencils flat on your desk pointing toward 12 o'clock, 4 o'clock, and 8 o'clock: no two pencils lie on the same line, but are the three pencils together linearly independent in 3D space?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+"Pairwise independence" only prevents 2D collapse into a single line; it does not prevent 3D collapse into a flat plane! Draw the three radial vectors from the center of an equilateral triangle on a desk: any pair meets at $120^\circ$ and is never collinear, yet adding all three vectors head-to-tail gives $\mathbf{0}$! To test whether $k$ vectors are linearly independent, you must put **all of them together into a single matrix $V$ and check whether its overall rank equals $k$**—pairwise checks are never enough!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+We construct a minimal counterexample in $\mathbb{R}^3$:
+
+$$
+\mathbf{v}_1 = \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix}, \quad
+\mathbf{v}_2 = \begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix}, \quad
+\mathbf{v}_3 = \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix}
+$$
+
+Clearly no two of these vectors are scalar multiples of each other (they are pairwise linearly independent), yet there exists a nontrivial linear combination $1\cdot\mathbf{v}_1 + 1\cdot\mathbf{v}_2 + (-1)\cdot\mathbf{v}_3 = \mathbf{0}$. Hence $\{\mathbf{v}_1, \mathbf{v}_2, \mathbf{v}_3\}$ is linearly dependent.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l09-ex3" tier="L2" tierLabel="L2 · Conceptual True/False" title="Conceptual Check: Does the 'Buy-One-Get-One-Free' Theorem Hold When the Dimension Is Known?">
+Determine whether the following statement is true or false:
+
+> **Statement**: Suppose a subspace $S \subseteq \mathbb{R}^5$ is known to have dimension $\dim(S) = 3$. If you find **exactly $3$ linearly independent vectors** $\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3 \in S$ inside $S$, then without checking the spanning condition separately, $\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\}$ automatically forms a basis for the subspace $S$!
+
+<TrueFalseInteractive
+  id="l09-tf2"
+  correct={true}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="True! This is the most practical 'dimension-pinning theorem' in linear algebra: once the number of vectors $k$ in $S$ matches the known dimension $d = \dim(S)$, 'linearly independent' and 'spans $S$' become equivalent! If $\{\mathbf{u}_1,\mathbf{u}_2,\mathbf{u}_3\}$ failed to span all of $S$, we could pick a 4th independent vector $\mathbf{u}_4 \in S$ outside their span, producing 4 linearly independent vectors inside a 3-dimensional subspace—directly violating the invariance of dimension!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Think by contradiction: if $\\operatorname{span}\\{\\mathbf{u}_1, \\mathbf{u}_2, \\mathbf{u}_3\\} \\subsetneq S$ (they do not fill up all of $S$), then we can grab some vector $\\mathbf{u}_4 \\in S$ that cannot be reached by their combinations!",
+    "Once we include $\\mathbf{u}_4$, the 4 vectors $\\{\\mathbf{u}_1, \\mathbf{u}_2, \\mathbf{u}_3, \\mathbf{u}_4\\}$ inside $S$ remain linearly independent! Can a 3-dimensional subspace accommodate 4 linearly independent vectors?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+If you know a house has exactly $3$ rooms ($\dim S = 3$) and you already have $3$ distinct independent tenants (linearly independent vectors in $S$), then one tenant per room fills the entire house completely! If there were still an uncovered corner left over, you could move in a 4th independent tenant—which clashes head-on with the house having only $3$ dimensions! Symmetrically, if **exactly $3$ vectors in $S$ are known to span a $3$-dimensional subspace $S$**, they are automatically linearly independent (otherwise deleting a redundant vector would allow fewer than $3$ vectors to span $S$, again a contradiction)!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+We give a rigorous proof by contradiction. Since $\dim(S) = 3$, let $B = [\mathbf{b}_1 \; \mathbf{b}_2 \; \mathbf{b}_3] \in \mathbb{R}^{5\times 3}$ be a known basis matrix for $S$.
+Suppose $\operatorname{span}\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\} \subsetneq S$; then there exists a vector $\mathbf{u}_4 \in S \setminus \operatorname{span}\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\}$.
+1. First, we show that $\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3, \mathbf{u}_4\}$ is linearly independent: suppose $c_1\mathbf{u}_1 + c_2\mathbf{u}_2 + c_3\mathbf{u}_3 + c_4\mathbf{u}_4 = \mathbf{0}$. If $c_4 \neq 0$, then $\mathbf{u}_4 = -\frac{c_1}{c_4}\mathbf{u}_1 - \frac{c_2}{c_4}\mathbf{u}_2 - \frac{c_3}{c_4}\mathbf{u}_3 \in \operatorname{span}\{\mathbf{u}_1,\mathbf{u}_2,\mathbf{u}_3\}$, a contradiction! Thus $c_4 = 0$, and the linear independence of $\{\mathbf{u}_1,\mathbf{u}_2,\mathbf{u}_3\}$ then forces $c_1=c_2=c_3=0$.
+2. On the other hand, since each $\mathbf{u}_j \in S = \operatorname{Col}(B)$, there exists a coefficient matrix $C \in \mathbb{R}^{3\times 4}$ such that $[\mathbf{u}_1 \; \mathbf{u}_2 \; \mathbf{u}_3 \; \mathbf{u}_4] = B C$. Because $C$ is a $3\times 4$ wide matrix, there exists a nonzero vector $\mathbf{x} \in \mathbb{R}^4 \setminus \{\mathbf{0}\}$ with $C\mathbf{x} = \mathbf{0} \implies (BC)\mathbf{x} = \mathbf{0}$, contradicting the linear independence of the four vectors!
+
+Thus our assumption is false; we must have $\operatorname{span}\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\} = S$, so $\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\}$ is indeed a basis for $S$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l09-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Abstract Independence Transfer: Linear Independence Under Invertible vs. Cyclic Combinations">
+Let $\mathbf{v}_1, \mathbf{v}_2, \mathbf{v}_3 \in \mathbb{R}^n$ be three **linearly independent** vectors. Without writing down any vector components, use the definition of linear independence or block matrix multiplication to determine whether each of the following newly constructed sets of vectors is guaranteed to be linearly independent:
+1. Set 1 (cyclic pairwise sums): $\mathbf{w}_1 = \mathbf{v}_1 + \mathbf{v}_2,\quad \mathbf{w}_2 = \mathbf{v}_2 + \mathbf{v}_3,\quad \mathbf{w}_3 = \mathbf{v}_3 + \mathbf{v}_1$;
+2. Set 2 (cyclic pairwise differences): $\mathbf{u}_1 = \mathbf{v}_1 - \mathbf{v}_2,\quad \mathbf{u}_2 = \mathbf{v}_2 - \mathbf{v}_3,\quad \mathbf{u}_3 = \mathbf{v}_3 - \mathbf{v}_1$!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "A slick matrix-factorization trick: pack the original vectors into a matrix $V = [\\mathbf{v}_1\\;\\mathbf{v}_2\\;\\mathbf{v}_3] \\in \\mathbb{R}^{n\\times 3}$ (where we know $\\operatorname{Null}(V) = \\{\\mathbf{0}\\}$)! Then the first set $W = [\\mathbf{w}_1\\;\\mathbf{w}_2\\;\\mathbf{w}_3]$ is simply $V$ multiplied on the right by a $3\\times 3$ coefficient matrix: $W = V M_1$!",
+    "For the second set, you don't even need a matrix: just add $\\mathbf{u}_1 + \\mathbf{u}_2 + \\mathbf{u}_3$ directly and see what you get!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. Pack the three vectors into the columns of $V = [\mathbf{v}_1 \; \mathbf{v}_2 \; \mathbf{v}_3]$, and the problem immediately reduces to a $3\times 3$ toy block game:
+   - For the first set, $W = V M_1$ with
+
+$$
+M_1 = \begin{bmatrix} 1 & 0 & 1 \\ 1 & 1 & 0 \\ 0 & 1 & 1 \end{bmatrix}
+$$
+
+     Is this $3\times 3$ transition matrix $M_1$ invertible? Two steps of elimination produce pivots $1, 1, 2$ (all nonzero, so $M_1$ is invertible!). Since neither $V$ nor $M_1$ sends any nonzero vector to zero, the product $W = V M_1$ has only $\mathbf{0}$ in its nullspace—**Set 1 is strictly linearly independent**!
+2. Set 2 can be settled at a glance (it is our old friend, the cyclic difference matrix from Lecture 01!): adding the three new vectors directly gives $\mathbf{u}_1 + \mathbf{u}_2 + \mathbf{u}_3 = (\mathbf{v}_1 - \mathbf{v}_2) + (\mathbf{v}_2 - \mathbf{v}_3) + (\mathbf{v}_3 - \mathbf{v}_1) = \mathbf{0}$! The nonzero weights $(1, 1, 1) \neq (0, 0, 0)$ make the combination vanish on the spot—**Set 2 is always linearly dependent**!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+Let $V = [\mathbf{v}_1 \; \mathbf{v}_2 \; \mathbf{v}_3] \in \mathbb{R}^{n\times 3}$. Because $\{\mathbf{v}_1, \mathbf{v}_2, \mathbf{v}_3\}$ is linearly independent, we have $\operatorname{Null}(V) = \{\mathbf{0}\}$.
+
+1. **Set 1 is linearly independent**: Write the matrix product $W = [\mathbf{w}_1 \; \mathbf{w}_2 \; \mathbf{w}_3] = V M_1$, where
+
+$$
+M_1 = \begin{bmatrix}
+1 & 0 & 1 \\
+1 & 1 & 0 \\
+0 & 1 & 1
+\end{bmatrix}
+\xrightarrow{R_2 - R_1}
+\begin{bmatrix}
+1 & 0 & 1 \\
+0 & 1 & -1 \\
+0 & 1 & 1
+\end{bmatrix}
+\xrightarrow{R_3 - R_2}
+\begin{bmatrix}
+\mathbf{1} & 0 & 1 \\
+0 & \mathbf{1} & -1 \\
+0 & 0 & \mathbf{2}
+\end{bmatrix}
+$$
+
+   Since $M_1$ has $3$ nonzero pivots, $M_1$ is invertible ($\operatorname{Null}(M_1) = \{\mathbf{0}\}$). Consequently, if $W\mathbf{c} = V(M_1\mathbf{c}) = \mathbf{0}$, then $\operatorname{Null}(V) = \{\mathbf{0}\}$ first implies $M_1\mathbf{c} = \mathbf{0}$, and the invertibility of $M_1$ then forces $\mathbf{c} = \mathbf{0}$. Hence $\{\mathbf{w}_1, \mathbf{w}_2, \mathbf{w}_3\}$ is linearly independent.
+
+2. **Set 2 is linearly dependent**: Taking the nonzero weights $(c_1, c_2, c_3) = (1, 1, 1)$, direct addition gives
+
+$$
+1\cdot\mathbf{u}_1 + 1\cdot\mathbf{u}_2 + 1\cdot\mathbf{u}_3 = (\mathbf{v}_1 - \mathbf{v}_2) + (\mathbf{v}_2 - \mathbf{v}_3) + (\mathbf{v}_3 - \mathbf{v}_1) = \mathbf{0}
+$$
+
+   By Definition 9.1, $\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\}$ is linearly dependent (the subspace it spans has dimension only $2$).
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l09-ex5" tier="L4" tierLabel="L4 · MIT 18.06 Exam Synthesis" title="MIT 18.06 Exam Challenge: Pure Basis-and-Dimension Proof of rank(AB) ≤ min(rank A, rank B)">
+In Lecture 03 (Theorem 3.1), we proved the subspace inclusion $\operatorname{Col}(AB) \subseteq \operatorname{Col}(A)$. Equipped now with the **Dimension and Rank Theorem** from Lecture 09, complete the following two milestone theoretical derivations (for $A \in \mathbb{R}^{m\times n}$ and $B \in \mathbb{R}^{n\times p}$):
+1. First, rigorously prove **subspace monotonicity**: if two subspaces satisfy $S_1 \subseteq S_2 \subseteq \mathbb{R}^m$, then $\dim(S_1) \le \dim(S_2)$, with equality **if and only if** $S_1 = S_2$!
+2. Using Part 1, without invoking transposes (even before proving $\operatorname{rank}(M^T) = \operatorname{rank}(M)$!), prove the fundamental rank upper bound for matrix multiplication directly from two perspectives—**column space inclusion** and **spanning via a basis of $\operatorname{Col}(B)$**:
+
+$$
+\operatorname{rank}(AB) \le \min\big(\operatorname{rank}(A),\; \operatorname{rank}(B)\big)
+$$
+
+And deduce as a corollary: if $P \in \mathbb{R}^{m\times m}$ is invertible, multiplying on the left by an invertible matrix never changes the rank, i.e., **$\operatorname{rank}(PA) = \operatorname{rank}(A)$**!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1: Let $\\dim(S_1) = k$ and choose a basis $\\{\\mathbf{u}_1, \\dots, \\mathbf{u}_k\\}$ for $S_1$. Since $S_1 \\subseteq S_2$, all $k$ of these linearly independent vectors lie inside $S_2$! By the proof of invariance of dimension in this lecture, can the number $k$ of linearly independent vectors inside a $d = \\dim(S_2)$-dimensional space exceed $d$?",
+    "Part 2: Proving $\\operatorname{rank}(AB) \\le \\operatorname{rank}(B)$ is a gem! Let $r_B = \\operatorname{rank}(B)$ and pick a basis $\\{\\mathbf{w}_1, \\dots, \\mathbf{w}_{r_B}\\}$ for $\\operatorname{Col}(B)$. Since every column combination $B\\mathbf{x}$ is a linear combination of those $r_B$ basis vectors, every vector $(AB)\\mathbf{x} = A(B\\mathbf{x})$ in $\\operatorname{Col}(AB)$ is a linear combination of which $r_B$ vectors $\\{A\\mathbf{w}_1, \\dots, A\\mathbf{w}_{r_B}\\}$?!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. If a smaller room sits inside a larger room, the smaller room cannot possibly have more independent coordinate axes than the larger room. And the moment the number of independent axes in the smaller room catches up to the dimension of the larger room, Exercise `l09-ex3`'s "dimension-pinning theorem" guarantees that the smaller room fills the larger room completely ($S_1 = S_2$)!
+2. Proving $\operatorname{rank}(AB) \le \operatorname{rank}(A)$ takes half a line: $\operatorname{Col}(AB) \subseteq \operatorname{Col}(A) \implies \dim\operatorname{Col}(AB) \le \dim\operatorname{Col}(A)$!
+   Proving $\operatorname{rank}(AB) \le \operatorname{rank}(B)$ is equally stunning: no matter how the input $\mathbf{x}$ varies, the intermediate output $B\mathbf{x}$ is spanned by the $r_B$ basis vectors of $\operatorname{Col}(B)$. Feeding just those $r_B$ basis vectors through the matrix $A$ produces $r_B$ output vectors $A\mathbf{w}_1, \dots, A\mathbf{w}_{r_B}$—so the entire space $\operatorname{Col}(AB)$ is spanned by those $r_B$ arrows, meaning its dimension is at most $r_B$!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **Proof of Subspace Dimension Monotonicity**: Let $\dim(S_1) = k$ and $\dim(S_2) = d$, and choose basis matrices $U = [\mathbf{u}_1\;\cdots\;\mathbf{u}_k]$ for $S_1$ and $V = [\mathbf{v}_1\;\cdots\;\mathbf{v}_d]$ for $S_2$. Since $S_1 \subseteq S_2$, there exists a coefficient matrix $C \in \mathbb{R}^{d\times k}$ such that $U = VC$. If $k \gt d$, the wide matrix $C$ has a nonzero vector $\mathbf{z}$ satisfying $C\mathbf{z} = \mathbf{0} \implies U\mathbf{z} = \mathbf{0}$, contradicting the linear independence of the columns of $U$! Thus $k \le d$. When $k = d$, by the result proved in Exercise `l09-ex3`, any $d$ linearly independent vectors in $S_2$ must span all of $S_2$, so $S_1 = \operatorname{span}\{\mathbf{u}_1,\dots,\mathbf{u}_d\} = S_2$.
+
+2. **Proof of $\operatorname{rank}(AB) \le \min(\operatorname{rank}(A), \operatorname{rank}(B))$**:
+   - **Left-factor upper bound**: Combining $\operatorname{Col}(AB) \subseteq \operatorname{Col}(A)$ (Theorem 3.1 Part 1) with the monotonicity from Part 1 and Theorem 9.1 Part 2 immediately yields:
+
+$$
+\operatorname{rank}(AB) = \dim\operatorname{Col}(AB) \le \dim\operatorname{Col}(A) = \operatorname{rank}(A)
+$$
+
+   - **Right-factor upper bound**: Let $r_B := \operatorname{rank}(B) = \dim\operatorname{Col}(B)$, and choose a basis $\{\mathbf{w}_1, \dots, \mathbf{w}_{r_B}\}$ for $\operatorname{Col}(B)$ (if $r_B = 0$, then $B=0 \implies AB=0$, which holds trivially). For any $\mathbf{y} \in \operatorname{Col}(AB)$, there exists $\mathbf{x} \in \mathbb{R}^p$ such that $\mathbf{y} = A(B\mathbf{x})$. Since $B\mathbf{x} \in \operatorname{Col}(B)$, there exist scalars $c_1, \dots, c_{r_B}$ such that $B\mathbf{x} = \sum_{i=1}^{r_B} c_i \mathbf{w}_i$. Multiplying both sides on the left by $A$ gives:
+
+$$
+\mathbf{y} = A\left(\sum_{i=1}^{r_B} c_i \mathbf{w}_i\right) = \sum_{i=1}^{r_B} c_i (A\mathbf{w}_i) \in \operatorname{span}\{A\mathbf{w}_1, \dots, A\mathbf{w}_{r_B}\}
+$$
+
+     Thus $\operatorname{Col}(AB)$ is spanned by at most $r_B$ vectors, which implies $\operatorname{rank}(AB) = \dim\operatorname{Col}(AB) \le r_B = \operatorname{rank}(B)$.
+
+3. **Corollary (Left-Multiplication by an Invertible Matrix Preserves Rank)**: If $P \in \mathbb{R}^{m\times m}$ is invertible, applying the above inequality twice in succession gives:
+
+$$
+\operatorname{rank}(PA) \le \operatorname{rank}(A) = \operatorname{rank}\!\big(P^{-1}(PA)\big) \le \operatorname{rank}(PA)
+\quad \Longrightarrow \quad \operatorname{rank}(PA) = \operatorname{rank}(A)
+$$
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>

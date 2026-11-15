@@ -1,0 +1,1073 @@
+---
+title: "Lecture 22: Diagonalization and Powers of A"
+ocwId: "L22"
+videoEpisode: "P22"
+textbookRef: "§6.2"
+---
+
+In the previous lecture, we introduced eigenvalues and eigenvectors: for certain special vectors, the action of a matrix $A$ leaves their direction unchanged and simply scales them by a scalar factor ($A\mathbf{x} = \lambda \mathbf{x}$).
+
+Now ask the natural next question: what happens if we collect all the eigenvectors of a matrix and use them as a brand-new coordinate basis for the space? The answer is one of the most powerful and widely used structural theorems in all of linear algebra: **diagonalization**.
+
+Diagonalization completely **decouples** a coupled matrix operation. Once a matrix is diagonalized, computing high powers $A^k$, solving systems of discrete difference equations, and analyzing the asymptotic stability of dynamical systems all collapse from tangled matrix multiplications into independent one-dimensional scalar exponentials.
+
+---
+
+## 1. The Core Derivation: From $AS = S\Lambda$ to $A = S\Lambda S^{-1}$
+
+### The Column Picture of Diagonalization
+
+Suppose an $n \times n$ matrix $A \in \mathbb{C}^{n \times n}$ has $n$ eigenvalues $\lambda_1, \lambda_2, \dots, \lambda_n$ with corresponding eigenvectors $\mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_n \in \mathbb{C}^n$. By definition, each eigenpair satisfies:
+
+$$
+A \mathbf{x}_i = \lambda_i \mathbf{x}_i \quad (i = 1, 2, \dots, n)
+$$
+
+Let us place these $n$ eigenvectors side by side as the columns of an $n \times n$ matrix $S$, called the **eigenvector matrix**:
+
+$$
+S = \begin{bmatrix} \mathbf{x}_1 & \mathbf{x}_2 & \cdots & \mathbf{x}_n \end{bmatrix}
+$$
+
+Now multiply $A$ times $S$ using the **column picture** of matrix multiplication:
+
+$$
+AS = A \begin{bmatrix} \mathbf{x}_1 & \mathbf{x}_2 & \cdots & \mathbf{x}_n \end{bmatrix} = \begin{bmatrix} A\mathbf{x}_1 & A\mathbf{x}_2 & \cdots & A\mathbf{x}_n \end{bmatrix} = \begin{bmatrix} \lambda_1 \mathbf{x}_1 & \lambda_2 \mathbf{x}_2 & \cdots & \lambda_n \mathbf{x}_n \end{bmatrix}
+$$
+
+Look at that result: each column of $AS$ is simply the corresponding column of $S$ scaled by $\lambda_i$. In matrix multiplication, how do you scale each column of $S$ by a different number? You multiply $S$ **on the right** by a diagonal matrix $\Lambda$, called the **eigenvalue matrix**:
+
+$$
+\Lambda = \begin{bmatrix}
+\lambda_1 & 0 & \cdots & 0 \\
+0 & \lambda_2 & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots & \lambda_n
+\end{bmatrix}
+$$
+
+Let us check the product $S\Lambda$ directly:
+
+$$
+S \Lambda = \begin{bmatrix} \mathbf{x}_1 & \mathbf{x}_2 & \cdots & \mathbf{x}_n \end{bmatrix} \begin{bmatrix}
+\lambda_1 & 0 & \cdots & 0 \\
+0 & \lambda_2 & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots & \lambda_n
+\end{bmatrix} = \begin{bmatrix} \lambda_1 \mathbf{x}_1 & \lambda_2 \mathbf{x}_2 & \cdots & \lambda_n \mathbf{x}_n \end{bmatrix}
+$$
+
+Comparing the two expressions gives the fundamental, unconditional identity:
+
+$$
+AS = S\Lambda
+$$
+
+Notice something crucial: **the identity $AS = S\Lambda$ always holds**, regardless of whether the eigenvectors are linearly independent!
+
+### The Critical Watershed: Invertibility of $S$
+
+To turn $AS = S\Lambda$ into a factorization of $A$ itself, one question decides everything: **is $S$ invertible?**
+
+A square matrix $S$ is invertible if and only if its columns are linearly independent. That is, **$A$ must possess $n$ linearly independent eigenvectors**.
+
+When $S^{-1}$ exists, we multiply $AS = S\Lambda$ on the right by $S^{-1}$ to obtain the celebrated **diagonalization formula**:
+
+$$
+A = S \Lambda S^{-1}
+$$
+
+Equivalently, multiplying $AS = S\Lambda$ on the left by $S^{-1}$ turns $A$ into the diagonal matrix $\Lambda$ via a similarity transformation:
+
+$$
+\Lambda = S^{-1} A S
+$$
+
+This process—transforming $A$ into a diagonal matrix through an invertible change of basis—is called **similarity diagonalization**.
+
+### Fast Computation of High Matrix Powers $A^k$
+
+The most immediate payoff of diagonalization appears when we compute powers $A^k$. Computing $A^k$ directly by repeated multiplication takes $k - 1$ dense $n \times n$ matrix products, costing $O(k n^3)$ operations and accumulating floating-point rounding error at every step.
+
+When $A$ is diagonalizable, substitute $A = S \Lambda S^{-1}$ into $A^2$:
+
+$$
+A^2 = (S \Lambda S^{-1})(S \Lambda S^{-1}) = S \Lambda (S^{-1} S) \Lambda S^{-1} = S \Lambda I_n \Lambda S^{-1} = S \Lambda^2 S^{-1}
+$$
+
+The adjacent $S^{-1}$ and $S$ in the middle cancel to the identity $I_n$! This telescoping cancellation extends immediately to any positive integer $k$:
+
+$$
+A^k = \underbrace{(S \Lambda S^{-1})(S \Lambda S^{-1}) \cdots (S \Lambda S^{-1})}_{k \text{ factors}} = S \Lambda^k S^{-1}
+$$
+
+And the $k$-th power of a diagonal matrix $\Lambda$ simply raises each diagonal eigenvalue to the $k$-th power:
+
+$$
+\Lambda^k = \begin{bmatrix}
+\lambda_1^k & 0 & \cdots & 0 \\
+0 & \lambda_2^k & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots & \lambda_n^k
+\end{bmatrix}
+$$
+
+Therefore, $A^k$ collapses to:
+
+$$
+A^k = S \begin{bmatrix}
+\lambda_1^k & 0 & \cdots & 0 \\
+0 & \lambda_2^k & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots & \lambda_n^k
+\end{bmatrix} S^{-1}
+$$
+
+Once the eigendecomposition is computed, finding any high power—say $A^{1000}$—requires only $n$ scalar powers on the diagonal and two matrix multiplications. The computational cost is completely decoupled from the exponent $k$!
+
+If $A$ is also invertible (meaning every eigenvalue $\lambda_i \ne 0$), the exact same formula extends to negative integer powers:
+
+$$
+A^{-1} = S \Lambda^{-1} S^{-1} = S \operatorname{diag}\left(\frac{1}{\lambda_1}, \frac{1}{\lambda_2}, \dots, \frac{1}{\lambda_n}\right) S^{-1}
+$$
+
+The interactive commutative diagram below illustrates this basis-decoupling bypass:
+
+<DiagonalizationPipelineDiagram caption="Commutative diagram comparing direct matrix multiplication A^k with the diagonalization bypass S Λ^k S^{-1}, where S^{-1} changes into the eigenbasis, Λ^k scales each mode independently, and S maps back to standard coordinates." />
+
+---
+
+## 2. When Is a Matrix Diagonalizable? Sufficient vs. Necessary Conditions
+
+Not every square matrix can be diagonalized. Understanding exactly when diagonalization succeeds—and when it fails—is one of the most illuminating chapters of linear algebra.
+
+### Algebraic Multiplicity vs. Geometric Multiplicity
+
+To measure both how often an eigenvalue repeats as a root and how many independent eigenvectors it supplies, we define two multiplicities:
+
+<DefinitionCard label="Definition" title="Algebraic and Geometric Multiplicity">
+
+Let $A \in \mathbb{C}^{n \times n}$ have characteristic polynomial $p(\lambda) = \det(A - \lambda I_n)$, and let $\lambda_0$ be an eigenvalue of $A$:
+
+1. **Algebraic Multiplicity ($\operatorname{AM}$)**:
+   The multiplicity of $\lambda_0$ as a root of the polynomial equation $p(\lambda) = 0$—that is, the highest power $(\lambda_0 - \lambda)^{\operatorname{AM}(\lambda_0)}$ that divides $p(\lambda)$. By the Fundamental Theorem of Algebra, the algebraic multiplicities sum to $n$:
+   $$
+   \sum_{i} \operatorname{AM}(\lambda_i) = n
+   $$
+
+2. **Geometric Multiplicity ($\operatorname{GM}$)**:
+   The dimension of the eigenspace $\operatorname{Null}(A - \lambda_0 I_n)$, which equals the **maximum number of linearly independent eigenvectors** associated with $\lambda_0$:
+   $$
+   \operatorname{GM}(\lambda_0) = \dim \operatorname{Null}(A - \lambda_0 I_n) = n - \operatorname{rank}(A - \lambda_0 I_n)
+   $$
+
+</DefinitionCard>
+
+Between these two multiplicities lies a fundamental inequality:
+
+$$
+1 \le \operatorname{GM}(\lambda_0) \le \operatorname{AM}(\lambda_0)
+$$
+
+Every eigenvalue supplies at least one nonzero eigenvector ($\operatorname{GM} \ge 1$), and it can never supply more linearly independent eigenvectors than its multiplicity as a root of the characteristic polynomial ($\operatorname{GM} \le \operatorname{AM}$).
+
+<TheoremCard label="Theorem" title="Diagonalizability Theorem">
+
+Let $A \in \mathbb{C}^{n \times n}$ be a square matrix:
+
+1. **Sufficient (Not Necessary) Condition — Distinct Eigenvalues**:
+   If $A$ has $n$ **distinct eigenvalues** ($\lambda_i \ne \lambda_j$ for all $i \ne j$), then every eigenvalue has $\operatorname{AM}(\lambda_i) = 1$, which forces $\operatorname{GM}(\lambda_i) = 1$. The corresponding $n$ eigenvectors are guaranteed to be linearly independent, so $A$ is **always diagonalizable**.
+
+2. **Necessary and Sufficient Condition ($\iff$)**:
+   A square matrix $A$ is diagonalizable **if and only if** $A$ has $n$ linearly independent eigenvectors; equivalently, for every eigenvalue $\lambda_i$ of $A$, its **geometric multiplicity equals its algebraic multiplicity**:
+   $$
+   A \text{ is diagonalizable} \iff \operatorname{GM}(\lambda_i) = \operatorname{AM}(\lambda_i), \quad \forall i
+   $$
+
+If even a single eigenvalue satisfies $\operatorname{GM}(\lambda_i) \lt \operatorname{AM}(\lambda_i)$, there are fewer than $n$ linearly independent eigenvectors in the entire space, so $S$ is singular and cannot be inverted. Such a matrix is called a **defective matrix**.
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Linear Independence for Distinct Eigenvalues and the Upper Bound GM ≤ AM">
+
+We prove both key pieces of the Diagonalizability Theorem in two parts:
+
+#### Part 1: Eigenvectors for Distinct Eigenvalues Are Linearly Independent
+
+Let $\lambda_1, \lambda_2, \dots, \lambda_m$ be $m$ distinct eigenvalues of $A$ with corresponding eigenvectors $\mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_m$. We proceed by induction on $m$:
+
+1. **Base case ($m = 1$)**: By definition an eigenvector $\mathbf{x}_1 \ne \mathbf{0}$, so a single nonzero vector is linearly independent.
+2. **Inductive hypothesis**: Assume any $m - 1$ eigenvectors corresponding to distinct eigenvalues are linearly independent, so $\mathbf{x}_1, \dots, \mathbf{x}_{m-1}$ are linearly independent.
+3. **Inductive step**: Suppose a linear combination equals zero:
+   $$
+   c_1 \mathbf{x}_1 + c_2 \mathbf{x}_2 + \dots + c_m \mathbf{x}_m = \mathbf{0} \quad \text{(Eq. 1)}
+   $$
+   Multiply Eq. 1 on the left by $A$, using $A\mathbf{x}_i = \lambda_i \mathbf{x}_i$:
+   $$
+   c_1 \lambda_1 \mathbf{x}_1 + c_2 \lambda_2 \mathbf{x}_2 + \dots + c_m \lambda_m \mathbf{x}_m = \mathbf{0} \quad \text{(Eq. 2)}
+   $$
+   Next, multiply Eq. 1 by the scalar $\lambda_m$:
+   $$
+   c_1 \lambda_m \mathbf{x}_1 + c_2 \lambda_m \mathbf{x}_2 + \dots + c_m \lambda_m \mathbf{x}_m = \mathbf{0} \quad \text{(Eq. 3)}
+   $$
+   Subtract Eq. 3 from Eq. 2 to eliminate the last term $c_m \lambda_m \mathbf{x}_m$:
+   $$
+   c_1 (\lambda_1 - \lambda_m) \mathbf{x}_1 + c_2 (\lambda_2 - \lambda_m) \mathbf{x}_2 + \dots + c_{m-1} (\lambda_{m-1} - \lambda_m) \mathbf{x}_{m-1} = \mathbf{0}
+   $$
+   By the inductive hypothesis, $\mathbf{x}_1, \dots, \mathbf{x}_{m-1}$ are linearly independent, so every coefficient must vanish:
+   $$
+   c_i (\lambda_i - \lambda_m) = 0 \quad (i = 1, 2, \dots, m-1)
+   $$
+   Because the eigenvalues are distinct, $\lambda_i - \lambda_m \ne 0$ for all $i \lt m$. Hence:
+   $$
+   c_1 = c_2 = \dots = c_{m-1} = 0
+   $$
+   Substituting these back into Eq. 1 leaves $c_m \mathbf{x}_m = \mathbf{0}$. Since $\mathbf{x}_m \ne \mathbf{0}$, we must have $c_m = 0$.
+   Thus $c_1 = c_2 = \dots = c_m = 0$, proving $\mathbf{x}_1, \dots, \mathbf{x}_m$ are linearly independent.
+
+#### Part 2: Proof of the Fundamental Inequality $\operatorname{GM}(\lambda_0) \le \operatorname{AM}(\lambda_0)$
+
+Let $g = \operatorname{GM}(\lambda_0) = \dim \operatorname{Null}(A - \lambda_0 I_n) \ge 1$.
+Choose an orthonormal basis $\{\mathbf{q}_1, \dots, \mathbf{q}_g\}$ for the eigenspace $\operatorname{Null}(A - \lambda_0 I_n)$, and extend it to an orthonormal basis $\{\mathbf{q}_1, \dots, \mathbf{q}_g, \mathbf{q}_{g+1}, \dots, \mathbf{q}_n\}$ of all of $\mathbb{C}^n$. Form the unitary matrix $Q = [Q_1 \ Q_2]$, where $Q_1 = [\mathbf{q}_1 \ \dots \ \mathbf{q}_g]$.
+Since every column of $Q_1$ is an eigenvector for $\lambda_0$, we have $A Q_1 = \lambda_0 Q_1$. Computing the similarity transform $Q^{-1} A Q = Q^* A Q$ gives:
+
+$$
+Q^{-1} A Q = Q^* A Q = \begin{bmatrix} Q_1^* \\ Q_2^* \end{bmatrix} \begin{bmatrix} A Q_1 & A Q_2 \end{bmatrix} = \begin{bmatrix} Q_1^* (\lambda_0 Q_1) & Q_1^* A Q_2 \\ Q_2^* (\lambda_0 Q_1) & Q_2^* A Q_2 \end{bmatrix}
+$$
+
+Using orthonormality ($Q_1^* Q_1 = I_g$ and $Q_2^* Q_1 = 0$), this simplifies to a block upper-triangular matrix:
+
+$$
+Q^{-1} A Q = \begin{bmatrix} \lambda_0 I_g & B \\ 0 & C \end{bmatrix}
+$$
+
+where $C \in \mathbb{C}^{(n-g) \times (n-g)}$. Because similar matrices share the exact same characteristic polynomial:
+
+$$
+p(\lambda) = \det(A - \lambda I_n) = \det(Q^{-1} A Q - \lambda I_n) = \det \begin{bmatrix} (\lambda_0 - \lambda) I_g & B \\ 0 & C - \lambda I_{n-g} \end{bmatrix} = (\lambda_0 - \lambda)^g \det(C - \lambda I_{n-g})
+$$
+
+This shows that $(\lambda_0 - \lambda)^g$ divides $p(\lambda)$, so the multiplicity of $\lambda_0$ as a root must satisfy:
+
+$$
+\operatorname{AM}(\lambda_0) \ge g = \operatorname{GM}(\lambda_0)
+$$
+
+This completes the proof.
+
+</ProofCollapse>
+
+### Classic Contrast: The Identity Matrix vs. A Shear Matrix
+
+Let us examine two quintessential $2 \times 2$ matrices to see multiplicity and defectiveness in action:
+
+#### Case A: Repeated Eigenvalue, Diagonalizable (Identity Matrix $I_2$)
+
+$$
+A = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}
+$$
+
+- Characteristic equation: $\det(A - \lambda I) = (1 - \lambda)^2 = 0 \implies \lambda_1 = \lambda_2 = 1$, so $\operatorname{AM}(1) = 2$.
+- Nullspace: $A - 1 \cdot I_2$ is the zero matrix:
+
+$$
+A - I_2 = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}
+$$
+
+  Its rank is $0$.
+- Geometric multiplicity: $\operatorname{GM}(1) = 2 - \operatorname{rank}(A - I_2) = 2 - 0 = 2$.
+- Conclusion: $\operatorname{GM}(1) = \operatorname{AM}(1) = 2$. **Every nonzero vector in $\mathbb{R}^2$ is an eigenvector!** We can pick any basis (such as $\mathbf{e}_1, \mathbf{e}_2$) to form an invertible $S = I_2$. Indeed, $A$ is already diagonal.
+
+#### Case B: Repeated Eigenvalue, Defective and Not Diagonalizable (Shear Matrix)
+
+$$
+A = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}
+$$
+
+- Characteristic equation: $\det(A - \lambda I) = (1 - \lambda)^2 = 0 \implies \lambda_1 = \lambda_2 = 1$, so $\operatorname{AM}(1) = 2$.
+- Nullspace: $A - 1 \cdot I_2$ has one pivot in column 2:
+
+$$
+A - I_2 = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}
+$$
+
+  So $\operatorname{rank}(A - I_2) = 1$.
+- Geometric multiplicity: $\operatorname{GM}(1) = 2 - \operatorname{rank}(A - I_2) = 2 - 1 = 1$.
+- Solving $(A - I_2)\mathbf{x} = \mathbf{0}$:
+
+$$
+\begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_2 = 0 \implies \mathbf{x} = c \begin{bmatrix} 1 \\ 0 \end{bmatrix}
+$$
+
+- Conclusion: $\operatorname{GM}(1) = 1 \lt 2 = \operatorname{AM}(1)$. There is only one line of eigenvectors (the $x$-axis). With only one independent eigenvector, we cannot fill two independent columns for $S$, so the shear matrix is **not diagonalizable**!
+
+<MultiplicityVsDefectiveDiagram caption="Geometric comparison of repeated eigenvalues: the identity matrix I₂ has GM(1) = AM(1) = 2 (the entire plane is an eigenspace), whereas the shear matrix [1 1; 0 1] has GM(1) = 1 < AM(1) = 2 (only one eigenline along the x-axis), making it defective." />
+
+---
+
+## 3. Powers of $A$ and First-Order Difference Equations
+
+Across engineering, physics, economics, and computer science, discrete dynamical systems evolve according to a first-order linear recurrence:
+
+$$
+\mathbf{u}_{k+1} = A \mathbf{u}_k \quad (k = 0, 1, 2, \dots)
+$$
+
+Starting from an initial state $\mathbf{u}_0$, the state at step $k$ is given directly by the matrix power:
+
+$$
+\mathbf{u}_k = A^k \mathbf{u}_0
+$$
+
+### Modal Expansion of the General Solution
+
+If $A$ is diagonalizable, its $n$ linearly independent eigenvectors $\mathbf{x}_1, \dots, \mathbf{x}_n$ form a basis for $\mathbb{C}^n$. Therefore, any initial vector $\mathbf{u}_0$ can be written uniquely as a linear combination of the eigenvectors:
+
+$$
+\mathbf{u}_0 = c_1 \mathbf{x}_1 + c_2 \mathbf{x}_2 + \dots + c_n \mathbf{x}_n = S \mathbf{c} \implies \mathbf{c} = S^{-1} \mathbf{u}_0
+$$
+
+where $\mathbf{c} = [c_1, \dots, c_n]^T$ holds the coordinates of $\mathbf{u}_0$ in the eigenbasis. Applying $A^k$ to $\mathbf{u}_0$:
+
+$$
+\mathbf{u}_k = A^k \mathbf{u}_0 = A^k \left( \sum_{i=1}^n c_i \mathbf{x}_i \right) = \sum_{i=1}^n c_i A^k \mathbf{x}_i
+$$
+
+Since $A^k \mathbf{x}_i = \lambda_i^k \mathbf{x}_i$, we arrive at the **modal expansion** of the solution:
+
+$$
+\mathbf{u}_k = c_1 \lambda_1^k \mathbf{x}_1 + c_2 \lambda_2^k \mathbf{x}_2 + \dots + c_n \lambda_n^k \mathbf{x}_n
+$$
+
+This formula splits a coupled $n$-dimensional dynamical system into $n$ completely independent one-dimensional scalar modes!
+
+### Asymptotic Stability and the Spectral Radius
+
+Define the **spectral radius** of $A$ as the largest absolute value among its eigenvalues:
+
+$$
+\rho(A) = \max_{1 \le i \le n} |\lambda_i|
+$$
+
+Watching each term $\lambda_i^k$ as $k \to \infty$ tells us the long-term fate of the system:
+
+1. **Asymptotic Stability (Decay to Zero)**:
+   If $\rho(A) \lt 1$ (every eigenvalue has $|\lambda_i| \lt 1$), then $|\lambda_i|^k \to 0$ for every $i$. For **every** initial state $\mathbf{u}_0$:
+   $$
+   \lim_{k \to \infty} \mathbf{u}_k = \mathbf{0}
+   $$
+2. **Convergence to a Steady State**:
+   If $\lambda_1 = 1$ is a simple dominant eigenvalue and all other eigenvalues satisfy $|\lambda_i| \lt 1$ (as in a regular Markov matrix), then every damped mode $\lambda_i^k \mathbf{x}_i \to \mathbf{0}$ as $k \to \infty$, and the system settles to a time-independent steady state:
+   $$
+   \lim_{k \to \infty} \mathbf{u}_k = c_1 \mathbf{x}_1
+   $$
+3. **Exponential Blow-Up (Instability)**:
+   If $\rho(A) \gt 1$ (at least one eigenvalue has $|\lambda_i| \gt 1$), then for any initial state with a nonzero projection $c_i \ne 0$ along that mode, $\|\mathbf{u}_k\|$ grows exponentially and the system diverges.
+
+### Classic Application: Solving the Fibonacci Sequence by Diagonalization
+
+A signature example from Prof. Gilbert Strang's MIT 18.06 lectures is using diagonalization to derive a closed-form formula for the **Fibonacci numbers**.
+
+The Fibonacci sequence is defined by the second-order scalar recurrence:
+
+$$
+F_{k+2} = F_{k+1} + F_k, \quad F_0 = 0, \ F_1 = 1
+$$
+
+Its first few terms are $0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, \dots$.
+
+#### Step 1: Build the State Vector and Companion Matrix
+
+Introduce a two-component state vector $\mathbf{u}_k = [F_{k+1}, F_k]^T$ to convert the second-order scalar recurrence into a first-order vector system:
+
+$$
+\begin{cases}
+F_{k+2} = F_{k+1} + F_k \\
+F_{k+1} = F_{k+1} + 0
+\end{cases}
+\implies
+\mathbf{u}_{k+1} = \begin{bmatrix} F_{k+2} \\ F_{k+1} \end{bmatrix} = \begin{bmatrix} 1 & 1 \\ 1 & 0 \end{bmatrix} \begin{bmatrix} F_{k+1} \\ F_k \end{bmatrix} = A \mathbf{u}_k
+$$
+
+Here the transition matrix is the companion matrix $A$ and the initial state is $\mathbf{u}_0$:
+
+$$
+A = \begin{bmatrix} 1 & 1 \\ 1 & 0 \end{bmatrix}, \quad \mathbf{u}_0 = \begin{bmatrix} F_1 \\ F_0 \end{bmatrix} = \begin{bmatrix} 1 \\ 0 \end{bmatrix}
+$$
+
+#### Step 2: Find the Eigenvalues and Eigenvectors
+
+Compute the characteristic equation of $A$:
+
+$$
+\det(A - \lambda I) = \det \begin{bmatrix} 1 - \lambda & 1 \\ 1 & -\lambda \end{bmatrix} = (1 - \lambda)(-\lambda) - 1 = \lambda^2 - \lambda - 1 = 0
+$$
+
+By the quadratic formula, the eigenvalues are:
+
+$$
+\lambda_1 = \frac{1 + \sqrt{5}}{2} \approx 1.618 \quad (\text{the golden ratio } \phi), \qquad \lambda_2 = \frac{1 - \sqrt{5}}{2} \approx -0.618
+$$
+
+Find the corresponding eigenvectors from $(A - \lambda_i I)\mathbf{x}_i = \mathbf{0}$:
+
+$$
+\begin{bmatrix} 1 - \lambda_i & 1 \\ 1 & -\lambda_i \end{bmatrix} \begin{bmatrix} x_{i,1} \\ x_{i,2} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_{i,1} - \lambda_i x_{i,2} = 0 \implies \mathbf{x}_i = \begin{bmatrix} \lambda_i \\ 1 \end{bmatrix}
+$$
+
+Explicitly:
+
+$$
+\mathbf{x}_1 = \begin{bmatrix} \frac{1+\sqrt{5}}{2} \\ 1 \end{bmatrix}, \qquad \mathbf{x}_2 = \begin{bmatrix} \frac{1-\sqrt{5}}{2} \\ 1 \end{bmatrix}
+$$
+
+Because the two eigenvalues are distinct, $A$ is guaranteed to be diagonalizable!
+
+#### Step 3: Expand $\mathbf{u}_0$ in the Eigenbasis and Extract $F_k$
+
+Write the initial state $\mathbf{u}_0 = [1, 0]^T$ as a combination of $\mathbf{x}_1$ and $\mathbf{x}_2$:
+
+$$
+c_1 \mathbf{x}_1 + c_2 \mathbf{x}_2 = c_1 \begin{bmatrix} \lambda_1 \\ 1 \end{bmatrix} + c_2 \begin{bmatrix} \lambda_2 \\ 1 \end{bmatrix} = \begin{bmatrix} 1 \\ 0 \end{bmatrix}
+$$
+
+The second row gives $c_1 + c_2 = 0 \implies c_2 = -c_1$. Substituting into the first row yields:
+
+$$
+c_1 (\lambda_1 - \lambda_2) = 1
+$$
+
+Since $\lambda_1 - \lambda_2 = \frac{1+\sqrt{5}}{2} - \frac{1-\sqrt{5}}{2} = \sqrt{5}$, we obtain:
+
+$$
+c_1 = \frac{1}{\sqrt{5}}, \qquad c_2 = -\frac{1}{\sqrt{5}}
+$$
+
+Hence the complete solution for $\mathbf{u}_k = A^k \mathbf{u}_0$ is:
+
+$$
+\mathbf{u}_k = \frac{1}{\sqrt{5}} \lambda_1^k \begin{bmatrix} \lambda_1 \\ 1 \end{bmatrix} - \frac{1}{\sqrt{5}} \lambda_2^k \begin{bmatrix} \lambda_2 \\ 1 \end{bmatrix}
+$$
+
+Reading off the second component of $\mathbf{u}_k$ (which is $F_k$) gives **Binet's formula**:
+
+$$
+F_k = \frac{1}{\sqrt{5}} \left( \lambda_1^k - \lambda_2^k \right) = \frac{1}{\sqrt{5}} \left[ \left( \frac{1+\sqrt{5}}{2} \right)^k - \left( \frac{1-\sqrt{5}}{2} \right)^k \right]
+$$
+
+#### Asymptotic Growth
+
+Because the second eigenvalue satisfies $|\lambda_2| = \left| \frac{1-\sqrt{5}}{2} \right| \approx 0.618 \lt 1$, the term $\lambda_2^k$ decays geometrically to zero as $k$ grows, leaving:
+
+$$
+F_k \approx \frac{1}{\sqrt{5}} \left( \frac{1+\sqrt{5}}{2} \right)^k
+$$
+
+And the ratio of consecutive Fibonacci numbers converges directly to the dominant eigenvalue:
+
+$$
+\lim_{k \to \infty} \frac{F_{k+1}}{F_k} = \lim_{k \to \infty} \frac{\frac{1}{\sqrt{5}}(\lambda_1^{k+1} - \lambda_2^{k+1})}{\frac{1}{\sqrt{5}}(\lambda_1^k - \lambda_2^k)} = \lambda_1 = \frac{1+\sqrt{5}}{2} \approx 1.6180339887\dots
+$$
+
+Linear algebra turns a mysterious integer recurrence into pure exponential growth along the dominant eigenvector!
+
+---
+
+## 4. Common Pitfalls & Conceptual Traps
+
+<PitfallAlert title="Common Pitfalls & Conceptual Traps">
+
+### Trap 1: Confusing Invertibility with Diagonalizability (Two Completely Independent Properties!)
+
+One of the most frequent mistakes is assuming that "invertible implies diagonalizable" or "singular implies non-diagonalizable." Keep this straight: **invertibility and diagonalizability have no implication in either direction!**
+
+- **Invertibility** is about the **eigenvalues**—whether $0$ is an eigenvalue ($\det(A) = \prod \lambda_i \ne 0$).
+- **Diagonalizability** is about the **eigenvectors**—whether there are enough linearly independent eigenvectors to span the space ($\sum \operatorname{GM}(\lambda_i) = n$).
+
+The four $2 \times 2$ matrices below cover all four possible combinations:
+
+| Combination | Canonical Example | Eigenvalues $\lambda$ | Multiplicities & Determinant | Verdict & Reason |
+| :--- | :--- | :--- | :--- | :--- |
+| **Invertible & Diagonalizable** | $I_2$ (the $2 \times 2$ identity) | $\lambda_1 = \lambda_2 = 1$ | $\det = 1 \ne 0$, $\operatorname{GM}(1) = \operatorname{AM}(1) = 2$ | Invertible (no zero eigenvalue); diagonalizable (full eigenbasis). |
+| **Invertible & NOT Diagonalizable** | Upper-triangular shear with $1$s on diagonal and $1$ at $(1,2)$ | $\lambda_1 = \lambda_2 = 1$ | $\det = 1 \ne 0$, $\operatorname{GM}(1) = 1 \lt \operatorname{AM}(1) = 2$ | Invertible ($\det = 1$); **not diagonalizable** (defective: only 1 eigenline). |
+| **Singular & Diagonalizable** | $\operatorname{diag}(1, 0)$ | $\lambda_1 = 1, \lambda_2 = 0$ | $\det = 0$, $\operatorname{GM}(1) = 1, \operatorname{GM}(0) = 1$ | **Singular** (zero eigenvalue); diagonalizable (2 distinct eigenvalues, full eigenbasis). |
+| **Singular & NOT Diagonalizable** | Nilpotent shift with $0$s on diagonal and $1$ at $(1,2)$ | $\lambda_1 = \lambda_2 = 0$ | $\det = 0$, $\operatorname{GM}(0) = 1 \lt \operatorname{AM}(0) = 2$ | Singular (zero eigenvalue); **not diagonalizable** (defective). |
+
+### Trap 2: Mistaking Distinct Eigenvalues for a Necessary Condition
+
+"Distinct eigenvalues $\implies$ diagonalizable" is only a **sufficient** condition, never a necessary one! The identity matrix $I_2$ is the cleanest counterexample: its eigenvalues are repeated ($\lambda_1 = \lambda_2 = 1$), yet it is already diagonal.
+
+### Trap 3: Forgetting the Underlying Scalar Field ($\mathbb{R}$ vs. $\mathbb{C}$)
+
+Whether a matrix is diagonalizable depends on whether complex numbers are allowed. Consider the $90^\circ$ counterclockwise rotation matrix:
+
+$$
+R = \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix}
+$$
+
+Its characteristic equation is $\lambda^2 + 1 = 0 \implies \lambda = \pm i$.
+- **Over $\mathbb{R}$**: There are no real eigenvalues and no real eigenvectors, so $R$ is **not diagonalizable** over $\mathbb{R}$.
+- **Over $\mathbb{C}$**: There are two distinct complex eigenvalues $\lambda_1 = i$ and $\lambda_2 = -i$, with complex eigenvectors $\mathbf{x}_1 = [i, 1]^T$ and $\mathbf{x}_2 = [-i, 1]^T$. Thus $R$ is **completely diagonalizable** over $\mathbb{C}$!
+
+### Trap 4: Assuming $S$ and $\Lambda$ Are Unique
+
+The factorization $A = S \Lambda S^{-1}$ is **not unique**:
+1. **Scaling eigenvectors**: Any nonzero scalar multiple of an eigenvector is still an eigenvector. Scaling column $j$ of $S$ by $\alpha \ne 0$ divides row $j$ of $S^{-1}$ by $\alpha$, leaving $S \Lambda S^{-1}$ unchanged.
+2. **Reordering columns**: Permuting the columns of $S$ simply permutes the corresponding eigenvalues along the diagonal of $\Lambda$, and $A = S \Lambda S^{-1}$ still holds.
+
+</PitfallAlert>
+
+---
+
+## 5. Interactive Lab: The Diagonalization Bypass & Dynamical Trajectories
+
+<InteractiveCanvasSlot
+  id="l22-diagonalization-powers-sandbox"
+  title="Interactive Lab: Diagonalization Bypass & Dynamical System Trajectories"
+  description="Adjust matrix parameters to observe eigenvector angles, eigenvalue magnitudes, and spiral convergence or divergence of the difference equation u_{k+1} = A u_k"
+/>
+
+---
+
+## 6. Key Takeaways
+
+<KeyTakeaways title="Key Takeaways" items={[
+  "Core diagonalization identities: If $A \\in \\mathbb{C}^{n \\times n}$ has $n$ linearly independent eigenvectors forming the columns of $S$, then $AS = S\\Lambda$, which gives $A = S\\Lambda S^{-1}$ and $\\Lambda = S^{-1}AS$.",
+  "Fast matrix powers: Diagonalization decouples repeated matrix multiplication into scalar powers on the diagonal, $A^k = S\\Lambda^k S^{-1} = S\\operatorname{diag}(\\lambda_1^k, \\dots, \\lambda_n^k)S^{-1}$, reducing complexity from $O(k n^3)$ to $O(n^3 + n)$.",
+  "Sufficient vs. necessary & sufficient: Having $n$ distinct eigenvalues is sufficient for diagonalizability, not necessary. The exact criterion is $\\operatorname{GM}(\\lambda_i) = \\operatorname{AM}(\\lambda_i)$ for every eigenvalue $\\lambda_i$ (no missing eigenvectors).",
+  "Invertibility and diagonalizability are independent: Invertibility depends on whether any $\\lambda_i = 0$ ($\\det(A) = \\prod \\lambda_i \\ne 0$), while diagonalizability depends on whether the eigenvectors span $\\mathbb{C}^n$. Singular matrices can be diagonalizable, and invertible matrices can be defective.",
+  "Modal expansion of discrete dynamics: The solution to $\\mathbf{u}_{k+1} = A \\mathbf{u}_k$ is $\\mathbf{u}_k = \\sum_{i=1}^n c_i \\lambda_i^k \\mathbf{x}_i$; asymptotic stability for all initial conditions is governed by the spectral radius $\\rho(A) = \\max |\\lambda_i| \\lt 1$.",
+  "Fibonacci via diagonalization: Converting a second-order scalar recurrence into a first-order companion matrix system reveals that the dominant eigenvalue $\\lambda_1 = \\phi \\approx 1.618$ controls both the exponential growth rate and the limiting ratio of consecutive terms."
+]} />
+
+---
+
+## 7. Intuition Problem Set
+
+<ProblemSet title="Intuition Problem Set" description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs.">
+
+<ExerciseCard id="l22-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="Computing a High Power A¹⁰ of a Symmetric Matrix">
+
+Given the matrix
+
+$$
+A = \begin{bmatrix} 1 & 2 \\ 2 & 1 \end{bmatrix}
+$$
+
+1. Find the eigenvalues and unit eigenvectors of $A$;
+2. Write down the eigenvector matrix $S$, diagonal matrix $\Lambda$, and inverse $S^{-1}$;
+3. Use diagonalization to compute $A^{10}$ exactly.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Solve the characteristic equation $\\det(A - \\lambda I) = (1 - \\lambda)^2 - 4 = 0$ for the two eigenvalues.",
+  "Solve $(A - \\lambda I)\\mathbf{x} = \\mathbf{0}$ for each eigenvector, and notice that the eigenvectors of a symmetric matrix are orthogonal.",
+  "Apply $A^{10} = S \\Lambda^{10} S^{-1}$ using $3^{10}$ and $(-1)^{10} = 1$ on the diagonal."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+The matrix $A$ is real symmetric and every row sums to $3$, so $[1, 1]^T$ is immediately an eigenvector with eigenvalue $\lambda_1 = 3$. Since $\operatorname{tr}(A) = 1 + 1 = 2$, the second eigenvalue must be $2 - 3 = -1$, with orthogonal eigenvector $[-1, 1]^T$. In this orthogonal eigenbasis, raising $A$ to the $10$-th power simply stretches along $[1, 1]^T$ by $3^{10} = 59049$ and leaves the $[-1, 1]^T$ direction unchanged since $(-1)^{10} = 1$.
+</SolutionIntuition>
+<SolutionRigorous>
+**Step 1: Eigenvalues and eigenvectors**
+The characteristic equation is:
+
+$$
+\det(A - \lambda I) = \det \begin{bmatrix} 1 - \lambda & 2 \\ 2 & 1 - \lambda \end{bmatrix} = (1 - \lambda)^2 - 4 = \lambda^2 - 2\lambda - 3 = (\lambda - 3)(\lambda + 1) = 0
+$$
+
+So $\lambda_1 = 3$ and $\lambda_2 = -1$.
+- For $\lambda_1 = 3$:
+
+$$
+(A - 3I)\mathbf{x}_1 = \begin{bmatrix} -2 & 2 \\ 2 & -2 \end{bmatrix}\mathbf{x}_1 = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+$$
+
+- For $\lambda_2 = -1$:
+
+$$
+(A + I)\mathbf{x}_2 = \begin{bmatrix} 2 & 2 \\ 2 & 2 \end{bmatrix}\mathbf{x}_2 = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} -1 \\ 1 \end{bmatrix}
+$$
+
+(Normalizing gives unit eigenvectors $\frac{1}{\sqrt{2}}[1, 1]^T$ and $\frac{1}{\sqrt{2}}[-1, 1]^T$; scaling does not affect $S\Lambda^{10}S^{-1}$.)
+
+**Step 2: Construct $S$, $\Lambda$, and $S^{-1}$**
+
+$$
+S = \begin{bmatrix} 1 & -1 \\ 1 & 1 \end{bmatrix}, \quad \Lambda = \begin{bmatrix} 3 & 0 \\ 0 & -1 \end{bmatrix}
+$$
+
+Since $\det(S) = 1 - (-1) = 2$, its inverse is:
+
+$$
+S^{-1} = \frac{1}{2} \begin{bmatrix} 1 & 1 \\ -1 & 1 \end{bmatrix}
+$$
+
+**Step 3: Compute $A^{10}$**
+
+$$
+\Lambda^{10} = \begin{bmatrix} 3^{10} & 0 \\ 0 & (-1)^{10} \end{bmatrix} = \begin{bmatrix} 59049 & 0 \\ 0 & 1 \end{bmatrix}
+$$
+
+Substituting into $A^{10} = S \Lambda^{10} S^{-1}$:
+
+$$
+\begin{aligned}
+A^{10} = S \Lambda^{10} S^{-1} &= \begin{bmatrix} 1 & -1 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} 59049 & 0 \\ 0 & 1 \end{bmatrix} \frac{1}{2} \begin{bmatrix} 1 & 1 \\ -1 & 1 \end{bmatrix} \\
+&= \frac{1}{2} \begin{bmatrix} 59049 & -1 \\ 59049 & 1 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ -1 & 1 \end{bmatrix} \\
+&= \frac{1}{2} \begin{bmatrix} 59049 + 1 & 59049 - 1 \\ 59049 - 1 & 59049 + 1 \end{bmatrix} = \begin{bmatrix} 29525 & 29524 \\ 29524 & 29525 \end{bmatrix}
+\end{aligned}
+$$
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l22-ex2" tier="L2" tierLabel="L2 · Conceptual True/False" title="Conceptual Check: Does Invertibility Imply Diagonalizability?">
+
+True or False: **"If a square matrix $A$ is invertible, then $A$ must be diagonalizable."**
+
+<TrueFalseInteractive
+  id="l22-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Invertibility only requires all eigenvalues to be nonzero (det != 0), whereas diagonalizability requires GM = AM for every eigenvalue (no missing eigenvectors). Counterexample: the 2x2 Jordan block [1, 1; 0, 1] is invertible (det = 1), yet has GM(1) = 1 < AM(1) = 2 and is not diagonalizable."
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Check the determinant and geometric multiplicity of the $2 \\times 2$ shear / Jordan block matrix with $1$s on the diagonal and $1$ in the $(1,2)$ entry."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Invertibility asks whether the nullspace is trivial (no $\lambda = 0$); diagonalizability asks whether the eigenvectors span the whole space. A shear transformation is completely invertible—you can unshear it—yet it leaves only one line of directions invariant.
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **False**.
+Counterexample: consider the shear matrix
+
+$$
+A = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}
+$$
+
+1. $\det(A) = 1 \cdot 1 - 0 \cdot 1 = 1 \ne 0$, so $A$ is invertible with inverse
+
+$$
+A^{-1} = \begin{bmatrix} 1 & -1 \\ 0 & 1 \end{bmatrix}
+$$
+
+2. Its only eigenvalue is $\lambda = 1$, with algebraic multiplicity $\operatorname{AM}(1) = 2$.
+3. Computing the eigenspace:
+
+$$
+A - I = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} \implies \operatorname{GM}(1) = \dim \operatorname{Null}(A - I) = 2 - 1 = 1 \lt \operatorname{AM}(1)
+$$
+
+4. Since $A$ has only one linearly independent eigenvector, $A$ is not diagonalizable.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l22-ex3" tier="L2" tierLabel="L2 · Conceptual True/False" title="Conceptual Check: Do Repeated Eigenvalues Prevent Diagonalization?">
+
+True or False: **"If a square matrix $A$ has a repeated eigenvalue (algebraic multiplicity greater than 1), then $A$ cannot be diagonalizable."**
+
+<TrueFalseInteractive
+  id="l22-tf2"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! A matrix with repeated eigenvalues is still diagonalizable as long as GM = AM for every eigenvalue. The simplest counterexample is the identity matrix I_n: all n eigenvalues equal 1, yet it is already diagonal."
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Consider the $n \\times n$ identity matrix $I_n$ or any scalar multiple $c I_n$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+A repeated eigenvalue simply signals that we must check the geometric multiplicity; diagonalizability fails only when eigenvectors are missing. The identity matrix $I_n$ has $\lambda = 1$ repeated $n$ times, yet every vector in $\mathbb{R}^n$ is an eigenvector and $I_n$ is already diagonal.
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **False**.
+Counterexample: consider the $n \times n$ identity matrix $I_n$ ($n \ge 2$).
+Its characteristic polynomial is $p(\lambda) = (1 - \lambda)^n = 0$, so $\lambda = 1$ has algebraic multiplicity $\operatorname{AM}(1) = n \gt 1$.
+Computing its geometric multiplicity:
+
+$$
+\operatorname{GM}(1) = \dim \operatorname{Null}(I_n - 1 \cdot I_n) = \dim \operatorname{Null}(0) = n
+$$
+
+Thus $\operatorname{GM}(1) = \operatorname{AM}(1) = n$. Any basis of $\mathbb{R}^n$ is an eigenbasis, and $I_n$ is trivially diagonalizable.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l22-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="AM vs. GM Analysis: Rank-One Perturbations and Matrix Powers">
+
+Let $\mathbf{u}, \mathbf{v} \in \mathbb{R}^n$ be nonzero column vectors satisfying $\mathbf{v}^T \mathbf{u} \ne 0$. Consider the shifted rank-one matrix:
+
+$$
+A = \mathbf{u}\mathbf{v}^T + c I_n \quad (c \in \mathbb{R})
+$$
+
+1. Prove that $A$ has eigenvalues $\lambda_1 = c + \mathbf{v}^T \mathbf{u}$ and $\lambda_2 = c$;
+2. Find the algebraic and geometric multiplicities of $\lambda_2 = c$, and determine whether $A$ is diagonalizable;
+3. If a general matrix $M$ is diagonalizable with eigenpairs $(\mu_i, \mathbf{x}_i)$, prove that $M^k$ has eigenpairs $(\mu_i^k, \mathbf{x}_i)$—that is, $M^k$ shares the exact same eigenvectors as $M$.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Apply $A$ to $\\mathbf{u}$ and use associativity: $(\\mathbf{u}\\mathbf{v}^T)\\mathbf{u} = \\mathbf{u}(\\mathbf{v}^T\\mathbf{u})$.",
+  "For $\\lambda_2 = c$, inspect $\\operatorname{Null}(A - cI_n) = \\operatorname{Null}(\\mathbf{u}\\mathbf{v}^T)$ and use the Rank-Nullity Theorem.",
+  "Use induction on $k$, multiplying $M\\mathbf{x}_i = \\mu_i \\mathbf{x}_i$ repeatedly on the left by $M$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+The rank-one matrix $\mathbf{u}\mathbf{v}^T$ has a single nonzero eigenvalue $\mathbf{v}^T \mathbf{u}$ (along $\mathbf{u}$) and an $(n-1)$-dimensional nullspace consisting of the hyperplane orthogonal to $\mathbf{v}$. Adding $c I_n$ simply shifts every eigenvalue by $c$ without changing a single eigenvector! Hence $\operatorname{GM}(c) = n - 1$, matching $\operatorname{AM}(c) = n - 1$, so $A$ is always diagonalizable.
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1: Proving the eigenvalues**
+Apply $A$ to $\mathbf{u}$:
+
+$$
+A \mathbf{u} = (\mathbf{u}\mathbf{v}^T + c I_n)\mathbf{u} = \mathbf{u}(\mathbf{v}^T\mathbf{u}) + c\mathbf{u} = (c + \mathbf{v}^T\mathbf{u})\mathbf{u}
+$$
+
+Since $\mathbf{u} \ne \mathbf{0}$, $\mathbf{u}$ is an eigenvector of $A$ with eigenvalue $\lambda_1 = c + \mathbf{v}^T \mathbf{u}$.
+For any nonzero vector $\mathbf{w}$ satisfying $\mathbf{v}^T \mathbf{w} = 0$ (i.e., $\mathbf{w} \in \operatorname{Null}(\mathbf{v}^T)$):
+
+$$
+A \mathbf{w} = (\mathbf{u}\mathbf{v}^T + c I_n)\mathbf{w} = \mathbf{u}(\mathbf{v}^T\mathbf{w}) + c\mathbf{w} = \mathbf{0} + c\mathbf{w} = c\mathbf{w}
+$$
+
+Thus $\lambda_2 = c$ is also an eigenvalue of $A$, with eigenvectors spanning the hyperplane $\mathbf{v}^\perp$.
+
+**Part 2: Multiplicities and diagonalizability**
+Compute the geometric multiplicity of $\lambda_2 = c$:
+
+$$
+\operatorname{GM}(c) = \dim \operatorname{Null}(A - c I_n) = \dim \operatorname{Null}(\mathbf{u}\mathbf{v}^T)
+$$
+
+Because $\mathbf{u} \ne \mathbf{0}$ and $\mathbf{v} \ne \mathbf{0}$, the column space of $\mathbf{u}\mathbf{v}^T$ is spanned by $\mathbf{u}$, so $\operatorname{rank}(\mathbf{u}\mathbf{v}^T) = 1$. By the Rank-Nullity Theorem:
+
+$$
+\operatorname{GM}(c) = n - \operatorname{rank}(\mathbf{u}\mathbf{v}^T) = n - 1
+$$
+
+Since $\mathbf{v}^T \mathbf{u} \ne 0$, we have $\lambda_1 = c + \mathbf{v}^T \mathbf{u} \ne c$, so $\lambda_1$ contributes $\operatorname{AM}(\lambda_1) \ge 1$. Because all algebraic multiplicities sum to $n$:
+
+$$
+\operatorname{AM}(\lambda_1) + \operatorname{AM}(c) = n \implies \operatorname{AM}(c) \le n - 1
+$$
+
+Combining this with $\operatorname{AM}(c) \ge \operatorname{GM}(c) = n - 1$ forces:
+
+$$
+\operatorname{AM}(c) = \operatorname{GM}(c) = n - 1, \qquad \operatorname{AM}(\lambda_1) = \operatorname{GM}(\lambda_1) = 1
+$$
+
+Every eigenvalue has $\operatorname{GM} = \operatorname{AM}$, so $A$ is **always diagonalizable**.
+
+**Part 3: Eigenpairs of $M^k$**
+Given $M\mathbf{x}_i = \mu_i \mathbf{x}_i$, we prove $M^k \mathbf{x}_i = \mu_i^k \mathbf{x}_i$ by induction on $k \ge 1$.
+The base case $k = 1$ holds by assumption. Assuming $M^{k-1}\mathbf{x}_i = \mu_i^{k-1}\mathbf{x}_i$, multiply on the left by $M$:
+
+$$
+M^k \mathbf{x}_i = M (M^{k-1}\mathbf{x}_i) = M (\mu_i^{k-1}\mathbf{x}_i) = \mu_i^{k-1} (M \mathbf{x}_i) = \mu_i^{k-1} (\mu_i \mathbf{x}_i) = \mu_i^k \mathbf{x}_i
+$$
+
+Hence $\mathbf{x}_i$ remains an eigenvector of $M^k$ with eigenvalue $\mu_i^k$.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l22-ex5" tier="L4" tierLabel="L4 · MIT 18.06 Exam Synthesis" title="Companion Matrix Diagonalization and the Schur Stability Triangle">
+
+Consider the general second-order linear recurrence with constant real coefficients:
+
+$$
+g_{k+2} = a g_{k+1} + b g_k \quad (a, b \in \mathbb{R})
+$$
+
+1. Introduce the state vector $\mathbf{u}_k = [g_{k+1}, g_k]^T$ and write down the $2 \times 2$ companion matrix $C$ such that $\mathbf{u}_{k+1} = C \mathbf{u}_k$;
+2. Find the characteristic polynomial of $C$, and give the necessary and sufficient condition for $C$ to have two distinct real eigenvalues;
+3. For $a = 1$ and $b = -\frac{1}{4}$, find the eigenvalues and geometric multiplicity of $C$, and determine whether $C$ is diagonalizable;
+4. Prove that the system is asymptotically stable (meaning $\lim_{k \to \infty} g_k = 0$ for all initial values $g_0, g_1$) if and only if $(a, b)$ lies inside the open triangle:
+   $$
+   |b| \lt 1, \quad 1 - a - b \gt 0, \quad 1 + a - b \gt 0
+   $$
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "The first row of the companion matrix holds the recurrence coefficients $(a, b)$, and the second row expresses $g_{k+1} = 1 \\cdot g_{k+1} + 0 \\cdot g_k$.",
+  "The discriminant $\\Delta = a^2 + 4b$ determines whether the roots of $\\lambda^2 - a\\lambda - b = 0$ are real and distinct.",
+  "Asymptotic stability is equivalent to $\\rho(C) \\lt 1$ (both roots inside the open unit disk). Use Vieta's formulas $\\lambda_1 + \\lambda_2 = a$ and $\\lambda_1 \\lambda_2 = -b$ to analyze both complex-conjugate and real roots."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Every second-order recurrence is a $2 \times 2$ companion matrix system whose long-term behavior is governed by the magnitudes of its two eigenvalues. At the discriminant boundary $\Delta = 0$ (such as $a = 1, b = -1/4$), the two eigenvalues collide at $1/2$ and the companion matrix becomes a defective Jordan block, producing secular terms like $k (1/2)^k$. Stability requires both eigenvalues to sit inside the open unit disk in the complex plane, which maps to the famous open stability triangle in the $(a, b)$ plane.
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1: Companion matrix**
+From the recurrence:
+
+$$
+\begin{cases}
+g_{k+2} = a g_{k+1} + b g_k \\
+g_{k+1} = 1 g_{k+1} + 0 g_k
+\end{cases}
+\implies
+\mathbf{u}_{k+1} = \begin{bmatrix} a & b \\ 1 & 0 \end{bmatrix} \mathbf{u}_k
+$$
+
+So the companion matrix is:
+
+$$
+C = \begin{bmatrix} a & b \\ 1 & 0 \end{bmatrix}
+$$
+
+**Part 2: Characteristic polynomial and distinct real roots**
+The characteristic equation is:
+
+$$
+p(\lambda) = \det(C - \lambda I) = \det \begin{bmatrix} a - \lambda & b \\ 1 & -\lambda \end{bmatrix} = \lambda^2 - a\lambda - b = 0
+$$
+
+Its discriminant is $\Delta = a^2 + 4b$. Thus $C$ has two distinct real eigenvalues if and only if:
+
+$$
+a^2 + 4b \gt 0
+$$
+
+**Part 3: The case $a = 1, b = -\frac{1}{4}$**
+Substituting these values gives:
+
+$$
+\lambda^2 - \lambda + \frac{1}{4} = \left(\lambda - \frac{1}{2}\right)^2 = 0
+$$
+
+The sole eigenvalue is $\lambda_1 = \lambda_2 = \frac{1}{2}$ with algebraic multiplicity $\operatorname{AM}\left(\frac{1}{2}\right) = 2$.
+Computing $C - \frac{1}{2}I_2$:
+
+$$
+C - \frac{1}{2}I_2 = \begin{bmatrix} 1 - \frac{1}{2} & -\frac{1}{4} \\ 1 & -\frac{1}{2} \end{bmatrix} = \begin{bmatrix} \frac{1}{2} & -\frac{1}{4} \\ 1 & -\frac{1}{2} \end{bmatrix}
+$$
+
+The second row is twice the first row, so $\operatorname{rank}\left(C - \frac{1}{2}I_2\right) = 1$, and:
+
+$$
+\operatorname{GM}\left(\frac{1}{2}\right) = 2 - 1 = 1 \lt \operatorname{AM}\left(\frac{1}{2}\right)
+$$
+
+Because $\operatorname{GM} \lt \operatorname{AM}$, $C$ is **not diagonalizable** (its only eigenvectors are multiples of $[1/2, 1]^T$).
+
+**Part 4: Derivation of the open stability triangle**
+Asymptotic stability for all initial states holds if and only if $\rho(C) \lt 1$, i.e., $|\lambda_1| \lt 1$ and $|\lambda_2| \lt 1$.
+By Vieta's formulas for $p(\lambda) = \lambda^2 - a\lambda - b$:
+
+$$
+\lambda_1 + \lambda_2 = a, \qquad \lambda_1 \lambda_2 = -b
+$$
+
+Consider two cases:
+1. **Complex-conjugate roots ($\Delta = a^2 + 4b \lt 0$)**:
+   The two roots have equal modulus, with $|\lambda_1|^2 = |\lambda_2|^2 = \lambda_1 \lambda_2 = -b$.
+   Thus $|\lambda_i| \lt 1 \iff 0 \le -b \lt 1 \iff -1 \lt b \le 0$.
+   In this region, $a^2 \lt -4b \le 4 \implies |a| \lt 2$, which automatically implies $1 - a - b \gt 0$ and $1 + a - b \gt 0$ (since $p(\lambda) \gt 0$ for all real $\lambda$ when $\Delta \lt 0$).
+2. **Real roots ($\Delta = a^2 + 4b \ge 0$)**:
+   Both real roots lie strictly in $(-1, 1)$ if and only if the upward-opening parabola $p(\lambda) = \lambda^2 - a\lambda - b$ has:
+   - Vertex inside $(-1, 1)$: $-1 \lt \frac{a}{2} \lt 1 \implies |a| \lt 2$;
+   - Positive values at both endpoints $\lambda = \pm 1$:
+     $$
+     p(1) = 1 - a - b \gt 0, \qquad p(-1) = 1 + a - b \gt 0
+     $$
+   - Product in $(-1, 1)$: $\lambda_1 \lambda_2 = -b \in (-1, 1) \implies |b| \lt 1$.
+
+Notice that adding $1 - a - b \gt 0$ and $1 + a - b \gt 0$ already forces $2 - 2b \gt 0 \implies b \lt 1$, and $|a| \lt 1 - b$ follows from the same two inequalities when $b \gt -1$. Combining both cases, the necessary and sufficient conditions are:
+
+$$
+\begin{cases}
+b \gt -1 \\
+1 - a - b \gt 0 \\
+1 + a - b \gt 0
+\end{cases}
+$$
+
+Together with $b \lt 1$ (implied by adding the last two inequalities), this defines $|b| \lt 1$, $1 - a - b \gt 0$, and $1 + a - b \gt 0$: the open triangle in the $(a, b)$-plane bounded by $b = -1$, $b = 1 - a$, and $b = 1 + a$, with vertices $(0, 1)$, $(-2, -1)$, and $(2, -1)$.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>
+
+---
+
+## 8. Frontier AI Reading: Spectral Radius, Exploding Gradients, and Power-Iteration Spectral Normalization
+
+<FrontierAIReading
+  id="AI-09"
+  title="Spectral Radius |λ_max|, Exploding/Vanishing Gradient Boundaries, and Power-Iteration Spectral Normalization in Deep Sequence Models"
+  paperRef="Pascanu et al. (ICML 2013) On the difficulty of training RNNs · Miyato et al. (ICLR 2018) Spectral Normalization"
+>
+
+### The Linear Algebra Bridge: Unrolling Through Time as Matrix Powers
+
+In a Recurrent Neural Network (RNN) or a deep residual architecture with repeated state transitions, the hidden state evolves across time steps via:
+
+$$
+\mathbf{h}_t = \sigma(W_{hh} \mathbf{h}_{t-1} + W_{xh} \mathbf{x}_t)
+$$
+
+When we train with Backpropagation Through Time (BPTT) and compute the gradient of the loss $\mathcal{L}$ with respect to the initial hidden state $\mathbf{h}_0$, the chain rule produces a product of Jacobians:
+
+$$
+\frac{\partial \mathcal{L}}{\partial \mathbf{h}_0} = \frac{\partial \mathcal{L}}{\partial \mathbf{h}_T} \prod_{t=1}^T \frac{\partial \mathbf{h}_t}{\partial \mathbf{h}_{t-1}} = \frac{\partial \mathcal{L}}{\partial \mathbf{h}_T} \prod_{t=1}^T \left( W_{hh}^T D_t \right)
+$$
+
+where $D_t = \operatorname{diag}\left(\sigma'(W_{hh} \mathbf{h}_{t-1} + W_{xh} \mathbf{x}_t)\right)$ is the diagonal Jacobian of the activation function.
+
+In an unsaturated regime where $D_t \approx I$, long-range gradient propagation reduces directly to a **high power of the transposed weight matrix**:
+
+$$
+\prod_{t=1}^T W_{hh}^T \approx (W_{hh}^T)^T
+$$
+
+Applying the diagonalization $W_{hh}^T = S \Lambda S^{-1}$ from this lecture:
+
+$$
+(W_{hh}^T)^T \mathbf{g} = \sum_{i=1}^n c_i \lambda_i^T \mathbf{x}_i
+$$
+
+This modal expansion explains the central dilemma of training deep sequence models:
+1. **Exploding Gradients**:
+   If the spectral radius $\rho(W_{hh}) = \max_i |\lambda_i| \gt 1$, any gradient component along a dominant eigenvector grows exponentially like $\lambda_{\max}^T$, overflowing floating-point precision (`NaN`) and destabilizing training.
+2. **Vanishing Gradients**:
+   If $\rho(W_{hh}) \lt 1$, every mode decays like $\lambda_i^T \to 0$. By $T = 50$ or $100$ steps, the gradient shrinks geometrically below machine precision, and the model loses the ability to learn long-range dependencies.
+
+### Spectral Normalization and Power Iteration
+
+To enforce $1$-Lipschitz continuity throughout deep networks (especially GAN discriminators) and keep gradient magnitudes controlled, Miyato et al. introduced **Spectral Normalization**, which divides each weight matrix by its spectral norm (its largest singular value $\sigma_{\max}(W)$):
+
+$$
+W_{\text{SN}} = \frac{W}{\sigma_{\max}(W)}
+$$
+
+Running a full Singular Value Decomposition (SVD) on every backpropagation step costs $O(n^3)$ per layer—far too expensive in practice.
+
+The remedy is a direct cousin of matrix powers from this lecture: **Power Iteration**. Consider the symmetric positive semidefinite matrix $A = W^T W$, whose largest eigenvalue is $\sigma_{\max}^2(W)$. Starting from a random unit vector $\mathbf{v}_0$:
+
+$$
+\mathbf{u}_{k+1} = \frac{W \mathbf{v}_k}{\|W \mathbf{v}_k\|_2}, \qquad \mathbf{v}_{k+1} = \frac{W^T \mathbf{u}_{k+1}}{\|W^T \mathbf{u}_{k+1}\|_2}
+$$
+
+Why does power iteration converge so rapidly? Expanding $\mathbf{v}_0$ in the orthonormal eigenbasis of $W^T W$:
+
+$$
+(W^T W)^k \mathbf{v}_0 = c_1 \sigma_1^{2k} \mathbf{q}_1 + c_2 \sigma_2^{2k} \mathbf{q}_2 + \dots = c_1 \sigma_1^{2k} \left[ \mathbf{q}_1 + \frac{c_2}{c_1} \left( \frac{\sigma_2}{\sigma_1} \right)^{2k} \mathbf{q}_2 + \dots \right]
+$$
+
+Subdominant modes decay exponentially at rate $\left( \frac{\sigma_2}{\sigma_1} \right)^{2k}$! Because each SGD step changes $W$ only slightly, the singular vectors from the previous step serve as an accurate warm start, so **a single power-iteration step per training update** tracks $\sigma_{\max}(W)$ accurately—cutting the cost from $O(n^3)$ to $O(n^2)$!
+
+<CollapsibleCode language="python" title="PyTorch Lab: Spectral-Radius Gradient Flow & Power-Iteration Spectral Normalization">
+```python
+import torch
+import torch.nn as nn
+import matplotlib.pyplot as plt
+
+torch.manual_seed(42)
+
+def simulate_gradient_flow(dim=64, seq_len=50, target_rho=1.15):
+    """
+    Simulate gradient norm evolution across BPTT steps by scaling the spectral radius.
+    """
+    # Generate a random square weight matrix
+    W_raw = torch.randn(dim, dim)
+    
+    # Compute eigenvalues and current spectral radius
+    eigenvalues = torch.linalg.eigvals(W_raw)
+    current_rho = torch.max(torch.abs(eigenvalues)).item()
+    
+    # Rescale W to hit the target spectral radius
+    W = W_raw * (target_rho / current_rho)
+    
+    # Verify the scaled spectral radius
+    scaled_rho = torch.max(torch.abs(torch.linalg.eigvals(W))).item()
+    print(f"Target rho: {target_rho:.2f} | Actual rho: {scaled_rho:.4f}")
+    
+    # Initial gradient vector (simulating upstream loss gradient)
+    grad = torch.randn(dim, 1)
+    grad_norm = [torch.norm(grad).item()]
+    
+    # Multiply repeatedly by W^T across time steps
+    W_t = W.t()
+    for t in range(seq_len):
+        grad = torch.matmul(W_t, grad)
+        grad_norm.append(torch.norm(grad).item())
+        
+    return grad_norm
+
+# Controlled experiment: rho > 1 (exploding) vs rho < 1 (vanishing)
+seq_steps = 40
+norms_explode = simulate_gradient_flow(dim=32, seq_len=seq_steps, target_rho=1.12)
+norms_vanish  = simulate_gradient_flow(dim=32, seq_len=seq_steps, target_rho=0.88)
+
+print("\n--- Gradient Norm Evolution ---")
+print(f"Exploding (rho=1.12): start={norms_explode[0]:.2f} -> end={norms_explode[-1]:.2e}")
+print(f"Vanishing (rho=0.88): start={norms_vanish[0]:.2f} -> end={norms_vanish[-1]:.2e}")
+
+class PowerIterationSpectralNorm(nn.Module):
+    """
+    Minimal power-iteration spectral normalization (Miyato et al.)
+    """
+    def __init__(self, weight: torch.Tensor, n_power_iterations=1):
+        super().__init__()
+        self.weight = weight
+        out_features, in_features = weight.shape
+        # Initialize left and right singular vector buffers
+        self.register_buffer('u', nn.functional.normalize(torch.randn(out_features), dim=0))
+        self.register_buffer('v', nn.functional.normalize(torch.randn(in_features), dim=0))
+        self.n_power_iterations = n_power_iterations
+
+    def forward(self):
+        u = self.u
+        v = self.v
+        W = self.weight
+
+        # Power iteration updates
+        with torch.no_grad():
+            for _ in range(self.n_power_iterations):
+                # v = normalize(W^T u)
+                v = nn.functional.normalize(torch.mv(W.t(), u), dim=0, out=v)
+                # u = normalize(W v)
+                u = nn.functional.normalize(torch.mv(W, v), dim=0, out=u)
+            
+            # Estimate largest singular value: sigma = u^T W v
+            sigma = torch.dot(u, torch.mv(W, v))
+            
+        # Normalize weight matrix by estimated spectral norm
+        return W / sigma, sigma
+
+# Compare power-iteration estimate against exact SVD
+test_W = torch.randn(64, 64)
+true_sigma_max = torch.linalg.svdvals(test_W)[0].item()
+
+sn_layer = PowerIterationSpectralNorm(test_W, n_power_iterations=1)
+_, estimated_sigma_1 = sn_layer()
+sn_layer.n_power_iterations = 5
+_, estimated_sigma_5 = sn_layer()
+
+print("\n--- Spectral Norm Estimation Accuracy ---")
+print(f"Exact largest singular value (SVD): {true_sigma_max:.5f}")
+print(f"1-step power iteration estimate:    {estimated_sigma_1.item():.5f} (rel error: {abs(estimated_sigma_1.item()-true_sigma_max)/true_sigma_max:.2%})")
+print(f"5-step power iteration estimate:    {estimated_sigma_5.item():.5f} (rel error: {abs(estimated_sigma_5.item()-true_sigma_max)/true_sigma_max:.4%})")
+```
+</CollapsibleCode>
+
+</FrontierAIReading>

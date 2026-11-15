@@ -1,0 +1,800 @@
+---
+title: "Lecture 18: Properties of Determinants"
+ocwId: "L18"
+videoEpisode: "P18"
+textbookRef: "§5.1"
+---
+
+# Lecture 18: Properties of Determinants
+
+In the previous two chapters, we worked with general rectangular matrices $A \in \mathbb{R}^{m \times n}$, exploring the four fundamental subspaces, projection matrices, and least squares. Starting with this lecture, we enter one of the most elegant core areas of linear algebra—**determinants and eigenvalues of square matrices**.
+
+For an $n \times n$ square matrix $A$, the determinant is a map $\det: \mathbb{R}^{n \times n} \to \mathbb{R}$ (often written $\det(A)$ or $|A|$) that compresses all $n^2$ entries of the matrix into a single scalar number. It fulfills three irreplaceable mathematical and geometric roles:
+1. **Invertibility Criterion**: $\det(A) \ne 0 \iff A$ is invertible (nonsingular). This is the sharpest scalar indicator for testing whether the linear system $A\mathbf{x} = \mathbf{b}$ has a unique solution.
+2. **Geometric Volume and Orientation**: $|\det(A)|$ measures the $n$-dimensional hypervolume of the parallelepiped spanned by the rows (or columns) of $A$, while its sign $\operatorname{sgn}(\det(A))$ tracks whether the orientation of space is preserved or reversed.
+3. **Key to Eigenvalues**: In upcoming chapters, the universal algebraic route to solving the eigenvalue problem $A\mathbf{x} = \lambda \mathbf{x}$ is through the characteristic polynomial equation $\det(A - \lambda I) = 0$.
+
+Traditional linear algebra textbooks often open with a massive $n!$-term alternating sum or a tedious recursive cofactor expansion. In MIT 18.06, however, we adopt the modern axiomatic viewpoint pioneered by Weierstrass: **just three remarkably natural and concise axioms are enough to uniquely determine the determinant function!**
+
+---
+
+## Core Axioms: The Three Cornerstones Defining the Determinant
+
+Let $M_{n}(\mathbb{R})$ denote the space of $n \times n$ square matrices over the real numbers. We view a matrix $A$ as a vertical stack of $n$ row vectors:
+
+$$
+A = \begin{pmatrix} \mathbf{r}_1 \\ \mathbf{r}_2 \\ \vdots \\ \mathbf{r}_n \end{pmatrix}, \quad \mathbf{r}_i \in \mathbb{R}^{1 \times n}
+$$
+
+<DefinitionCard title="The Three Defining Axioms of the Determinant">
+
+A map $\det: M_{n}(\mathbb{R}) \to \mathbb{R}$ is called the **determinant** if, for all square matrices, it satisfies the following three axioms:
+
+1. **Normalization of the Identity Matrix**:
+   The determinant of the identity matrix is always 1:
+
+   $$
+   \det(I_n) = 1
+   $$
+
+   Geometrically, the unit hypercube spanned by the standard orthonormal basis has its volume strictly defined as 1.
+
+2. **Sign Reversal under Row Exchange**:
+   Exchanging any two rows of a matrix $A$ to form a new matrix $B$ reverses the sign of the determinant:
+
+   $$
+   \det(B) = -\det(A)
+   $$
+
+   If a permutation matrix $P$ corresponds to $k$ row exchanges, then $\det(P) = (-1)^k$. Geometrically, each row exchange acts like a mirror reflection, flipping the orientation of the coordinate frame.
+
+3. **Single-Row Linearity (Multilinearity)**:
+   The determinant is linear in **each row individually**. Assuming all row vectors other than row $i$ are held completely fixed:
+   - **Scalar multiplication in a single row**:
+
+     $$
+     \det \begin{pmatrix} \mathbf{r}_1 \\ \vdots \\ c\,\mathbf{r}_i \\ \vdots \\ \mathbf{r}_n \end{pmatrix} = c \det \begin{pmatrix} \mathbf{r}_1 \\ \vdots \\ \mathbf{r}_i \\ \vdots \\ \mathbf{r}_n \end{pmatrix}, \quad \forall c \in \mathbb{R}
+     $$
+
+   - **Additivity in a single row**:
+
+     $$
+     \det \begin{pmatrix} \mathbf{r}_1 \\ \vdots \\ \mathbf{a} + \mathbf{a}' \\ \vdots \\ \mathbf{r}_n \end{pmatrix} = \det \begin{pmatrix} \mathbf{r}_1 \\ \vdots \\ \mathbf{a} \\ \vdots \\ \mathbf{r}_n \end{pmatrix} + \det \begin{pmatrix} \mathbf{r}_1 \\ \vdots \\ \mathbf{a}' \\ \vdots \\ \mathbf{r}_n \end{pmatrix}
+     $$
+
+</DefinitionCard>
+
+<DeterminantRowLinearityDiagram caption="Geometric illustration of single-row linearity: scaling one row scales the signed area by c, while adding two vectors in one row sums the signed areas of the two parallelograms." />
+
+We must keep one crucial distinction in mind: **linearity in each row separately is not linearity of the whole matrix!** If we multiply every entry of an $n \times n$ matrix by $c$, Axiom 3 pulls out a factor of $c$ from each of the $n$ rows one by one, yielding $n$ factors in total:
+
+$$
+\det(cA) = c^n \det(A) \ne c \det(A) \quad (n \ge 2)
+$$
+
+---
+
+## Deductive Properties: Deriving Properties 4 through 10 from the Three Axioms
+
+The three axioms do more than define the determinant—they generate all of its algebraic rules. Following our logical dependency chain, we now derive Properties 4 through 10 step by step directly from the three axioms.
+
+<TheoremCard title="Property 4: Equal Rows Imply Zero Determinant">
+
+If a matrix $A \in \mathbb{R}^{n \times n}$ has two identical rows (that is, there exist $i \ne j$ such that $\mathbf{r}_i = \mathbf{r}_j$), then:
+
+$$
+\det(A) = 0
+$$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Property 4 from the Axioms">
+
+Suppose row $i$ and row $j$ of matrix $A$ are identical.
+1. By **Axiom 2**, exchanging row $i$ and row $j$ produces a new matrix $B$ whose determinant satisfies $\det(B) = -\det(A)$.
+2. However, because $\mathbf{r}_i = \mathbf{r}_j$, swapping these two rows does not change any entry of the matrix, so $B = A$, and hence $\det(B) = \det(A)$.
+3. Combining the two equations gives:
+
+   $$
+   \det(A) = -\det(A) \implies 2\det(A) = 0 \implies \det(A) = 0
+   $$
+
+Over any field of characteristic different from 2 (including $\mathbb{R}$ and $\mathbb{C}$), this conclusion is airtight. Q.E.D.
+
+</ProofCollapse>
+
+<TheoremCard title="Property 5: Elimination Steps Preserve the Determinant">
+
+Subtracting a scalar multiple of one row from another row (an elementary row operation $r_i \to r_i - \ell r_k$ with $i \ne k$) leaves the determinant strictly unchanged:
+
+$$
+\det \begin{pmatrix} \vdots \\ \mathbf{r}_i - \ell \mathbf{r}_k \\ \vdots \\ \mathbf{r}_k \\ \vdots \end{pmatrix} = \det \begin{pmatrix} \vdots \\ \mathbf{r}_i \\ \vdots \\ \mathbf{r}_k \\ \vdots \end{pmatrix} = \det(A)
+$$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Property 5 from the Axioms">
+
+Using single-row additivity and single-row scalar multiplication from **Axiom 3**, we expand the determinant along row $i$:
+
+$$
+\det \begin{pmatrix} \vdots \\ \mathbf{r}_i - \ell \mathbf{r}_k \\ \vdots \\ \mathbf{r}_k \\ \vdots \end{pmatrix} = \det \begin{pmatrix} \vdots \\ \mathbf{r}_i \\ \vdots \\ \mathbf{r}_k \\ \vdots \end{pmatrix} + \det \begin{pmatrix} \vdots \\ -\ell \mathbf{r}_k \\ \vdots \\ \mathbf{r}_k \\ \vdots \end{pmatrix} = \det(A) - \ell \det \begin{pmatrix} \vdots \\ \mathbf{r}_k \\ \vdots \\ \mathbf{r}_k \\ \vdots \end{pmatrix}
+$$
+
+Look at the second matrix on the right: both its $i$-th row and its $k$-th row equal $\mathbf{r}_k$. By **Property 4**, a matrix with two equal rows has determinant 0:
+
+$$
+-\ell \cdot 0 = 0 \implies \det \begin{pmatrix} \vdots \\ \mathbf{r}_i - \ell \mathbf{r}_k \\ \vdots \\ \mathbf{r}_k \\ \vdots \end{pmatrix} = \det(A)
+$$
+
+This also shows that an elementary elimination matrix $E_{ik}$ satisfies $\det(E_{ik}) = 1$. Geometrically, an elimination step is a shear transformation that preserves both base and height, so volume is strictly conserved. Q.E.D.
+
+</ProofCollapse>
+
+<TheoremCard title="Property 6: A Row of Zeros Implies Zero Determinant">
+
+If a square matrix $A$ contains a row of all zeros (that is, $\mathbf{r}_i = \mathbf{0}^T$ for some $i$), then:
+
+$$
+\det(A) = 0
+$$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Property 6 from the Axioms">
+
+Write the zero row in scaled form as $\mathbf{0}^T = 0 \cdot \mathbf{0}^T$. By **Axiom 3** (single-row scalar multiplication), we can factor out the scalar $c = 0$ from row $i$:
+
+$$
+\det(A) = \det \begin{pmatrix} \vdots \\ 0 \cdot \mathbf{0}^T \\ \vdots \end{pmatrix} = 0 \cdot \det \begin{pmatrix} \vdots \\ \mathbf{0}^T \\ \vdots \end{pmatrix} = 0
+$$
+
+Q.E.D.
+
+</ProofCollapse>
+
+<TheoremCard title="Property 7: Determinant of a Triangular Matrix">
+
+If $U \in \mathbb{R}^{n \times n}$ is an upper-triangular matrix (or a lower-triangular matrix $L$, or a diagonal matrix $D$) with diagonal entries $d_1, d_2, \dots, d_n$, then:
+
+$$
+\det(U) = \prod_{i=1}^n d_i = d_1 d_2 \cdots d_n
+$$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Property 7 from the Axioms">
+
+We consider two cases:
+- **Case 1: All diagonal entries are nonzero ($d_i \ne 0$ for all $i$)**.
+  Since every pivot is nonzero, we can work from bottom to top using elementary elimination steps (Property 5) to eliminate all nonzero entries above the main diagonal. By Property 5, this elimination does not change the determinant:
+
+  $$
+  \det(U) = \det \begin{pmatrix} d_1 & 0 & \cdots & 0 \\ 0 & d_2 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & d_n \end{pmatrix}
+  $$
+
+  Next, apply **Axiom 3** (single-row scaling) to factor out $d_1$ from row 1, $d_2$ from row 2, ..., and $d_n$ from row $n$:
+
+  $$
+  \det(U) = d_1 d_2 \cdots d_n \det(I_n)
+  $$
+
+  Finally, substitute **Axiom 1** ($\det(I_n) = 1$) to obtain $\det(U) = \prod_{i=1}^n d_i$.
+
+- **Case 2: At least one diagonal entry is zero ($d_k = 0$ for some $k$)**.
+  If a diagonal entry is zero, the columns of the matrix are linearly dependent, and elimination reduces the bottom row to a row of zeros. By **Property 6**, the determinant is 0. Meanwhile, the product $\prod d_i$ also equals 0 because one of its factors is 0, so the formula holds in this case as well. Q.E.D.
+
+</ProofCollapse>
+
+<TheoremCard title="Property 8: Invertibility Criterion via the Determinant">
+
+Let $A \in \mathbb{R}^{n \times n}$ be a real square matrix. Then:
+
+$$
+\det(A) \ne 0 \iff A \text{ is nonsingular (invertible)}
+$$
+
+Equivalently, $A$ is singular $\iff \det(A) = 0$.
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Property 8 from the Axioms">
+
+Through Gaussian elimination together with any necessary row exchanges (each exchange contributing a factor of $-1$ by Axiom 2), any square matrix $A$ can be reduced to an upper-triangular echelon matrix $U$:
+
+$$
+\det(A) = (-1)^k \det(U)
+$$
+
+where $k$ is the total number of row exchanges performed during elimination. By Property 7, $\det(U) = \prod_{i=1}^n d_i$:
+1. **If $A$ is invertible**: $A$ has a full set of $n$ nonzero pivots ($\operatorname{rank}(A) = n$), so every $d_i \ne 0$. Hence $\det(U) \ne 0$, and therefore $\det(A) = (-1)^k \prod d_i \ne 0$.
+2. **If $A$ is singular**: $A$ has fewer than $n$ pivots ($\operatorname{rank}(A) \lt n$), so elimination inevitably produces at least one zero pivot (and a row of zeros). By Property 6, $\det(U) = 0$, and therefore $\det(A) = 0$. Q.E.D.
+
+</ProofCollapse>
+
+<TheoremCard title="Property 9: Product Rule for Determinants">
+
+Let $A, B \in \mathbb{R}^{n \times n}$ be square matrices of the same size. Then the determinant of their product equals the product of their determinants:
+
+$$
+\det(AB) = \det(A)\det(B)
+$$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Property 9 via the Ratio Method">
+
+We split the proof according to whether $B$ is singular or invertible:
+- **Case 1: $B$ is singular ($\det(B) = 0$)**.
+  By Property 8, a singular matrix $B$ has a nontrivial nullspace, so there exists a nonzero vector $\mathbf{x} \ne \mathbf{0}$ such that $B\mathbf{x} = \mathbf{0}$.
+  Then $(AB)\mathbf{x} = A(B\mathbf{x}) = A\mathbf{0} = \mathbf{0}$, which shows that the nullspace of $AB$ also contains $\mathbf{x} \ne \mathbf{0}$, so $AB$ is singular as well.
+  By Property 8, $\det(AB) = 0$. Thus both sides equal 0:
+
+  $$
+  \det(AB) = 0 = \det(A) \cdot 0 = \det(A)\det(B)
+  $$
+
+- **Case 2: $B$ is invertible ($\det(B) \ne 0$)**.
+  Fix $B$ and define an auxiliary scalar function $D: M_n(\mathbb{R}) \to \mathbb{R}$ by:
+
+  $$
+  D(A) := \frac{\det(AB)}{\det(B)}
+  $$
+
+  We simply verify that $D(A)$ satisfies all three defining axioms:
+  1. **Verify Axiom 1**: When $A = I_n$,
+
+     $$
+     D(I_n) = \frac{\det(I_n B)}{\det(B)} = \frac{\det(B)}{\det(B)} = 1
+     $$
+
+  2. **Verify Axiom 2**: Exchanging rows $i$ and $j$ of $A$ corresponds to left-multiplying by a permutation matrix $P$. By associativity of matrix multiplication, $(PA)B = P(AB)$, which exchanges rows $i$ and $j$ of the product $AB$. Applying Axiom 2 to $\det$:
+
+     $$
+     D(PA) = \frac{\det((PA)B)}{\det(B)} = \frac{\det(P(AB))}{\det(B)} = \frac{-\det(AB)}{\det(B)} = -D(A)
+     $$
+
+  3. **Verify Axiom 3**: Notice that row $i$ of the product $AB$ is given by $\mathbf{r}_i(AB) = \mathbf{r}_i(A) B$.
+     - If row $i$ of $A$ is multiplied by a scalar $c$, then row $i$ of $AB$ becomes $(c\mathbf{r}_i(A))B = c(\mathbf{r}_i(A)B)$ while all other rows remain unchanged. By single-row scaling of $\det$ in the numerator, $D(cA) = c D(A)$.
+     - If row $i$ of $A$ is split as $\mathbf{a} + \mathbf{a}'$, then row $i$ of $AB$ becomes $(\mathbf{a} + \mathbf{a}')B = \mathbf{a}B + \mathbf{a}'B$. By single-row additivity of $\det$ in the numerator, $D$ is additive in row $i$.
+
+  Because the three axioms **uniquely determine** the determinant function, $D(A)$ must be identical to $\det(A)$:
+
+  $$
+  D(A) = \det(A) \iff \frac{\det(AB)}{\det(B)} = \det(A) \iff \det(AB) = \det(A)\det(B)
+  $$
+
+  This result immediately yields two vital corollaries:
+  - **Determinant of the inverse**: From $A A^{-1} = I_n$, we get $\det(A)\det(A^{-1}) = \det(I_n) = 1$, so:
+
+    $$
+    \det(A^{-1}) = \frac{1}{\det(A)}
+    $$
+
+  - **Determinant of an orthogonal matrix**: For an orthogonal matrix $Q$ satisfying $Q^T Q = I$, Property 10 below gives $\det(Q)^2 = 1$, so $\det(Q) = \pm 1$. Q.E.D.
+
+</ProofCollapse>
+
+<TheoremCard title="Property 10: Transpose Invariance">
+
+For any real square matrix $A \in \mathbb{R}^{n \times n}$, transposing the matrix does not change its determinant:
+
+$$
+\det(A^T) = \det(A)
+$$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Property 10 via PA = LU Factorization">
+
+By Gaussian elimination with row exchanges, every square matrix $A$ admits a $PA = LU$ factorization:
+
+$$
+PA = LU
+$$
+
+where $P$ is a permutation matrix, $L$ is a unit lower-triangular matrix with 1s on the diagonal, and $U$ is an upper-triangular matrix.
+Taking the transpose of both sides gives:
+
+$$
+(PA)^T = (LU)^T \implies A^T P^T = U^T L^T
+$$
+
+Applying **Property 9** (the product rule) to both equations:
+- Taking determinants of the original factorization:
+
+  $$
+  \det(P)\det(A) = \det(L)\det(U)
+  $$
+
+- Taking determinants of the transposed factorization:
+
+  $$
+  \det(A^T)\det(P^T) = \det(U^T)\det(L^T)
+  $$
+
+Now inspect each factor on both sides:
+1. **Unit triangular matrices $L$ and $L^T$**: $L$ is lower-triangular with 1s on the diagonal, so $L^T$ is upper-triangular with 1s on the diagonal. By Property 7, both have diagonal product 1:
+
+   $$
+   \det(L) = \det(L^T) = 1
+   $$
+
+2. **Upper-triangular matrix $U$ and $U^T$**: Transposition leaves every diagonal entry in place ($u_{ii}^T = u_{ii}$). By Property 7, $U$ and $U^T$ have the exact same product of diagonal entries:
+
+   $$
+   \det(U^T) = \prod_{i=1}^n u_{ii} = \det(U)
+   $$
+
+3. **Permutation matrices $P$ and $P^T$**: A permutation matrix is orthogonal, so $P^T P = I$, meaning $P^T = P^{-1}$. By the inverse determinant formula:
+
+   $$
+   \det(P^T) = \det(P^{-1}) = \frac{1}{\det(P)}
+   $$
+
+   Moreover, since $P$ only performs row exchanges, $\det(P)$ can only be $+1$ or $-1$ (Axiom 2). For $\pm 1$, the reciprocal equals the number itself:
+
+   $$
+   \frac{1}{\det(P)} = \det(P) \implies \det(P^T) = \det(P) \in \{+1, -1\}
+   $$
+
+Substituting these three facts into the transposed determinant equation gives:
+
+$$
+\det(A^T)\det(P) = \det(U) \cdot 1 = \det(U)
+$$
+
+Comparing with $\det(A)\det(P) = \det(U)$ and canceling the nonzero scalar $\det(P)$ from both sides yields:
+
+$$
+\det(A^T) = \det(A)
+$$
+
+**Transpose invariance delivers one of the grandest dualities in the entire course**:
+**Every property and theorem we proved for rows holds word-for-word for columns!**
+- Column exchanges also reverse the sign;
+- The determinant is linear in each column individually;
+- Elementary column operations $c_i \to c_i - \ell c_k$ preserve the determinant;
+- A column of zeros or two equal columns forces $\det(A) = 0$. Q.E.D.
+
+</ProofCollapse>
+
+<DeterminantTenPropertiesFlowDiagram caption="Logical dependency graph showing how Axioms 1–3 deduce Properties 4–10, culminating in the product rule and row-column duality via transpose invariance." />
+
+---
+
+## Common Pitfalls & Warnings
+
+<PitfallAlert title="Four Frequent Pitfalls in Determinant Calculations and Concepts">
+
+1. **The Additivity Trap: $\det(A + B) \ne \det(A) + \det(B)$**
+   Single-row additivity never applies across all rows at once!
+   Consider the simplest counterexample: take $A = I_2$ and $B = I_2$. Then:
+
+   $$
+   \det(A) = 1, \quad \det(B) = 1, \quad \det(A + B) = \det(2I_2) = 2^2 \cdot 1 = 4 \ne 1 + 1 = 2
+   $$
+
+   Geometrically, the volume of the parallelepiped spanned by sums of edge vectors is never the sum of the individual volumes.
+
+2. **The Global Scaling Trap: $\det(cA) = c^n \det(A)$**
+   For an $n \times n$ matrix, every row vector is scaled by $c$. Factoring out $c$ row by row pulls out $c^n$. Forgetting the exponent $n$ when $n = 4$ and $c = 2$ causes a $16$-fold error!
+
+3. **Missing Sign Flips and Confusing Row Scaling with Elimination**
+   When computing determinants by elimination, the formula is $\det(A) = (-1)^k \prod d_i$. You must carefully track the **total number of row exchanges $k$**.
+   In addition, an elementary shear $r_i \to r_i - \ell r_k$ preserves the determinant, whereas scaling a row $r_i \to c r_i$ **multiplies the determinant by $c$**—never confuse the two!
+
+4. **The Gap Between Theoretical Invertibility and Numerical Conditioning**
+   In pure mathematics, $\det(A) = 0$ characterizes singularity;
+   however, in floating-point engineering computation, **you must never use $\det(A) \approx 0$ to test whether a matrix is ill-conditioned or singular**!
+   For example, $A = 0.1 \cdot I_{100} \in \mathbb{R}^{100 \times 100}$ has $\det(A) = (0.1)^{100} = 10^{-100}$ (which underflows to 0 in standard IEEE 754 double precision), yet its condition number is $\kappa(A) = 1$—it is perfectly well-conditioned with inverse $10 I_{100}$! Numerical near-singularity is measured by the condition number $\kappa(A) = \sigma_{\max} / \sigma_{\min}$.
+
+</PitfallAlert>
+
+---
+
+## Interactive Exploration Sandbox
+
+<InteractiveCanvasSlot
+  id="l18-determinant-axioms-sandbox"
+  title="Axiomatic Geometry Sandbox: Parallelogram Area & Single-Row Linearity"
+  description="Drag the vertices to explore single-row linearity, the c^2 area scaling of a 2x2 matrix, and the conservation of signed area under shear transformations."
+/>
+
+---
+
+## Key Takeaways
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "Three foundational axioms: \\det(I_n) = 1, sign reversal under row exchange, and single-row linearity uniquely determine the entire determinant function.",
+    "Single-row linearity vs. matrix nonlinearity: the determinant is not a linear functional on matrices; \\det(cA) = c^n \\det(A), and in general \\det(A+B) \\ne \\det(A) + \\det(B).",
+    "Elimination is the computational workhorse: reducing to upper-triangular form via row shears gives \\det(A) = (-1)^k \\prod_{i=1}^n d_i in O(n^3) operations, vastly faster than O(n!) formulas.",
+    "Invertibility criterion: \\det(A) = 0 \\iff A is singular (linearly dependent columns); however, in floating-point arithmetic, never use a small determinant to judge ill-conditioning.",
+    "Product rule: \\det(AB) = \\det(A)\\det(B), proved via the ratio method, immediately implies \\det(A^{-1}) = 1/\\det(A) and \\det(Q) = \\pm 1 for orthogonal matrices.",
+    "Transpose invariance and row-column duality: \\det(A^T) = \\det(A), proved via PA = LU, guarantees that every row property of determinants holds identically for columns."
+  ]}
+/>
+
+---
+
+## Selected Practice Problems
+
+<ProblemSet
+  title="Lecture 18: Practice Problems on Determinants and Their Properties"
+  description="Reinforce the axiomatic derivation of determinants and matrix algebra techniques through progressive proofs, calculations, and counterexamples."
+>
+
+<ExerciseCard id="l18-ex1" tier="L1" tierLabel="L1 · Elimination Calculation" title="Computing a 3×3 Determinant via Elimination">
+
+Using elementary row elimination (Property 5) and row exchanges (Axiom 2)—without cofactor expansion—compute the determinant of the following matrix:
+
+$$
+A = \begin{pmatrix} 0 & 2 & 1 \\ 3 & 1 & 4 \\ 6 & 5 & 2 \end{pmatrix}
+$$
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "The (1,1) entry is 0, so it cannot serve as a pivot; start with a row exchange to bring a nonzero pivot into the top-left position.",
+    "Swap row 1 and row 2 (introducing a sign factor of -1), then subtract a multiple of row 1 from row 3 to clear the first column.",
+    "Track the total number of row exchanges k and the diagonal pivots; the answer is \\det(A) = (-1)^k \\prod d_i."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+With a zero in the top-left entry, we cannot eliminate downward right away. Swapping rows 1 and 2 flips the orientation (contributing one minus sign by Axiom 2). Standard Gaussian shears then reduce the matrix to upper-triangular form without changing the volume, so the determinant is just the product of the pivots times that sign factor.
+</SolutionIntuition>
+<SolutionRigorous>
+1. **Step 1 (Row exchange to obtain a pivot)**: Swap row 1 and row 2 (recording $k = 1$ row exchange):
+
+   $$
+   A_1 = \begin{pmatrix} 3 & 1 & 4 \\ 0 & 2 & 1 \\ 6 & 5 & 2 \end{pmatrix}, \quad \det(A) = (-1)^1 \det(A_1) = -\det(A_1)
+   $$
+
+2. **Step 2 (Eliminate the first column)**: Perform the elementary row operation $r_3 \to r_3 - 2r_1$. By Property 5, this preserves the determinant:
+
+   $$
+   A_2 = \begin{pmatrix} 3 & 1 & 4 \\ 0 & 2 & 1 \\ 0 & 3 & -6 \end{pmatrix}, \quad \det(A_1) = \det(A_2)
+   $$
+
+3. **Step 3 (Eliminate the second column)**: Perform $r_3 \to r_3 - \frac{3}{2}r_2$. Again, the determinant is unchanged:
+
+   $$
+   U = \begin{pmatrix} 3 & 1 & 4 \\ 0 & 2 & 1 \\ 0 & 0 & -6 - \frac{3}{2}(1) \end{pmatrix} = \begin{pmatrix} 3 & 1 & 4 \\ 0 & 2 & 1 \\ 0 & 0 & -\frac{15}{2} \end{pmatrix}
+   $$
+
+4. **Step 4 (Product of pivots)**: By Property 7, the determinant of the upper-triangular matrix $U$ is the product of its diagonal entries:
+
+   $$
+   \det(U) = 3 \times 2 \times \left(-\frac{15}{2}\right) = -45
+   $$
+
+Applying the sign factor from the row exchange:
+
+$$
+\det(A) = -\det(U) = -(-45) = 45
+$$
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l18-ex2" tier="L2" tierLabel="L2 · Conceptual True/False & Scaling" title="Scalar Scaling and Product Rules for Higher-Order Matrices">
+
+Suppose $A \in \mathbb{R}^{4 \times 4}$ satisfies $\det(A) = 3$.
+
+<TrueFalseInteractive
+  id="l18-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! For a 4×4 matrix, each of the four rows is multiplied by 2. By single-row scaling, we factor out four 2s, giving det(2A) = 2^4 det(A) = 16 × 3 = 48, not 6!"
+/>
+
+Compute the exact determinants of the following matrices:
+1. $\det(2A)$
+2. $\det(-A)$
+3. $\det(A^{-1})$
+4. $\det(A^T A)$
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Pay attention to the dimension n = 4: factoring out a scalar c gives \\det(cA) = c^4 \\det(A).",
+    "A minus sign corresponds to scaling by c = -1; evaluate (-1)^4.",
+    "Use the inverse rule \\det(A^{-1}) = 1/\\det(A) and transpose invariance \\det(A^T) = \\det(A)."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+The scaling of a determinant depends directly on the dimension $n$. For a $4 \times 4$ matrix, scaling the entire matrix scales all 4 dimensions, multiplying the 4-volume by $c^4$. Transposition leaves the volume unchanged, and the product rule multiplies the scaling factors.
+</SolutionIntuition>
+<SolutionRigorous>
+Given $A \in \mathbb{R}^{n \times n}$ with $n = 4$ and $\det(A) = 3$:
+1. **Compute $\det(2A)$**:
+   By single-row scaling (Axiom 3), factoring out 2 from each of the 4 rows yields:
+
+   $$
+   \det(2A) = 2^4 \det(A) = 16 \times 3 = 48
+   $$
+
+2. **Compute $\det(-A)$**:
+   Taking $c = -1$ pulls out $(-1)^4$:
+
+   $$
+   \det(-A) = (-1)^4 \det(A) = 1 \times 3 = 3
+   $$
+
+3. **Compute $\det(A^{-1})$**:
+   By the inverse formula derived from Property 9:
+
+   $$
+   \det(A^{-1}) = \frac{1}{\det(A)} = \frac{1}{3}
+   $$
+
+4. **Compute $\det(A^T A)$**:
+   Combining Property 9 (product rule) and Property 10 (transpose invariance):
+
+   $$
+   \det(A^T A) = \det(A^T) \det(A) = \det(A) \cdot \det(A) = 3 \times 3 = 9
+   $$
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l18-ex3" tier="L2" tierLabel="L2 · Conceptual True/False & Nullspace" title="Singularity of Matrices with Zero Row Sums">
+
+<TrueFalseInteractive
+  id="l18-tf2"
+  correct={true}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="True! If every row of A sums to 0, then the all-ones vector satisfies Ax = 0. The nullspace contains a nonzero vector, so A is singular and det(A) = 0."
+/>
+
+Let $A \in \mathbb{R}^{n \times n}$. If the sum of the entries in every row of $A$ is 0, prove that $\det(A) = 0$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "How can you express 'every row sums to 0' as a matrix-vector product A\\mathbf{x}?",
+    "Consider the all-ones column vector \\mathbf{x} = (1, 1, \\dots, 1)^T and compute A\\mathbf{x}.",
+    "What does a nontrivial nullspace imply about invertibility, and how does Property 8 determine the determinant?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+Having every row sum to 0 means that adding all the columns together produces the zero column. Thus the columns are linearly dependent, collapsing the $n$-dimensional volume to 0.
+</SolutionIntuition>
+<SolutionRigorous>
+Let $\mathbf{e} = (1, 1, \dots, 1)^T \in \mathbb{R}^n$ be the all-ones column vector.
+Compute the matrix-vector product $A\mathbf{e}$:
+
+$$
+(A\mathbf{e})_i = \sum_{j=1}^n a_{ij} \cdot 1 = \sum_{j=1}^n a_{ij}
+$$
+
+Since every row of $A$ sums to 0, we have $\sum_{j=1}^n a_{ij} = 0$ for all $i = 1, \dots, n$, and hence:
+
+$$
+A\mathbf{e} = \mathbf{0}
+$$
+
+Because $\mathbf{e} \ne \mathbf{0}$, the homogeneous system $A\mathbf{x} = \mathbf{0}$ has a nonzero solution, so $\operatorname{Null}(A) \ne \{\mathbf{0}\}$.
+Thus the columns of $A$ are linearly dependent, meaning $A$ does not have full rank and is singular.
+By **Property 8** (the invertibility criterion), it follows immediately that:
+
+$$
+\det(A) = 0
+$$
+
+Q.E.D.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l18-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Determinants of Skew-Symmetric and Orthogonal Matrices">
+
+Using the axioms together with Properties 9 and 10, prove the following two classical results:
+1. If $A \in \mathbb{R}^{n \times n}$ is skew-symmetric ($A^T = -A$) and $n$ is odd, prove that $\det(A) = 0$.
+2. If $Q \in \mathbb{R}^{n \times n}$ is orthogonal ($Q^T Q = I_n$), prove that $\det(Q) = 1$ or $\det(Q) = -1$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Take the determinant of both sides of A^T = -A, using Property 10 and \\det(-A) = (-1)^n \\det(A).",
+    "When n is odd, what is (-1)^n? Solve the resulting equation for \\det(A).",
+    "Take the determinant of both sides of Q^T Q = I_n and combine Property 9, Property 10, and Axiom 1."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+Transposing a skew-symmetric matrix negates it: transposition leaves volume unchanged, while negation introduces $(-1)^n$. When $n$ is odd, the minus sign survives, forcing the determinant to equal its own negative—so it must be 0. An orthogonal matrix preserves all lengths and angles, so the square of its volume-scaling factor must be 1.
+</SolutionIntuition>
+<SolutionRigorous>
+1. **Proof for skew-symmetric matrices**:
+   We are given $A^T = -A$. Taking the determinant of both sides:
+
+   $$
+   \det(A^T) = \det(-A)
+   $$
+
+   By **Property 10** (transpose invariance), the left-hand side is:
+
+   $$
+   \det(A^T) = \det(A)
+   $$
+
+   By **Axiom 3** (single-row scaling, pulling out $n$ factors of $-1$), the right-hand side is:
+
+   $$
+   \det(-A) = (-1)^n \det(A)
+   $$
+
+   Equating the two sides gives:
+
+   $$
+   \det(A) = (-1)^n \det(A)
+   $$
+
+   Since $n$ is odd, $(-1)^n = -1$, so:
+
+   $$
+   \det(A) = -\det(A) \implies 2\det(A) = 0 \implies \det(A) = 0
+   $$
+
+   (Note: When $n$ is even, $(-1)^n = 1$ and the determinant need not be 0; for example, the $2 \times 2$ skew-symmetric matrix below has determinant 1.)
+
+   $$
+   \begin{pmatrix} 0 & 1 \\ -1 & 0 \end{pmatrix}
+   $$
+
+2. **Proof for orthogonal matrices**:
+   From the definition $Q^T Q = I_n$, take the determinant of both sides:
+
+   $$
+   \det(Q^T Q) = \det(I_n)
+   $$
+
+   By **Axiom 1**, the right-hand side is $\det(I_n) = 1$.
+   By **Property 9** (product rule) and **Property 10** (transpose invariance), the left-hand side becomes:
+
+   $$
+   \det(Q^T Q) = \det(Q^T)\det(Q) = \det(Q)\det(Q) = (\det(Q))^2
+   $$
+
+   Therefore:
+
+   $$
+   (\det(Q))^2 = 1 \implies \det(Q) = \pm 1
+   $$
+
+   Here $\det(Q) = 1$ corresponds to a pure rotation (orientation-preserving), while $\det(Q) = -1$ includes a reflection (orientation-reversing). Q.E.D.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l18-ex5" tier="L4" tierLabel="L4 · MIT 18.06 Exam Synthesis" title="Block Upper-Triangular Determinant Formula and Calculation">
+
+Let $M \in \mathbb{R}^{n \times n}$ have the block upper-triangular form:
+
+$$
+M = \begin{pmatrix} A & B \\ 0 & D \end{pmatrix}
+$$
+
+where $A \in \mathbb{R}^{k \times k}$ and $D \in \mathbb{R}^{(n-k) \times (n-k)}$ are square blocks, $B \in \mathbb{R}^{k \times (n-k)}$, and $0$ is the $(n-k) \times k$ zero matrix.
+
+1. Using elementary row elimination or block factorization, prove that:
+
+   $$
+   \det(M) = \det(A) \det(D)
+   $$
+
+2. Compute the determinant of the following $4 \times 4$ matrix:
+
+   $$
+   M = \begin{pmatrix} 2 & 3 & 1 & 9 \\ 1 & 4 & 7 & 5 \\ 0 & 0 & 3 & 1 \\ 0 & 0 & 2 & 4 \end{pmatrix}
+   $$
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Factor the block upper-triangular matrix as a product of two simpler block matrices:\n\n$$\\begin{pmatrix} A & B \\\\\\\\ 0 & D \\end{pmatrix} = \\begin{pmatrix} I & 0 \\\\\\\\ 0 & D \\end{pmatrix} \\begin{pmatrix} A & B \\\\\\\\ 0 & I \\end{pmatrix}$$",
+    "Alternatively, think about elimination: because the bottom-left block is all zeros, eliminating within A never affects D, and eliminating within D never affects A, so the pivots of M are simply the pivots of A together with the pivots of D.",
+    "In part 2, partition M into four 2×2 blocks and apply the block product formula directly."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+Just like an ordinary triangular matrix, the off-diagonal block $B$ does not interfere with the pivots produced inside $A$ and $D$ during elimination. Hence the pivots of $M$ are precisely the pivots of $A$ combined with the pivots of $D$, so their product is $\det(A)\det(D)$.
+</SolutionIntuition>
+<SolutionRigorous>
+1. **Proof of the block determinant formula**:
+   - **Case 1: $A$ or $D$ is singular**.
+     If $\det(A) = 0$, there exists a nonzero vector $\mathbf{u} \in \mathbb{R}^k$ such that $A\mathbf{u} = \mathbf{0}$. Form the $n$-dimensional vector $\mathbf{x} = (\mathbf{u}^T, \mathbf{0}^T)^T \ne \mathbf{0}$; then:
+
+     $$
+     M\mathbf{x} = \begin{pmatrix} A & B \\ 0 & D \end{pmatrix} \begin{pmatrix} \mathbf{u} \\ \mathbf{0} \end{pmatrix} = \begin{pmatrix} A\mathbf{u} \\ \mathbf{0} \end{pmatrix} = \mathbf{0}
+     $$
+
+     Thus $M$ is singular, so $\det(M) = 0 = \det(A)\det(D)$. If $\det(D) = 0$, the same argument applied to $M^T$ together with $\det(M^T) = \det(M)$ yields $\det(M) = 0 = \det(A)\det(D)$.
+
+   - **Case 2: Both $A$ and $D$ are invertible**.
+     Factor $M$ using block matrix multiplication:
+
+     $$
+     \begin{pmatrix} A & B \\ 0 & D \end{pmatrix} = \begin{pmatrix} A & 0 \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & A^{-1}B \\ 0 & D \end{pmatrix} = \begin{pmatrix} A & 0 \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & A^{-1}B \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & 0 \\ 0 & D \end{pmatrix}
+     $$
+
+     Evaluate the determinant of each of the three factors:
+     - The middle factor is unit upper-triangular with 1s on the diagonal, so by Property 7 its determinant is 1;
+     - The first factor reduces by row elimination on the first $k$ rows alone, so its determinant equals $\det(A)$;
+     - The third factor similarly has determinant $\det(D)$.
+
+     By **Property 9** (product rule):
+
+     $$
+     \det(M) = \det(A) \cdot 1 \cdot \det(D) = \det(A)\det(D)
+     $$
+
+2. **Numerical calculation**:
+   Partition the given $4 \times 4$ matrix into $2 \times 2$ blocks:
+
+   $$
+   M = \begin{pmatrix} A & B \\ 0 & D \end{pmatrix}, \quad A = \begin{pmatrix} 2 & 3 \\ 1 & 4 \end{pmatrix}, \quad D = \begin{pmatrix} 3 & 1 \\ 2 & 4 \end{pmatrix}
+   $$
+
+   Compute the two $2 \times 2$ determinants:
+
+   $$
+   \det(A) = 2 \times 4 - 3 \times 1 = 8 - 3 = 5
+   $$
+
+   $$
+   \det(D) = 3 \times 4 - 1 \times 2 = 12 - 2 = 10
+   $$
+
+   Applying the block upper-triangular formula gives:
+
+   $$
+   \det(M) = \det(A) \det(D) = 5 \times 10 = 50
+   $$
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>

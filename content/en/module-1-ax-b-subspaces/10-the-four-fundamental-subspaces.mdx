@@ -1,0 +1,489 @@
+---
+title: "Lecture 10: The Four Fundamental Subspaces"
+ocwId: "L10"
+videoEpisode: "P10"
+textbookRef: "§3.5"
+---
+
+If only a single diagram could hang on the wall for all of MIT 18.06, Prof. Gilbert Strang would without hesitation hang the diagram born in today's lecture: **"The Big Picture of Linear Algebra" — the Four Fundamental Subspaces**.
+
+In previous lectures, we became familiar with the column space $\operatorname{Col}(A)$ and the nullspace $\operatorname{Null}(A)$. Today in Lecture 10, we unite a matrix $A$ with its transpose $A^T$ to illuminate all **four fundamental subspaces** governed by any real matrix $A \in \mathbb{R}^{m\times n}$. Together, we will prove the conservation of dimension law that Strang calls the **"Fundamental Theorem of Linear Algebra, Part I,"** and walk step-by-step through the exact procedure for extracting canonical bases for all four subspaces at once!
+
+---
+
+## 1. Meet the Four Stars: Where Do They Live, and What Are Their Dimensions?
+
+Given an arbitrary rectangular matrix $A \in \mathbb{R}^{m\times n}$ ($m$ rows, $n$ columns, with $r = \operatorname{rank}(A)$ pivots from elimination), it naturally bridges two Euclidean worlds: the **input space $\mathbb{R}^n$** (where rows have length $n$) and the **output space $\mathbb{R}^m$** (where columns have length $m$). Living inside each of these two worlds is an inseparable pair of subspaces:
+
+### 1.1 The Pair Living in the Input Space $\mathbb{R}^n$ (Dimensions Sum to $r + (n - r) = n$)
+
+1. **The Row Space $\operatorname{Row}(A) := \operatorname{Col}(A^T) \subseteq \mathbb{R}^n$**:
+   Spanned by all linear combinations of the rows of $A$. Because we prefer to write all vectors consistently as vertical **column vectors**, standing each row of $A$ upright produces precisely the columns of the transpose matrix $A^T \in \mathbb{R}^{n\times m}$! Thus, the standard algebraic notation for the row space is **$\operatorname{Col}(A^T)$**. What is its dimension? Remarkably, it matches the dimension of the column space **to the exact number: $r$**!
+2. **The Nullspace $\operatorname{Null}(A) \subseteq \mathbb{R}^n$**:
+   The space of all solution vectors $\mathbf{x}$ satisfying $A\mathbf{x} = \mathbf{0}$. As proved in Lecture 09, its dimension equals the number of free variables: **$n - r$**.
+
+### 1.2 The Pair Living in the Output Space $\mathbb{R}^m$ (Dimensions Sum to $r + (m - r) = m$)
+
+3. **The Column Space $\operatorname{Col}(A) \subseteq \mathbb{R}^m$**:
+   Spanned by all linear combinations of the columns of $A$. As proved in Lecture 09, its dimension is **$r$**.
+4. **The Left Nullspace $\operatorname{Null}(A^T) \subseteq \mathbb{R}^m$**:
+   The nullspace of the transpose matrix $A^T$ — that is, all vectors $\mathbf{y} \in \mathbb{R}^m$ satisfying $A^T \mathbf{y} = \mathbf{0}$!
+   - **Why on earth do we call it the "left" nullspace?** Take the equation $A^T\mathbf{y} = \mathbf{0}$ and transpose both sides. By the reverse-order law of transposes, it immediately becomes:
+
+$$
+(A^T \mathbf{y})^T = \mathbf{0}^T \quad \Longleftrightarrow \quad \mathbf{y}^T A = \mathbf{0}^T
+$$
+
+   Mystery solved! The ordinary nullspace multiplies $A$ on the **right** by a column vector $\mathbf{x}$ to get zero ($A\mathbf{x} = \mathbf{0}$, searching for weights that crush the **columns** into the zero vector). The left nullspace multiplies $A$ on the **left** by a row vector $\mathbf{y}^T$ to get zero ($\mathbf{y}^T A = \mathbf{0}^T$, searching for weights that **combine the rows of $A$ into a zero row**)! Since $A^T \in \mathbb{R}^{n\times m}$ has $m$ columns and the exact same rank $r$, the number of free variables for $A^T$ is naturally **$m - r$**!
+
+<FourSubspacesBigPictureDiagram caption="The Big Picture of Linear Algebra: Row(A) (dim r) and Null(A) (dim n−r) partition the input space ℝⁿ, while Col(A) (dim r) and Null(Aᵀ) (dim m−r) partition the output space ℝᵐ." />
+
+<InteractiveCanvasSlot
+  id="l10-four-subspaces-cross"
+  title="Four Fundamental Subspaces Dimension Balance & Bijection Sandbox"
+  description="Adjust the matrix dimensions $m \times n$ and rank slider $r \le \min(m,n)$ to watch the input and output dimension blocks $r + (n-r) = n$ and $r + (m-r) = m$ balance in real time; click any input vector $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$ to trace how its row-space component maps bijectively into the column space while its nullspace component collapses to zero."
+/>
+
+---
+
+## 2. Four Birds with One Stone: Extracting Bases for All Four Subspaces via $[A \mid I_m] \to [R \mid E]$
+
+Memorizing the four dimensions is only half the battle. The real test of mastery is: **if someone hands you an arbitrary rectangular matrix $A$, how do you cleanly extract a basis for each of the four subspaces in a single unified workflow?**
+
+Let us bring back our old friend from Lectures 07–09, the $3\times 4$ matrix $A$. Just as in Lecture 03's Gauss-Jordan inversion method, we augment $A$ on the right with the $3\times 3$ identity matrix $I_3$ (which faithfully records the footprint of every row operation!) and reduce all the way to $R = \operatorname{rref}(A)$:
+
+$$
+\left[\begin{array}{cccc|ccc}
+1 & 2 & 2 & 2 & 1 & 0 & 0 \\
+2 & 4 & 6 & 8 & 0 & 1 & 0 \\
+3 & 6 & 8 & 10 & 0 & 0 & 1
+\end{array}\right]
+\xrightarrow{\text{Forward + Upward Elimination}}
+\underbrace{\left[\begin{array}{cccc|ccc}
+\mathbf{1} & 2 & \mathbf{0} & -2 & -2 & 1 & 0 \\
+\mathbf{0} & 0 & \mathbf{1} & 2 & -1 & 1/2 & 0 \\
+0 & 0 & 0 & 0 & \mathbf{-1} & \mathbf{-1} & \mathbf{1}
+\end{array}\right]}_{[R \;\mid\; E], \;\;\text{where } EA = R}
+$$
+
+(Quick mental check on the bottom row $[-1, -1, 1]$ of the recording matrix $E$ on the right: multiplying $A$ on the left by $[-1, -1, 1]$ takes $-1(\text{row }1) - 1(\text{row }2) + 1(\text{row }3)$, which cancels the rows of $A$ into the exact zero row $[0, 0, 0, 0]$ at the bottom of $R$!)
+
+Now open your eyes wide — reading directly from this $[R \mid E]$ tableau, we can **collect canonical bases for all four subspaces in ten seconds flat**:
+
+1. **Basis for the Column Space $\operatorname{Col}(A)$ ($\dim = r = 2$)**:
+   Look at $R$ to see that the pivots sit in columns 1 and 3, then **go back to the original matrix $A$** to grab columns 1 and 3 (never copy columns from $R$!):
+
+$$
+\mathcal{B}_{\text{Col}(A)} = \left\{ \begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix}, \begin{bmatrix} 2 \\ 6 \\ 8 \end{bmatrix} \right\} \subseteq \mathbb{R}^3
+$$
+
+2. **Basis for the Nullspace $\operatorname{Null}(A)$ ($\dim = n - r = 2$)**:
+   Because $\operatorname{Null}(A) = \operatorname{Null}(R)$, read off the two special solutions directly from $R$ corresponding to the free variables $(x_2, x_4)$:
+
+$$
+\mathcal{B}_{\text{Null}(A)} = \left\{ \begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} 2 \\ 0 \\ -2 \\ 1 \end{bmatrix} \right\} \subseteq \mathbb{R}^4
+$$
+
+3. **Basis for the Row Space $\operatorname{Row}(A) = \operatorname{Col}(A^T)$ ($\dim = r = 2$) — The Effortless Surprise!**:
+   Although elementary row operations alter the column space, they are nothing more than invertible linear combinations of the rows of $A$. Therefore, **elementary row operations preserve the row space 100%: $\operatorname{Row}(R) = \operatorname{Row}(A)$**! You don't even need to look back at $A$ to figure out which rows are independent — **simply copy the first $r$ nonzero rows of $R$ (transposed into column vectors)** for the cleanest possible basis:
+
+$$
+\mathcal{B}_{\text{Row}(A)} = \left\{ \begin{bmatrix} 1 \\ 2 \\ 0 \\ -2 \end{bmatrix}, \begin{bmatrix} 0 \\ 0 \\ 1 \\ 2 \end{bmatrix} \right\} \subseteq \mathbb{R}^4
+$$
+
+4. **Basis for the Left Nullspace $\operatorname{Null}(A^T)$ ($\dim = m - r = 3 - 2 = 1$) — The Crowning Touch!**:
+   We want all row-combination weights $\mathbf{y}^T$ satisfying $\mathbf{y}^T A = \mathbf{0}^T$. Look at the block equation $E A = R$! Since **the bottom $m - r = 1$ row of $R$ is all zeros**, it follows immediately that **the bottom $m - r = 1$ row of the recording matrix $E$ multiplied on the left of $A$ produces a zero row**! Furthermore, because $E$ itself is invertible, its rows are automatically linearly independent! Thus, pulling out the bottom $m - r$ rows of $E$ and writing them as column vectors hands us a basis for the left nullspace on the spot:
+
+$$
+\mathcal{B}_{\text{Null}(A^T)} = \left\{ \begin{bmatrix} -1 \\ -1 \\ 1 \end{bmatrix} \right\} \subseteq \mathbb{R}^3
+$$
+
+---
+
+## 3. Textbook-Grade Formulation: The Fundamental Theorem of Linear Algebra (Part I)
+
+Why does the "row rank" (dimension of the row space) always equal the "column rank" (dimension of the column space) for any matrix, no matter how tall or wide? Let us seal this foundational truth with a formal theorem card and rigorous proof.
+
+<DefinitionCard
+  label="Definition 10.1"
+  title="The Four Fundamental Subspaces of a Matrix"
+>
+For any real matrix $A \in \mathbb{R}^{m\times n}$:
+
+1. **Column Space**: $\operatorname{Col}(A) = \{A\mathbf{x} : \mathbf{x} \in \mathbb{R}^n\} \subseteq \mathbb{R}^m$;
+2. **Nullspace**: $\operatorname{Null}(A) = \{\mathbf{x} \in \mathbb{R}^n : A\mathbf{x} = \mathbf{0}\} \subseteq \mathbb{R}^n$;
+3. **Row Space**: $\operatorname{Row}(A) := \operatorname{Col}(A^T) = \{A^T\mathbf{y} : \mathbf{y} \in \mathbb{R}^m\} \subseteq \mathbb{R}^n$;
+4. **Left Nullspace**: $\operatorname{Null}(A^T) = \{\mathbf{y} \in \mathbb{R}^m : A^T\mathbf{y} = \mathbf{0} \iff \mathbf{y}^T A = \mathbf{0}^T\} \subseteq \mathbb{R}^m$.
+</DefinitionCard>
+
+<TheoremCard
+  label="Theorem 10.1"
+  title="Fundamental Theorem of Linear Algebra, Part I (Dimensions and Canonical Bases of the Four Subspaces)"
+>
+Let a real matrix $A \in \mathbb{R}^{m\times n}$ be reduced via an invertible row-operation matrix $E \in \mathbb{R}^{m\times m}$ to its reduced row echelon form $EA = R = \operatorname{rref}(A)$, with $r = \operatorname{rank}(A)$ pivots. Then:
+
+1. **Row Rank Equals Column Rank**: $\operatorname{rank}(A^T) = \operatorname{rank}(A) = r$, meaning the row space and the column space have the **exact same dimension**:
+
+$$
+\dim \operatorname{Row}(A) = \dim \operatorname{Col}(A) = r
+$$
+
+2. **Conservation of Dimension in Both Worlds**:
+   - In $\mathbb{R}^n$: $\dim \operatorname{Row}(A) = r$ and $\dim \operatorname{Null}(A) = n - r$, satisfying $r + (n - r) = n$;
+   - In $\mathbb{R}^m$: $\dim \operatorname{Col}(A) = r$ and $\dim \operatorname{Null}(A^T) = m - r$, satisfying $r + (m - r) = m$.
+3. **Invariance Under Row Operations & Master Basis Table**:
+   - **Two Input Subspaces Preserved by Row Operations**: $\operatorname{Row}(R) = \operatorname{Row}(A)$ (the first $r$ nonzero rows of $R$ form a basis for $\operatorname{Row}(A)$), and $\operatorname{Null}(R) = \operatorname{Null}(A)$ (the $n-r$ special solutions of $R$ form a basis for $\operatorname{Null}(A)$);
+   - **Two Output Subspaces Altered but Recoverable**: A basis for $\operatorname{Col}(A)$ is given by the **$r$ pivot columns of the original matrix $A$**; a basis for the left nullspace $\operatorname{Null}(A^T)$ is given by the **last $m - r$ rows of $E$** (transposed into column vectors).
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Why dim Row(A) = dim Col(A) = r, and Why the Bottom m−r Rows of E Span Null(Aᵀ)">
+1. **Proof that $\operatorname{Row}(A) = \operatorname{Row}(R)$ and $\dim\operatorname{Row}(A) = r$**:
+   Since $R = EA$ with $E$ invertible ($A = E^{-1}R$), Theorem 3.1 Part 2 from Lecture 03 (the row space of a product is contained in the row space of the right factor) gives:
+   - $R = EA \implies \operatorname{Row}(R) \subseteq \operatorname{Row}(A)$;
+   - $A = E^{-1}R \implies \operatorname{Row}(A) \subseteq \operatorname{Row}(R)$.
+   Hence $\operatorname{Row}(A) = \operatorname{Row}(R)$! Now inspect the first $r$ nonzero rows $\mathbf{r}_1^T, \dots, \mathbf{r}_r^T$ of $R$ (the remaining $m-r$ rows are zero vectors). Clearly they span $\operatorname{Row}(R)$. Moreover, at the $r$ pivot column indices $j_1 < \cdots < j_r$, row $k$ has entry $1$ in component $j_k$ while all other $r-1$ rows have entry $0$ there. Thus if $\sum_{k=1}^r c_k \mathbf{r}_k = \mathbf{0}$, inspecting component $j_k$ for each $k$ immediately forces $c_1 = \cdots = c_r = 0$! Hence the first $r$ rows of $R$ are linearly independent and form a basis for $\operatorname{Row}(A)$, proving $\dim\operatorname{Col}(A^T) = \dim\operatorname{Row}(A) = r = \dim\operatorname{Col}(A)$!
+   (As an immediate bonus: since $\operatorname{rank}(A^T) = \dim\operatorname{Col}(A^T) = r$, applying the Rank-Nullity Theorem from Lecture 09 directly to the matrix $A^T \in \mathbb{R}^{n\times m}$ yields $\dim\operatorname{Null}(A^T) = m - \operatorname{rank}(A^T) = m - r$!)
+
+2. **Proof that the last $m - r$ rows of $E$ form a basis for $\operatorname{Null}(A^T)$**:
+   Denote the rows of the invertible matrix $E \in \mathbb{R}^{m\times m}$ by $\mathbf{e}'^T_1, \dots, \mathbf{e}'^T_m$.
+   - Since the last $m - r$ rows of $EA = R$ are zero rows, for each $i = r+1, \dots, m$ we have $\mathbf{e}'^T_i A = \mathbf{0}^T \iff A^T \mathbf{e}'_i = \mathbf{0}$, so $\{\mathbf{e}'_{r+1}, \dots, \mathbf{e}'_m\} \subseteq \operatorname{Null}(A^T)$.
+   - Because $E$ is invertible, all $m$ of its rows are linearly independent, so any subset $\{\mathbf{e}'_{r+1}, \dots, \mathbf{e}'_m\}$ (consisting of $m - r$ vectors) must be linearly independent!
+   - Since we already know $\dim\operatorname{Null}(A^T) = m - r$, finding $m - r$ linearly independent vectors inside an $(m - r)$-dimensional subspace (by the Halfway Theorem in Exercise `l09-ex3`) automatically guarantees they form a basis for $\operatorname{Null}(A^T)$!
+</ProofCollapse>
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+1. **Pitfall 1: Confusing which two subspaces can be read directly from $R$ and which two cannot! (Must-Memorize Exam Checklist)**
+   - **Can be read directly from $R$ (both live in the input space $\mathbb{R}^n$!)**: $\operatorname{Row}(A) = \operatorname{Row}(R)$ (copy the nonzero rows of $R$) and $\operatorname{Null}(A) = \operatorname{Null}(R)$ (copy the special solutions of $R$);
+   - **Must NEVER be read naively from $R$ (both live in the output space $\mathbb{R}^m$!)**: $\operatorname{Col}(A) \neq \operatorname{Col}(R)$ (you MUST go back to the original matrix $A$ to copy the pivot columns!), and $\operatorname{Null}(A^T) \neq \operatorname{Null}(R^T)$ (the left nullspace of $R$ is merely the trivial span of the last $m-r$ standard basis vectors $\mathbf{e}_{r+1},\dots,\mathbf{e}_m$, whereas the true $\operatorname{Null}(A^T)$ is spanned by the last $m-r$ rows of the elimination recording matrix $E$!).
+2. **Pitfall 2: Seeing $\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A) = r$ and falsely concluding "the row space equals the column space"**
+   **Equal dimension never implies equal subspaces!** When $m \neq n$ (say, for a $3\times 4$ matrix), $\operatorname{Row}(A)$ lives in $\mathbb{R}^4$ while $\operatorname{Col}(A)$ lives in $\mathbb{R}^3$ — they don't even live in the same ambient space! Even when $m = n$ (a square matrix), consider the $2\times 2$ matrix with first row $[0, 1]$ and second row $[0, 0]$: its row space $\operatorname{Row}(A)$ is the $y$-axis $\operatorname{span}\{(0,1)^T\}$, whereas its column space $\operatorname{Col}(A)$ is the $x$-axis $\operatorname{span}\{(1,0)^T\}$ — the two spaces are mutually perpendicular! (When $A$ is symmetric, $A^T=A$, we automatically get $\operatorname{Row}(A) = \operatorname{Col}(A)$.)
+3. **Pitfall 3: Writing vectors in the row space horizontally and mixing them with column vectors**
+   Following the convention of this course and Strang's textbook, so that all four fundamental subspaces live cleanly as subspaces of standard Euclidean column-vector spaces $\mathbb{R}^n$ or $\mathbb{R}^m$, basis vectors of the row space are always transposed and written vertically as column vectors in $\mathbb{R}^n$ (i.e., treated uniformly as $\operatorname{Col}(A^T)$).
+</PitfallAlert>
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "For any $m\\times n$ matrix $A$, the row rank always equals the column rank: $\\dim\\operatorname{Row}(A) = \\dim\\operatorname{Col}(A) = r$.",
+    "**Input-Side Pair in $\\mathbb{R}^n$**: The row space $\\operatorname{Row}(A)$ ($\\dim = r$, basis from the first $r$ rows of $R$) and the nullspace $\\operatorname{Null}(A)$ ($\\dim = n - r$, basis from the $n-r$ special solutions), satisfying $r + (n-r) = n$.",
+    "**Output-Side Pair in $\\mathbb{R}^m$**: The column space $\\operatorname{Col}(A)$ ($\\dim = r$, basis from the $r$ pivot columns of the original matrix $A$) and the left nullspace $\\operatorname{Null}(A^T)$ ($\\dim = m - r$, basis from the bottom $m-r$ rows of $E$ in $EA=R$), satisfying $r + (m-r) = m$.",
+    "Elementary row operations completely preserve $\\operatorname{Row}(A)$ and $\\operatorname{Null}(A)$ on the input side, while rotating/shearing $\\operatorname{Col}(A)$ and $\\operatorname{Null}(A^T)$ on the output side."
+  ]}
+/>
+
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+  <ExerciseCard
+    id="l10-ex1"
+    tier="L1"
+    tierLabel="L1 · Quick Geometric Check"
+    title="Four-in-One Gauss-Jordan Anatomy: Extracting Dimensions and Canonical Bases for All Four Subspaces"
+  >
+    Suppose a $3\times 4$ real matrix $A$ is augmented with the identity matrix as $[A \mid I_3]$ and reduced via Gauss-Jordan row operations to the following reduced row echelon form $[R \mid E]$:
+
+    $$
+    A = \begin{bmatrix} 1 & 2 & 0 & 3 \\ 2 & 4 & 1 & 8 \\ 1 & 2 & 1 & 5 \end{bmatrix}, \qquad [R \mid E] = \left[\begin{array}{cccc|ccc} 1 & 2 & 0 & 3 & 1 & 0 & 0 \\ 0 & 0 & 1 & 2 & -2 & 1 & 0 \\ 0 & 0 & 0 & 0 & 1 & -1 & 1 \end{array}\right]
+    $$
+
+    Directly from $A$ and $[R \mid E]$, write down the ambient Euclidean space, dimension, and a canonical basis (all written vertically as column vectors) for $\operatorname{Row}(A)$, $\operatorname{Null}(A)$, $\operatorname{Col}(A)$, and $\operatorname{Null}(A^T)$, and verify explicitly that your left nullspace basis vector satisfies $A^T\mathbf{y}=\mathbf{0}$.
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "First count the pivots in $R$ to find the rank $r = 2$, with pivot columns $1, 3$ and free columns $2, 4$; the ambient spaces are the input space $\\mathbb{R}^4$ ($n=4$) and the output space $\\mathbb{R}^3$ ($m=3$).",
+        "Read the two input subspaces directly from $R$: for $\\operatorname{Row}(A)$, copy the first $2$ nonzero rows of $R$ (transposed into column vectors); for $\\operatorname{Null}(A)$, set the free variables $(x_2,x_4)=(1,0)$ and $(0,1)$ to write down the $2$ special solutions.",
+        "Read the two output subspaces from $A$ and $E$: for $\\operatorname{Col}(A)$, you must return to the **original matrix $A$** and copy pivot columns $1$ and $3$! For $\\operatorname{Null}(A^T)$, copy row $3$ of the recording matrix $E$ on the right (corresponding to the zero row of $R$)!"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        The matrix $A \in \mathbb{R}^{3\times 4}$ has $r = 2$ pivots (in columns $1$ and $3$). By the input/output dimension balance of the Fundamental Theorem of Linear Algebra, Part I:
+        - **Input side $\mathbb{R}^4$ ($2 + 2 = 4$)**: Row operations preserve the row space and nullspace, so reading directly from $R$ gives the cleanest bases;
+        - **Output side $\mathbb{R}^3$ ($2 + 1 = 3$)**: Row operations distort the column space, so the column space basis must be taken from columns $1$ and $3$ of the original home matrix $A$; meanwhile, the bottom row $(1, -1, 1)$ of $E$ is the exact recipe that combines the three rows of $A$ into a zero row ($\text{row}_1 - \text{row}_2 + \text{row}_3 = \mathbf{0}^T$)!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        Since $R$ has $r = 2$ pivots (pivot columns $j \in \{1, 3\}$, free columns $j \in \{2, 4\}$), the complete inventory of the four fundamental subspaces is:
+
+        1. **Row Space $\operatorname{Row}(A) \subseteq \mathbb{R}^4$**: $\dim\operatorname{Row}(A) = r = 2$. Transposing the first $2$ nonzero rows of $R$ gives the basis:
+
+           $$
+           \mathcal{B}_{\text{row}} = \left\{ \begin{bmatrix} 1 \\ 2 \\ 0 \\ 3 \end{bmatrix}, \, \begin{bmatrix} 0 \\ 0 \\ 1 \\ 2 \end{bmatrix} \right\}
+           $$
+
+        2. **Nullspace $\operatorname{Null}(A) \subseteq \mathbb{R}^4$**: $\dim\operatorname{Null}(A) = n - r = 4 - 2 = 2$. From $R\mathbf{x}=\mathbf{0}$, we have $x_1 = -2x_2 - 3x_4$ and $x_3 = -2x_4$. Setting $(x_2,x_4)=(1,0)$ and $(0,1)$ yields the special-solution basis:
+
+           $$
+           \mathcal{B}_{\text{null}} = \left\{ \begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix}, \, \begin{bmatrix} -3 \\ 0 \\ -2 \\ 1 \end{bmatrix} \right\}
+           $$
+
+        3. **Column Space $\operatorname{Col}(A) \subseteq \mathbb{R}^3$**: $\dim\operatorname{Col}(A) = r = 2$. Extracting pivot columns $1$ and $3$ from the original matrix $A$ gives the basis:
+
+           $$
+           \mathcal{B}_{\text{col}} = \left\{ \begin{bmatrix} 1 \\ 2 \\ 1 \end{bmatrix}, \, \begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix} \right\}
+           $$
+
+        4. **Left Nullspace $\operatorname{Null}(A^T) \subseteq \mathbb{R}^3$**: $\dim\operatorname{Null}(A^T) = m - r = 3 - 2 = 1$. Extracting and transposing the bottom $m - r = 1$ row of $E$ gives the basis:
+
+           $$
+           \mathcal{B}_{\text{left-null}} = \left\{ \mathbf{y}_1 = \begin{bmatrix} 1 \\ -1 \\ 1 \end{bmatrix} \right\}
+           $$
+
+        **Explicit Verification**: Compute $A^T \mathbf{y}_1$:
+
+        $$
+        A^T \mathbf{y}_1 = \begin{bmatrix} 1 & 2 & 1 \\ 2 & 4 & 2 \\ 0 & 1 & 1 \\ 3 & 8 & 5 \end{bmatrix} \begin{bmatrix} 1 \\ -1 \\ 1 \end{bmatrix} = \begin{bmatrix} 1-2+1 \\ 2-4+2 \\ 0-1+1 \\ 3-8+5 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ 0 \\ 0 \end{bmatrix} = \mathbf{0}
+        $$
+
+        Everything checks out to perfection!
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l10-ex2"
+    tier="L2"
+    tierLabel="L2 · Conceptual True/False"
+    title="Conceptual Trap (I): Do the Row Space and Column Space of a Square Matrix Have to Be Equal?"
+  >
+    Determine whether the following statement is true or false:
+
+    > **Statement**: Let $A$ be an arbitrary $n \times n$ real square matrix. Since both $\operatorname{Row}(A)$ and $\operatorname{Col}(A)$ live inside the exact same Euclidean space $\mathbb{R}^n$, and their dimensions are always equal ($\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A) = r$), we must have the subspace identity $\operatorname{Row}(A) = \operatorname{Col}(A)$.
+
+    <TrueFalseInteractive
+      id="l10-tf1"
+      correct={false}
+      trueLabel="True"
+      falseLabel="False (Counterexample Exists)"
+      quickFeedback="Having the same dimension inside the same ambient space $\mathbb{R}^n$ never means two subspaces are identical! Think of the $x$-axis and $y$-axis in $\mathbb{R}^2$: both are $1$-dimensional subspaces of $\mathbb{R}^2$, yet they are completely different lines! The simple nonsymmetric matrix with rows $[0, 1]$ and $[0, 0]$ immediately disproves the claim."
+    />
+
+    Provide an explicit $2 \times 2$ counterexample matrix $A$ such that $\operatorname{Row}(A) \cap \operatorname{Col}(A) = \{\mathbf{0}\}$ (the two spaces share only the zero vector!), and answer: under what special conditions on an $n\times n$ matrix $A$ (for instance, invertibility or symmetry) is $\operatorname{Row}(A) = \operatorname{Col}(A)$ guaranteed to hold?
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "To make two $1$-dimensional subspaces in $\\mathbb{R}^2$ intersect only at the origin, simply put the column space along the $x$-axis $\\operatorname{span}\\{(1,0)^T\\}$ and the row space along the $y$-axis $\\operatorname{span}\\{(0,1)^T\\}$!",
+        "Place $(0,1)$ in the first row and all zeros in the second row; write out this $2\\times 2$ matrix and inspect its column space and row space.",
+        "Now consider two sufficient conditions: (1) If $A$ is invertible ($r = n$), can two $n$-dimensional subspaces inside $\\mathbb{R}^n$ fail to be equal? (2) If $A$ is symmetric ($A^T = A$), what is $\\operatorname{Row}(A) = \\operatorname{Col}(A^T)$ equal to?"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        In the plane $\mathbb{R}^2$, there are infinitely many "$1$-dimensional subspaces" — every line through the origin is one! Equal dimension only guarantees that both subspaces are lines; it never guarantees that they point in the same direction. The matrix $A$ with first row $[0, 1]$ and second row $[0, 0]$ crushes every column output onto the horizontal $x$-axis, while its row vectors point along the vertical $y$-axis. Those two lines are perpendicular and intersect only at the origin!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        **The statement is False**.
+
+        1. **Minimal $2\times 2$ Counterexample**: Take the rank-$1$ nilpotent matrix
+
+           $$
+           A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}
+           $$
+
+           Its column space is $\operatorname{Col}(A) = \operatorname{span}\{[1, 0]^T\}$ (the $x$-axis), whereas its row space is $\operatorname{Row}(A) = \operatorname{Col}(A^T) = \operatorname{span}\{[0, 1]^T\}$ (the $y$-axis). Both are $1$-dimensional subspaces of $\mathbb{R}^2$, yet $\operatorname{Row}(A) \neq \operatorname{Col}(A)$ and $\operatorname{Row}(A) \cap \operatorname{Col}(A) = \{\mathbf{0}\}$.
+
+        2. **Common Sufficient Conditions Guaranteeing $\operatorname{Row}(A) = \operatorname{Col}(A)$**:
+           - **Condition 1: $A$ is invertible ($\operatorname{rank}(A) = n$)**. Then $\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A) = n$, so $\operatorname{Row}(A) = \mathbb{R}^n = \operatorname{Col}(A)$.
+           - **Condition 2: $A$ is symmetric ($A^T = A$) or skew-symmetric ($A^T = -A$)**. Then $\operatorname{Row}(A) = \operatorname{Col}(A^T) = \operatorname{Col}(\pm A) = \operatorname{Col}(A)$. (Note: More generally, any normal matrix satisfying $A^T A = A A^T$ also satisfies $\operatorname{Row}(A) = \operatorname{Col}(A)$.)
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l10-ex3"
+    tier="L2"
+    tierLabel="L2 · Conceptual True/False"
+    title="Conceptual Trap (II): Which Fundamental Subspaces Are Preserved or Altered by Elementary Column Operations?"
+  >
+    Determine whether the following statement is true or false:
+
+    > **Statement**: Performing invertible elementary column operations on an $m \times n$ matrix $A$ (that is, multiplying on the right by an invertible $n \times n$ matrix $Q$ to obtain $B = AQ$) preserves the nullspace ($\operatorname{Null}(AQ) = \operatorname{Null}(A)$) while changing the column space.
+
+    <TrueFalseInteractive
+      id="l10-tf2"
+      correct={false}
+      trueLabel="True"
+      falseLabel="False (Counterexample Exists)"
+      quickFeedback="That is completely backwards! Multiplying on the left by an invertible matrix $EA$ (row operations) preserves $\operatorname{Row}$ and $\operatorname{Null}$; by transpose duality, multiplying on the right by an invertible matrix $AQ$ (column operations) preserves the output-side **column space $\operatorname{Col}$** and **left nullspace $\operatorname{Null}(A^T)$**, while distorting the input-side **row space** and **nullspace**!"
+    />
+
+    Let $Q \in \mathbb{R}^{n\times n}$ be invertible and set $B = AQ$. Prove rigorously: (1) $\operatorname{Col}(B) = \operatorname{Col}(A)$ and $\operatorname{Null}(B^T) = \operatorname{Null}(A^T)$; (2) how does the nullspace transform under $Q$ (write down the exact linear isomorphism between $\operatorname{Null}(AQ)$ and $\operatorname{Null}(A)$)?
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "To prove (1), take the transpose $B^T = Q^T A^T$: since $Q^T$ is invertible, $B^T$ is obtained from $A^T$ by invertible row operations! Directly applying our theorem for $EA$ from the main text finishes (1) in one line.",
+        "For (2): a vector $\\mathbf{z} \\in \\operatorname{Null}(AQ) \\iff A(Q\\mathbf{z}) = \\mathbf{0} \\iff Q\\mathbf{z} \\in \\operatorname{Null}(A)$. Multiply by $Q^{-1}$ to isolate $\\mathbf{z}$!"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        Multiplying on the right by an invertible matrix $Q$ takes invertible linear combinations of the **columns** of $A$ (such as adding column 1 to column 2, or swapping two columns). Recombining the same set of building blocks obviously builds the exact same output span $\operatorname{Col}(A)$! However, because you rearranged or recombined the column blocks, the input weights $\mathbf{x}$ needed to cancel them out to zero must undergo the inverse coordinate change $\mathbf{z} = Q^{-1}\mathbf{x}$!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        **The statement is False**. Here is the rigorous proof:
+
+        1. **Both Output-Side Subspaces Are Completely Unchanged**:
+           - Since $B = AQ$ and $A = BQ^{-1}$, the column-space inclusion rule for matrix products (Theorem 3.1 in Lecture 03) gives $\operatorname{Col}(B) \subseteq \operatorname{Col}(A)$ and $\operatorname{Col}(A) \subseteq \operatorname{Col}(B)$, so $\operatorname{Col}(AQ) = \operatorname{Col}(A)$.
+           - For the left nullspace: $\mathbf{y} \in \operatorname{Null}(B^T) \iff Q^T (A^T \mathbf{y}) = \mathbf{0}$. Because $Q^T$ is invertible (its nullspace is trivial), this is equivalent to $A^T \mathbf{y} = \mathbf{0} \iff \mathbf{y} \in \operatorname{Null}(A^T)$. Hence $\operatorname{Null}((AQ)^T) = \operatorname{Null}(A^T)$.
+
+        2. **Exact Coordinate Transformation of the Input-Side Nullspace**:
+           For any $\mathbf{z} \in \mathbb{R}^n$:
+
+           $$
+           \mathbf{z} \in \operatorname{Null}(AQ) \iff A(Q\mathbf{z}) = \mathbf{0} \iff Q\mathbf{z} \in \operatorname{Null}(A) \iff \mathbf{z} \in Q^{-1}\operatorname{Null}(A)
+           $$
+
+           That is, $\operatorname{Null}(AQ) = Q^{-1}\operatorname{Null}(A)$ (the dimension remains $n - r$, but the subspace itself generally changes; for example, if $A = [1, 0]$ and $Q$ is the $2\times 2$ column-swap matrix with rows $[0, 1]$ and $[1, 0]$, then $\operatorname{Null}(A) = \operatorname{span}\{(0,1)^T\} \neq \operatorname{span}\{(1,0)^T\} = \operatorname{Null}(AQ)$).
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l10-ex4"
+    tier="L3"
+    tierLabel="L3 · Zero-Calculation Subspace Reasoning"
+    title="Reverse-Engineering Exam Classic: Can a Matrix A Be Constructed with Specified Fundamental Subspaces?"
+  >
+    This is Gilbert Strang's favorite style of "zero-calculation subspace construction vs. impossibility" problem on MIT 18.06 Quiz 1. For each of the three engineering specifications below, determine whether such a real matrix $A$ exists; if it exists, construct an explicit matrix $A$, and if not, give a lethal proof of impossibility in three lines or fewer using the Fundamental Theorem of Linear Algebra:
+    1. **Specification A**: Construct a $3 \times 3$ matrix $A$ whose column space $\operatorname{Col}(A)$ contains $(1, 1, 0)^T$ and $(0, 1, 1)^T$, and whose nullspace $\operatorname{Null}(A)$ contains $(1, 0, 1)^T$ and $(0, 1, 1)^T$.
+    2. **Specification B**: Construct a matrix $A$ whose column space is spanned by $(1, 2, 3)^T$, while its row space is spanned by $(1, 0)^T$ and $(0, 1)^T$.
+    3. **Specification C**: Construct a $3 \times 3$ matrix $A$ whose column space is $\operatorname{Col}(A) = \operatorname{span}\{(1, 2, 3)^T\}$ and whose row space is $\operatorname{Row}(A) = \operatorname{span}\{(1, -1, 2)^T\}$.
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "For every specification, immediately pull out your dimension caliper and check the two iron laws: (1) $\\dim\\operatorname{Col}(A) + \\dim\\operatorname{Null}(A) = n$; (2) $\\dim\\operatorname{Col}(A) = \\dim\\operatorname{Row}(A) = r$!",
+        "In Specification A, $\\operatorname{Col}(A)$ contains two linearly independent vectors (so $r \\ge 2$), and $\\operatorname{Null}(A)$ also contains two linearly independent vectors (so $n - r \\ge 2$). What is the minimum possible value of $n$? Can $n=3$ hold them?",
+        "In Specification B, check whether row rank equals column rank; in Specification C, $r = 1$ matches on both sides — recall the **rank-1 outer product $\\mathbf{u}\\mathbf{v}^T$** from Lecture 03 to write down $A$ in one second!"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        The Fundamental Theorem of Linear Algebra acts as the "conservation of energy law" for all matrix construction problems:
+        - Specification A tries to cram at least $2$ dimensions of rank and at least $2$ dimensions of nullspace into an $n = 3$ dimensional input space: $2 + 2 = 4 \gt 3$, blowing past the capacity of $\mathbb{R}^3$ — impossible!
+        - Specification B demands a $1$-dimensional line as the column space but a $2$-dimensional plane as the row space, violating the iron law that "row rank must equal column rank" — impossible!
+        - Specification C asks for a $1$-dimensional line on both sides ($r = 1$), so multiplying the column vector by the row vector as an outer product $\mathbf{u}\mathbf{v}^T$ finishes the job in one second!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        1. **Specification A: Impossible!**
+           Because $(1,1,0)^T$ and $(0,1,1)^T$ are linearly independent, we must have $r = \dim\operatorname{Col}(A) \ge 2$. Similarly, $(1,0,1)^T$ and $(0,1,1)^T$ are linearly independent, so $\dim\operatorname{Null}(A) \ge 2$. By the Rank-Nullity Theorem, the number of columns must satisfy
+
+           $$
+           n = \dim\operatorname{Col}(A) + \dim\operatorname{Null}(A) \ge 2 + 2 = 4 \gt 3
+           $$
+
+           which contradicts $A$ being a $3\times 3$ matrix ($n = 3$)!
+
+        2. **Specification B: Impossible!**
+           By assumption, $\dim\operatorname{Col}(A) = 1$, whereas $(1,0)^T$ and $(0,1)^T$ are linearly independent so $\dim\operatorname{Row}(A) = 2$. This directly contradicts the Fundamental Theorem of Linear Algebra, $\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A)$!
+
+        3. **Specification C: Possible!**
+           Set $\mathbf{u} = [1, 2, 3]^T$ and $\mathbf{v} = [1, -1, 2]^T$, and directly construct the rank-$1$ outer product matrix:
+
+           $$
+           A = \mathbf{u}\mathbf{v}^T = \begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix} \begin{bmatrix} 1 & -1 & 2 \end{bmatrix} = \begin{bmatrix} 1 & -1 & 2 \\ 2 & -2 & 4 \\ 3 & -3 & 6 \end{bmatrix}
+           $$
+
+           Every column is a nonzero multiple of $\mathbf{u}$ (so $\operatorname{Col}(A) = \operatorname{span}\{\mathbf{u}\}$), and every row is a nonzero multiple of $\mathbf{v}^T$ (so $\operatorname{Row}(A) = \operatorname{span}\{\mathbf{v}\}$), satisfying all requirements.
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l10-ex5"
+    tier="L4"
+    tierLabel="L4 · MIT 18.06 Exam Synthesis"
+    title="The Crown Jewel Challenge: Prove That Every Matrix A Establishes a Perfect Bijection Between Its Row Space and Column Space!"
+  >
+    For a general $m \times n$ matrix $A$ with rank $r \lt \min(m, n)$, the linear map $\mathbf{x} \mapsto A\mathbf{x}$ from all of $\mathbb{R}^n$ to $\mathbb{R}^m$ is neither injective (since the nullspace is nontrivial) nor surjective (since the column space does not fill $\mathbb{R}^m$).
+    However, if we restrict the domain to the **row space $\operatorname{Row}(A)$** and the codomain to the **column space $\operatorname{Col}(A)$**, a miracle occurs! Using the fact that **the row space and nullspace intersect only at the zero vector** — i.e., $\operatorname{Row}(A) \cap \operatorname{Null}(A) = \{\mathbf{0}\}$ over $\mathbb{R}^n$ (if $\mathbf{z} \in \operatorname{Row}(A) \cap \operatorname{Null}(A)$, then $\mathbf{z} = A^T\mathbf{w}$ and $A\mathbf{z}=\mathbf{0}$, so $\mathbf{z}^T\mathbf{z} = \mathbf{w}^T A \mathbf{z} = 0 \implies \mathbf{z}=\mathbf{0}$!) — prove:
+    1. **Surjectivity**: For every $\mathbf{b} \in \operatorname{Col}(A)$, why does the equation $A\mathbf{x}_r = \mathbf{b}$ **always have a solution** inside the row space $\operatorname{Row}(A)$? (Hint: Take any solution $\mathbf{x} \in \mathbb{R}^n$ and use $\dim\operatorname{Row}(A) + \dim\operatorname{Null}(A) = n$ together with the trivial-intersection property to uniquely decompose $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$!)
+    2. **Injectivity**: If $\mathbf{x}_r, \mathbf{y}_r \in \operatorname{Row}(A)$ satisfy $A\mathbf{x}_r = A\mathbf{y}_r$, prove that $\mathbf{x}_r = \mathbf{y}_r$! This shows that every reachable target $\mathbf{b} \in \operatorname{Col}(A)$ originates from a **globally unique** source vector $\mathbf{x}_r$ inside the row space $\operatorname{Row}(A)$!
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "First see why any $\\mathbf{x} \\in \\mathbb{R}^n$ splits uniquely as $\\mathbf{x}_r + \\mathbf{x}_n$: take a basis of $\\operatorname{Row}(A)$ ($r$ vectors) and a basis of $\\operatorname{Null}(A)$ ($n-r$ vectors). Since $\\operatorname{Row}(A) \\cap \\operatorname{Null}(A) = \\{\\mathbf{0}\\}$, the combined list of $n$ vectors is linearly independent in $\\mathbb{R}^n$ and therefore forms a basis for all of $\\mathbb{R}^n$!",
+        "For any $\\mathbf{b} \\in \\operatorname{Col}(A)$, pick any solution $\\mathbf{x} \\in \\mathbb{R}^n$ with $A\\mathbf{x} = \\mathbf{b}$, split it as $\\mathbf{x} = \\mathbf{x}_r + \\mathbf{x}_n$, and multiply both sides by $A$ — what happens to $A\\mathbf{x}_n$?",
+        "For injectivity, examine the difference vector $\\mathbf{d} = \\mathbf{x}_r - \\mathbf{y}_r$: which two subspaces does it simultaneously belong to? Use the trivial intersection $\\{\\mathbf{0}\\}$ to finish!"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        This problem lifts the curtain on the crowning vista of Module 2 (Orthogonality) and Module 4 (Singular Value Decomposition SVD and the Pseudoinverse $A^+$)!
+        The only reason infinitely many solutions appear across the full input space $\mathbb{R}^n$ is that the nullspace $\operatorname{Null}(A)$ adds silent ambiguity. Once we filter out the nullspace and stand purely on the $r$-dimensional sanctuary of the row space $\operatorname{Row}(A)$, all redundancy vanishes: every vector $\mathbf{x}_r$ in the $r$-dimensional row space is mapped by $A$ one-to-one and onto a unique vector $\mathbf{b} = A\mathbf{x}_r$ in the $r$-dimensional column space! Restricted between these two $r$-dimensional subspaces, **every matrix $A$ is essentially invertible**!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        **Preliminary Lemma (Direct-Sum Decomposition $\mathbb{R}^n = \operatorname{Row}(A) \oplus \operatorname{Null}(A)$)**:
+        Let $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ be a basis for $\operatorname{Row}(A)$ and $\{\mathbf{z}_1, \dots, \mathbf{z}_{n-r}\}$ be a basis for $\operatorname{Null}(A)$. If $\sum_{i=1}^r \alpha_i \mathbf{v}_i + \sum_{j=1}^{n-r} \beta_j \mathbf{z}_j = \mathbf{0}$, set $\mathbf{w} = \sum_{i=1}^r \alpha_i \mathbf{v}_i = -\sum_{j=1}^{n-r} \beta_j \mathbf{z}_j$. Then $\mathbf{w} \in \operatorname{Row}(A) \cap \operatorname{Null}(A) = \{\mathbf{0}\}$, so $\mathbf{w} = \mathbf{0}$. Linear independence of each individual basis then forces all $\alpha_i = 0$ and $\beta_j = 0$. Thus these $r + (n-r) = n$ linearly independent vectors form a basis for $\mathbb{R}^n$, and every $\mathbf{x} \in \mathbb{R}^n$ decomposes uniquely as $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$ with $\mathbf{x}_r \in \operatorname{Row}(A)$ and $\mathbf{x}_n \in \operatorname{Null}(A)$.
+
+        1. **Proof of Surjectivity (Existence)**:
+           Take any $\mathbf{b} \in \operatorname{Col}(A)$. By definition of the column space, there exists $\mathbf{x} \in \mathbb{R}^n$ such that $A\mathbf{x} = \mathbf{b}$. Decompose $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$ ($\mathbf{x}_r \in \operatorname{Row}(A), \mathbf{x}_n \in \operatorname{Null}(A)$) and multiply on the left by $A$:
+
+           $$
+           \mathbf{b} = A\mathbf{x} = A(\mathbf{x}_r + \mathbf{x}_n) = A\mathbf{x}_r + \mathbf{0} = A\mathbf{x}_r
+           $$
+
+           Hence there always exists $\mathbf{x}_r \in \operatorname{Row}(A)$ inside the row space that maps to $\mathbf{b}$!
+
+        2. **Proof of Injectivity (Uniqueness)**:
+           Suppose $\mathbf{x}_r, \mathbf{y}_r \in \operatorname{Row}(A)$ satisfy $A\mathbf{x}_r = A\mathbf{y}_r$. Consider the difference vector $\mathbf{d} = \mathbf{x}_r - \mathbf{y}_r$:
+           - Since $\operatorname{Row}(A)$ is a subspace (closed under subtraction), $\mathbf{d} \in \operatorname{Row}(A)$;
+           - Since $A\mathbf{d} = A\mathbf{x}_r - A\mathbf{y}_r = \mathbf{0}$, we also have $\mathbf{d} \in \operatorname{Null}(A)$.
+           Therefore $\mathbf{d} \in \operatorname{Row}(A) \cap \operatorname{Null}(A) = \{\mathbf{0}\}$, which means $\mathbf{x}_r - \mathbf{y}_r = \mathbf{0} \implies \mathbf{x}_r = \mathbf{y}_r$!
+           In conclusion, the restricted map $\left.A\right|_{\operatorname{Row}(A)} : \operatorname{Row}(A) \xrightarrow{\;\sim\;} \operatorname{Col}(A)$ is a linear isomorphism (bijection) between two $r$-dimensional subspaces!
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+</ProblemSet>

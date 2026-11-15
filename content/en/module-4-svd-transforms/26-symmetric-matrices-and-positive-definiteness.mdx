@@ -1,0 +1,1070 @@
+---
+title: "Lecture 26: Real Symmetric Matrices and the Spectral Theorem"
+ocwId: "L25"
+videoEpisode: "P26"
+textbookRef: "§6.4"
+---
+
+Welcome to the opening lecture of Module IV. Across the first three modules, we climbed through systems of linear equations and the four fundamental subspaces (Module I), orthogonal projections and least squares (Module II), and determinants and general diagonalization (Module III). Yet whenever we feed a general square matrix $A \in \mathbb{R}^{n \times n}$ into the diagonalization machine $A = S\Lambda S^{-1}$, we always have to watch out for three potential hazards:
+
+1. **The complex eigenvalue hazard**: Even when $A$ has purely real entries (like the $90^\circ$ rotation matrix from Lecture 22), its eigenvalues can escape into the complex plane ($\lambda = \pm i$), leaving no real eigenvectors in $\mathbb{R}^n$ at all.
+2. **The defective (non-diagonalizable) hazard**: Even when all eigenvalues are real, a repeated root whose geometric multiplicity is smaller than its algebraic multiplicity (such as the shear matrix with rows $[1, 1]$ and $[0, 1]$) leaves us short of $n$ independent eigenvectors, so $S$ is not invertible.
+3. **The skewed basis hazard**: Even when $A$ is diagonalizable, the eigenvector matrix $S$ is generally not orthogonal, making $S^{-1}$ expensive to compute and prone to severe numerical ill-conditioning.
+
+Today's star—the **real symmetric matrix** $A = A^T \in \mathbb{R}^{n \times n}$—eliminates all three hazards in a single stroke! Prof. Gilbert Strang calls real symmetric matrices **"the most important matrices in linear algebra."** Whenever $A$ is real and symmetric, it **never has complex eigenvalues**, **never becomes defective (always diagonalizable)**, and its eigenvectors can always be chosen to form an **orthonormal basis** $Q$, elevating diagonalization to its purest, most symmetric form:
+
+$$
+A = Q \Lambda Q^T = \sum_{i=1}^n \lambda_i \mathbf{q}_i \mathbf{q}_i^T
+$$
+
+Going one step further, we will place Gaussian elimination's $A = L D L^T$ side by side with the spectral factorization $A = Q \Lambda Q^T$ to uncover **Sylvester's Law of Inertia**—the conservation law linking the signs of the pivots to the signs of the eigenvalues—and pave the way directly to positive definite matrices in Lecture 28.
+
+---
+
+## 1. Geometric Intuition & A $2 \times 2$ Numerical Anatomy: How Does a Symmetric Matrix Transform Space?
+
+Before proving any abstract theorem, let us examine by hand a classic $2 \times 2$ real symmetric matrix:
+
+$$
+A = \begin{bmatrix} 3 & 1 \\ 1 & 3 \end{bmatrix} \in \mathbb{R}^{2 \times 2}
+$$
+
+First, compute its characteristic polynomial (noting $\operatorname{tr}(A) = 6$ and $\det(A) = 8$):
+
+$$
+\det(A - \lambda I_2) = \det \begin{bmatrix} 3 - \lambda & 1 \\ 1 & 3 - \lambda \end{bmatrix} = (3 - \lambda)^2 - 1 = \lambda^2 - 6\lambda + 8 = (\lambda - 4)(\lambda - 2) = 0
+$$
+
+The eigenvalues are two real numbers: $\lambda_1 = 4$ and $\lambda_2 = 2$. Next, find an eigenvector in each nullspace and normalize it to unit length:
+
+- **For $\lambda_1 = 4$**: Solving $(A - 4I_2)\mathbf{x}_1 = \mathbf{0}$ gives:
+
+$$
+\begin{bmatrix} -1 & 1 \\ 1 & -1 \end{bmatrix}\mathbf{x}_1 = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}, \qquad \mathbf{q}_1 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+$$
+
+- **For $\lambda_2 = 2$**: Solving $(A - 2I_2)\mathbf{x}_2 = \mathbf{0}$ gives:
+
+$$
+\begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix}\mathbf{x}_2 = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} -1 \\ 1 \end{bmatrix}, \qquad \mathbf{q}_2 = \frac{1}{\sqrt{2}} \begin{bmatrix} -1 \\ 1 \end{bmatrix}
+$$
+
+Take the dot product of these two eigenvectors right away:
+
+$$
+\mathbf{q}_1^T \mathbf{q}_2 = \frac{1}{2}\big(1 \cdot (-1) + 1 \cdot 1\big) = 0
+$$
+
+They are **automatically perpendicular**! Assemble them side by side into the orthogonal matrix $Q = [\mathbf{q}_1 \;\; \mathbf{q}_2]$. Because $Q^T Q = I_2$, we have $Q^{-1} = Q^T$, and $A = S\Lambda S^{-1}$ immediately simplifies to the beautifully symmetric factorization:
+
+$$
+A = Q \Lambda Q^T = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & -1 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} 4 & 0 \\ 0 & 2 \end{bmatrix} \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \\ -1 & 1 \end{bmatrix}
+$$
+
+### The Geometric Action of Rank-One Orthogonal Projections
+
+Expanding $(Q\Lambda) Q^T$ via Lecture 3's **"columns times rows" (sum of outer products)** gives the most striking geometric picture of this lecture:
+
+$$
+A = \lambda_1 \mathbf{q}_1 \mathbf{q}_1^T + \lambda_2 \mathbf{q}_2 \mathbf{q}_2^T = 4 P_1 + 2 P_2
+$$
+
+Here, the two rank-one matrices $P_1$ and $P_2$ are the **orthogonal projection matrices** onto the eigenlines $\operatorname{span}\{\mathbf{q}_1\}$ and $\operatorname{span}\{\mathbf{q}_2\}$:
+
+$$
+P_1 = \mathbf{q}_1 \mathbf{q}_1^T = \begin{bmatrix} 1/2 & 1/2 \\ 1/2 & 1/2 \end{bmatrix}, \qquad P_2 = \mathbf{q}_2 \mathbf{q}_2^T = \begin{bmatrix} 1/2 & -1/2 \\ -1/2 & 1/2 \end{bmatrix}
+$$
+
+Check their projection algebra: $P_1^2 = P_1 = P_1^T$, $P_2^2 = P_2 = P_2^T$, $P_1 P_2 = O$, and $P_1 + P_2 = I_2$ (a complete orthogonal resolution of the identity). Now take any input vector—say $\mathbf{x} = [1, 3]^T$—and watch what $A$ actually does to it:
+
+1. **Step 1 (Orthogonal projection split)**: Use $P_1$ and $P_2$ to decompose $\mathbf{x}$ along the two perpendicular eigenaxes:
+
+$$
+P_1 \mathbf{x} = \begin{bmatrix} 1/2 & 1/2 \\ 1/2 & 1/2 \end{bmatrix} \begin{bmatrix} 1 \\ 3 \end{bmatrix} = \begin{bmatrix} 2 \\ 2 \end{bmatrix}, \qquad P_2 \mathbf{x} = \begin{bmatrix} 1/2 & -1/2 \\ -1/2 & 1/2 \end{bmatrix} \begin{bmatrix} 1 \\ 3 \end{bmatrix} = \begin{bmatrix} -1 \\ 1 \end{bmatrix}
+$$
+
+   Verify: $P_1 \mathbf{x} + P_2 \mathbf{x} = [2, 2]^T + [-1, 1]^T = [1, 3]^T = \mathbf{x}$, and $(P_1 \mathbf{x})^T (P_2 \mathbf{x}) = -2 + 2 = 0$.
+2. **Step 2 (Pure real scaling along each eigenaxis and recombination)**: Stretch along the two orthogonal axes by $\lambda_1 = 4$ and $\lambda_2 = 2$, then add the results:
+
+$$
+A\mathbf{x} = 4 P_1 \mathbf{x} + 2 P_2 \mathbf{x} = 4 \begin{bmatrix} 2 \\ 2 \end{bmatrix} + 2 \begin{bmatrix} -1 \\ 1 \end{bmatrix} = \begin{bmatrix} 8 \\ 8 \end{bmatrix} + \begin{bmatrix} -2 \\ 2 \end{bmatrix} = \begin{bmatrix} 6 \\ 10 \end{bmatrix}
+$$
+
+Direct matrix multiplication gives the exact same result:
+
+$$
+\begin{bmatrix} 3 & 1 \\ 1 & 3 \end{bmatrix}\begin{bmatrix} 1 \\ 3 \end{bmatrix} = \begin{bmatrix} 6 \\ 10 \end{bmatrix}
+$$
+
+That is the entire geometric secret of a real symmetric matrix: **in its own orthonormal eigenbasis, a real symmetric matrix has no rotation and no shear—it is purely an independent scaling along a set of mutually perpendicular principal axes!**
+
+<SpectralRankOneProjectionsDiagram caption="Rank-one orthogonal projection picture: an input vector x is split orthogonally onto the perpendicular eigenaxes q1 and q2 via P1x and P2x, scaled independently by real eigenvalues lambda1 and lambda2, and recombined into Ax." />
+
+---
+
+## 2. The Spectral Theorem: Formal Statement and Three Foundational Proofs
+
+Now let us elevate that $2 \times 2$ miracle to a rigorous theorem valid in any dimension $n$. First, we state the core definitions and the natural bridge to the complex plane.
+
+<DefinitionCard title="Real Symmetric Matrices, Rank-1 Orthogonal Projections, and the Hermitian Analogy">
+
+1. **Real Symmetric Matrix**: A square matrix $A \in \mathbb{R}^{n \times n}$ is **real symmetric** if it equals its own transpose:
+
+$$
+A = A^T \quad (\text{that is, } a_{ij} = a_{ji} \text{ for all } 1 \le i, j \le n)
+$$
+
+2. **Rank-One Orthogonal Projection Matrix**: For any unit vector $\mathbf{q} \in \mathbb{R}^n$ ($\|\mathbf{q}\|_2 = \sqrt{\mathbf{q}^T\mathbf{q}} = 1$), the outer product $P = \mathbf{q}\mathbf{q}^T \in \mathbb{R}^{n \times n}$ orthogonally projects any vector onto the line $\operatorname{span}\{\mathbf{q}\}$, and satisfies symmetry ($P^T = P$), idempotence ($P^2 = \mathbf{q}(\mathbf{q}^T\mathbf{q})\mathbf{q}^T = P$), and $\operatorname{rank}(P) = 1$.
+3. **Conjugate Transpose and Hermitian Matrix**: Over the complex field $\mathbb{C}^{n \times n}$, denote the conjugate transpose of $A$ by $A^H = \overline{A}^T$. A complex square matrix $A \in \mathbb{C}^{n \times n}$ is **Hermitian** if $A^H = A$. A real symmetric matrix is precisely a Hermitian matrix restricted to $\mathbb{R}^{n \times n}$ (when $A$ is real, $\overline{A} = A$, so $A^H = A^T = A$).
+
+</DefinitionCard>
+
+With these definitions in place, we can state one of the crowning theorems of linear algebra: **The Real Spectral Theorem**.
+
+<TheoremCard title="The Real Spectral Theorem">
+
+Let $A \in \mathbb{R}^{n \times n}$ be any **real symmetric matrix** ($A = A^T$). Then all four of the following hold simultaneously:
+
+1. **All Eigenvalues Are Real**: Even when solving the characteristic equation $\det(A - \lambda I_n) = 0$ over $\mathbb{C}$, all $n$ roots (counted with multiplicity) lie strictly in $\mathbb{R}$; moreover, for each eigenvalue $\lambda_i$, a nonzero real eigenvector exists in $\mathbb{R}^n$.
+2. **Eigenspaces for Distinct Eigenvalues Are Orthogonal**: If $A\mathbf{x}_1 = \lambda_1\mathbf{x}_1$ and $A\mathbf{x}_2 = \lambda_2\mathbf{x}_2$ with $\lambda_1 \ne \lambda_2$, then:
+
+$$
+\mathbf{x}_1^T \mathbf{x}_2 = 0
+$$
+
+3. **No Defectiveness & Orthogonal Diagonalization**: For every eigenvalue $\lambda$, its geometric multiplicity equals its algebraic multiplicity ($\operatorname{GM}(\lambda) = \operatorname{AM}(\lambda)$). Consequently, there exists a real orthogonal matrix $Q = [\mathbf{q}_1 \;\; \mathbf{q}_2 \;\; \cdots \;\; \mathbf{q}_n] \in \mathbb{R}^{n \times n}$ (satisfying $Q^T Q = Q Q^T = I_n$) and a real diagonal matrix $\Lambda = \operatorname{diag}(\lambda_1, \lambda_2, \dots, \lambda_n) \in \mathbb{R}^{n \times n}$ such that:
+
+$$
+A = Q \Lambda Q^T
+$$
+
+4. **Spectral Expansion in Rank-One Projections**: Equivalently, $A$ decomposes as a real weighted sum of $n$ mutually orthogonal rank-one projection matrices $P_i = \mathbf{q}_i \mathbf{q}_i^T$:
+
+$$
+A = \sum_{i=1}^n \lambda_i \mathbf{q}_i \mathbf{q}_i^T = \sum_{i=1}^n \lambda_i P_i
+$$
+
+   where $P_i^2 = P_i = P_i^T$, $P_i P_j = O$ for $i \ne j$, and $\sum_{i=1}^n P_i = Q Q^T = I_n$ (**resolution of the identity**).
+
+</TheoremCard>
+
+In informal notes, people often skip the proofs or gloss over subtle steps (especially dropping complex conjugates when proving eigenvalues are real!). Below are **airtight, complete proofs** of all three pillars of the Spectral Theorem.
+
+<ProofCollapse title="Rigorous Proof: Why Must All Eigenvalues of a Real Symmetric Matrix Be Real? (Full Complex Conjugate Proof)">
+
+**Claim**: Let $A \in \mathbb{R}^{n \times n}$ satisfy $A^T = A$. If $\lambda \in \mathbb{C}$ and $\mathbf{x} \in \mathbb{C}^n \setminus \{\mathbf{0}\}$ satisfy $A\mathbf{x} = \lambda\mathbf{x}$, then $\lambda \in \mathbb{R}$.
+
+**Why must we allow $\lambda$ and $\mathbf{x}$ to be complex at the start?**
+Before proving the theorem, we **cannot assume** $\lambda$ and $\mathbf{x}$ are real—that is what we are trying to prove! By the Fundamental Theorem of Algebra, $\det(A - \lambda I_n) = 0$ has at least one root $\lambda \in \mathbb{C}$, and the homogeneous system $(A - \lambda I_n)\mathbf{x} = \mathbf{0}$ has a nonzero complex solution $\mathbf{x} \in \mathbb{C}^n \setminus \{\mathbf{0}\}$. Starting from $A\mathbf{x} = \lambda\mathbf{x}$, we will force $\lambda = \bar{\lambda}$.
+
+**Step 1 (Take complex conjugates)**: Take the complex conjugate of both sides of $A\mathbf{x} = \lambda\mathbf{x}$:
+
+$$
+\overline{A\mathbf{x}} = \overline{\lambda\mathbf{x}} \implies \bar{A}\bar{\mathbf{x}} = \bar{\lambda}\bar{\mathbf{x}}
+$$
+
+Because every entry of $A \in \mathbb{R}^{n \times n}$ is **real**, its conjugate equals itself: $\bar{A} = A$. Thus:
+
+$$
+A\bar{\mathbf{x}} = \bar{\lambda}\bar{\mathbf{x}}
+$$
+
+**Step 2 (Transpose and use $A^T = A$)**: Take the transpose of both sides of $A\bar{\mathbf{x}} = \bar{\lambda}\bar{\mathbf{x}}$:
+
+$$
+(A\bar{\mathbf{x}})^T = (\bar{\lambda}\bar{\mathbf{x}})^T \implies \bar{\mathbf{x}}^T A^T = \bar{\lambda}\bar{\mathbf{x}}^T
+$$
+
+Using $A^T = A$, this becomes:
+
+$$
+\bar{\mathbf{x}}^T A = \bar{\lambda}\bar{\mathbf{x}}^T
+$$
+
+Right-multiply both sides by $\mathbf{x}$:
+
+$$
+\bar{\mathbf{x}}^T A \mathbf{x} = \bar{\lambda} (\bar{\mathbf{x}}^T \mathbf{x}) \tag{1}
+$$
+
+**Step 3 (Left-multiply the original equation by $\bar{\mathbf{x}}^T$)**: Returning to $A\mathbf{x} = \lambda\mathbf{x}$, left-multiply both sides by $\bar{\mathbf{x}}^T$:
+
+$$
+\bar{\mathbf{x}}^T A \mathbf{x} = \lambda (\bar{\mathbf{x}}^T \mathbf{x}) \tag{2}
+$$
+
+**Step 4 (Subtract and check positivity of the norm)**: Subtracting equation $(1)$ from equation $(2)$ cancels $\bar{\mathbf{x}}^T A \mathbf{x}$ completely:
+
+$$
+(\lambda - \bar{\lambda})(\bar{\mathbf{x}}^T \mathbf{x}) = 0
+$$
+
+Now comes the crucial check: **$\bar{\mathbf{x}}^T \mathbf{x}$ cannot possibly be zero!** Expanding it gives:
+
+$$
+\bar{\mathbf{x}}^T \mathbf{x} = \sum_{k=1}^n \bar{x}_k x_k = \sum_{k=1}^n |x_k|^2
+$$
+
+Since $\mathbf{x} \in \mathbb{C}^n$ is a nonzero eigenvector ($\mathbf{x} \ne \mathbf{0}$), at least one component has $|x_k| \gt 0$, and every term $|x_k|^2 \ge 0$ is a nonnegative real number. Therefore:
+
+$$
+\bar{\mathbf{x}}^T \mathbf{x} = \|\mathbf{x}\|_2^2 \gt 0
+$$
+
+Dividing both sides by the strictly positive real number $\bar{\mathbf{x}}^T \mathbf{x} \gt 0$ forces:
+
+$$
+\lambda - \bar{\lambda} = 0 \implies \lambda = \bar{\lambda} \implies \lambda \in \mathbb{R}
+$$
+
+**Immediate Corollary (Real Eigenvectors)**: Since $\lambda \in \mathbb{R}$, the matrix $A - \lambda I_n \in \mathbb{R}^{n \times n}$ is purely real and singular. Gaussian elimination over $\mathbb{R}$ on $(A - \lambda I_n)\mathbf{v} = \mathbf{0}$ produces a nonzero **real** eigenvector $\mathbf{v} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$.
+
+**Warning: Why can't we skip the conjugate and just write $\mathbf{x}^T A \mathbf{x}$?**
+1. Without conjugation, $\mathbf{x}^T A \mathbf{x} = \mathbf{x}^T A^T \mathbf{x} = (A\mathbf{x})^T \mathbf{x} = \lambda \mathbf{x}^T \mathbf{x}$, which subtracted from $\mathbf{x}^T(A\mathbf{x}) = \lambda \mathbf{x}^T \mathbf{x}$ merely yields the useless tautology $0 = 0$—no $\bar{\lambda}$ ever appears!
+2. Worse still, for a complex vector $\mathbf{x} \in \mathbb{C}^n \setminus \{\mathbf{0}\}$, the unconjugated product $\mathbf{x}^T \mathbf{x}$ **can be zero**! For example, $\mathbf{x} = [1, i]^T \ne \mathbf{0}$ has $\mathbf{x}^T \mathbf{x} = 1^2 + i^2 = 0$, whereas the Hermitian inner product $\bar{\mathbf{x}}^T \mathbf{x} = |1|^2 + |i|^2 = 2 \gt 0$ is strictly positive.
+
+**Natural Extension to $\mathbb{C}$**: If we replace "real and $A^T = A$" with "complex and Hermitian ($A^H = \overline{A}^T = A$)," the exact same proof goes through: $\mathbf{x}^H A \mathbf{x} = \lambda \mathbf{x}^H\mathbf{x}$ and $\mathbf{x}^H A \mathbf{x} = (A\mathbf{x})^H \mathbf{x} = \bar{\lambda}\mathbf{x}^H\mathbf{x}$, giving $(\lambda - \bar{\lambda})\mathbf{x}^H\mathbf{x} = 0 \implies \lambda \in \mathbb{R}$ (see Lecture 27).
+
+</ProofCollapse>
+
+<ProofCollapse title="Rigorous Proof: Why Are Eigenvectors of Distinct Eigenvalues Orthogonal?">
+
+**Claim**: Let $A \in \mathbb{R}^{n \times n}$ satisfy $A^T = A$. If $A\mathbf{x}_1 = \lambda_1\mathbf{x}_1$, $A\mathbf{x}_2 = \lambda_2\mathbf{x}_2$, and $\lambda_1 \ne \lambda_2$, then $\mathbf{x}_1^T \mathbf{x}_2 = 0$.
+
+**Proof**: Using symmetry $A = A^T$, evaluate the scalar "sandwich" $\mathbf{x}_1^T A \mathbf{x}_2$ in two ways:
+
+1. Let $A$ act **to the right** on $\mathbf{x}_2$:
+
+$$
+\mathbf{x}_1^T (A\mathbf{x}_2) = \mathbf{x}_1^T (\lambda_2 \mathbf{x}_2) = \lambda_2 (\mathbf{x}_1^T \mathbf{x}_2)
+$$
+
+2. Let $A$ act **to the left** on $\mathbf{x}_1^T$ (using $(A\mathbf{x}_1)^T = \mathbf{x}_1^T A^T = \mathbf{x}_1^T A$):
+
+$$
+\mathbf{x}_1^T A \mathbf{x}_2 = \mathbf{x}_1^T A^T \mathbf{x}_2 = (A\mathbf{x}_1)^T \mathbf{x}_2 = (\lambda_1 \mathbf{x}_1)^T \mathbf{x}_2 = \lambda_1 (\mathbf{x}_1^T \mathbf{x}_2)
+$$
+
+Because both expressions equal the same number $\mathbf{x}_1^T A \mathbf{x}_2$, subtracting them gives:
+
+$$
+(\lambda_1 - \lambda_2)(\mathbf{x}_1^T \mathbf{x}_2) = 0
+$$
+
+Since $\lambda_1 \ne \lambda_2$, we have $\lambda_1 - \lambda_2 \ne 0$. Dividing by $\lambda_1 - \lambda_2$ forces:
+
+$$
+\mathbf{x}_1^T \mathbf{x}_2 = 0
+$$
+
+Hence eigenvectors corresponding to distinct eigenvalues are strictly orthogonal!
+
+</ProofCollapse>
+
+<ProofCollapse title="Rigorous Proof: Why Is a Real Symmetric Matrix Never Defective, Even with Repeated Eigenvalues? (Schur Decomposition)">
+
+The first two proofs only guarantee that eigenvectors for **distinct** eigenvalues are orthogonal. If the characteristic polynomial has a repeated root (for instance, $\lambda_1 = \lambda_2 = 5$), how do we know the geometric multiplicity will never fall short of the algebraic multiplicity—that $A$ will never behave like the defective matrix with rows $[5, 1]$ and $[0, 5]$—so that we can always assemble $n$ orthonormal eigenvectors?
+
+Here is a clean, minimal proof using **Schur Decomposition**:
+
+**Step 1 (Real Schur form via induction)**:
+For any square matrix, Schur's triangularization theorem gives $A = U T U^H$ with $U$ unitary and $T$ upper triangular. Better yet, because **Proof 1** already guarantees all eigenvalues of a real symmetric matrix $A$ are **real**, we can carry out the real Schur construction directly inside $\mathbb{R}^n$ by induction on $n$:
+- Base case $n = 1$: $A = [\lambda_1]$ is already a $1 \times 1$ real diagonal matrix.
+- Inductive step: Assume the theorem holds for all $(n-1) \times (n-1)$ real symmetric matrices. For an $n \times n$ real symmetric matrix $A$, use Proof 1 to pick one real eigenvalue $\lambda_1 \in \mathbb{R}$ and a unit real eigenvector $\mathbf{q}_1 \in \mathbb{R}^n$ ($\|\mathbf{q}_1\|_2 = 1$).
+- Extend $\mathbf{q}_1$ to an orthonormal basis of $\mathbb{R}^n$, forming a real orthogonal matrix $Q_1 = [\mathbf{q}_1 \;\; V_1] \in \mathbb{R}^{n \times n}$ (where $V_1 \in \mathbb{R}^{n \times (n-1)}$ satisfies $V_1^T \mathbf{q}_1 = \mathbf{0}$ and $V_1^T V_1 = I_{n-1}$). Compute the orthogonal similarity transform $Q_1^T A Q_1$:
+
+$$
+Q_1^T A Q_1 = \begin{bmatrix} \mathbf{q}_1^T \\ V_1^T \end{bmatrix} \begin{bmatrix} A\mathbf{q}_1 & A V_1 \end{bmatrix} = \begin{bmatrix} \mathbf{q}_1^T (\lambda_1 \mathbf{q}_1) & \mathbf{q}_1^T A V_1 \\ V_1^T (\lambda_1 \mathbf{q}_1) & V_1^T A V_1 \end{bmatrix} = \begin{bmatrix} \lambda_1 & \mathbf{w}^T \\ \mathbf{0} & B \end{bmatrix}
+$$
+
+  where we used $\mathbf{q}_1^T \mathbf{q}_1 = 1$ and $V_1^T \mathbf{q}_1 = \mathbf{0}$, and set $\mathbf{w}^T = \mathbf{q}_1^T A V_1$ and $B = V_1^T A V_1 \in \mathbb{R}^{(n-1)\times(n-1)}$.
+
+**Step 2 (Upper triangular + symmetric = diagonal!)**:
+Now apply $A^T = A$ to knock out the off-diagonal block $\mathbf{w}^T$:
+
+$$
+(Q_1^T A Q_1)^T = Q_1^T A^T (Q_1^T)^T = Q_1^T A Q_1
+$$
+
+So $Q_1^T A Q_1$ is itself real symmetric! Equating the block matrix to its transpose:
+
+$$
+\begin{bmatrix} \lambda_1 & \mathbf{w}^T \\ \mathbf{0} & B \end{bmatrix} = \begin{bmatrix} \lambda_1 & \mathbf{0}^T \\ \mathbf{w} & B^T \end{bmatrix}
+$$
+
+Comparing blocks yields two golden facts:
+1. **The upper-right block vanishes**: $\mathbf{w} = \mathbf{0}$.
+2. **The lower-right submatrix stays real symmetric**: $B^T = B \in \mathbb{R}^{(n-1)\times(n-1)}$.
+
+*(Global Schur view: if we write the full real Schur form $A = Q T Q^T$ with $T$ upper triangular, symmetry $A = A^T$ gives $Q T Q^T = Q T^T Q^T \implies T = T^T$. **A matrix that is both upper triangular and lower triangular must be diagonal!**)*
+
+**Step 3 (Closing the induction)**:
+By the inductive hypothesis applied to the $(n-1) \times (n-1)$ real symmetric matrix $B$, there exist a real orthogonal matrix $\tilde{Q}$ and a real diagonal matrix $\tilde{\Lambda}$ such that $B = \tilde{Q} \tilde{\Lambda} \tilde{Q}^T$. Define:
+
+$$
+Q = Q_1 \begin{bmatrix} 1 & \mathbf{0}^T \\ \mathbf{0} & \tilde{Q} \end{bmatrix} \in \mathbb{R}^{n \times n}
+$$
+
+As a product of two orthogonal matrices, $Q$ is orthogonal ($Q^T Q = I_n$), and:
+
+$$
+Q^T A Q = \begin{bmatrix} 1 & \mathbf{0}^T \\ \mathbf{0} & \tilde{Q}^T \end{bmatrix} \begin{bmatrix} \lambda_1 & \mathbf{0}^T \\ \mathbf{0} & B \end{bmatrix} \begin{bmatrix} 1 & \mathbf{0}^T \\ \mathbf{0} & \tilde{Q} \end{bmatrix} = \begin{bmatrix} \lambda_1 & \mathbf{0}^T \\ \mathbf{0} & \tilde{\Lambda} \end{bmatrix} = \Lambda
+$$
+
+Thus $A = Q \Lambda Q^T$. Every eigenspace $E_\lambda = \operatorname{Null}(A - \lambda I_n)$ has dimension equal to its algebraic multiplicity $\operatorname{AM}(\lambda)$, so a real symmetric matrix is **never defective**. In practice, we simply apply Gram-Schmidt within each repeated eigenspace to obtain an orthonormal basis!
+
+</ProofCollapse>
+
+### Four Computational Dividends of the Spectral Theorem
+
+Once we have $A = Q \Lambda Q^T$, almost every matrix operation on a symmetric matrix becomes effortless:
+1. **Powers and polynomials**: Because the inner $Q^T Q = I_n$ factors collapse in a chain, for any positive integer $k$:
+
+$$
+A^k = (Q\Lambda Q^T)(Q\Lambda Q^T)\cdots(Q\Lambda Q^T) = Q \Lambda^k Q^T = \sum_{i=1}^n \lambda_i^k \mathbf{q}_i \mathbf{q}_i^T
+$$
+
+2. **Symmetric inverse**: If all $\lambda_i \ne 0$, then $A$ is invertible, and $A^{-1}$ is also symmetric with the exact same eigenbasis:
+
+$$
+A^{-1} = Q \Lambda^{-1} Q^T = \sum_{i=1}^n \frac{1}{\lambda_i} \mathbf{q}_i \mathbf{q}_i^T
+$$
+
+3. **Reading off geometric invariants**:
+   - $\operatorname{rank}(A) =$ the number of nonzero eigenvalues (counted with multiplicity), since multiplying by invertible $Q$ preserves rank;
+   - $\operatorname{Col}(A) = \operatorname{Row}(A) = \operatorname{span}\{\mathbf{q}_i : \lambda_i \ne 0\}$, while $\operatorname{Null}(A) = \operatorname{Null}(A^T) = \operatorname{span}\{\mathbf{q}_i : \lambda_i = 0\}$; the four fundamental subspaces split cleanly along the orthonormal eigenbasis!
+4. **The converse also holds (an "if and only if" characterization)**: Not only does "real symmetric $\implies$ orthogonally diagonalizable over $\mathbb{R}$," conversely if $A = Q\Lambda Q^T$ for some real orthogonal $Q$ and real diagonal $\Lambda$, then:
+
+$$
+A^T = (Q\Lambda Q^T)^T = (Q^T)^T \Lambda^T Q^T = Q\Lambda Q^T = A
+$$
+
+   Therefore: **A real square matrix is orthogonally diagonalizable over $\mathbb{R}$ if and only if it is real symmetric!**
+
+---
+
+## 3. Signs of Pivots vs. Signs of Eigenvalues: Sylvester's Law of Inertia
+
+We now possess two powerful factorizations for a symmetric matrix:
+- **Gaussian elimination from Lecture 4** (fast—requiring only $O(n^3/3)$ operations, with no high-degree characteristic polynomial needed, provided no zero pivots block elimination without row exchanges): yields $A = L D L^T$, where $L$ is unit lower triangular ($\det(L) = 1$) and $D = \operatorname{diag}(d_1, \dots, d_n)$ holds the $n$ **pivots**.
+- **Spectral decomposition from today** (more expensive, requiring iterative eigenvalue computation): yields $A = Q \Lambda Q^T$, where $Q$ is orthogonal ($Q^T = Q^{-1}$) and $\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n)$ holds the $n$ **eigenvalues**.
+
+Let us compare the pivots in $D$ with the eigenvalues in $\Lambda$ on two concrete matrices!
+
+### Concrete Comparison: $2 \times 2$ and $3 \times 3$ Examples
+
+**Example 1 ($2 \times 2$ indefinite symmetric matrix)**: Let
+
+$$
+A = \begin{bmatrix} 1 & 2 \\ 2 & 1 \end{bmatrix}
+$$
+
+- **Elimination pivots ($A = LDL^T$)**: Subtract $2$ times row 1 from row 2 to get $U = [1, 2; 0, -3]$, giving:
+
+$$
+A = \begin{bmatrix} 1 & 0 \\ 2 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & -3 \end{bmatrix} \begin{bmatrix} 1 & 2 \\ 0 & 1 \end{bmatrix}
+$$
+
+  The pivots are $d_1 = +1$ and $d_2 = -3$ (**1 positive, 1 negative, 0 zero**).
+- **Eigenvalues ($A = Q\Lambda Q^T$)**: $\det(A - \lambda I_2) = (1-\lambda)^2 - 4 = (\lambda - 3)(\lambda + 1) = 0$, giving $\lambda_1 = +3$ and $\lambda_2 = -1$ (again **1 positive, 1 negative, 0 zero**).
+
+**Example 2 ($3 \times 3$ coupled symmetric matrix)**: Consider the integer symmetric matrix:
+
+$$
+B = \begin{bmatrix} 1 & 2 & 2 \\ 2 & 3 & 0 \\ 2 & 0 & 3 \end{bmatrix}
+$$
+
+- **Elimination pivots ($B = LDL^T$)**:
+  1. Row $2 - 2\times$ Row $1$ gives $[0, -1, -4]$; Row $3 - 2\times$ Row $1$ gives $[0, -4, -1]$;
+  2. Row $3 - 4\times$ Row $2$ gives $[0, 0, -1 - 4(-4)] = [0, 0, 15]$.
+  Thus:
+
+$$
+B = \begin{bmatrix} 1 & 0 & 0 \\ 2 & 1 & 0 \\ 2 & 4 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 & 0 \\ 0 & -1 & 0 \\ 0 & 0 & 15 \end{bmatrix} \begin{bmatrix} 1 & 2 & 2 \\ 0 & 1 & 4 \\ 0 & 0 & 1 \end{bmatrix}
+$$
+
+  The pivots are $d_1 = +1$, $d_2 = -1$, $d_3 = +15$. Their signs in elimination order are $(+, -, +)$: **2 positive, 1 negative, 0 zero**.
+- **Eigenvalues ($B = Q\Lambda Q^T$)**:
+  - Notice $\mathbf{v}_2 = [0, 1, -1]^T$: $B\mathbf{v}_2 = [0, 3, -3]^T = 3\mathbf{v}_2$, so $\lambda_2 = +3$;
+  - The other two eigenvectors lie in $\mathbf{v}_2^\perp$ (vectors of the form $[x, y, y]^T$). Testing $[1, 1, 1]^T$ gives $B[1, 1, 1]^T = [5, 5, 5]^T$, so $\lambda_1 = +5$;
+  - By trace conservation, $\operatorname{tr}(B) = 1 + 3 + 3 = 7 = 5 + 3 + \lambda_3$, giving $\lambda_3 = -1$! (Check the product: $5 \times 3 \times (-1) = -15 = 1 \times (-1) \times 15 = \det(B)$.)
+  The eigenvalues are $\lambda_1 = +5$, $\lambda_2 = +3$, $\lambda_3 = -1$. Again: **2 positive, 1 negative, 0 zero**!
+
+Look closely at those numbers:
+- The individual values are completely different: $d = (+1, -1, +15)$ and $\lambda = (+5, +3, -1)$ do not even share the same trace ($\operatorname{tr}(D) = 15 \ne 7 = \operatorname{tr}(\Lambda)$), because $L^T \ne L^{-1}$—so $D = L^{-1} B (L^{-1})^T$ is a **congruence transformation**, not a similarity transformation!
+- Even the order of signs differs (pivots appear as $+, -, +$, while sorted eigenvalues are $+, +, -$).
+- **Yet remarkably, the *counts* of positive, negative, and zero pivots always match the *counts* of positive, negative, and zero eigenvalues!**
+
+This is the celebrated theorem discovered by the 19th-century British mathematician J. J. Sylvester.
+
+<DefinitionCard title="Congruence Transformations and Inertia">
+
+1. **Congruence Transformation**: Let $A \in \mathbb{R}^{n \times n}$ be a real symmetric matrix. If there exists an invertible matrix $M \in \mathbb{R}^{n \times n}$ such that:
+
+$$
+B = M^T A M
+$$
+
+   then $B$ is said to be **congruent** to $A$. Note that $B^T = (M^T A M)^T = M^T A^T M = B$: congruence always preserves symmetry and rank ($\operatorname{rank}(B) = \operatorname{rank}(A)$), though in general it **does not preserve individual eigenvalues** (unless $M$ is orthogonal, in which case $M^T = M^{-1}$ and congruence coincides with similarity).
+2. **Inertia**: For a real symmetric matrix $A$, the triple $(n_+(A),\; n_-(A),\; n_0(A))$ counting the numbers of **positive, negative, and zero** eigenvalues among its $n$ real eigenvalues (so $n_+ + n_- + n_0 = n$) is called the **inertia** of $A$.
+
+</DefinitionCard>
+
+<TheoremCard title="Sylvester's Law of Inertia">
+
+Let $A \in \mathbb{R}^{n \times n}$ be a real symmetric matrix and $M \in \mathbb{R}^{n \times n}$ be **any invertible real matrix**. Set $B = M^T A M$. Then $B$ and $A$ have the **exact same inertia**:
+
+$$
+\big(n_+(B),\; n_-(B),\; n_0(B)\big) = \big(n_+(A),\; n_-(A),\; n_0(A)\big)
+$$
+
+**Immediate Corollary (Sign-Matching Law for Pivots and Eigenvalues)**: If a real symmetric matrix $A$ factors without row exchanges as $A = L D L^T$ ($L$ unit lower triangular, $D = \operatorname{diag}(d_1, \dots, d_n)$), then $D = L^{-1} A (L^{-1})^T$ is congruent to $A$, so:
+- Number of positive pivots $=$ Number of positive eigenvalues;
+- Number of negative pivots $=$ Number of negative eigenvalues;
+- Number of zero pivots (or zero diagonal entries after a general symmetric congruence diagonalization $M^T A M = D$) $=$ Number of zero eigenvalues.
+
+</TheoremCard>
+
+<SylvesterInertiaSignMatchDiagram caption="Sylvester's Law of Inertia: under the congruence path A(t) = L_t^{-1} A (L_t^{-1})^T from A to D, eigenvalues move continuously without ever crossing zero, so the counts of positive, negative, and zero pivots match those of the eigenvalues." />
+
+<ProofCollapse title="Rigorous Proof: Two Perspectives on Sylvester's Law of Inertia (Continuous Homotopy + Subspace Dimensions)">
+
+Below are two complementary proofs. **Method 1** uses Prof. Strang's favorite **continuous homotopy** argument to show intuitively why eigenvalues can never cross zero during the deformation from $A$ to $D$. **Method 2** gives a four-line purely algebraic proof via **subspace dimensions** that works for *any* invertible matrix $M$ (even with $\det(M) \lt 0$ or permutations), with no continuity assumptions.
+
+#### Method 1: Continuous Homotopy Proof (for $A = L D L^T$, showing no eigenvalue crosses zero)
+
+We have $D = L^{-1} A (L^{-1})^T$, where $L$ is unit lower triangular (all diagonal entries equal $1$, so $\det(L) = 1$). Construct a continuous matrix path connecting $I_n$ to $L$ for $t \in [0, 1]$:
+
+$$
+L_t = (1 - t) I_n + t L
+$$
+
+Because both $I_n$ and $L$ are unit lower triangular, their convex combination $L_t$ is also **unit lower triangular with $1$'s on the diagonal**! Hence for every $t \in [0, 1]$:
+
+$$
+\det(L_t) = 1 \ne 0
+$$
+
+Every $L_t$ along the path is **strictly invertible**. Now define a continuous family of real symmetric matrices:
+
+$$
+A(t) = L_t^{-1} A (L_t^{-1})^T, \quad t \in [0, 1]
+$$
+
+- At $t = 0$, $L_0 = I_n$, so $A(0) = A$, whose eigenvalues are $\lambda_1, \dots, \lambda_n$;
+- At $t = 1$, $L_1 = L$, so $A(1) = L^{-1} A (L^{-1})^T = D$, whose eigenvalues are the pivots $d_1, \dots, d_n$;
+- At every intermediate $t \in [0, 1]$, because $L_t^{-1}$ and $(L_t^{-1})^T$ are invertible, matrix multiplication preserves rank, so the **nullspace dimension of $A(t)$ stays constant**:
+
+$$
+\dim \operatorname{Null}(A(t)) = n - \operatorname{rank}(A(t)) = n - \operatorname{rank}(A) = n_0(A)
+$$
+
+  This locks the multiplicity of the eigenvalue $0$ at $n_0(A)$ for all $t \in [0, 1]$!
+
+Order the $n$ real eigenvalues of $A(t)$ continuously as $\mu_1(t) \le \mu_2(t) \le \dots \le \mu_n(t)$. If any eigenvalue $\mu_k(t)$ tried to cross from positive at $t=0$ to negative at $t=1$, the Intermediate Value Theorem would produce some $t_* \in (0, 1)$ where $\mu_k(t_*) = 0$. That would give $A(t_*)$ an *extra* zero eigenvalue, forcing $\dim \operatorname{Null}(A(t_*)) \ge n_0(A) + 1$ and contradicting rank conservation! Thus **no nonzero eigenvalue can ever cross zero along the homotopy**, and the counts of positive, negative, and zero eigenvalues are strictly conserved from $t = 0$ to $t = 1$.
+
+#### Method 2: Subspace Dimension Proof (for general congruence $B = M^T A M$ with any invertible $M$)
+
+Suppose $A$ has $n_+$ positive, $n_-$ negative, and $n_0$ zero eigenvalues, while $B = M^T A M$ ($M$ invertible) has $n'_+$ positive, $n'_-$ negative, and $n'_0$ zero eigenvalues.
+
+1. **Equal numbers of zero eigenvalues**: Since $M$ is invertible, $\operatorname{rank}(B) = \operatorname{rank}(M^T A M) = \operatorname{rank}(A)$, so $n'_0 = n - \operatorname{rank}(B) = n - \operatorname{rank}(A) = n_0$.
+2. **Prove $n_+ \le n'_+$**:
+   - Let $V_+ \subseteq \mathbb{R}^n$ be the subspace spanned by the orthonormal eigenvectors of $A$ with positive eigenvalues, so $\dim V_+ = n_+$. By the spectral decomposition, for every nonzero $\mathbf{y} = \sum_{i=1}^{n_+} c_i \mathbf{q}_i \in V_+ \setminus \{\mathbf{0}\}$:
+
+$$
+\mathbf{y}^T A \mathbf{y} = \sum_{i=1}^{n_+} \lambda_i c_i^2 \gt 0
+$$
+
+   - Let $W'_{\le 0} \subseteq \mathbb{R}^n$ be the subspace spanned by the eigenvectors of $B$ with **nonpositive** (negative or zero) eigenvalues, so $\dim W'_{\le 0} = n'_- + n'_0 = n - n'_+$. Under the invertible linear map $M$, the image $M W'_{\le 0} = \{M\mathbf{w} : \mathbf{w} \in W'_{\le 0}\}$ has the same dimension $\dim(M W'_{\le 0}) = n - n'_+$, and for any $\mathbf{y} = M\mathbf{w} \in M W'_{\le 0}$:
+
+$$
+\mathbf{y}^T A \mathbf{y} = (M\mathbf{w})^T A (M\mathbf{w}) = \mathbf{w}^T (M^T A M) \mathbf{w} = \mathbf{w}^T B \mathbf{w} \le 0
+$$
+
+   - Check the intersection $V_+ \cap (M W'_{\le 0})$: any nonzero vector $\mathbf{y}$ in both subspaces would simultaneously satisfy $\mathbf{y}^T A \mathbf{y} \gt 0$ and $\mathbf{y}^T A \mathbf{y} \le 0$, which is impossible! Hence:
+
+$$
+V_+ \cap (M W'_{\le 0}) = \{\mathbf{0}\}
+$$
+
+   - Since their direct sum sits inside $\mathbb{R}^n$, their dimensions cannot exceed $n$:
+
+$$
+n_+ + (n - n'_+) = \dim V_+ + \dim(M W'_{\le 0}) \le n \implies n_+ \le n'_+
+$$
+
+3. **Reverse inequality and conclusion**: Because $M$ is invertible, $A = (M^{-1})^T B M^{-1}$. Applying the exact same argument symmetrically gives $n'_+ \le n_+$, so $n_+ = n'_+$. Applying the result to $-A$ and $-B$ gives $n_- = n'_-$. Q.E.D.!
+
+</ProofCollapse>
+
+### The Bridge to Positive Definite Matrices
+
+Sylvester's Law of Inertia is worth its weight in gold in scientific computing because when we need to test whether a huge real symmetric matrix (such as a Hessian in high-dimensional optimization or a stiffness matrix in structural mechanics) has all positive eigenvalues, **we never need to solve a high-degree characteristic polynomial**!
+
+Look at the crown-jewel special case: a real symmetric matrix $A$ has inertia $(n_+, n_-, n_0) = (n, 0, 0)$—meaning **all eigenvalues are strictly positive** ($\lambda_1, \dots, \lambda_n \gt 0$)—if and only if Gaussian elimination (with no row exchanges) runs to completion with **$n$ strictly positive pivots** ($d_1, \dots, d_n \gt 0$), and equivalently if and only if the quadratic form $\mathbf{x}^T A \mathbf{x} = \sum \lambda_i (\mathbf{q}_i^T \mathbf{x})^2 \gt 0$ for all $\mathbf{x} \ne \mathbf{0}$. These are the **Symmetric Positive Definite (SPD)** matrices that we will explore in full in **Lecture 28**!
+
+---
+
+## 4. Common Pitfalls & Transcript Errata
+
+When studying real symmetric matrices and the Spectral Theorem, four classic traps appear frequently in informal notes and even some textbooks. Watch out for every one of them.
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+
+### Pitfall 1: Confusing "Diagonalizable ($A = S\Lambda S^{-1}$)" with "Orthogonally Diagonalizable ($A = Q\Lambda Q^T$)"
+Never assume that having $n$ real eigenvalues (even $n$ *distinct* real eigenvalues) makes the eigenvectors orthogonal! Consider the non-symmetric upper triangular matrix:
+
+$$
+A = \begin{bmatrix} 1 & 1 \\ 0 & 2 \end{bmatrix}
+$$
+
+It has two distinct real eigenvalues $\lambda_1 = 1$ and $\lambda_2 = 2$, so it is cleanly diagonalizable as $A = S\Lambda S^{-1}$. Yet its eigenvectors are $\mathbf{x}_1 = [1, 0]^T$ and $\mathbf{x}_2 = [1, 1]^T$, whose dot product is $\mathbf{x}_1^T \mathbf{x}_2 = 1 \ne 0$—**not orthogonal**! Only when $A$ is real symmetric (or more generally normal) do we get $S = Q$ and $S^{-1} = Q^T$.
+
+### Pitfall 2: Dropping the Complex Conjugate in the Real-Eigenvalue Proof (The $\mathbf{x}^T A \mathbf{x}$ Trap)
+Some quick-reference notes attempt to prove $\lambda \in \mathbb{R}$ using "$\mathbf{x}^T A \mathbf{x} = \lambda \mathbf{x}^T \mathbf{x}$." As noted at the end of Proof 1, this is a **double fatal error**:
+1. Without conjugation, no $\bar{\lambda}$ ever appears—you only get the tautology $0 = 0$.
+2. Over $\mathbb{C}^n$, the unconjugated product $\mathbf{x}^T \mathbf{x}$ of a nonzero vector can be zero (e.g., $\mathbf{x} = [1, i]^T \ne \mathbf{0}$ gives $\mathbf{x}^T \mathbf{x} = 1 + i^2 = 0$), making division by $\mathbf{x}^T \mathbf{x}$ illegal! You *must* use the conjugated inner product $\bar{\mathbf{x}}^T \mathbf{x} = \sum |x_k|^2 \gt 0$.
+
+### Pitfall 3: Assuming Pivots $d_i$ Equal Eigenvalues $\lambda_i$ (or Mishandling Zero Pivots)
+- **Values are not equal**: In Example 1 above, $A$ with rows $[1, 2]$ and $[2, 1]$ had pivots $\{1, -3\}$ and eigenvalues $\{3, -1\}$. Beyond having the same product ($\det(A) = -3$) and the same **counts** of $+, -, 0$, individual pivots and individual eigenvalues are not equal!
+- **What if a zero pivot appears?** For the matrix:
+
+$$
+C = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+$$
+
+  the $(1, 1)$ entry is zero, so $C = L D L^T$ does not exist. If you break symmetry by left-multiplying by a permutation $P$ to get $P C = I_2$, its pivots $(1, 1)$ do **not** match the eigenvalue signs $(1, -1)$ of $C$! **The right fix is a symmetric congruence $M^T C M$**: for example, with $M = [1, 1; 1, -1]$ (invertible), we get:
+
+$$
+M^T C M = \begin{bmatrix} 2 & 0 \\ 0 & -2 \end{bmatrix}
+$$
+
+  whose inertia $(1, 1, 0)$ matches the eigenvalues $\pm 1$ of $C$!
+
+### Pitfall 4: Forgetting the "Real" Hypothesis—Complex Symmetric Matrices ($A^T = A$ over $\mathbb{C}$) Can Have Complex Eigenvalues and Even Be Defective!
+The rule "symmetric $\implies$ real eigenvalues and always diagonalizable" holds **only for real symmetric matrices**! Over $\mathbb{C}^{n \times n}$, requiring only plain transpose symmetry $A^T = A$ (without conjugation) allows two immediate counterexamples:
+1. **Complex eigenvalues**: $A_1 = \operatorname{diag}(i, 2i)$ satisfies $A_1^T = A_1$, yet its eigenvalues $i, 2i \notin \mathbb{R}$.
+2. **Defective (non-diagonalizable)**: Consider the classic complex symmetric matrix:
+
+$$
+A_2 = \begin{bmatrix} 1 & i \\ i & -1 \end{bmatrix} \in \mathbb{C}^{2 \times 2}
+$$
+
+   Clearly $A_2^T = A_2$. Its trace is $\operatorname{tr}(A_2) = 1 - 1 = 0$ and its determinant is $\det(A_2) = -1 - i^2 = 0$, so the characteristic polynomial is $\lambda^2 = 0$ ($\operatorname{AM}(0) = 2$). Yet $\operatorname{rank}(A_2) = 1$ (row 2 is $i$ times row 1), so $\operatorname{GM}(0) = \dim\operatorname{Null}(A_2) = 2 - 1 = 1 \lt 2$! In fact, $A_2^2 = O$, so $A_2$ is a **defective nilpotent matrix** that is **not diagonalizable over $\mathbb{C}$**.
+The reason is that $\overline{A} \ne A$ breaks the conjugation step in Proofs 1 and 3. Over $\mathbb{C}$, the true heir to all the virtues of real symmetric matrices is the **Hermitian matrix** $A^H = \overline{A}^T = A$ (Lecture 27)!
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l26-spectral-inertia-sandbox"
+  title="Real Symmetric Spectral Projections & Sylvester Homotopy Sandbox"
+  description="Adjust the entries of a 2x2 real symmetric matrix to watch the orthogonal eigenaxes $\mathbf{q}_1 \perp \mathbf{q}_2$ rotate, see how rank-1 projections $P_i\mathbf{x}$ scale into $A\mathbf{x}$, and track the continuous homotopy $A(t) = L_t^{-1} A (L_t^{-1})^T$ where eigenvalues never cross zero."
+/>
+
+---
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "Real Spectral Theorem: For any real symmetric matrix $A = A^T \\in \\mathbb{R}^{n \\times n}$, all eigenvalues are real ($\\lambda_i \\in \\mathbb{R}$), eigenvectors for distinct eigenvalues are orthogonal, and $A$ always admits a complete orthonormal eigenbasis $Q$ with $A = Q\\Lambda Q^T$ (never defective).",
+    "Rank-1 Projection Expansion: $A = Q\\Lambda Q^T = \\sum_{i=1}^n \\lambda_i \\mathbf{q}_i\\mathbf{q}_i^T = \\sum_{i=1}^n \\lambda_i P_i$. Every real symmetric matrix splits an input vector via mutually orthogonal rank-1 projections $P_i$ ($\\sum P_i = I_n$) and scales each component independently by $\\lambda_i$.",
+    "Complex Conjugation Is Essential: Starting from $A\\mathbf{x} = \\lambda\\mathbf{x}$, using $\\bar{A} = A$ and $A^T = A$ yields $(\\lambda - \\bar{\\lambda})(\\bar{\\mathbf{x}}^T\\mathbf{x}) = 0$. Conjugation cannot be omitted because $\\mathbf{x}^T\\mathbf{x}$ can vanish for nonzero complex vectors (e.g. $[1, i]^T$), whereas $\\bar{\\mathbf{x}}^T\\mathbf{x} = \\sum |x_k|^2 \\gt 0$.",
+    "Why Never Defective (Schur): A real symmetric matrix can be triangularized over $\\mathbb{R}$ as $A = Q T Q^T$; symmetry forces $T = T^T$, and an upper triangular matrix equal to its transpose must be diagonal ($\\Lambda$).",
+    "Sylvester's Law of Inertia: Under any invertible congruence $B = M^T A M$, the counts of positive, negative, and zero eigenvalues (inertia) are strictly conserved. For $A = LDL^T$, pivots $d_i$ generally differ in value from eigenvalues $\\lambda_i$, but their sign counts match identically.",
+    "Real-Field Boundary: Complex matrices satisfying only $A^T = A$ can have complex eigenvalues and even be defective (e.g. $[[1, i], [i, -1]]$ is nilpotent and non-diagonalizable); the proper complex generalization is Hermitian ($A^H = A$)."
+  ]}
+/>
+
+---
+
+## 5. Intuition Problem Set
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+<ExerciseCard
+  id="l26-ex1"
+  tier="L1"
+  tierLabel="L1 · Quick Geometric Check"
+  title="Spectral Decomposition, Rank-1 Projections, and Spectral Inversion of a 2x2 Symmetric Matrix"
+>
+
+Consider the real symmetric matrix:
+
+$$
+A = \begin{bmatrix} 5 & -2 \\ -2 & 2 \end{bmatrix} \in \mathbb{R}^{2 \times 2}
+$$
+
+1. Find the eigenvalues $\lambda_1 \gt \lambda_2$ of $A$ and an orthonormal eigenbasis matrix $Q = [\mathbf{q}_1 \;\; \mathbf{q}_2]$, and write the orthogonal spectral decomposition $A = Q\Lambda Q^T$.
+2. Compute the rank-1 projection matrices $P_1 = \mathbf{q}_1\mathbf{q}_1^T$ and $P_2 = \mathbf{q}_2\mathbf{q}_2^T$, and verify that $P_1 + P_2 = I_2$, $P_1 P_2 = O$, and $A = \lambda_1 P_1 + \lambda_2 P_2$.
+3. Using the spectral projection formula, write $A^{-1} = \frac{1}{\lambda_1} P_1 + \frac{1}{\lambda_2} P_2$ explicitly and check that $A A^{-1} = I_2$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Use the trace and determinant to spot the eigenvalues quickly: $\\operatorname{tr}(A) = 7$ and $\\det(A) = 10 - 4 = 6$, so the characteristic polynomial is $\\lambda^2 - 7\\lambda + 6 = 0$.",
+    "After finding unnormalized eigenvectors, divide each by its Euclidean norm $\\sqrt{2^2 + (-1)^2} = \\sqrt{5}$ to obtain orthonormal vectors $\\mathbf{q}_1, \\mathbf{q}_2$.",
+    "To find $A^{-1}$ without elimination or adjugates, simply replace each coefficient $\\lambda_i$ with $\\lambda_i^{-1}$ in the projection sum $\\lambda_1 P_1 + \\lambda_2 P_2$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+Because $A$ is real symmetric, its spectrum is easy to read: trace $7$ and determinant $6$ immediately give eigenvalues $6$ and $1$. Once you find the first eigenvector $[2, -1]^T$, symmetry guarantees the second eigenvector is perpendicular to it, namely $[1, 2]^T$! In the rotated orthonormal frame $\{ \mathbf{q}_1, \mathbf{q}_2 \}$, $A$ simply stretches the $\mathbf{q}_1$-axis by $6$ and leaves the $\mathbf{q}_2$-axis unchanged (factor $1$); therefore its inverse $A^{-1}$ simply shrinks the $\mathbf{q}_1$-axis by $\frac{1}{6}$ and leaves $\mathbf{q}_2$ unchanged!
+</SolutionIntuition>
+<SolutionRigorous>
+**Step 1: Eigenvalues and orthonormal matrix $Q$**
+
+Solve the characteristic equation:
+
+$$
+\det(A - \lambda I_2) = (5 - \lambda)(2 - \lambda) - (-2)^2 = \lambda^2 - 7\lambda + 6 = (\lambda - 6)(\lambda - 1) = 0
+$$
+
+The real eigenvalues are $\lambda_1 = 6$ and $\lambda_2 = 1$.
+
+- For $\lambda_1 = 6$:
+
+$$
+(A - 6I_2)\mathbf{x}_1 = \begin{bmatrix} -1 & -2 \\ -2 & -4 \end{bmatrix}\mathbf{x}_1 = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 2 \\ -1 \end{bmatrix}, \quad \mathbf{q}_1 = \frac{1}{\sqrt{5}}\begin{bmatrix} 2 \\ -1 \end{bmatrix}
+$$
+
+- For $\lambda_2 = 1$:
+
+$$
+(A - I_2)\mathbf{x}_2 = \begin{bmatrix} 4 & -2 \\ -2 & 1 \end{bmatrix}\mathbf{x}_2 = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ 2 \end{bmatrix}, \quad \mathbf{q}_2 = \frac{1}{\sqrt{5}}\begin{bmatrix} 1 \\ 2 \end{bmatrix}
+$$
+
+Check orthogonality: $\mathbf{q}_1^T \mathbf{q}_2 = \frac{1}{5}(2\cdot 1 + (-1)\cdot 2) = 0$. The spectral decomposition is:
+
+$$
+A = Q \Lambda Q^T = \frac{1}{\sqrt{5}}\begin{bmatrix} 2 & 1 \\ -1 & 2 \end{bmatrix} \begin{bmatrix} 6 & 0 \\ 0 & 1 \end{bmatrix} \frac{1}{\sqrt{5}}\begin{bmatrix} 2 & -1 \\ 1 & 2 \end{bmatrix}
+$$
+
+**Step 2: Rank-1 orthogonal projection matrices**
+
+$$
+P_1 = \mathbf{q}_1\mathbf{q}_1^T = \frac{1}{5}\begin{bmatrix} 2 \\ -1 \end{bmatrix}\begin{bmatrix} 2 & -1 \end{bmatrix} = \frac{1}{5}\begin{bmatrix} 4 & -2 \\ -2 & 1 \end{bmatrix}, \qquad
+P_2 = \mathbf{q}_2\mathbf{q}_2^T = \frac{1}{5}\begin{bmatrix} 1 \\ 2 \end{bmatrix}\begin{bmatrix} 1 & 2 \end{bmatrix} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix}
+$$
+
+1. Resolution of the identity:
+
+$$
+P_1 + P_2 = \frac{1}{5}\begin{bmatrix} 4+1 & -2+2 \\ -2+2 & 1+4 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I_2
+$$
+
+2. Mutual orthogonality:
+
+$$
+P_1 P_2 = \mathbf{q}_1 (\mathbf{q}_1^T \mathbf{q}_2) \mathbf{q}_2^T = \mathbf{q}_1 (0) \mathbf{q}_2^T = O
+$$
+
+3. Spectral reconstruction:
+
+$$
+6P_1 + 1P_2 = \frac{1}{5}\begin{bmatrix} 24+1 & -12+2 \\ -12+2 & 6+4 \end{bmatrix} = \frac{1}{5}\begin{bmatrix} 25 & -10 \\ -10 & 10 \end{bmatrix} = \begin{bmatrix} 5 & -2 \\ -2 & 2 \end{bmatrix} = A
+$$
+
+**Step 3: Inverse $A^{-1}$ via spectral projections**
+
+$$
+A^{-1} = \frac{1}{6}P_1 + 1\cdot P_2 = \frac{1}{30}\begin{bmatrix} 4 & -2 \\ -2 & 1 \end{bmatrix} + \frac{6}{30}\begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix} = \frac{1}{30}\begin{bmatrix} 10 & 10 \\ 10 & 25 \end{bmatrix} = \frac{1}{6}\begin{bmatrix} 2 & 2 \\ 2 & 5 \end{bmatrix}
+$$
+
+Check:
+
+$$
+A A^{-1} = \frac{1}{6}\begin{bmatrix} 5 & -2 \\ -2 & 2 \end{bmatrix}\begin{bmatrix} 2 & 2 \\ 2 & 5 \end{bmatrix} = \frac{1}{6}\begin{bmatrix} 10-4 & 10-10 \\ -4+4 & -4+10 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I_2
+$$
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard
+  id="l26-ex2"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="True or False: Do Distinct Real Eigenvalues Imply Symmetry or Orthogonal Eigenvectors?"
+>
+
+Determine whether the following statement is true or false:
+
+"If a real square matrix $A \in \mathbb{R}^{n \times n}$ has $n$ distinct real eigenvalues, then its eigenvectors must be mutually orthogonal, and $A$ must be real symmetric."
+
+<TrueFalseInteractive
+  id="l26-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Distinct real eigenvalues only guarantee $n$ linearly independent eigenvectors ($A = S\Lambda S^{-1}$), not orthogonal ones. Counterexample: $A = [[1, 3], [0, 2]]$ has distinct real eigenvalues $1, 2$, yet its eigenvectors $[1, 0]^T$ and $[3, 1]^T$ have dot product $3 \ne 0$, and $A \ne A^T$."
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Test a $2 \\times 2$ upper triangular matrix with a nonzero off-diagonal entry, such as $A = [[1, 3], [0, 2]]$.",
+    "Distinguish between a 'linearly independent eigenbasis $S$' and an 'orthonormal eigenbasis $Q$'; what is the true necessary and sufficient condition for $A$ to be real symmetric?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+Having $n$ distinct real eigenvalues forces the $n$ eigenlines to be distinct and span all of $\mathbb{R}^n$, but those lines can meet at skewed angles! Take any diagonal matrix $\Lambda$ and apply a similarity transform $S\Lambda S^{-1}$ using a **non-orthogonal invertible matrix $S$**. The eigenvalues remain unchanged (still distinct and real), yet tilting the coordinate axes destroys symmetry. To force a matrix to be symmetric, it must be diagonalizable by an **orthogonal** basis ($A = Q\Lambda Q^T$).
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **False**.
+
+**Counterexample**: Take the real upper triangular matrix
+
+$$
+A = \begin{bmatrix} 1 & 3 \\ 0 & 2 \end{bmatrix} \in \mathbb{R}^{2 \times 2}
+$$
+
+1. Its eigenvalues are $\lambda_1 = 1$ and $\lambda_2 = 2$, which are two distinct real numbers.
+2. Compute the eigenvectors:
+   - For $\lambda_1 = 1$:
+
+$$
+(A - I_2)\mathbf{x}_1 = \begin{bmatrix} 0 & 3 \\ 0 & 1 \end{bmatrix}\mathbf{x}_1 = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 1 \\ 0 \end{bmatrix}
+$$
+
+   - For $\lambda_2 = 2$:
+
+$$
+(A - 2I_2)\mathbf{x}_2 = \begin{bmatrix} -1 & 3 \\ 0 & 0 \end{bmatrix}\mathbf{x}_2 = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} 3 \\ 1 \end{bmatrix}
+$$
+
+3. Check orthogonality and symmetry: $\mathbf{x}_1^T \mathbf{x}_2 = 1 \cdot 3 + 0 \cdot 1 = 3 \ne 0$, so the eigenvectors are not orthogonal; and clearly $A^T \ne A$.
+
+**What is the true "if and only if" converse?**
+If $A \in \mathbb{R}^{n \times n}$ has a complete **orthonormal real eigenbasis** $Q$ (so $A = Q\Lambda Q^T$ with $Q$ real orthogonal and $\Lambda$ real diagonal), then:
+
+$$
+A^T = (Q\Lambda Q^T)^T = Q\Lambda^T Q^T = Q\Lambda Q^T = A
+$$
+
+So "real symmetric" is equivalent to "real **orthogonally** diagonalizable," not merely "having distinct real eigenvalues."
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard
+  id="l26-ex3"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="True or False: Failure of the Spectral Theorem for Complex Symmetric Matrices (Aᵀ = A over ℂ)"
+>
+
+Determine whether the following statement is true or false:
+
+"If a complex matrix $A \in \mathbb{C}^{n \times n}$ satisfies the ordinary transpose symmetry condition $A^T = A$, then just like a real symmetric matrix, all of its eigenvalues must be real and $A$ must be diagonalizable."
+
+<TrueFalseInteractive
+  id="l26-tf2"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! The Real Spectral Theorem relies critically on real entries ($\bar{A} = A$). A complex symmetric matrix $A^T = A$ can have non-real eigenvalues (e.g. $iI_2$) and can even be defective and non-diagonalizable (e.g. $[[1, i], [i, -1]]$ has $A^T = A$ and $\lambda = 0, 0$, yet rank $1$). Over $\mathbb{C}$, you need $A^H = A$."
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Look back at Step 1 of Proof 1: $\\overline{A\\mathbf{x}} = \\bar{A}\\bar{\\mathbf{x}}$. Which hypothesis was used to replace $\\bar{A}$ with $A$?",
+    "Check the eigenvalues, rank, and diagonalizability of the complex symmetric matrix $A = [[1, i], [i, -1]]$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+Real symmetric matrices owe their superpowers to the combination of **real entries** and **symmetry**. Once entries are allowed to be complex, ordinary transposition $A^T = A$ fails to conjugate the imaginary parts, so $\mathbf{x}^H A \mathbf{x}$ is no longer forced to be real. Even more surprisingly, a complex symmetric matrix can be nonzero yet nilpotent and defective! The right notion of symmetry over $\mathbb{C}$ is "transpose *and* conjugate," namely $A^H = \overline{A}^T = A$.
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **False**—both claims fail!
+
+**Counterexample 1 (refuting "all eigenvalues are real")**:
+Take $A_1 = \operatorname{diag}(i, -3i) \in \mathbb{C}^{2 \times 2}$. Clearly $A_1^T = A_1$, yet its eigenvalues are purely imaginary: $\lambda_1 = i, \lambda_2 = -3i \notin \mathbb{R}$.
+
+**Counterexample 2 (refuting "always diagonalizable")**:
+Take the complex symmetric matrix:
+
+$$
+A_2 = \begin{bmatrix} 1 & i \\ i & -1 \end{bmatrix} \in \mathbb{C}^{2 \times 2}
+$$
+
+- Symmetry: $A_2^T = A_2$.
+- Eigenvalues: $\operatorname{tr}(A_2) = 1 - 1 = 0$ and $\det(A_2) = -1 - i^2 = 0$, so the characteristic polynomial is $\lambda^2 = 0$, giving $\lambda_1 = \lambda_2 = 0$ ($\operatorname{AM}(0) = 2$).
+- Geometric multiplicity: $A_2$ is nonzero and row 2 equals $i$ times row 1, so $\operatorname{rank}(A_2) = 1$, and:
+
+$$
+\operatorname{GM}(0) = \dim \operatorname{Null}(A_2 - 0I_2) = 2 - 1 = 1 \lt 2 = \operatorname{AM}(0)
+$$
+
+  Moreover, $A_2^2 = O$. If $A_2$ were diagonalizable, the only diagonal matrix with eigenvalues $0, 0$ would be $O$, forcing $A_2 = S O S^{-1} = O$, a contradiction! Hence $A_2$ is **not diagonalizable**.
+
+**Where the proof breaks**: In Proof 1, after taking conjugates to get $\bar{A}\bar{\mathbf{x}} = \bar{\lambda}\bar{\mathbf{x}}$, we needed $A \in \mathbb{R}^{n\times n} \implies \bar{A} = A$ to eliminate $\bar{A}$. When $\bar{A} \ne A$, that chain breaks. Only $A^H = \overline{A}^T = A$ (Hermitian) restores real eigenvalues and unitary diagonalization $A = U\Lambda U^H$.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard
+  id="l26-ex4"
+  tier="L3"
+  tierLabel="L3 · Zero-Calculation Subspace Reasoning"
+  title="Reverse Engineering Without Elimination: Reconstructing a 3x3 Symmetric Matrix from Its Spectrum and Testing Inertia"
+>
+
+Suppose a $3 \times 3$ real symmetric matrix $A \in \mathbb{R}^{3 \times 3}$ has rank $\operatorname{rank}(A) = 2$, with two nonzero eigenvalues $\lambda_1 = 18$ and $\lambda_2 = -9$ corresponding to the eigenvectors:
+
+$$
+\mathbf{v}_1 = \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix} \;(\lambda_1 = 18), \qquad \mathbf{v}_2 = \begin{bmatrix} 2 \\ 1 \\ -2 \end{bmatrix} \;(\lambda_2 = -9)
+$$
+
+**Without performing matrix inversion, use orthogonality and spectral decomposition alone to answer:**
+
+1. Verify $\mathbf{v}_1 \perp \mathbf{v}_2$, and write down the third eigenvalue $\lambda_3$, a basis for $\operatorname{Null}(A)$, and an orthonormal basis for $\operatorname{Col}(A)$.
+2. Use the rank-1 spectral expansion $A = \sum_{i=1}^3 \lambda_i \mathbf{q}_i \mathbf{q}_i^T$ to reconstruct the exact integer matrix $A$ (and verify $\operatorname{tr}(A)$).
+3. Suppose we perform symmetric elimination on $A$ (allowing symmetric row/column permutations). Can $A$ ever be reduced by an invertible congruence transformation to a diagonal matrix with **all positive** diagonal entries? Justify briefly using Sylvester's Law of Inertia.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1: $\\operatorname{rank}(A) = 2$ means a $3 \\times 3$ symmetric matrix has one zero eigenvalue $\\lambda_3 = 0$. Since eigenspaces for distinct eigenvalues are orthogonal, $\\operatorname{Null}(A)$ must be perpendicular to both $\\mathbf{v}_1$ and $\\mathbf{v}_2$.",
+    "Part 2: Note the norms $\\|\\mathbf{v}_1\\|_2 = \\sqrt{1+4+4} = 3$ and $\\|\\mathbf{v}_2\\|_2 = \\sqrt{4+1+4} = 3$. Since $\\lambda_3 = 0$, the third term drops out completely!",
+    "Part 3: Look at the signs of $\\lambda_1 = 18 \\gt 0$, $\\lambda_2 = -9 \\lt 0$, and $\\lambda_3 = 0$, and apply Sylvester's Law of Inertia."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+Here is the spectral expansion $A = \sum \lambda_i \mathbf{q}_i \mathbf{q}_i^T$ at its most magical: when a $3 \times 3$ matrix has rank $2$, the rank-1 building block for $\lambda_3 = 0$ simply vanishes! You don't even need $\mathbf{q}_3$ to rebuild $A$ from $\lambda_1 \mathbf{q}_1 \mathbf{q}_1^T + \lambda_2 \mathbf{q}_2 \mathbf{q}_2^T$. Meanwhile, $\operatorname{Null}(A)$ is just the normal line perpendicular to both $\mathbf{v}_1$ and $\mathbf{v}_2$. And as for pivot signs: the eigenvalues already carry one positive, one negative, and one zero—no congruence transformation can ever turn them into three positive diagonal entries.
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1: Orthogonality, zero eigenvalue, and subspace bases**
+
+1. Check the dot product:
+
+$$
+\mathbf{v}_1^T \mathbf{v}_2 = 1\cdot 2 + 2\cdot 1 + 2\cdot(-2) = 2 + 2 - 4 = 0 \implies \mathbf{v}_1 \perp \mathbf{v}_2
+$$
+
+2. Because $A \in \mathbb{R}^{3 \times 3}$ and $\operatorname{rank}(A) = 2$, we have $\dim \operatorname{Null}(A) = 3 - 2 = 1$, so $\lambda_3 = 0$.
+3. Normalize the first two eigenvectors ($\|\mathbf{v}_1\|_2 = 3$, $\|\mathbf{v}_2\|_2 = 3$):
+
+$$
+\mathbf{q}_1 = \frac{1}{3}\begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}, \qquad \mathbf{q}_2 = \frac{1}{3}\begin{bmatrix} 2 \\ 1 \\ -2 \end{bmatrix}
+$$
+
+   By the spectral decomposition, $\operatorname{Col}(A) = \operatorname{Row}(A) = \operatorname{span}\{\mathbf{q}_1, \mathbf{q}_2\}$, so $\{\mathbf{q}_1, \mathbf{q}_2\}$ is an orthonormal basis for $\operatorname{Col}(A)$.
+4. Since $\lambda_3 = 0 \ne \lambda_1, \lambda_2$, any $\mathbf{v}_3 \in \operatorname{Null}(A)$ must be orthogonal to both $\mathbf{v}_1$ and $\mathbf{v}_2$ (which also matches $\operatorname{Null}(A) = \operatorname{Row}(A)^\perp$). Taking the cross product or solving $\mathbf{v}_1^T \mathbf{v}_3 = 0, \mathbf{v}_2^T \mathbf{v}_3 = 0$ yields:
+
+$$
+\mathbf{v}_3 = \begin{bmatrix} -2 \\ 2 \\ -1 \end{bmatrix} \quad (\text{check: } 1(-2)+2(2)+2(-1)=0,\;\; 2(-2)+1(2)-2(-1)=0)
+$$
+
+   Thus $\operatorname{Null}(A) = \operatorname{span}\{[-2, 2, -1]^T\}$.
+
+**Part 2: Reconstructing $A$ via rank-1 spectral projections**
+
+Since $\lambda_3 = 0$, the third term $\lambda_3 \mathbf{q}_3 \mathbf{q}_3^T$ vanishes:
+
+$$
+A = \lambda_1 \mathbf{q}_1 \mathbf{q}_1^T + \lambda_2 \mathbf{q}_2 \mathbf{q}_2^T = \frac{18}{9} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}\begin{bmatrix} 1 & 2 & 2 \end{bmatrix} - \frac{9}{9} \begin{bmatrix} 2 \\ 1 \\ -2 \end{bmatrix}\begin{bmatrix} 2 & 1 & -2 \end{bmatrix}
+$$
+
+Compute the two rank-1 matrices and subtract:
+
+$$
+A = 2 \begin{bmatrix} 1 & 2 & 2 \\ 2 & 4 & 4 \\ 2 & 4 & 4 \end{bmatrix} - \begin{bmatrix} 4 & 2 & -4 \\ 2 & 1 & -2 \\ -4 & -2 & 4 \end{bmatrix} = \begin{bmatrix} 2 - 4 & 4 - 2 & 4 - (-4) \\ 4 - 2 & 8 - 1 & 8 - (-2) \\ 4 - (-4) & 8 - (-2) & 8 - 4 \end{bmatrix} = \begin{bmatrix} -2 & 2 & 8 \\ 2 & 7 & 10 \\ 8 & 10 & 4 \end{bmatrix}
+$$
+
+**Verification**:
+- $A$ is symmetric;
+- Trace check: $\operatorname{tr}(A) = -2 + 7 + 4 = 9 = 18 + (-9) + 0 = \lambda_1 + \lambda_2 + \lambda_3$;
+- $A\mathbf{v}_1 = [18, 36, 36]^T = 18\mathbf{v}_1$ and $A\mathbf{v}_2 = [-18, -9, 18]^T = -9\mathbf{v}_2$. Exact!
+
+**Part 3: Sylvester's Law of Inertia test**
+
+**Impossible!** $A$ has eigenvalues $(18, -9, 0)$, so its inertia is:
+
+$$
+(n_+, n_-, n_0) = (1, 1, 1)
+$$
+
+By Sylvester's Law of Inertia, for any invertible $M \in \mathbb{R}^{3 \times 3}$, the congruent matrix $M^T A M$ preserves the inertia $(1, 1, 1)$. Any diagonal matrix $D$ obtained by invertible congruence must contain **strictly 1 positive, 1 negative, and 1 zero entry**—never three positive entries!
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard
+  id="l26-ex5"
+  tier="L4"
+  tierLabel="L4 · MIT 18.06 Exam Synthesis"
+  title="MIT 18.06 Synthesis: Zero-Pivot Congruence Diagonalization & Spectral Characterization of Orthogonal Projections"
+>
+
+This problem extends the Spectral Theorem and Sylvester's Law of Inertia to two classic structured matrices:
+
+1. **Zero-pivot blocking and congruence diagonalization**: Consider the zero-pivot real symmetric matrix
+
+$$
+A = \begin{bmatrix} 0 & 1 & 1 \\ 1 & 0 & 1 \\ 1 & 1 & 0 \end{bmatrix}
+$$
+
+   (a) Observing that $A = \mathbf{1}\mathbf{1}^T - I_3$ (where $\mathbf{1} = [1, 1, 1]^T$), find all three eigenvalues of $A$ without solving a cubic equation, and state its inertia.
+   (b) Because $a_{11} = 0$, $A$ has no $L D L^T$ factorization directly. Why can't we use the pivots of a one-sided row-permuted matrix $P A$ to determine the eigenvalue signs? Using the invertible matrix
+
+$$
+M = \begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 0 \\ 0 & 0 & 1 \end{bmatrix}
+$$
+
+   compute the congruent matrix $B = M^T A M$, factor $B = L D L^T$, and verify that the pivot signs of $D$ match the eigenvalue signs of $A$.
+
+2. **Spectral characterization of symmetric idempotent matrices (orthogonal projections)**: Let $P \in \mathbb{R}^{n \times n}$ be real symmetric ($P^T = P$). Prove:
+
+$$
+P^2 = P \iff \text{every eigenvalue of } P \text{ lies in } \{0, 1\}
+$$
+
+   Then use the Spectral Theorem to prove that for any orthogonal projection matrix ($P^T = P$ and $P^2 = P$), its rank equals its trace: $\operatorname{rank}(P) = \operatorname{tr}(P)$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1(a): Compute $A\\mathbf{1}$ for $\\mathbf{1} = [1, 1, 1]^T$; then for any vector $\\mathbf{v} \\in \\mathbf{1}^\\perp$ (meaning $x_1+x_2+x_3=0$), compute $(\\mathbf{1}\\mathbf{1}^T - I_3)\\mathbf{v}$.",
+    "Part 1(b): Left-multiplying by $P$ destroys symmetry ($PA \\ne (PA)^T$), leaving the realm of congruence! Computing $M^T A M$ turns the $(1,1)$ entry into $2 \\ne 0$, allowing standard $LDL^T$ elimination.",
+    "Part 2: Substitute $P = Q\\Lambda Q^T$ into $P^2 = P$ and use $Q^T Q = I_n$ to decouple the matrix equation into scalar equations $\\lambda_i^2 = \\lambda_i$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+Part 1 highlights a classic pitfall in practice: when a zero pivot sits in the $(1, 1)$ corner, a one-sided row swap destroys symmetry; you must break the deadlock **symmetrically** using a two-sided congruence $M^T A M$. In Part 2, the defining property of a projection—"projecting twice does nothing more than projecting once ($P^2 = P$)"—becomes transparent in the eigenbasis: since $P$ just scales each orthogonal axis by $\lambda_i$, doing it twice equals doing it once only if every axis is either **kept intact ($\lambda_i = 1$)** or **annihilated ($\lambda_i = 0$)**. The number of $1$'s is simultaneously the rank and the trace!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1: Spectrum and congruence factorization of a zero-pivot matrix**
+
+**(a) Eigenvalues and inertia directly**:
+Write $A = \mathbf{1}\mathbf{1}^T - I_3$.
+- For $\mathbf{x}_1 = \mathbf{1} = [1, 1, 1]^T$:
+
+$$
+A\mathbf{1} = \mathbf{1}(\mathbf{1}^T \mathbf{1}) - \mathbf{1} = 3\mathbf{1} - \mathbf{1} = 2\mathbf{1} \implies \lambda_1 = 2 \gt 0
+$$
+
+- For any nonzero $\mathbf{v} \in \mathbf{1}^\perp$ (i.e., $\mathbf{1}^T \mathbf{v} = 0$, a $2$-dimensional subspace spanned by e.g. $[1, -1, 0]^T$ and $[1, 0, -1]^T$):
+
+$$
+A\mathbf{v} = \mathbf{1}(\mathbf{1}^T \mathbf{v}) - \mathbf{v} = \mathbf{0} - \mathbf{v} = -\mathbf{v} \implies \lambda_2 = \lambda_3 = -1 \lt 0
+$$
+
+Thus the eigenvalues are $(2, -1, -1)$, and the inertia is $(n_+, n_-, n_0) = (1, 2, 0)$.
+
+**(b) Why one-sided $PA$ fails, and symmetric congruence**:
+Left-multiplying by a permutation (say swapping rows 1 and 2 to get $P_{12} A$) produces a **non-symmetric** matrix that is neither similar nor congruent to $A$; its pivots do not obey Sylvester's Law of Inertia (a single row swap even flips the sign of the determinant, flipping the product of the pivots!).
+
+Instead, use the **two-sided congruence** $B = M^T A M$. Note $\det(M) = -2 \ne 0$, so $M$ is invertible. Compute:
+
+$$
+A M = \begin{bmatrix} 0 & 1 & 1 \\ 1 & 0 & 1 \\ 1 & 1 & 0 \end{bmatrix} \begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 0 \\ 0 & 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & -1 & 1 \\ 1 & 1 & 1 \\ 2 & 0 & 0 \end{bmatrix}
+$$
+
+$$
+B = M^T (A M) = \begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 0 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} 1 & -1 & 1 \\ 1 & 1 & 1 \\ 2 & 0 & 0 \end{bmatrix} = \begin{bmatrix} 2 & 0 & 2 \\ 0 & -2 & 0 \\ 2 & 0 & 0 \end{bmatrix}
+$$
+
+Now $B$ is real symmetric with nonzero top-left pivot $b_{11} = 2$. Symmetric elimination (Row $3 - 1\times$ Row $1$) gives:
+
+$$
+B = L D L^T = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 1 & 0 & 1 \end{bmatrix} \begin{bmatrix} 2 & 0 & 0 \\ 0 & -2 & 0 \\ 0 & 0 & -2 \end{bmatrix} \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}
+$$
+
+The pivots are $d_1 = +2$, $d_2 = -2$, $d_3 = -2$: **1 positive, 2 negative, 0 zero**, matching the inertia $(1, 2, 0)$ of the eigenvalues $(2, -1, -1)$!
+
+---
+
+**Part 2: Spectral characterization of symmetric idempotent matrices**
+
+Since $P \in \mathbb{R}^{n \times n}$ is real symmetric, the Spectral Theorem gives a real orthogonal matrix $Q$ ($Q^T Q = I_n$) and real diagonal matrix $\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n)$ such that:
+
+$$
+P = Q \Lambda Q^T
+$$
+
+**Proof of ($\iff$)**:
+Compute $P^2$:
+
+$$
+P^2 = (Q\Lambda Q^T)(Q\Lambda Q^T) = Q \Lambda (Q^T Q) \Lambda Q^T = Q \Lambda^2 Q^T
+$$
+
+Therefore:
+
+$$
+P^2 = P \iff Q \Lambda^2 Q^T = Q \Lambda Q^T
+$$
+
+Left-multiplying by $Q^T$ and right-multiplying by $Q$ (invertible operations) gives:
+
+$$
+\Lambda^2 = \Lambda \iff \operatorname{diag}(\lambda_1^2, \dots, \lambda_n^2) = \operatorname{diag}(\lambda_1, \dots, \lambda_n)
+$$
+
+Comparing diagonal entries, this holds if and only if for every $i \in \{1, \dots, n\}$:
+
+$$
+\lambda_i^2 = \lambda_i \iff \lambda_i(\lambda_i - 1) = 0 \iff \lambda_i \in \{0, 1\}
+$$
+
+*(Note: even without $P^T = P$, $P^2 = P$ forces $\lambda_i \in \{0, 1\}$, though $P$ is then an oblique projection; real symmetry additionally guarantees orthogonal diagonalization $P = Q\Lambda Q^T$.)*
+
+**Proof of $\operatorname{rank}(P) = \operatorname{tr}(P)$**:
+Let $r$ be the number of eigenvalues equal to $1$, with the remaining $n - r$ eigenvalues equal to $0$.
+1. **Rank**: Since $Q$ is invertible, multiplying by $Q$ and $Q^T$ preserves rank:
+
+$$
+\operatorname{rank}(P) = \operatorname{rank}(Q \Lambda Q^T) = \operatorname{rank}(\Lambda) = r
+$$
+
+2. **Trace**: By the cyclic invariance of trace ($\operatorname{tr}(ABC) = \operatorname{tr}(CAB)$) and $Q^T Q = I_n$:
+
+$$
+\operatorname{tr}(P) = \operatorname{tr}(Q\Lambda Q^T) = \operatorname{tr}(\Lambda Q^T Q) = \operatorname{tr}(\Lambda) = \sum_{i=1}^n \lambda_i = \underbrace{1 + \dots + 1}_{r \text{ times}} + \underbrace{0 + \dots + 0}_{n-r \text{ times}} = r
+$$
+
+Hence $\operatorname{rank}(P) = \operatorname{tr}(P)$ for every orthogonal projection matrix $P$!
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>

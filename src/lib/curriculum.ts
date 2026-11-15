@@ -103,7 +103,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '高斯消元的主元（Pivot）机制、左乘初等消元矩阵 E_ij 的行组合本质与行交换置换。',
     focusEn: 'Gaussian elimination pivots, left-multiplication by elementary matrices E_ij as row operations, and row exchanges.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '03',
@@ -117,7 +117,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '内积、列组合、行组合、秩 1 外积之和与分块乘法五种视角；方阵可逆的零空间充要判据与 Gauss-Jordan 消元。',
     focusEn: 'Five views of AB (inner products, columns, rows, sum of rank-1 outer products, blocks), invertibility via Ax=0, and Gauss-Jordan.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-01',
       titleZh: 'Transformer 自注意力 QKᵀV 的四种矩阵几何视角、分块 FlashAttention 与 KV Cache',
@@ -141,7 +141,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '为什么下三角逆矩阵 L 无乘数交叉污染（无填充），以及消元 O(n³/3) 与回代 O(n²) 的复杂度分野。',
     focusEn: 'Why multipliers sit cleanly inside L = E⁻¹ without cross-contamination, PA = LU, and O(n³/3) elimination cost.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '05',
@@ -155,7 +155,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '置换矩阵群 Pᵀ = P⁻¹、对称构造 AᵀA，以及向量空间与子空间对线性组合封闭的严格公理意义。',
     focusEn: 'Permutation group Pᵀ = P⁻¹, symmetric products AᵀA, and closure of vector subspaces under linear combinations.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '06',
@@ -169,7 +169,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '子空间并集与交集辨析、列空间 Col(A)（决定 Ax=b 何时有解）与零空间 Null(A)（决定解的冗余自由度）。',
     focusEn: 'Subspace intersections vs. unions, Col(A) in ℝᵐ (solvability of Ax=b), and Null(A) in ℝⁿ (uniqueness of solutions).',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-02',
       titleZh: '高维表征子空间与线性探针（Linear Probing）：神经网络隐层究竟张成了什么列空间？',
@@ -193,7 +193,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '简化行阶梯形 R = rref(A) 的分块结构 [I  F; 0  0] 与零空间矩阵 N = [-F; I] 的系统构造。',
     focusEn: 'Block structure of R = rref(A), rank r, n - r free variables, and the nullspace basis matrix N = [-F; I].',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '08',
@@ -207,7 +207,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '通解 x = x_p + x_n 的仿射几何（非子空间！），以及列满秩、行满秩、双满秩、秩亏缺四类矩阵全景表。',
     focusEn: 'Complete solution x = x_p + x_n as a shifted nullspace (affine flat) and the four rank cases of m×n matrices.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-03',
       titleZh: '大模型零空间知识编辑（AlphaEdit）：如何利用 x_p + x_n 更新事实且零干扰旧记忆',
@@ -231,7 +231,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '零空间平凡性与列向量线性无关的等价关系、Steinitz 替换引理直觉与子空间维数唯一性证明。',
     focusEn: 'Equivalence between Null(A)={0} and column independence, spanning vs. minimal sets, and invariance of dimension.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '10',
@@ -245,7 +245,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '线性代数基本定理第一部分：ℝⁿ 与 ℝᵐ 中的维数守恒（r 与 n-r、r 与 m-r）及各子空间标准基的提取法。',
     focusEn: 'Fundamental Theorem of Linear Algebra Part I: dimensions and bases of Col(A), Null(A), Row(A), and Null(Aᵀ).',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '11',
@@ -259,7 +259,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '抽象矩阵空间 M_{m×n} 的基与维数，以及秩 1 外积矩阵 uvᵀ 作为一切秩 r 矩阵分解的原子积木。',
     focusEn: 'Subspaces of matrices (symmetric, upper-triangular), dimension formulas, and rank-1 matrices uvᵀ as building blocks.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-04',
       titleZh: 'LoRA 低秩微调核心数学原理：为什么 r 个秩 1 矩阵之和足以撬动百亿参数大模型',
@@ -283,7 +283,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '有向图关联矩阵的四子空间物理意义（电势差、环路与基尔霍夫电流定律 Aᵀy = 0）及欧拉公式纯线代证明。',
     focusEn: 'Graph incidence matrices, potentials, loops in Null(Aᵀ), Kirchhoff’s law, and proving Euler’s formula v - e + f = 1.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-05',
       titleZh: '图神经网络（GNN）与图拉普拉斯算子 L = AᵀA 的谱平滑直觉',
@@ -307,7 +307,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '消元分解、矩阵秩边界不等式与四个基本子空间维数推理综合试炼。',
     focusEn: 'Comprehensive synthesis of LU, rank inequalities, affine solution geometry, and Four Subspaces exam problems.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '14',
@@ -321,7 +321,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '线性代数基本定理第二部分：正交补 Row(A) ⊥ Null(A) 与 Col(A) ⊥ Null(Aᵀ)（绝非“仅交于零向量”那么简单）。',
     focusEn: 'Fundamental Theorem Part II: Orthogonal complements Row(A) = Null(A)⊥ and Col(A) = Null(Aᵀ)⊥.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '15',
@@ -335,7 +335,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '从直线投影矩阵 aaᵀ/(aᵀa) 到子空间投影 P = A(AᵀA)⁻¹Aᵀ，幂等性 P²=P、对称性 Pᵀ=P 与互补投影 I-P。',
     focusEn: 'Line projection vs. subspace projection P = A(AᵀA)⁻¹Aᵀ, idempotence P²=P, symmetry, and complementary projection I-P.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-06',
       titleZh: '表征工程与概念擦除（Concept Erasure）：用互补投影矩阵 I - P 手术级移除隐空间特定概念',
@@ -359,7 +359,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '正规方程 AᵀA x̂ = Aᵀb 的子空间分解（b = p + e），以及 Null(AᵀA) = Null(A) 的核心严密证明。',
     focusEn: 'Splitting b = p + e across Col(A) ⊕ Null(Aᵀ), normal equations, and proving Null(AᵀA) = Null(A).',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '17',
@@ -373,7 +373,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '标准正交列矩阵 QᵀQ = I 的保内积/保范数性质、无需求逆的优雅投影 QQᵀ，以及 A = QR 分解。',
     focusEn: 'Orthonormal columns QᵀQ = I, norm preservation ‖Qx‖ = ‖x‖, effortless projection QQᵀ, and Gram-Schmidt A = QR.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-07',
       titleZh: 'RoPE（旋转位置编码）与正交初始化：正交变换如何同时实现相对位置感知与深层范数守恒',
@@ -397,7 +397,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '单位阵归一化、行交换反号与单行线性性三条核心公理如何唯一决定十条行列式性质（严禁误写 det(A+B)=detA+detB）。',
     focusEn: 'How the 3 defining axioms (det I = 1, sign reversal, row multilinearity) uniquely generate all 10 determinant laws.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '19',
@@ -411,7 +411,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: 'n! 置换奇偶求和公式、代数余子式（Cofactor）降阶展开与三对角矩阵递推。',
     focusEn: 'The Big Formula over n! permutations, cofactor Laplace expansion, and tridiagonal recurrence relations.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '20',
@@ -425,7 +425,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: 'A⁻¹ = Cᵀ / det(A) 的代数结构，以及行列式绝对值等于 n 维平行多面体体积的 Gram-Schmidt 几何证明。',
     focusEn: 'Adjugate inverse formula, Cramer’s rule geometry, and proving |det A| equals parallelepiped volume via QR.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-08',
       titleZh: '归一化流（Normalizing Flows）与 Flow Matching：概率密度变量替换中的雅可比行列式体积缩放',
@@ -449,7 +449,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '线性变换下的不变方向 Ax = λx、投影与反射矩阵的无计算特征谱直觉，以及迹 tr(A)=∑λ_i 与 det(A)=∏λ_i。',
     focusEn: 'Invariant lines Ax = λx, reading eigenvalues of projections/reflections by inspection, trace, and determinant invariants.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '22',
@@ -463,7 +463,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '可对角化的充要条件（n 个线性无关特征向量，而非“特征值互异”！）、代数重数 vs 几何重数、离散动力系统 u_{k+1}=Au_k。',
     focusEn: 'Necessary and sufficient condition for A = SΛS⁻¹, algebraic vs. geometric multiplicity, and difference equations u_k = Aᵏu_0.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-09',
       titleZh: '深层序列模型中的谱半径 |λ_max|、梯度爆炸/消失边界与幂迭代谱归一化',
@@ -487,7 +487,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '用特征基解耦 du/dt = Au、矩阵指数幂级数 e^{At} = Se^{Λt}S⁻¹，以及渐近稳定判据 Re(λ_i) < 0（注意复特征值实部！）。',
     focusEn: 'Decoupling du/dt = Au via eigenvectors, matrix exponential series e^{At} = Se^{Λt}S⁻¹, and stability condition Re(λ_i) < 0.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-10',
       titleZh: '结构化状态空间模型（SSM / S4 / Mamba）：线性常微分方程离散化 Ā = exp(ΔA) 与复特征谱记忆',
@@ -511,7 +511,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '利用左零空间严密证明列随机矩阵必有 λ_1=1、Perron-Frobenius 稳态收敛，以及函数空间 L² 上的无穷维正交投影。',
     focusEn: 'Proving λ=1 via Null(Aᵀ - I), steady-state convergence as k→∞, and Fourier series as orthogonal projection in function space.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-11',
       titleZh: '扩散模型（DDPM 与离散扩散 D3PM）前向马尔可夫加噪链：转移矩阵幂与稳态噪声极限',
@@ -535,7 +535,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '正交投影、QR、行列式性质、特征值与常微分方程/马尔可夫演化综合考题精讲。',
     focusEn: 'Integrated exam synthesis covering projections, least squares, QR, determinants, eigenvalues, and ODE/Markov dynamics.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '26',
@@ -549,7 +549,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '谱定理 A = QΛQᵀ = ∑ λ_i q_i q_iᵀ 的完整复共轭严密证明（为何特征值必为实数、不同特征空间必正交）与 Sylvester 惯性定理。',
     focusEn: 'Complete proof of the Real Spectral Theorem A = QΛQᵀ, orthogonal rank-1 projection decomposition, and pivot/eigenvalue signs.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '27',
@@ -563,7 +563,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '复空间内积 zᴴw（为何必须共轭！）、Hermitian 矩阵与酉矩阵 UᴴU=I，以及 DFT 矩阵蝴蝶分治将 O(n²) 降至 O(n log n)。',
     focusEn: 'Complex inner product zᴴw, Hermitian & unitary matrices, Fourier matrix F_n orthogonality, and radix-2 FFT factorization.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '28',
@@ -577,7 +577,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '实对称正定矩阵 SPD 的五大充要判据（二次型 xᵀAx>0、特征值、顺序主子式、主元、A=RᵀR）、椭球主轴几何与多元极值二阶条件。',
     focusEn: 'Five equivalent tests for symmetric positive definiteness, level-set ellipsoids xᵀAx = 1, and Hessian minima vs. saddle points.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-12',
       titleZh: '多元高斯协方差椭球几何（Score Diffusion）与损失景观 Hessian / 自然梯度 Fisher 信息矩阵',
@@ -601,7 +601,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '相似关系 B = M⁻¹AM 的不变量族（特征多项式、秩、迹、行列式、Jordan 块个数）与亏损矩阵广义特征向量结构。',
     focusEn: 'Similarity invariants under B = M⁻¹AM, defective matrices, and how Jordan blocks correspond one-to-one with eigenvectors.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '30',
@@ -615,7 +615,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '对任意 m×n 矩阵成立的终极分解 A = UΣVᵀ：行空间标准正交基映射为列空间标准正交基 Av_i = σ_i u_i，规避单独求 U、V 导致符号失配的经典陷阱！',
     focusEn: 'A = UΣVᵀ for any m×n matrix, geometry of rotation-stretch-rotation, four-subspace orthonormal bases, and sign-consistency rigor.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-13',
       titleZh: '大模型权重奇异值谱、Eckart-Young 最优低秩截断与 Attention W_Qᵀ W_K 双线性瓶颈',
@@ -639,7 +639,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '脱离坐标理解线性算子 T: V → W（如求导与积分算子），以及给定输入基 {v_j} 与输出基 {w_i} 后变换矩阵的唯一构造法则。',
     focusEn: 'Coordinate-free linear maps T(cv + dw) = cT(v) + dT(w), derivative/integral operators, and matrix representation wrt bases.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '32',
@@ -653,7 +653,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '坐标变换 x = Wc、好基的标准（可快速计算 + 少数基向量捕获绝大部分信号能量：傅里叶基与 Haar 小波基）与算子换基公式 M⁻¹AM。',
     focusEn: 'Coordinate change x = Wc, properties of a good basis (fast transform + sparse compression: DCT & Haar wavelets), and M⁻¹AM.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-14',
       titleZh: '从正交基图像压缩（DCT / 小波）到 Latent Diffusion 潜空间降维生成直觉',
@@ -677,7 +677,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '实对称谱分解、正定二次型判据、相似不变量、SVD 与线性变换换基考题综合演练。',
     focusEn: 'Comprehensive synthesis of Spectral Theorem, positive definiteness, Jordan similarity, SVD, and basis transformations.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
   {
     seq: '34',
@@ -691,7 +691,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '单侧逆的非唯一性、为什么 A⁺ = V Σ⁺ Uᵀ 在行空间到列空间之间建立一一双射，并同时给出“最小二乘误差 + 最短欧氏范数”最优解 x⁺ = A⁺b。',
     focusEn: 'One-sided inverses, bijection between Row(A) and Col(A), and why x⁺ = VΣ⁺Uᵀb is the unique minimum-norm least-squares solution.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
     aiBridge: {
       id: 'AI-15',
       titleZh: '过参数化模型的隐式偏置（Implicit Bias）：为什么无正则梯度下降自动收敛到最小范数伪逆解 A⁺b',
@@ -715,7 +715,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     focusZh: '将四个基本子空间与四大矩阵分解（LU、QR、QΛQᵀ、UΣVᵀ）融汇成一张终身受用的线性代数思维总图。',
     focusEn: 'Unifying the Four Fundamental Subspaces and the Four Great Factorizations (LU, QR, QΛQᵀ, UΣVᵀ) into one master framework.',
     statusZh: 'published',
-    statusEn: 'planned',
+    statusEn: 'published',
   },
 ];
 

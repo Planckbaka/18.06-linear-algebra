@@ -1,0 +1,1157 @@
+---
+title: "Lecture 34: Left and Right Inverses; The Moore-Penrose Pseudoinverse A⁺"
+ocwId: "L33"
+videoEpisode: "P34"
+textbookRef: "§7.3–7.4"
+---
+
+In Lecture 30, we reached the algebraic summit of linear algebra—the Singular Value Decomposition (SVD), $A = U\Sigma V^T$. It revealed that even a completely non-symmetric, rectangular, or rank-deficient matrix $A \in \mathbb{R}^{m \times n}$ is fundamentally nothing more than a pure axial stretching $\Sigma$ between an orthonormal basis $V$ of the input space $\mathbb{R}^n$ and an orthonormal basis $U$ of the output space $\mathbb{R}^m$.
+
+Yet in engineering and mathematics, the central task is rarely "given input $\mathbf{x}$, compute output $\mathbf{b} = A\mathbf{x}$." Far more often, we work **in reverse**: given an observed output $\mathbf{b}$ and a linear system $A$, we want to invert the system to recover the best input $\mathbf{x}$.
+- When $A$ is an invertible square matrix, the answer is crisp and clean: $\mathbf{x} = A^{-1}\mathbf{b}$.
+- In the real world, however, most matrices $A \in \mathbb{R}^{m \times n}$ are **not square** ($m \neq n$) and frequently **not full rank** ($r \lt \min(m, n)$). In that setting, the two-sided inverse $A^{-1}$ simply does not exist!
+
+In this lecture (Lecture 34 / Textbook §7.3–7.4), Prof. Gilbert Strang poses an overarching question: **When the standard inverse $A^{-1}$ no longer exists, what is the "most perfect inverse operation" we can assign to a matrix?** Following the complete classification of matrices by rank $r$ and dimensions $(m, n)$ into four cases, we will start from one-sided **Left Inverses** and **Right Inverses**, strip away the obstruction of the nullspaces, uncover the hidden strict **bijection** between the row space and the column space, and finally forge the universal **Moore-Penrose Pseudoinverse ($A^+$)** that works for every matrix.
+
+---
+
+## 1. The Four Rank Cases and the Family of One-Sided Inverses
+
+Let $A \in \mathbb{R}^{m \times n}$ be any real matrix of rank $r = \operatorname{rank}(A)$. Recall the dimension-counting laws for the Four Fundamental Subspaces (Lecture 10):
+- Input space $\mathbb{R}^n = \operatorname{Row}(A) \oplus \operatorname{Null}(A)$, where $\dim \operatorname{Row}(A) = r$ and $\dim \operatorname{Null}(A) = n - r$;
+- Output space $\mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T)$, where $\dim \operatorname{Col}(A) = r$ and $\dim \operatorname{Null}(A^T) = m - r$.
+
+Depending on whether $r$ reaches the number of rows $m$ and/or the number of columns $n$, every matrix in linear algebra falls cleanly into one of **Four Rank Cases**:
+
+| Matrix Case | Rank Condition | Nullspace Dimensions | Number of Solutions to $A\mathbf{x} = \mathbf{b}$ | What "Inverse" Exists? | Canonical Formula |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **1. Square Full Rank** | $r = m = n$ | $\dim \operatorname{Null}(A) = 0$<br/>$\dim \operatorname{Null}(A^T) = 0$ | Always a **unique solution** | Unique **two-sided inverse** | $A^{-1}$ |
+| **2. Full Column Rank (Tall & Thin)** | $r = n \lt m$ | $\dim \operatorname{Null}(A) = 0$<br/>$\dim \operatorname{Null}(A^T) = m - n \ge 1$ | $0$ or $1$ solution<br/>(overdetermined least squares) | **Infinitely many left inverses**<br/>(no right inverse) | $(A^T A)^{-1} A^T$ |
+| **3. Full Row Rank (Short & Wide)** | $r = m \lt n$ | $\dim \operatorname{Null}(A) = n - m \ge 1$<br/>$\dim \operatorname{Null}(A^T) = 0$ | Always **infinitely many solutions**<br/>(underdetermined free variables) | **Infinitely many right inverses**<br/>(no left inverse) | $A^T (A A^T)^{-1}$ |
+| **4. General Rank-Deficient** | $r \lt m$ and $r \lt n$ | $\dim \operatorname{Null}(A) \ge 1$<br/>$\dim \operatorname{Null}(A^T) \ge 1$ | $0$ or infinitely many solutions | **Neither left nor right inverse**<br/>(only the **pseudoinverse**) | $A^+ = V \Sigma^+ U^T$ |
+
+Let us dissect the algebraic mechanism and geometric intuition of each case—especially why left and right inverses exist, why they are not unique, and what makes the "canonical" left and right inverses stand above the rest.
+
+---
+
+### 1.1 Case 2: Full Column Rank ($r = n \lt m$) and Left Inverses
+
+When $A \in \mathbb{R}^{m \times n}$ has **full column rank**, all its columns are linearly independent, so its nullspace shrinks to the origin alone: $\operatorname{Null}(A) = \{\mathbf{0}\}$. Recall the key lemma from Lecture 15 (Least Squares): the Gram matrix $A^T A \in \mathbb{R}^{n \times n}$ is **symmetric positive definite (SPD)**, and therefore strictly invertible!
+
+<DefinitionCard label="Definition" title="Left Inverse and Canonical Left Inverse">
+
+Let $A \in \mathbb{R}^{m \times n}$ have **full column rank** ($r = \operatorname{rank}(A) = n \le m$).
+
+1. **Left Inverse**: A matrix $B \in \mathbb{R}^{n \times m}$ is called a **left inverse** of $A$ if multiplying $A$ on the left by $B$ yields the $n \times n$ identity matrix:
+   $$
+   B A = I_n
+   $$
+2. **Canonical Left Inverse**: The particular left inverse constructed from the normal-equations matrix $A^T A$:
+   $$
+   A_{\text{left}}^{-1} := (A^T A)^{-1} A^T \in \mathbb{R}^{n \times m}
+   $$
+   Multiplying on the left immediately gives the identity:
+   $$
+   A_{\text{left}}^{-1} A = (A^T A)^{-1}(A^T A) = I_n
+   $$
+
+</DefinitionCard>
+
+#### What Happens If We Multiply in the Reverse Order?
+Be careful: **putting $A_{\text{left}}^{-1}$ on the right of $A$ definitely does NOT produce $I_m$!** In fact:
+
+$$
+A A_{\text{left}}^{-1} = A (A^T A)^{-1} A^T = P_{\operatorname{Col}(A)} \neq I_m
+$$
+
+Its rank is only $n \lt m$, so it can never equal the $m \times m$ identity matrix $I_m$. Instead, it is precisely the orthogonal **projection matrix** $P_{\operatorname{Col}(A)}$ onto the column space $\operatorname{Col}(A)$ from Lecture 15!
+
+#### Why Is the Left Inverse Not Unique? A Minimal $3 \times 2$ Numerical Example
+
+When $n \lt m$, the left nullspace $\operatorname{Null}(A^T)$ has dimension $m - n \ge 1$—it is nontrivial! If we add any matrix $D \in \mathbb{R}^{n \times m}$ to the canonical left inverse such that **every row of $D$ lies in $\operatorname{Null}(A^T)$** (equivalently, $D A = O_{n \times n}$), then:
+
+$$
+(A_{\text{left}}^{-1} + D) A = A_{\text{left}}^{-1} A + D A = I_n + O_{n \times n} = I_n
+$$
+
+Hence $A$ has **infinitely many left inverses**!
+
+**Concrete Numerical Check**: Take the $3 \times 2$ full-column-rank matrix:
+
+$$
+A = \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 1 \end{bmatrix} \in \mathbb{R}^{3 \times 2} \quad (r = 2 = n \lt m = 3)
+$$
+
+First compute the canonical left inverse $A_{\text{left}}^{-1} = (A^T A)^{-1} A^T$:
+
+$$
+A^T A = \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 1 \end{bmatrix} = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}, \qquad (A^T A)^{-1} = \frac{1}{3} \begin{bmatrix} 2 & -1 \\ -1 & 2 \end{bmatrix}
+$$
+
+$$
+A_{\text{left}}^{-1} = \frac{1}{3} \begin{bmatrix} 2 & -1 \\ -1 & 2 \end{bmatrix} \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \end{bmatrix} = \frac{1}{3} \begin{bmatrix} 2 & -1 & 1 \\ -1 & 2 & 1 \end{bmatrix}
+$$
+
+Verification:
+- Left product:
+
+$$
+A_{\text{left}}^{-1} A = \frac{1}{3} \begin{bmatrix} 2+0+1 & 0-1+1 \\ -1+0+1 & 0+2+1 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I_2
+$$
+
+- Reverse-order right product:
+
+$$
+A A_{\text{left}}^{-1} = \frac{1}{3} \begin{bmatrix} 2 & -1 & 1 \\ -1 & 2 & 1 \\ 1 & 1 & 2 \end{bmatrix} = P_{\operatorname{Col}(A)}
+$$
+
+which is symmetric, idempotent, and has trace $2$.
+
+Now construct **another valid left inverse**—just notice that the first two rows of $A$ already form $I_2$, so we can simply throw away the third row:
+
+$$
+L_1 = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \end{bmatrix} \implies L_1 A = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I_2
+$$
+
+Taking the difference gives:
+
+$$
+L_1 - A_{\text{left}}^{-1} = \frac{1}{3} \begin{bmatrix} 1 & 1 & -1 \\ 1 & 1 & -1 \end{bmatrix}
+$$
+
+whose rows are both multiples of the left-nullspace basis vector $[1, 1, -1]$ (since $A^T [1, 1, -1]^T = \mathbf{0}$)!
+
+So why is $(A^T A)^{-1} A^T$ the **preeminent canonical left inverse**?
+1. For any error/noise vector $\mathbf{y} \in \operatorname{Null}(A^T)$ in the left nullspace, $A_{\text{left}}^{-1} \mathbf{y} = (A^T A)^{-1}(A^T \mathbf{y}) = \mathbf{0}$—it **cleanly annihilates the left nullspace**. By contrast, $L_1 [1, 1, -1]^T = [1, 1]^T \neq \mathbf{0}$, so $L_1$ contaminates the solution with orthogonal error.
+2. The reverse product
+
+$$
+A L_1 = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 1 & 1 & 0 \end{bmatrix}
+$$
+
+is an **oblique projection** (not symmetric), whereas only $A A_{\text{left}}^{-1}$ is the symmetric **orthogonal projection** $P_{\operatorname{Col}(A)}$, ensuring that $\hat{\mathbf{x}} = A_{\text{left}}^{-1} \mathbf{b}$ is the unique least-squares solution!
+
+---
+
+### 1.2 Case 3: Full Row Rank ($r = m \lt n$) and Right Inverses
+
+Transpose our perspective on $A$, and we step immediately into a mirror-image world: when $A \in \mathbb{R}^{m \times n}$ has **full row rank** ($r = m \lt n$), the column space fills the entire output space ($\operatorname{Col}(A) = \mathbb{R}^m$), and the left nullspace shrinks to the origin $\operatorname{Null}(A^T) = \{\mathbf{0}\}$. Therefore, $A A^T \in \mathbb{R}^{m \times m}$ is symmetric positive definite and invertible!
+
+<DefinitionCard label="Definition" title="Right Inverse and Canonical Right Inverse">
+
+Let $A \in \mathbb{R}^{m \times n}$ have **full row rank** ($r = \operatorname{rank}(A) = m \le n$).
+
+1. **Right Inverse**: A matrix $C \in \mathbb{R}^{n \times m}$ is called a **right inverse** of $A$ if multiplying $A$ on the right by $C$ yields the $m \times m$ identity matrix:
+   $$
+   A C = I_m
+   $$
+2. **Canonical Right Inverse**: The particular right inverse constructed from $A A^T$:
+   $$
+   A_{\text{right}}^{-1} := A^T (A A^T)^{-1} \in \mathbb{R}^{n \times m}
+   $$
+   Multiplying on the right immediately gives the identity:
+   $$
+   A A_{\text{right}}^{-1} = (A A^T)(A A^T)^{-1} = I_m
+   $$
+
+</DefinitionCard>
+
+#### Reverse-Order Product and Non-Uniqueness
+Similarly, if we place $A_{\text{right}}^{-1}$ on the left of $A$, we do not get $I_n$; instead, we get the **orthogonal projection matrix** onto the row space $\operatorname{Row}(A) = \operatorname{Col}(A^T)$ in the input space:
+
+$$
+A_{\text{right}}^{-1} A = A^T (A A^T)^{-1} A = P_{\operatorname{Row}(A)} \neq I_n
+$$
+
+Here, because $\dim \operatorname{Null}(A) = n - m \ge 1$, taking any matrix $E \in \mathbb{R}^{n \times m}$ whose columns lie in $\operatorname{Null}(A)$ (so $AE = O_{m \times m}$) gives $A(A_{\text{right}}^{-1} + E) = I_m$. Thus, there are also **infinitely many right inverses**.
+
+#### Why Is $A^T (AA^T)^{-1}$ the Canonical Right Inverse? — Minimum Euclidean Norm Exact Solution!
+When $r = m \lt n$, the equation $A\mathbf{x} = \mathbf{b}$ has infinitely many exact solutions for **every** $\mathbf{b} \in \mathbb{R}^m$, all of the form $\mathbf{x} = \mathbf{x}_{\text{particular}} + \mathbf{x}_n$ (where $\mathbf{x}_n \in \operatorname{Null}(A)$).
+Now examine the solution returned by the canonical right inverse:
+
+$$
+\mathbf{x}^+ = A_{\text{right}}^{-1} \mathbf{b} = A^T \left[(AA^T)^{-1} \mathbf{b}\right] \in \operatorname{Col}(A^T) = \operatorname{Row}(A)
+$$
+
+Because $\mathbf{x}^+$ is a linear combination of the columns of $A^T$, it **lies completely inside the row space $\operatorname{Row}(A)$ and contains zero $\operatorname{Null}(A)$ component**! By the Pythagorean theorem using $\operatorname{Row}(A) \perp \operatorname{Null}(A)$, among all infinitely many exact solutions, $\mathbf{x}^+$ has the **globally minimum $\ell_2$ length (Minimum $\ell_2$-Norm)**!
+
+**Quick Numerical Comparison**: Take the transpose of our previous example,
+
+$$
+A = \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \end{bmatrix} \in \mathbb{R}^{2 \times 3}, \qquad \mathbf{b} = \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+$$
+
+- The naive right inverse
+
+$$
+R_1 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 0 & 0 \end{bmatrix}
+$$
+
+satisfies $AR_1 = I_2$ and gives the exact solution $\mathbf{x}_1 = R_1\mathbf{b} = [1, 1, 0]^T$, whose squared length is $\|\mathbf{x}_1\|_2^2 = 1^2 + 1^2 + 0^2 = 2$.
+- The canonical right inverse
+
+$$
+A_{\text{right}}^{-1} = \frac{1}{3} \begin{bmatrix} 2 & -1 \\ -1 & 2 \\ 1 & 1 \end{bmatrix}
+$$
+
+gives the exact solution
+
+$$
+\mathbf{x}^+ = A_{\text{right}}^{-1}\mathbf{b} = \frac{1}{3} \begin{bmatrix} 1 \\ 1 \\ 2 \end{bmatrix}
+$$
+
+Checking:
+
+$$
+A\mathbf{x}^+ = \begin{bmatrix} 1/3 + 2/3 \\ 1/3 + 2/3 \end{bmatrix} = \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+$$
+
+while its squared length is only:
+
+$$
+\|\mathbf{x}^+\|_2^2 = \left(\frac{1}{3}\right)^2 + \left(\frac{1}{3}\right)^2 + \left(\frac{2}{3}\right)^2 = \frac{6}{9} = \frac{2}{3} \lt 2
+$$
+
+This is precisely the result of orthogonally projecting $\mathbf{x}_1$ onto $\operatorname{Row}(A)$ and completely stripping away the extraneous nullspace component $\mathbf{x}_n = \frac{1}{3}[2, 2, -2]^T \in \operatorname{Null}(A)$!
+
+---
+
+## 2. The General Rank-Deficient Case ($r \lt m, r \lt n$) and the Row-to-Column Space Bijection
+
+Now we face the hardest case, **Case 4**: $r \lt m$ and $r \lt n$. Here:
+- $\dim \operatorname{Null}(A) = n - r \ge 1 \implies A^T A$ is **singular and non-invertible**, so $(A^TA)^{-1}A^T$ breaks down completely;
+- $\dim \operatorname{Null}(A^T) = m - r \ge 1 \implies A A^T$ is **singular and non-invertible**, so $A^T(AA^T)^{-1}$ breaks down as well!
+- More generally, by the rank inequalities $\operatorname{rank}(BA) \le \operatorname{rank}(A) = r \lt n = \operatorname{rank}(I_n)$ and $\operatorname{rank}(AC) \le r \lt m = \operatorname{rank}(I_m)$, **neither a left inverse nor a right inverse can possibly exist**!
+
+Since the full matrix $A : \mathbb{R}^n \to \mathbb{R}^m$ is neither injective (one-to-one) nor surjective (onto), where can we possibly find an inverse?
+
+Prof. Gilbert Strang offers one of the deepest and most beautiful insights in all of linear algebra: **The only reason $A$ fails to be invertible is that it loses information on $\operatorname{Null}(A)$ and fails to reach $\operatorname{Null}(A^T)$. If we discard both nullspaces and look strictly at the mapping between the row space $\operatorname{Row}(A)$ and the column space $\operatorname{Col}(A)$, then $A$ is always a one-to-one, onto bijection between them!**
+
+<TheoremCard label="Theorem" title="Bijection Theorem from Row(A) to Col(A)">
+
+Let $A \in \mathbb{R}^{m \times n}$ be any real matrix with $\operatorname{rank}(A) = r$. Consider the restriction of the linear map $T(\mathbf{x}) = A\mathbf{x}$ to the row space $\operatorname{Row}(A) \subseteq \mathbb{R}^n$:
+
+$$
+A|_{\operatorname{Row}(A)} : \operatorname{Row}(A) \longrightarrow \operatorname{Col}(A)
+$$
+
+Then this restricted map is always a **one-to-one and onto linear isomorphism (bijection)**; that is, for every $\mathbf{p} \in \operatorname{Col}(A)$, there **exists a unique** vector $\mathbf{x}_r \in \operatorname{Row}(A)$ such that $A\mathbf{x}_r = \mathbf{p}$.
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Bijection Theorem (Surjectivity + Injectivity via Orthogonal Complements)">
+
+**Step 1: Prove Surjectivity (Onto)**
+Take any vector $\mathbf{p} \in \operatorname{Col}(A)$. By definition of the column space, there exists at least one vector $\mathbf{x} \in \mathbb{R}^n$ such that $A\mathbf{x} = \mathbf{p}$.
+Using the orthogonal direct-sum decomposition $\mathbb{R}^n = \operatorname{Row}(A) \oplus \operatorname{Null}(A)$ from the Four Fundamental Subspaces, decompose $\mathbf{x}$ uniquely as:
+
+$$
+\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n, \qquad \mathbf{x}_r \in \operatorname{Row}(A), \quad \mathbf{x}_n \in \operatorname{Null}(A)
+$$
+
+Applying $A$ and using $A\mathbf{x}_n = \mathbf{0}$:
+
+$$
+A\mathbf{x}_r = A(\mathbf{x} - \mathbf{x}_n) = A\mathbf{x} - A\mathbf{x}_n = \mathbf{p} - \mathbf{0} = \mathbf{p}
+$$
+
+Thus every vector in $\operatorname{Col}(A)$ is hit by a vector in $\operatorname{Row}(A)$, proving that $A|_{\operatorname{Row}(A)}$ is **onto (surjective)**.
+
+**Step 2: Prove Injectivity (One-to-One)**
+Suppose two row-space vectors $\mathbf{x}_1, \mathbf{x}_2 \in \operatorname{Row}(A)$ have the same image, $A\mathbf{x}_1 = A\mathbf{x}_2$. Rearranging gives:
+
+$$
+A(\mathbf{x}_1 - \mathbf{x}_2) = \mathbf{0} \implies \mathbf{x}_1 - \mathbf{x}_2 \in \operatorname{Null}(A)
+$$
+
+On the other hand, since $\operatorname{Row}(A)$ is a linear subspace closed under subtraction, we also have $\mathbf{x}_1 - \mathbf{x}_2 \in \operatorname{Row}(A)$. Hence:
+
+$$
+\mathbf{x}_1 - \mathbf{x}_2 \in \operatorname{Row}(A) \cap \operatorname{Null}(A)
+$$
+
+By the Fundamental Theorem of Linear Algebra ($\operatorname{Row}(A) \perp \operatorname{Null}(A)$), any vector $\mathbf{z} \in \operatorname{Row}(A) \cap \operatorname{Null}(A)$ must be orthogonal to itself:
+
+$$
+\mathbf{z}^T \mathbf{z} = \|\mathbf{z}\|_2^2 = 0 \implies \mathbf{z} = \mathbf{0}
+$$
+
+Therefore $\mathbf{x}_1 - \mathbf{x}_2 = \mathbf{0}$, so $\mathbf{x}_1 = \mathbf{x}_2$! Combining this with $\dim \operatorname{Row}(A) = \dim \operatorname{Col}(A) = r$, the linear map is both injective and surjective, establishing a strict **bijection** between $\operatorname{Row}(A)$ and $\operatorname{Col}(A)$.
+
+</ProofCollapse>
+
+This single insight clears away all the fog: if we take the **exact inverse** of this bijection on $\operatorname{Col}(A) \to \operatorname{Row}(A)$, and simultaneously send the orthogonal complement $\operatorname{Null}(A^T)$ straight to the zero vector $\mathbf{0} \in \mathbb{R}^n$, we naturally obtain the unique, ultimate generalized inverse for **every matrix**—the **Moore-Penrose Pseudoinverse $A^+$**!
+
+<LeftRightAndPseudoinverseSubspaceBijectionDiagram caption="Four Fundamental Subspaces diagram illustrating how A maps Row(A) bijectively onto Col(A) while collapsing Null(A) to 0, and how the Moore-Penrose pseudoinverse A⁺ reverses the bijection from Col(A) back to Row(A) while collapsing Null(Aᵀ) to 0." />
+
+---
+
+## 3. Explicit Construction of $A^+$ via the SVD
+
+The Bijection Theorem guarantees the existence of this inverse abstractly, and the SVD $A = U\Sigma V^T$ from Lecture 30 hands us a surgical scalpel to **write down $A^+$ explicitly in three seconds**!
+
+Recall the full and compact SVD of $A \in \mathbb{R}^{m \times n}$ with $\operatorname{rank}(A) = r$:
+
+$$
+A = U \Sigma V^T = U_r \Sigma_r V_r^T = \sum_{i=1}^r \sigma_i \mathbf{u}_i \mathbf{v}_i^T
+$$
+
+Here:
+- $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ forms an orthonormal basis of $\operatorname{Row}(A)$, and $A$ maps it **one-to-one** onto the orthonormal basis $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ of $\operatorname{Col}(A)$:
+  $$
+  A \mathbf{v}_i = \sigma_i \mathbf{u}_i \quad (\sigma_i \gt 0, \; 1 \le i \le r)
+  $$
+- The remaining right singular vectors $\{\mathbf{v}_{r+1}, \dots, \mathbf{v}_n\}$ form an orthonormal basis of $\operatorname{Null}(A)$ ($A\mathbf{v}_i = \mathbf{0}$);
+- The remaining left singular vectors $\{\mathbf{u}_{r+1}, \dots, \mathbf{u}_m\}$ form an orthonormal basis of $\operatorname{Null}(A^T)$.
+
+Therefore, for $A^+$ to act as the exact inverse of $A$ on $\operatorname{Col}(A) \to \operatorname{Row}(A)$ while sending $\operatorname{Null}(A^T)$ to zero, we simply require:
+
+$$
+A^+ \mathbf{u}_i = \frac{1}{\sigma_i} \mathbf{v}_i \quad (1 \le i \le r), \qquad A^+ \mathbf{u}_i = \mathbf{0} \quad (r + 1 \le i \le m)
+$$
+
+Writing this in matrix factorization form immediately yields one of the most celebrated definitions in linear algebra:
+
+<DefinitionCard label="Definition" title="SVD Construction of the Moore-Penrose Pseudoinverse and the Four Penrose Equations">
+
+Let any real matrix $A \in \mathbb{R}^{m \times n}$ have SVD $A = U \Sigma V^T$ with $\operatorname{rank}(A) = r$, where
+
+$$
+\Sigma = \begin{bmatrix} \Sigma_r & O \\ O & O \end{bmatrix} \in \mathbb{R}^{m \times n}, \qquad \Sigma_r = \operatorname{diag}(\sigma_1, \dots, \sigma_r) \quad (\sigma_1 \ge \dots \ge \sigma_r \gt 0).
+$$
+
+1. **Pseudoinverse Singular-Value Matrix $\Sigma^+ \in \mathbb{R}^{n \times m}$**: Transpose $\Sigma$ to **$n \times m$ shape**, invert every nonzero singular value $\sigma_i \mapsto \frac{1}{\sigma_i}$, and **leave every zero entry unchanged as $0$**:
+   $$
+   \Sigma^+ := \begin{bmatrix} \Sigma_r^{-1} & O_{r \times (m-r)} \\ O_{(n-r) \times r} & O_{(n-r) \times (m-r)} \end{bmatrix} \in \mathbb{R}^{n \times m}, \qquad \Sigma_r^{-1} = \operatorname{diag}\!\left(\frac{1}{\sigma_1}, \dots, \frac{1}{\sigma_r}\right)
+   $$
+2. **Moore-Penrose Pseudoinverse $A^+ \in \mathbb{R}^{n \times m}$**:
+   $$
+   A^+ := V \Sigma^+ U^T = V_r \Sigma_r^{-1} U_r^T = \sum_{i=1}^r \frac{1}{\sigma_i} \mathbf{v}_i \mathbf{u}_i^T
+   $$
+   (For a complex matrix $A \in \mathbb{C}^{m \times n}$, replace transpose with conjugate transpose: $A^+ = V \Sigma^+ U^H$.)
+3. **The Four Penrose Equations**: For any matrix $A \in \mathbb{R}^{m \times n}$, $A^+$ is the **unique** $n \times m$ matrix $X$ satisfying all four matrix equations simultaneously:
+   - **(P1) Generalized Inverse**: $A X A = A$
+   - **(P2) Reflexivity**: $X A X = X$
+   - **(P3) Left Symmetry**: $(A X)^T = A X$ (in fact, $AA^+ = P_{\operatorname{Col}(A)}$)
+   - **(P4) Right Symmetry**: $(X A)^T = X A$ (in fact, $A^+A = P_{\operatorname{Row}(A)}$)
+
+</DefinitionCard>
+
+Why does $A^+ = V\Sigma^+ U^T$ satisfy all four Penrose equations? Why is the matrix satisfying these four equations necessarily unique? And how does it unify the square inverse, canonical left inverse, and canonical right inverse from Section 1?
+
+<ProofCollapse title="Rigorous Proof: VΣ⁺Uᵀ Satisfies All Four Penrose Equations, Uniqueness, and Reduction to Special Cases">
+
+**Step 1: Verify the Four Penrose Equations and Orthogonal Projections**
+First compute $\Sigma \Sigma^+ \in \mathbb{R}^{m \times m}$ and $\Sigma^+ \Sigma \in \mathbb{R}^{n \times n}$ directly:
+
+$$
+\Sigma \Sigma^+ = \begin{bmatrix} I_r & O \\ O & O_{(m-r) \times (m-r)} \end{bmatrix} \in \mathbb{R}^{m \times m}, \qquad \Sigma^+ \Sigma = \begin{bmatrix} I_r & O \\ O & O_{(n-r) \times (n-r)} \end{bmatrix} \in \mathbb{R}^{n \times n}
+$$
+
+Using $U^T U = I_m$ and $V^T V = I_n$, we immediately obtain the two products:
+
+$$
+A A^+ = (U \Sigma V^T)(V \Sigma^+ U^T) = U (\Sigma \Sigma^+) U^T = U_r U_r^T = P_{\operatorname{Col}(A)}
+$$
+
+$$
+A^+ A = (V \Sigma^+ U^T)(U \Sigma V^T) = V (\Sigma^+ \Sigma) V^T = V_r V_r^T = P_{\operatorname{Row}(A)}
+$$
+
+By symmetry of $U_r U_r^T$ and $V_r V_r^T$, we have $(AA^+)^T = AA^+$ and $(A^+A)^T = A^+A$, verifying **(P3)** and **(P4)**!
+
+Next verify **(P1)** and **(P2)**: since $\Sigma (\Sigma^+ \Sigma) = \Sigma$ and $\Sigma^+ (\Sigma \Sigma^+) = \Sigma^+$, we get:
+
+$$
+A A^+ A = U (\Sigma \Sigma^+ \Sigma) V^T = U \Sigma V^T = A
+$$
+
+$$
+A^+ A A^+ = V (\Sigma^+ \Sigma \Sigma^+) U^T = V \Sigma^+ U^T = A^+
+$$
+
+All four Penrose conditions hold!
+
+**Step 2: Prove Global Uniqueness of $X$ Satisfying (P1)–(P4)**
+Suppose $X, Y \in \mathbb{R}^{n \times m}$ both satisfy (P1)–(P4). Using (P2) and (P3) for $X$, together with (P1) and (P3) for $Y$:
+
+$$
+\begin{aligned}
+X &= X A X = X (A X)^T = X X^T A^T \\
+  &= X X^T (A Y A)^T = X X^T A^T Y^T A^T \\
+  &= X (A X)^T (A Y)^T = X (A X)(A Y) = (X A X) A Y = X A Y
+\end{aligned}
+$$
+
+Symmetrically, using (P2) and (P4) for $Y$, together with (P1) and (P4) for $X$:
+
+$$
+\begin{aligned}
+Y &= Y A Y = (Y A)^T Y = A^T Y^T Y \\
+  &= (A X A)^T Y^T Y = A^T X^T A^T Y^T Y \\
+  &= (X A)^T (Y A)^T Y = (X A)(Y A) Y = X A (Y A Y) = X A Y
+\end{aligned}
+$$
+
+Hence $X = X A Y = Y$, proving uniqueness of the pseudoinverse!
+
+**Step 3: Verify That $A^+$ Automatically Reduces to Cases 1, 2, and 3**
+- **Case 1 ($r = m = n$)**: $\Sigma^+ = \Sigma^{-1}$, so $A^+ = V\Sigma^{-1}U^T = (U\Sigma V^T)^{-1} = A^{-1}$.
+- **Case 2 (Full Column Rank $r = n \lt m$)**: Here $V_r = V$ is an $n \times n$ orthogonal matrix, so $A = U_r \Sigma_r V^T$ and $A^T A = V \Sigma_r^2 V^T$ is invertible. Substituting into the canonical left inverse gives:
+  $$
+  (A^T A)^{-1} A^T = (V \Sigma_r^{-2} V^T)(V \Sigma_r U_r^T) = V \Sigma_r^{-1} U_r^T = A^+
+  $$
+- **Case 3 (Full Row Rank $r = m \lt n$)**: Here $U_r = U$ is an $m \times m$ orthogonal matrix, so $A = U \Sigma_r V_r^T$ and $A A^T = U \Sigma_r^2 U^T$ is invertible. Substituting into the canonical right inverse gives:
+  $$
+  A^T (A A^T)^{-1} = (V_r \Sigma_r U^T)(U \Sigma_r^{-2} U^T) = V_r \Sigma_r^{-1} U^T = A^+
+  $$
+
+Thus $A^+$ completely unifies all four matrix cases in linear algebra!
+
+</ProofCollapse>
+
+### Worked Example by Hand: Full Pseudoinverse of a Rank-1 Matrix
+
+Consider the $2 \times 3$ rank-1 matrix (Case 4):
+
+$$
+A = \begin{bmatrix} 1 & 2 & 2 \\ 2 & 4 & 4 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \end{bmatrix} \begin{bmatrix} 1 & 2 & 2 \end{bmatrix} \in \mathbb{R}^{2 \times 3} \qquad (r = 1 \lt 2, \; r = 1 \lt 3)
+$$
+
+Notice that both $A^T A$ and $AA^T$ have rank $1$, so **both are singular and non-invertible**! Yet constructing $A^+$ via the SVD is effortless:
+1. Normalize the outer-product vectors:
+   $$
+   \mathbf{u}_1 = \frac{1}{\sqrt{1^2+2^2}} \begin{bmatrix} 1 \\ 2 \end{bmatrix} = \frac{1}{\sqrt{5}} \begin{bmatrix} 1 \\ 2 \end{bmatrix}, \qquad \mathbf{v}_1 = \frac{1}{\sqrt{1^2+2^2+2^2}} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix} = \frac{1}{3} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}
+   $$
+2. The single nonzero singular value is $\sigma_1 = 3\sqrt{5}$, giving the compact SVD $A = (3\sqrt{5})\,\mathbf{u}_1 \mathbf{v}_1^T$.
+3. Invert $\sigma_1$ and swap $\mathbf{u}_1$ and $\mathbf{v}_1$ to write the $3 \times 2$ pseudoinverse:
+   $$
+   A^+ = \frac{1}{\sigma_1} \mathbf{v}_1 \mathbf{u}_1^T = \frac{1}{3\sqrt{5}} \left(\frac{1}{3} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}\right) \left(\frac{1}{\sqrt{5}} \begin{bmatrix} 1 & 2 \end{bmatrix}\right) = \frac{1}{45} \begin{bmatrix} 1 & 2 \\ 2 & 4 \\ 2 & 4 \end{bmatrix}
+   $$
+4. Verify both orthogonal projection matrices:
+   $$
+   A^+ A = \frac{1}{9} \begin{bmatrix} 1 & 2 & 2 \\ 2 & 4 & 4 \\ 2 & 4 & 4 \end{bmatrix} = \mathbf{v}_1 \mathbf{v}_1^T = P_{\operatorname{Row}(A)}, \qquad A A^+ = \frac{1}{5} \begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix} = \mathbf{u}_1 \mathbf{u}_1^T = P_{\operatorname{Col}(A)}
+   $$
+5. Test an unreachable right-hand side $\mathbf{b} = [5, 0]^T \notin \operatorname{Col}(A)$:
+   - The pseudoinverse returns the unique recommended solution:
+     $$
+     \mathbf{x}^+ = A^+ \mathbf{b} = \frac{1}{45} \begin{bmatrix} 1 & 2 \\ 2 & 4 \\ 2 & 4 \end{bmatrix} \begin{bmatrix} 5 \\ 0 \end{bmatrix} = \frac{1}{9} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}
+     $$
+     with squared length $\|\mathbf{x}^+\|_2^2 = \frac{1 + 4 + 4}{81} = \frac{1}{9}$.
+   - Its image in the output space is $\mathbf{p} = A\mathbf{x}^+ = [1, 2]^T$, leaving the orthogonal residual $\mathbf{e} = \mathbf{b} - \mathbf{p} = [4, -2]^T \perp \mathbf{u}_1$ (minimum squared residual $\|\mathbf{e}\|_2^2 = 20$).
+   - If we arbitrarily add a nullspace vector $\mathbf{x}_n = [2, -1, 0]^T \in \operatorname{Null}(A)$, we get another least-squares solution $\hat{\mathbf{x}} = \mathbf{x}^+ + \mathbf{x}_n = \frac{1}{9} [19, -7, 2]^T$. It produces the exact same projection $A\hat{\mathbf{x}} = [1, 2]^T$ and the same squared residual $20$, but its squared length blows up to $\|\hat{\mathbf{x}}\|_2^2 = \frac{361 + 49 + 4}{81} = \frac{46}{9} = \frac{1}{9} + 5 = \|\mathbf{x}^+\|_2^2 + \|\mathbf{x}_n\|_2^2$!
+
+---
+
+## 4. Core Application of $A^+$: The Unique Minimum-Norm Least-Squares Theorem
+
+The numerical example above is no accident. It embodies the crowning property that makes the Moore-Penrose pseudoinverse the gold standard of numerical linear algebra and modern scientific computing: when $A\mathbf{x} = \mathbf{b}$ has **no exact solution** and simultaneously has **infinitely many solutions minimizing the error**, $A^+\mathbf{b}$ automatically selects the **shortest vector** among all least-squares solutions!
+
+<MinimumNormLeastSquaresGeometryDiagram caption="Geometry of the minimum-norm least-squares solution: in the output space, b projects orthogonally onto p = AA⁺b in Col(A); in the input space, the affine least-squares solution set x⁺ + Null(A) has a unique closest point to the origin at x⁺ = A⁺b in Row(A)." />
+
+<TheoremCard label="Theorem" title="Unique Minimum-Norm Least-Squares Solution Theorem">
+
+Let $A \in \mathbb{R}^{m \times n}$ be **any** real matrix (of arbitrary rank $r$) and $\mathbf{b} \in \mathbb{R}^m$ be any target vector. Set $\mathbf{x}^+ := A^+ \mathbf{b} \in \mathbb{R}^n$. Then:
+
+1. **Least-Squares Optimality**: $\mathbf{x}^+$ minimizes the residual norm $\|A\mathbf{x} - \mathbf{b}\|_2$, satisfying $A\mathbf{x}^+ = P_{\operatorname{Col}(A)}\mathbf{b}$; moreover, the full set of least-squares minimizers forms an affine subspace parallel to $\operatorname{Null}(A)$:
+   $$
+   \mathcal{S}_{\text{LS}} := \left\{ \hat{\mathbf{x}} \in \mathbb{R}^n \;\middle|\; \|A\hat{\mathbf{x}} - \mathbf{b}\|_2 = \min_{\mathbf{x} \in \mathbb{R}^n} \|A\mathbf{x} - \mathbf{b}\|_2 \right\} = \mathbf{x}^+ + \operatorname{Null}(A)
+   $$
+2. **Unique Minimum $\ell_2$-Norm**: Among all candidates in $\mathcal{S}_{\text{LS}}$, $\mathbf{x}^+$ is the **unique** vector achieving the strict global minimum Euclidean length $\|\mathbf{x}\|_2$:
+   $$
+   \|\mathbf{x}^+\|_2 \lt \|\hat{\mathbf{x}}\|_2 \qquad \left(\forall \hat{\mathbf{x}} \in \mathcal{S}_{\text{LS}}, \;\; \hat{\mathbf{x}} \neq \mathbf{x}^+\right)
+   $$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Two-Step Proof of the Minimum-Norm Least-Squares Theorem (Orthogonal Projection + Pythagorean Theorem)">
+
+**Step 1: Prove Least-Squares Optimality and the Solution Set $\mathcal{S}_{\text{LS}} = \mathbf{x}^+ + \operatorname{Null}(A)$**
+Using the orthogonal direct-sum decomposition of the output space $\mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T)$, decompose $\mathbf{b}$ into its projection and residual components:
+
+$$
+\mathbf{b} = \mathbf{p} + \mathbf{e}, \qquad \mathbf{p} = P_{\operatorname{Col}(A)}\mathbf{b} = AA^+\mathbf{b} \in \operatorname{Col}(A), \quad \mathbf{e} = \mathbf{b} - \mathbf{p} \in \operatorname{Null}(A^T)
+$$
+
+For any $\mathbf{x} \in \mathbb{R}^n$, we have $A\mathbf{x} - \mathbf{p} \in \operatorname{Col}(A)$ and $\mathbf{e} \in \operatorname{Null}(A^T) = \operatorname{Col}(A)^\perp$, so the two vectors are strictly orthogonal. Applying the Pythagorean theorem:
+
+$$
+\|A\mathbf{x} - \mathbf{b}\|_2^2 = \|(A\mathbf{x} - \mathbf{p}) - \mathbf{e}\|_2^2 = \|A\mathbf{x} - \mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2 \ge \|\mathbf{e}\|_2^2
+$$
+
+Equality holds if and only if $A\mathbf{x} = \mathbf{p}$. Since $A\mathbf{x}^+ = A(A^+\mathbf{b}) = \mathbf{p}$, $\mathbf{x}^+$ attains the minimum residual $\|\mathbf{e}\|_2$; furthermore, for any $\hat{\mathbf{x}} \in \mathbb{R}^n$:
+
+$$
+\hat{\mathbf{x}} \in \mathcal{S}_{\text{LS}} \iff A\hat{\mathbf{x}} = \mathbf{p} = A\mathbf{x}^+ \iff A(\hat{\mathbf{x}} - \mathbf{x}^+) = \mathbf{0} \iff \hat{\mathbf{x}} - \mathbf{x}^+ \in \operatorname{Null}(A)
+$$
+
+This characterizes the entire least-squares solution set $\mathcal{S}_{\text{LS}} = \mathbf{x}^+ + \operatorname{Null}(A)$.
+
+**Step 2: Prove the Unique Minimum-Norm Property**
+Examine the SVD expansion of $\mathbf{x}^+$:
+
+$$
+\mathbf{x}^+ = A^+ \mathbf{b} = \sum_{i=1}^r \frac{\mathbf{u}_i^T \mathbf{b}}{\sigma_i} \mathbf{v}_i \in \operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_r\} = \operatorname{Row}(A)
+$$
+
+This shows that $\mathbf{x}^+$ **lies entirely inside the row space $\operatorname{Row}(A)$**. Now take any $\hat{\mathbf{x}} \in \mathcal{S}_{\text{LS}}$ and write it as $\hat{\mathbf{x}} = \mathbf{x}^+ + \mathbf{x}_n$, where $\mathbf{x}_n \in \operatorname{Null}(A)$.
+Because $\operatorname{Row}(A) \perp \operatorname{Null}(A)$, we must have $(\mathbf{x}^+)^T \mathbf{x}_n = 0$. Applying the Pythagorean theorem a second time:
+
+$$
+\|\hat{\mathbf{x}}\|_2^2 = \|\mathbf{x}^+ + \mathbf{x}_n\|_2^2 = \|\mathbf{x}^+\|_2^2 + \|\mathbf{x}_n\|_2^2 \ge \|\mathbf{x}^+\|_2^2
+$$
+
+Equality holds if and only if $\|\mathbf{x}_n\|_2^2 = 0$, i.e., $\mathbf{x}_n = \mathbf{0} \iff \hat{\mathbf{x}} = \mathbf{x}^+$. Hence $\mathbf{x}^+ = A^+\mathbf{b}$ is the globally unique minimum-norm least-squares solution!
+
+</ProofCollapse>
+
+#### A Note on Ill-Conditioned Matrices and Regularization
+In practical numerical computation, if a nonzero singular value $\sigma_r \gt 0$ is tiny (meaning $A$ is nearly rank-deficient), the pseudoinverse term $\frac{1}{\sigma_r} (\mathbf{u}_r^T \mathbf{b}) \mathbf{v}_r$ amplifies small measurement noise in $\mathbf{b}$ by a factor of $1/\sigma_r$. In engineering, one either uses a **Truncated SVD** (treating singular values below a threshold as zero) or introduces **Tikhonov (Ridge) Regularization**:
+
+$$
+\mathbf{x}_\lambda = (A^T A + \lambda I_n)^{-1} A^T \mathbf{b} \qquad (\lambda \gt 0)
+$$
+
+In the SVD basis, the filter factor for each singular value is $\frac{\sigma_i}{\sigma_i^2 + \lambda}$: when $\sigma_i \gt 0$, $\lim_{\lambda \to 0^+} \frac{\sigma_i}{\sigma_i^2 + \lambda} = \frac{1}{\sigma_i}$, whereas when $\sigma_i = 0$, the term is identically $0$ even before taking the limit! This perturbation limit gives a deep justification for why the pseudoinverse must define **$0^+ = 0$** rather than $\infty$.
+
+---
+
+<PitfallAlert title="Common Pitfalls & Pseudoinverse Errata">
+
+### 1. Mistaking $(A^TA)^{-1}A^T$ for a Universal Pseudoinverse Formula
+Many students memorize the least-squares formula $\hat{\mathbf{x}} = (A^TA)^{-1}A^T\mathbf{b}$ and assume $A^+ = (A^TA)^{-1}A^T$ holds for every matrix. **Serious error!**
+- Whenever $r = \operatorname{rank}(A) \lt n$ (including both Case 3, short-and-wide full row rank $r = m \lt n$, and Case 4, general rank-deficient matrices), the matrix $A^T A \in \mathbb{R}^{n \times n}$ also has rank $r \lt n$—its **determinant is strictly zero and it is not invertible**!
+- Likewise, $A^T(AA^T)^{-1}$ holds **only when $A$ has full row rank $r = m$**. Only $A^+ = V\Sigma^+ U^T$ works in all weather for every matrix!
+
+### 2. Assuming the Reverse-Order Law $(AB)^+ = B^+ A^+$ Holds for Pseudoinverses
+For standard invertible square matrices, $(AB)^{-1} = B^{-1}A^{-1}$ is an iron law; for pseudoinverses, **$(AB)^+ = B^+ A^+$ is generally FALSE**!
+- **Minimal Counterexample**: Take
+
+$$
+A = \begin{bmatrix} 1 & 1 \end{bmatrix} \in \mathbb{R}^{1 \times 2}, \qquad B = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \in \mathbb{R}^{2 \times 1}
+$$
+  - Their product is $AB = [1] \in \mathbb{R}^{1 \times 1}$, so $(AB)^+ = [1]$.
+  - However, $A$ has full row rank with $A^+ = A^T(AA^T)^{-1} = [1/2, 1/2]^T$, and $B$ has full column rank with $B^+ = (B^TB)^{-1}B^T = [1, 0]$.
+  - Computing the reverse-order product gives:
+    $$
+    B^+ A^+ = \begin{bmatrix} 1 & 0 \end{bmatrix} \begin{bmatrix} 1/2 \\ 1/2 \end{bmatrix} = \left[\frac{1}{2}\right] \neq [1] = (AB)^+
+    $$
+- **Why**: $(AB)^+ = B^+ A^+$ holds only when the intermediate subspace suffers no oblique distortion (for example, when $A$ has orthonormal columns $A^TA = I$, or $B$ has orthonormal rows $BB^T = I$, or under Greville's general necessary and sufficient conditions).
+
+### 3. Forgetting to Transpose the Shape of $\Sigma^+$, or Setting $0^+ = \infty$
+- **Shape must be transposed**: If $A, \Sigma \in \mathbb{R}^{m \times n}$, then $A^+, \Sigma^+ \in \mathbb{R}^{n \times m}$.
+- **$0^+ = 0$, never $\infty$**: Zero singular values in $\Sigma^+$ must stay $0$ (mapping $\operatorname{Null}(A^T)$ to $\mathbf{0}$), which corresponds to discarding unreachable residuals in the output space—never divide by $0$.
+
+### 4. Confusing an Arbitrary Left/Right Inverse with the Moore-Penrose Pseudoinverse $A^+$
+A full-column-rank matrix has infinitely many left inverses (such as a truncated inverse $L_1$ built by dropping extra rows), all satisfying $L_1 A = I_n$. Yet every left inverse other than $A^+ = (A^TA)^{-1}A^T$ fails Penrose condition (P3), $(AL_1)^T = AL_1$ (giving an oblique projection instead of an orthogonal projection), so **none of them is the pseudoinverse**!
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l34-pseudoinverse-sandbox"
+  title="Left/Right Inverse Non-Uniqueness & Pseudoinverse Minimum-Norm Geometry Sandbox"
+  description="Adjust the matrix rank $r$ and singular-value threshold to compare oblique projections from arbitrary left/right inverses against the orthogonal projection from $A^+ = V\Sigma^+ U^T$. Drag $\hat{\mathbf{x}}$ along the affine solution set $\mathbf{x}^+ + \operatorname{Null}(A)$ in $\mathbb{R}^n$ to watch $\|\hat{\mathbf{x}}\|_2^2 = \|\mathbf{x}^+\|_2^2 + \|\mathbf{x}_n\|_2^2$ attain its unique minimum at $\mathbf{x}^+ = A^+\mathbf{b}$."
+/>
+
+---
+
+<KeyTakeaways title="Key Takeaways" items={[
+  "Four Rank Cases at a Glance: Square full rank ($r=m=n$) has a unique two-sided inverse $A^{-1}$; full column rank ($r=n\\lt m$) has infinitely many left inverses, with canonical left inverse $(A^TA)^{-1}A^T$ killing $\\operatorname{Null}(A^T)$; full row rank ($r=m\\lt n$) has infinitely many right inverses, with canonical right inverse $A^T(AA^T)^{-1}$ lying in $\\operatorname{Row}(A)$; general rank-deficient ($r\\lt m, r\\lt n$) has neither left nor right inverse.",
+  "Row-to-Column Space Bijection Theorem: Even when $A$ is not invertible overall, restricting $A$ to $\\operatorname{Row}(A) \\to \\operatorname{Col}(A)$ always yields a one-to-one, onto linear isomorphism, because $\\operatorname{Row}(A) \\cap \\operatorname{Null}(A) = \\{\\mathbf{0}\\}$.",
+  "Moore-Penrose Pseudoinverse Formula: From $A = U\\Sigma V^T$, define $A^+ = V\\Sigma^+ U^T = \\sum_{i=1}^r \\frac{1}{\\sigma_i} \\mathbf{v}_i \\mathbf{u}_i^T \\in \\mathbb{R}^{n \\times m}$, where $\\Sigma^+$ transposes the dimensions of $\\Sigma$, takes reciprocals of nonzero singular values, and keeps all zeros as $0$.",
+  "Four Penrose Equations & Uniqueness: $A^+$ is the unique matrix satisfying $AA^+A = A$, $A^+AA^+ = A^+$, $(AA^+)^T = AA^+ = P_{\\operatorname{Col}(A)}$, and $(A^+A)^T = A^+A = P_{\\operatorname{Row}(A)}$, automatically reducing to $(A^TA)^{-1}A^T$, $A^T(AA^T)^{-1}$, and $A^{-1}$ in Cases 2, 3, and 1.",
+  "Minimum-Norm Least-Squares Theorem: For any matrix $A$, $\\mathbf{x}^+ = A^+\\mathbf{b} \\in \\operatorname{Row}(A)$ not only minimizes the residual $\\|A\\mathbf{x} - \\mathbf{b}\\|_2$, but by the Pythagorean theorem $\\|\\mathbf{x}^+ + \\mathbf{x}_n\\|_2^2 = \\|\\mathbf{x}^+\\|_2^2 + \\|\\mathbf{x}_n\\|_2^2$ is also the unique least-squares solution of strictly minimum Euclidean norm $\\|\\mathbf{x}\\|_2$.",
+  "Critical Warnings: Never use $(A^TA)^{-1}A^T$ when $r \\lt n$ ($A^TA$ is singular); and in general, $(AB)^+ \\neq B^+ A^+$."
+]} />
+
+---
+
+## 5. Intuition Problem Set
+
+<ProblemSet title="Lecture 34 Problem Set" description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs.">
+
+<ExerciseCard id="l34-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="Minimal Computation Check: Left-Inverse Family and Unique Orthogonal Projection for a 3×2 Full-Column-Rank Matrix">
+
+Consider the full-column-rank matrix:
+
+$$
+A = \begin{bmatrix} 1 & 1 \\ 1 & -1 \\ 0 & 2 \end{bmatrix} \in \mathbb{R}^{3 \times 2}
+$$
+
+1. Compute the Moore-Penrose pseudoinverse (canonical left inverse) $A^+ = (A^T A)^{-1} A^T$, and verify that $A^+ A = I_2$.
+2. Compute the reverse-order product $AA^+$, verify that it is the symmetric orthogonal projection matrix onto $\operatorname{Col}(A)$, and find a nonzero vector $\mathbf{n} \in \operatorname{Null}(A^T)$ to verify $AA^+\mathbf{n} = \mathbf{0}$.
+3. Using the first two rows of $A$, construct a **different left inverse** $B \in \mathbb{R}^{2 \times 3}$ (satisfying $BA = I_2$), compute $AB$, and explain why $B$ fails the Penrose conditions and cannot be called a pseudoinverse.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Compute $A^T A$ first—you will happily discover that the two columns of $A$ are orthogonal to each other, so $A^T A$ is diagonal!",
+  "Part 2: $AA^+ = P_{\\operatorname{Col}(A)}$ must be symmetric, idempotent, and have trace $\\operatorname{tr}(AA^+) = \\operatorname{rank}(A) = 2$. Solve $A^T\\mathbf{n} = \\mathbf{0}$ to find a basis vector of $\\operatorname{Null}(A^T)$.",
+  "Part 3: Take the top $2 \\times 2$ block $A_1$ with rows $[1, 1]$ and $[1, -1]$, place $A_1^{-1}$ in the first two columns of $B$, and pad the last column with zeros. Check whether $(AB)^T = AB$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+The two columns of $A$ are perpendicular in $\mathbb{R}^3$, which makes inverting $A^T A$ mental arithmetic—just divide each row of $A^T$ by the squared length of the corresponding column of $A$. Every left inverse behaves identically on $\operatorname{Col}(A)$ (recovering $\mathbf{x}$ from $A\mathbf{x}$); they differ entirely in **how they treat the left nullspace $\operatorname{Null}(A^T)$**. The canonical left inverse $A^+$ ignores $\operatorname{Null}(A^T)$ completely (mapping it to $\mathbf{0}$), making $AA^+$ a clean orthogonal projection; by contrast, the hand-crafted left inverse $B$ smuggles in a nonzero response along $\operatorname{Null}(A^T)$, turning $AB$ into a tilted oblique projection.
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1: Compute the Canonical Left Inverse $A^+$**
+Compute $A^T A$:
+
+$$
+A^T A = \begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 2 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 1 & -1 \\ 0 & 2 \end{bmatrix} = \begin{bmatrix} 2 & 0 \\ 0 & 6 \end{bmatrix}
+$$
+
+This is an invertible diagonal matrix with $(A^T A)^{-1} = \operatorname{diag}(1/2, 1/6)$. Hence:
+
+$$
+A^+ = (A^T A)^{-1} A^T = \begin{bmatrix} 1/2 & 0 \\ 0 & 1/6 \end{bmatrix} \begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 2 \end{bmatrix} = \begin{bmatrix} 1/2 & 1/2 & 0 \\ 1/6 & -1/6 & 1/3 \end{bmatrix}
+$$
+
+Verify the left product:
+
+$$
+A^+ A = \begin{bmatrix} 1/2 & 1/2 & 0 \\ 1/6 & -1/6 & 1/3 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 1 & -1 \\ 0 & 2 \end{bmatrix} = \begin{bmatrix} 1/2 + 1/2 & 1/2 - 1/2 \\ 1/6 - 1/6 & 1/6 + 1/6 + 2/3 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I_2
+$$
+
+**Part 2: Compute $AA^+$ and Check the Left Nullspace**
+
+$$
+AA^+ = \begin{bmatrix} 1 & 1 \\ 1 & -1 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1/2 & 1/2 & 0 \\ 1/6 & -1/6 & 1/3 \end{bmatrix} = \begin{bmatrix} 2/3 & 1/3 & 1/3 \\ 1/3 & 2/3 & -1/3 \\ 1/3 & -1/3 & 2/3 \end{bmatrix}
+$$
+
+Clearly $(AA^+)^T = AA^+$ (symmetric), and $\operatorname{tr}(AA^+) = 2/3 + 2/3 + 2/3 = 2 = \operatorname{rank}(A)$. Since $(AA^+)^2 = A(A^+A)A^+ = AA^+$, it is the orthogonal projection matrix onto $\operatorname{Col}(A)$.
+Solving $A^T \mathbf{n} = \mathbf{0}$ gives $n_1 + n_2 = 0$ and $n_1 - n_2 + 2n_3 = 0$. Taking $n_1 = 1$ yields $n_2 = -1, n_3 = -1$, so $\mathbf{n} = [1, -1, -1]^T \in \operatorname{Null}(A^T)$. Checking:
+
+$$
+AA^+ \mathbf{n} = \frac{1}{3} \begin{bmatrix} 2 - 1 - 1 \\ 1 - 2 + 1 \\ 1 + 1 - 2 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}
+$$
+
+**Part 3: Construct Another Left Inverse $B \neq A^+$**
+Let $A_1$ be the first two rows of $A$:
+
+$$
+A_1 = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}, \qquad A_1^{-1} = \frac{1}{2} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}
+$$
+
+Form the $2 \times 3$ matrix:
+
+$$
+B = \begin{bmatrix} 1/2 & 1/2 & 0 \\ 1/2 & -1/2 & 0 \end{bmatrix}
+$$
+
+Then $BA = A_1^{-1} A_1 + O = I_2$, so $B$ is indeed a valid left inverse of $A$. However, computing the reverse-order product gives:
+
+$$
+AB = \begin{bmatrix} 1 & 1 \\ 1 & -1 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1/2 & 1/2 & 0 \\ 1/2 & -1/2 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 1 & -1 & 0 \end{bmatrix}
+$$
+
+Clearly $(AB)^T \neq AB$, violating Penrose condition (P3) ($AB$ is an oblique projection, not an orthogonal projection, and $B\mathbf{n} = [0, 1]^T \neq \mathbf{0}$). Thus $B$ is not the pseudoinverse of $A$.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l34-ex2" tier="L2" tierLabel="L2 · Conceptual True/False" title="Conceptual Analysis & Counterexamples: Uniqueness of Left Inverses and the Reverse-Order Law">
+
+Determine whether the following compound statement is true or false, and provide a rigorous proof or counterexample:
+
+"If $A \in \mathbb{R}^{m \times n}$ has full column rank $r = \operatorname{rank}(A) = n \lt m$, then $A$ has a unique left inverse; moreover, for any conformable matrix $B \in \mathbb{R}^{n \times k}$, we always have $(AB)^+ = B^+ A^+$."
+
+<TrueFalseInteractive
+  id="l34-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! First, when $n \lt m$, $\dim \operatorname{Null}(A^T) = m - n \ge 1$, so adding any nonzero matrix $D$ whose rows lie in $\operatorname{Null}(A^T)$ to the canonical left inverse still satisfies $(A^+ + D)A = I_n$—there are infinitely many left inverses! Second, even when $A$ has full column rank (without requiring orthonormal columns), $(AB)^+ = B^+ A^+$ can fail dramatically!"
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "For uniqueness of the left inverse: when $n \\lt m$, $\\dim \\operatorname{Null}(A^T) = m - n \\ge 1$. Any matrix $D$ satisfying $DA = O$ can be added to an existing left inverse.",
+  "For $(AB)^+ = B^+ A^+$: note carefully that full column rank ($r = n$) does NOT mean orthonormal columns ($A^TA \\neq I_n$)! Try choosing $m = 3, n = 2, k = 1$ with non-uniform column scaling in $A$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+This problem sets two classic traps. The first trap confuses "there is 1 canonical left inverse" with "there is only 1 left inverse"—in reality, the $(m - n)$-dimensional left nullspace leaves an entire free space where you can alter the left inverse's behavior on residuals. The second trap blindly copies the "socks-and-shoes" rule $(AB)^{-1} = B^{-1}A^{-1}$ onto pseudoinverses: whenever $A$ stretches different directions unequally ($A^T A \neq cI$) or $B$ projects onto a mismatched subspace, computing the pseudoinverses separately and multiplying them gets the directional weighting wrong!
+</SolutionIntuition>
+<SolutionRigorous>
+**Both parts of the compound statement are false.** We refute each with an explicit construction:
+
+**Part 1: Infinitely many left inverses when $r = n \lt m$**
+Because $\operatorname{rank}(A) = n \lt m$, $\dim \operatorname{Null}(A^T) = m - n \ge 1$, so there exists a nonzero vector $\mathbf{y} \in \operatorname{Null}(A^T)$ (satisfying $\mathbf{y}^T A = \mathbf{0}^T$).
+Construct the nonzero $n \times m$ matrix:
+
+$$
+D = \begin{bmatrix} \mathbf{y}^T \\ \mathbf{0}^T \\ \vdots \\ \mathbf{0}^T \end{bmatrix}
+$$
+
+Clearly $DA = O_{n \times n}$. For every scalar $t \in \mathbb{R}$, define $L(t) = (A^TA)^{-1}A^T + t D$; then:
+
+$$
+L(t) A = (A^TA)^{-1}A^T A + t (DA) = I_n + O = I_n
+$$
+
+Hence $L(t)$ is a distinct left inverse of $A$ for every $t \in \mathbb{R}$.
+
+**Part 2: Counterexample to $(AB)^+ = B^+ A^+$ with $r = n \lt m$**
+Choose $m = 3, n = 2, k = 1$:
+
+$$
+A = \begin{bmatrix} 1 & 0 \\ 0 & 2 \\ 0 & 0 \end{bmatrix} \in \mathbb{R}^{3 \times 2} \quad (\operatorname{rank}(A) = 2 = n \lt m), \qquad B = \begin{bmatrix} 1 \\ 1 \end{bmatrix} \in \mathbb{R}^{2 \times 1}
+$$
+
+1. Compute the product and its pseudoinverse:
+   $$
+   AB = \begin{bmatrix} 1 \\ 2 \\ 0 \end{bmatrix} \in \mathbb{R}^{3 \times 1} \implies (AB)^+ = \frac{(AB)^T}{\|AB\|_2^2} = \frac{1}{5} \begin{bmatrix} 1 & 2 & 0 \end{bmatrix} = \begin{bmatrix} 1/5 & 2/5 & 0 \end{bmatrix}
+   $$
+2. Compute $A^+$ and $B^+$ separately:
+   - $A$ has full column rank with $A^TA = \operatorname{diag}(1, 4)$, so
+     $$
+     A^+ = (A^TA)^{-1}A^T = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1/2 & 0 \end{bmatrix}
+     $$
+   - $B$ has full column rank with $B^TB = [2]$, so $B^+ = [1/2, 1/2]$.
+3. Multiply $B^+ A^+$:
+   $$
+   B^+ A^+ = \begin{bmatrix} 1/2 & 1/2 \end{bmatrix} \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1/2 & 0 \end{bmatrix} = \begin{bmatrix} 1/2 & 1/4 & 0 \end{bmatrix} \neq \begin{bmatrix} 1/5 & 2/5 & 0 \end{bmatrix} = (AB)^+
+   $$
+
+The statement is completely refuted!
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l34-ex3" tier="L2" tierLabel="L2/L3 · Classification & Subspace Projection" title="The Four Fundamental Subspaces of A⁺ and Nullspace Orthogonality">
+
+Determine whether the following statement is true or false, and characterize all four fundamental subspaces of $A^+$:
+
+"For any real matrix $A \in \mathbb{R}^{m \times n}$ and any $\mathbf{b} \in \mathbb{R}^m$, the vector $\mathbf{x}^+ = A^+\mathbf{b}$ must lie in $\operatorname{Row}(A)$; moreover, $\operatorname{Null}(A^+) = \operatorname{Null}(A^T)$ and $\operatorname{Col}(A^+) = \operatorname{Row}(A)$."
+
+<TrueFalseInteractive
+  id="l34-tf2"
+  correct={true}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="True! From the SVD expansion $A^+ = \sum_{i=1}^r \frac{1}{\sigma_i} \mathbf{v}_i \mathbf{u}_i^T$, any $A^+\mathbf{b}$ is a linear combination of the first $r$ right singular vectors $\mathbf{v}_1, \dots, \mathbf{v}_r$, so $\operatorname{Col}(A^+) = \operatorname{Row}(A)$; furthermore, $A^+\mathbf{b} = \mathbf{0}$ if and only if $\mathbf{b}$ is orthogonal to all $\mathbf{u}_1, \dots, \mathbf{u}_r$, which means $\operatorname{Null}(A^+) = \operatorname{Null}(A^T)$!"
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Apply $A^+ = \\sum_{i=1}^r \\frac{1}{\\sigma_i} \\mathbf{v}_i \\mathbf{u}_i^T$ to an arbitrary vector $\\mathbf{b}$ and see which basis spans the output.",
+  "Use the orthogonal complement laws for the Four Fundamental Subspaces: $\\operatorname{Row}(A^+) = \\operatorname{Null}(A^+)^\\perp$ and $\\operatorname{Null}((A^+)^T) = \\operatorname{Col}(A^+)^\\perp$ to match all four subspaces of $A^+$ to those of $A$!"
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Picture $A^+$ as simply reversing all the arrows in our Four Fundamental Subspaces diagram:
+- The forward map $A$ starts in $\operatorname{Row}(A)$, lands in $\operatorname{Col}(A)$, and crushes $\operatorname{Null}(A)$ to zero.
+- The reverse map $A^+$ starts in $\operatorname{Col}(A)$, lands back in $\operatorname{Row}(A)$, and crushes $\operatorname{Null}(A^T)$ to zero!
+Thus the "active domain" (row space) of $A^+$ is the column space of $A$; the "image" (column space) of $A^+$ is the row space of $A$; the "black hole" (nullspace) of $A^+$ is the left nullspace of $A$; and the left nullspace of $A^+$ is the nullspace of $A$—all four subspaces swap symmetrically!
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **completely true**.
+
+Let $A = U\Sigma V^T$ with $\operatorname{rank}(A) = r$, so $A^+ = \sum_{i=1}^r \frac{1}{\sigma_i} \mathbf{v}_i \mathbf{u}_i^T$ where $\sigma_1 \ge \dots \ge \sigma_r \gt 0$. For any $\mathbf{b} \in \mathbb{R}^m$:
+
+$$
+\mathbf{x}^+ = A^+ \mathbf{b} = \sum_{i=1}^r \left(\frac{\mathbf{u}_i^T \mathbf{b}}{\sigma_i}\right) \mathbf{v}_i
+$$
+
+1. **Prove $\operatorname{Col}(A^+) = \operatorname{Row}(A)$ (and $\mathbf{x}^+ \in \operatorname{Row}(A)$)**:
+   The formula above shows that for every $\mathbf{b} \in \mathbb{R}^m$, $A^+\mathbf{b} \in \operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_r\} = \operatorname{Row}(A)$, so $\operatorname{Col}(A^+) \subseteq \operatorname{Row}(A)$. Conversely, for each $1 \le j \le r$, setting $\mathbf{b} = \sigma_j \mathbf{u}_j$ and using $\mathbf{u}_i^T \mathbf{u}_j = \delta_{ij}$ gives $A^+(\sigma_j \mathbf{u}_j) = \mathbf{v}_j \in \operatorname{Col}(A^+)$, so $\operatorname{Row}(A) \subseteq \operatorname{Col}(A^+)$. Hence $\operatorname{Col}(A^+) = \operatorname{Row}(A)$.
+
+2. **Prove $\operatorname{Null}(A^+) = \operatorname{Null}(A^T)$**:
+   Since $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ is linearly independent and each $\sigma_i \gt 0$:
+   $$
+   A^+ \mathbf{b} = \mathbf{0} \iff \sum_{i=1}^r \left(\frac{\mathbf{u}_i^T \mathbf{b}}{\sigma_i}\right) \mathbf{v}_i = \mathbf{0} \iff \mathbf{u}_i^T \mathbf{b} = 0 \; (\forall 1 \le i \le r)
+   $$
+   That is, $\mathbf{b} \perp \operatorname{span}\{\mathbf{u}_1, \dots, \mathbf{u}_r\} = \operatorname{Col}(A)$. By the Fundamental Theorem of Linear Algebra, $\operatorname{Col}(A)^\perp = \operatorname{Null}(A^T)$, so:
+   $$
+   \operatorname{Null}(A^+) = \operatorname{Null}(A^T)
+   $$
+
+3. **Complete Matching Table for the Four Fundamental Subspaces of $A^+$** (using orthogonal complements for the remaining two):
+   - $\operatorname{Col}(A^+) = \operatorname{Row}(A)$
+   - $\operatorname{Null}(A^+) = \operatorname{Null}(A^T)$
+   - $\operatorname{Row}(A^+) = \operatorname{Null}(A^+)^\perp = \operatorname{Null}(A^T)^\perp = \operatorname{Col}(A)$
+   - $\operatorname{Null}((A^+)^T) = \operatorname{Col}(A^+)^\perp = \operatorname{Row}(A)^\perp = \operatorname{Null}(A)$
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l34-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Zero-Calculation SVD & Penrose Reasoning: Involution Law and Universal Gram Formula (AᵀA)⁺Aᵀ">
+
+Let $A \in \mathbb{R}^{m \times n}$ be any matrix (possibly rank-deficient, $r \lt \min(m, n)$). **Without computing individual matrix entries**, use the SVD $A = U\Sigma V^T$ (or the four Penrose equations) to prove the following three universal identities:
+
+1. **Involution and Transpose Commutation**: $(A^+)^+ = A$, and $(A^T)^+ = (A^+)^T$.
+2. **Normal Matrix Pseudoinverse**: $(A^T A)^+ = A^+ (A^+)^T$.
+3. **Unconditional Universal Left-Inverse Formula**: Whether or not $A^T A$ is invertible, we always have:
+   $$
+   A^+ = (A^T A)^+ A^T
+   $$
+   Explain why this automatically reduces to the familiar $(A^T A)^{-1} A^T$ when $A$ has full column rank, while remaining completely valid when $A$ is rank-deficient!
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "For Part 1, check directly that $A$ satisfies the four Penrose equations with $A^+$ playing the role of the base matrix (just swap $A$ and $X$ in (P1)–(P4)!), or apply the SVD construction a second time to $A^+ = V \\Sigma^+ U^T$.",
+  "For Parts 2 and 3, write $A^T A = V (\\Sigma^T \\Sigma) V^T$. Notice that $\\Sigma^T \\Sigma = \\operatorname{diag}(\\sigma_1^2, \\dots, \\sigma_r^2, 0, \\dots, 0)$ is already diagonal, so its pseudoinverse simply inverts the first $r$ diagonal entries to $\\sigma_i^{-2}$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Part 1 is a small miracle: the four Penrose equations $(AXA=A, XAX=X, (AX)^T=AX, (XA)^T=XA)$ are completely symmetric between $A$ and $X$! Swapping $A \leftrightarrow A^+$ leaves all four equations intact, so uniqueness immediately gives $(A^+)^+ = A$.
+Part 3 repairs the most fragile link in least squares: the textbook formula $(A^T A)^{-1} A^T$ crashes whenever $A^TA$ is singular, but upgrading the ordinary inverse $(\cdot)^{-1}$ to the pseudoinverse $(\cdot)^+$ makes $A^+ = (A^T A)^+ A^T$ hold unconditionally for every matrix in the universe!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1 Proof:**
+- **Prove $(A^+)^+ = A$**: Check the four Penrose conditions for the base matrix $B := A^+$ and candidate pseudoinverse $Y := A$:
+  1. $B Y B = A^+ A A^+ = A^+ = B$ (holds by P2 for $A^+$);
+  2. $Y B Y = A A^+ A = A = Y$ (holds by P1 for $A^+$);
+  3. $(B Y)^T = (A^+ A)^T = A^+ A = B Y$ (holds by P4 for $A^+$);
+  4. $(Y B)^T = (A A^+)^T = A A^+ = Y B$ (holds by P3 for $A^+$).
+  By uniqueness of the matrix satisfying the four Penrose equations, $B^+ = Y$, i.e., $(A^+)^+ = A$!
+- **Prove $(A^T)^+ = (A^+)^T$**: Take the transpose of all four Penrose equations satisfied by $A^+$:
+  1. $A^T (A^+)^T A^T = (A A^+ A)^T = A^T$;
+  2. $(A^+)^T A^T (A^+)^T = (A^+ A A^+)^T = (A^+)^T$;
+  3. $(A^T (A^+)^T)^T = (A^+ A)^T = A^+ A = (A^+ A)^T = A^T (A^+)^T$;
+  4. $((A^+)^T A^T)^T = (A A^+)^T = A A^+ = (A^+)^T A^T$.
+  By uniqueness, $(A^T)^+ = (A^+)^T$! (Alternatively, via SVD: $A^T = V \Sigma^T U^T \implies (A^T)^+ = U (\Sigma^T)^+ V^T = U (\Sigma^+)^T V^T = (V\Sigma^+ U^T)^T = (A^+)^T$.)
+
+**Part 2 Proof:**
+Using $A = U\Sigma V^T$ ($U^T U = I_m, V^T V = I_n$), compute $A^T A$:
+
+$$
+A^T A = V (\Sigma^T \Sigma) V^T = V \begin{bmatrix} \Sigma_r^2 & O \\ O & O_{(n-r) \times (n-r)} \end{bmatrix} V^T
+$$
+
+where $\Sigma_r^2 = \operatorname{diag}(\sigma_1^2, \dots, \sigma_r^2)$ with $\sigma_1^2 \ge \dots \ge \sigma_r^2 \gt 0$. Since $V$ is orthogonal, this is already the SVD (and spectral decomposition) of the symmetric positive semidefinite matrix $A^T A$! Its pseudoinverse is therefore:
+
+$$
+(A^T A)^+ = V \begin{bmatrix} \Sigma_r^{-2} & O \\ O & O_{(n-r) \times (n-r)} \end{bmatrix} V^T
+$$
+
+On the other hand, compute $A^+ (A^+)^T$:
+
+$$
+A^+ (A^+)^T = (V \Sigma^+ U^T)(U (\Sigma^+)^T V^T) = V \left(\Sigma^+ (\Sigma^+)^T\right) V^T = V \begin{bmatrix} \Sigma_r^{-2} & O \\ O & O_{(n-r) \times (n-r)} \end{bmatrix} V^T
+$$
+
+Both sides are identical, so $(A^T A)^+ = A^+ (A^+)^T$!
+
+**Part 3 Proof and Explanation:**
+Multiply $(A^T A)^+$ from Part 2 on the right by $A^T = V \Sigma^T U^T$:
+
+$$
+(A^T A)^+ A^T = V \begin{bmatrix} \Sigma_r^{-2} & O_{r \times (n-r)} \\ O_{(n-r) \times r} & O \end{bmatrix} \begin{bmatrix} \Sigma_r & O_{r \times (m-r)} \\ O_{(n-r) \times r} & O \end{bmatrix} U^T = V \begin{bmatrix} \Sigma_r^{-1} & O_{r \times (m-r)} \\ O_{(n-r) \times r} & O \end{bmatrix} U^T = V \Sigma^+ U^T = A^+
+$$
+
+**Meaning**: When $A$ has full column rank ($r = n$), $A^T A$ is invertible, so $(A^TA)^+ = (A^TA)^{-1}$ and the formula collapses to the familiar $(A^TA)^{-1}A^T$. When $r \lt n$ and $A^T A$ becomes singular, $(A^TA)^+$ preserves the first $r$ positive eigenvalues while setting the zero eigenvalues to zero via $0^+ = 0$, cleanly filtering out $\operatorname{Null}(A)$ and still recovering the exact unique $A^+$!
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l34-ex5" tier="L4" tierLabel="L4 · MIT 18.06 Exam Synthesis" title="MIT 18.06 Exam-Level Synthesis: Rank-Deficient Minimum-Norm Solution and the Tikhonov Regularization Limit">
+
+Consider the rank-1 underdetermined matrix $A$ and a target vector $\mathbf{b}$ outside its column space:
+
+$$
+A = \begin{bmatrix} 1 & 2 & 1 \\ 2 & 4 & 2 \end{bmatrix} \in \mathbb{R}^{2 \times 3}, \qquad \mathbf{b} = \begin{bmatrix} 1 \\ 7 \end{bmatrix} \in \mathbb{R}^2
+$$
+
+1. Construct the compact SVD $A = \sigma_1 \mathbf{u}_1 \mathbf{v}_1^T$, and write down the Moore-Penrose pseudoinverse $A^+$.
+2. Find the unique minimum-norm least-squares solution $\mathbf{x}^+ = A^+\mathbf{b}$, the orthogonal projection $\mathbf{p} = A\mathbf{x}^+$, and the minimum residual $\mathbf{e} = \mathbf{b} - \mathbf{p}$.
+3. Write the parametric form of the full least-squares solution set $\mathcal{S}_{\text{LS}} = \mathbf{x}^+ + \operatorname{Null}(A)$, and verify that $\mathbf{x}^+$ has the strictly smallest $\ell_2$-norm in $\mathcal{S}_{\text{LS}}$.
+4. **Tikhonov Ridge Regularization Limit**: For any real matrix $A \in \mathbb{R}^{m \times n}$ and any regularization parameter $\lambda \gt 0$, find the unique closed-form minimizer $\mathbf{x}_\lambda$ of $\min_{\mathbf{x} \in \mathbb{R}^n} \left( \|A\mathbf{x} - \mathbf{b}\|_2^2 + \lambda \|\mathbf{x}\|_2^2 \right)$, and use the SVD to prove rigorously that:
+   $$
+   \lim_{\lambda \to 0^+} \mathbf{x}_\lambda = A^+ \mathbf{b}
+   $$
+   Finally, compute $\mathbf{x}_\lambda$ explicitly for the $2 \times 3$ matrix above and verify that it approaches $\mathbf{x}^+$ along a straight line!
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 1: Factor $A = [1, 2]^T [1, 2, 1]$. Divide each outer-product vector by its $\\ell_2$ length ($\\sqrt{5}$ and $\\sqrt{6}$) to get $\\mathbf{u}_1, \\mathbf{v}_1$ and $\\sigma_1 = \\sqrt{30}$.",
+  "Parts 2 & 3: You should get $\\mathbf{x}^+ = [1/2, 1, 1/2]^T$ and $\\mathbf{p} = [3, 6]^T$. Solve $x_1 + 2x_2 + x_3 = 0$ to find the 2D nullspace $\\operatorname{Null}(A)$.",
+  "Part 4: Rewrite the objective as an augmented least-squares problem stacking $A$ above $\\sqrt{\\lambda} I_n$ and $\\mathbf{b}$ above $\\mathbf{0}$. Since the augmented matrix always has full column rank, $A^T A + \\lambda I_n$ is strictly positive definite and invertible! Then expand with the SVD to take $\\lambda \\to 0^+$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+This is a textbook "doubly deficient" problem: $A\mathbf{x} = \mathbf{b}$ has no exact solution (since $\mathbf{b} = [1, 7]^T$ is not parallel to $[1, 2]^T$), yet the least-squares solutions form an entire 2D plane (since $\dim \operatorname{Null}(A) = 3 - 1 = 2$). The pseudoinverse cuts through both difficulties in one stroke: in the output space it projects orthogonally onto $\mathbf{p} = [3, 6]^T$, discarding the unreachable residual $[-2, 1]^T$; in the input space it drops a perpendicular from the origin onto that 2D solution plane, locking onto $[1/2, 1, 1/2]^T$. Part 4 reveals another path to the pseudoinverse: adding even a tiny positive-definite perturbation $\lambda I_n$ to the singular matrix $A^TA$ pulls the nullspace component back toward the origin, and as $\lambda \to 0^+$, the nullspace component stays zero so the limit lands squarely on $A^+\mathbf{b}$!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1: Compact SVD and Pseudoinverse**
+Factor the rank-1 matrix as:
+
+$$
+A = \begin{bmatrix} 1 \\ 2 \end{bmatrix} \begin{bmatrix} 1 & 2 & 1 \end{bmatrix}
+$$
+
+Normalize the left and right singular vectors:
+
+$$
+\mathbf{u}_1 = \frac{1}{\sqrt{5}} \begin{bmatrix} 1 \\ 2 \end{bmatrix}, \qquad \mathbf{v}_1 = \frac{1}{\sqrt{6}} \begin{bmatrix} 1 \\ 2 \\ 1 \end{bmatrix}, \qquad \sigma_1 = \sqrt{5}\cdot\sqrt{6} = \sqrt{30}
+$$
+
+The compact SVD is $A = \sqrt{30}\,\mathbf{u}_1 \mathbf{v}_1^T$. Therefore, the pseudoinverse is:
+
+$$
+A^+ = \frac{1}{\sigma_1} \mathbf{v}_1 \mathbf{u}_1^T = \frac{1}{\sqrt{30}} \left(\frac{1}{\sqrt{6}} \begin{bmatrix} 1 \\ 2 \\ 1 \end{bmatrix}\right) \left(\frac{1}{\sqrt{5}} \begin{bmatrix} 1 & 2 \end{bmatrix}\right) = \frac{1}{30} \begin{bmatrix} 1 & 2 \\ 2 & 4 \\ 1 & 2 \end{bmatrix}
+$$
+
+**Part 2: Minimum-Norm Least-Squares Solution, Projection, and Residual**
+
+$$
+\mathbf{x}^+ = A^+ \mathbf{b} = \frac{1}{30} \begin{bmatrix} 1 & 2 \\ 2 & 4 \\ 1 & 2 \end{bmatrix} \begin{bmatrix} 1 \\ 7 \end{bmatrix} = \frac{1}{30} \begin{bmatrix} 15 \\ 30 \\ 15 \end{bmatrix} = \begin{bmatrix} 1/2 \\ 1 \\ 1/2 \end{bmatrix}
+$$
+
+$$
+\mathbf{p} = A\mathbf{x}^+ = \begin{bmatrix} 1/2 + 2 + 1/2 \\ 1 + 4 + 1 \end{bmatrix} = \begin{bmatrix} 3 \\ 6 \end{bmatrix}, \qquad \mathbf{e} = \mathbf{b} - \mathbf{p} = \begin{bmatrix} 1 - 3 \\ 7 - 6 \end{bmatrix} = \begin{bmatrix} -2 \\ 1 \end{bmatrix}
+$$
+
+Indeed $\mathbf{e}^T \mathbf{u}_1 = \frac{1}{\sqrt{5}}(-2 + 2) = 0$, so $\mathbf{e} \in \operatorname{Null}(A^T)$, and the minimum residual norm is $\|\mathbf{e}\|_2 = \sqrt{(-2)^2 + 1^2} = \sqrt{5}$.
+
+**Part 3: Full Least-Squares Solution Set $\mathcal{S}_{\text{LS}}$**
+The nullspace equation $x_1 + 2x_2 + x_3 = 0$ (taking $x_2, x_3$ as free variables) has basis vectors $\mathbf{n}_1 = [-2, 1, 0]^T$ and $\mathbf{n}_2 = [-1, 0, 1]^T$. Hence the full least-squares solution set is a 2D plane in $\mathbb{R}^3$:
+
+$$
+\mathcal{S}_{\text{LS}} = \left\{ \begin{bmatrix} 1/2 \\ 1 \\ 1/2 \end{bmatrix} + c_1 \begin{bmatrix} -2 \\ 1 \\ 0 \end{bmatrix} + c_2 \begin{bmatrix} -1 \\ 0 \\ 1 \end{bmatrix} \;\middle|\; c_1, c_2 \in \mathbb{R} \right\}
+$$
+
+Because $\mathbf{x}^+$ is parallel to $\mathbf{v}_1 \in \operatorname{Row}(A)$ and orthogonal to both $\mathbf{n}_1$ and $\mathbf{n}_2$ (check: $[1/2, 1, 1/2]\cdot[-2, 1, 0]^T = 0$ and $[1/2, 1, 1/2]\cdot[-1, 0, 1]^T = 0$), any $\hat{\mathbf{x}} = \mathbf{x}^+ + \mathbf{x}_n \in \mathcal{S}_{\text{LS}}$ satisfies:
+
+$$
+\|\hat{\mathbf{x}}\|_2^2 = \|\mathbf{x}^+\|_2^2 + \|\mathbf{x}_n\|_2^2 = \frac{3}{2} + \|c_1 \mathbf{n}_1 + c_2 \mathbf{n}_2\|_2^2 \ge \frac{3}{2}
+$$
+
+The unique minimum $\|\mathbf{x}^+\|_2 = \sqrt{3/2}$ is attained if and only if $c_1 = c_2 = 0$.
+
+**Part 4: Tikhonov Regularization Limit Theorem and Numerical Check**
+Rewrite the objective as an augmented least-squares problem:
+
+$$
+J(\mathbf{x}) = \|A\mathbf{x} - \mathbf{b}\|_2^2 + \lambda \|\mathbf{x}\|_2^2 = \left\| \begin{bmatrix} A \\ \sqrt{\lambda} I_n \end{bmatrix} \mathbf{x} - \begin{bmatrix} \mathbf{b} \\ \mathbf{0} \end{bmatrix} \right\|_2^2
+$$
+
+Because the bottom block is $\sqrt{\lambda} I_n$ with $\lambda \gt 0$, the augmented matrix has nullspace $\{\mathbf{0}\}$ and therefore full column rank! Its unique normal equation gives:
+
+$$
+(A^T A + \lambda I_n) \mathbf{x}_\lambda = A^T \mathbf{b} \implies \mathbf{x}_\lambda = (A^T A + \lambda I_n)^{-1} A^T \mathbf{b}
+$$
+
+Substitute the SVD $A = U\Sigma V^T$ (and $I_n = V I_n V^T$):
+
+$$
+(A^T A + \lambda I_n)^{-1} A^T = \left[V (\Sigma^T \Sigma + \lambda I_n) V^T\right]^{-1} (V \Sigma^T U^T) = V (\Sigma^T \Sigma + \lambda I_n)^{-1} \Sigma^T U^T
+$$
+
+The $(i, i)$ entry of the diagonal core $D_\lambda := (\Sigma^T \Sigma + \lambda I_n)^{-1} \Sigma^T \in \mathbb{R}^{n \times m}$ is:
+- For $1 \le i \le r$ ($\sigma_i \gt 0$): $(D_\lambda)_{ii} = \frac{\sigma_i}{\sigma_i^2 + \lambda} \xrightarrow{\lambda \to 0^+} \frac{1}{\sigma_i}$;
+- For $i \gt r$: since the corresponding entry of $\Sigma^T$ is $0$, $(D_\lambda)_{ii} = \frac{0}{0 + \lambda} \equiv 0$ (for all $\lambda \gt 0$).
+
+Hence $\lim_{\lambda \to 0^+} D_\lambda = \Sigma^+$, which proves rigorously that:
+
+$$
+\lim_{\lambda \to 0^+} \mathbf{x}_\lambda = V \Sigma^+ U^T \mathbf{b} = A^+ \mathbf{b}
+$$
+
+**Numerical Verification**: For our $A$ and $\mathbf{b}$, $A^T\mathbf{b} = [15, 30, 15]^T = 30 \mathbf{x}^+$, and $A^T A \mathbf{x}^+ = 30 \mathbf{x}^+$ (since $\mathbf{x}^+ \parallel \mathbf{v}_1$ is an eigenvector of $A^T A$ with eigenvalue $\sigma_1^2 = 30$!). Thus $(A^T A + \lambda I_3)\mathbf{x}^+ = (30 + \lambda)\mathbf{x}^+$, giving:
+
+$$
+\mathbf{x}_\lambda = (A^T A + \lambda I_3)^{-1} (30\mathbf{x}^+) = \frac{30}{30 + \lambda} \begin{bmatrix} 1/2 \\ 1 \\ 1/2 \end{bmatrix} \xrightarrow{\lambda \to 0^+} \begin{bmatrix} 1/2 \\ 1 \\ 1/2 \end{bmatrix} = \mathbf{x}^+
+$$
+
+A perfect match!
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>
+
+---
+
+<FrontierAIReading
+  id="AI-15"
+  title="Implicit Bias of Overparameterized Models: Why Unregularized Gradient Descent Automatically Converges to the Minimum-Norm Pseudoinverse Solution A⁺b"
+  paperRef="Zhang et al. (ICLR 2017) Rethinking Generalization · Soudry et al. (JMLR 2018) Implicit Bias"
+>
+
+### 1. The #1 Mystery of Modern Deep Learning: Among Infinitely Many Zero-Error Solutions, Which One Does the Optimizer Pick?
+
+In classical statistics (and Case 2 of this lecture, the tall-and-thin regime $N \gt d$), we fit a small number of parameters to many data points, so the system is overdetermined. In today's large language models and overparameterized neural networks, the situation flips completely: the parameter dimension $d$ vastly exceeds the number of training examples $N$ ($d \gg N$). This lands squarely in **Case 3 (short-and-wide full row rank $r = N \lt d$)** or even **Case 4 (rank-deficient with highly correlated features $r \lt N \lt d$)**!
+
+Consider overparameterized linear regression (or network training in the linearized Neural Tangent Kernel, NTK, regime): given a data matrix $A \in \mathbb{R}^{N \times d}$ and labels $\mathbf{y} \in \mathbb{R}^N$ with $d \gg N$, the weight vectors $\mathbf{w} \in \mathbb{R}^d$ that achieve zero training error ($A\mathbf{w} = \mathbf{y}$) form an affine subspace of dimension $d - r \gg 1$:
+
+$$
+\mathcal{S}_{\text{interp}} = \mathbf{w}^+ + \operatorname{Null}(A)
+$$
+
+Hidden inside $\mathcal{S}_{\text{interp}}$ are infinitely many terrible solutions that **memorize the training set with zero loss (Loss $= 0$)**—simply add a huge nullspace component $\mathbf{w}_n \in \operatorname{Null}(A)$ to $\mathbf{w}^+$. Because $A\mathbf{w}_n = \mathbf{0}$, it is completely invisible on the training data, yet it causes catastrophic prediction blowups on unseen test points $\mathbf{a}_{\text{test}} \notin \operatorname{Row}(A)$!
+
+Yet the astonishing empirical discovery (Zhang et al., ICLR 2017) is that **even without any explicit $\ell_2$ weight decay regularization, running standard Gradient Descent (GD) from zero or tiny weights consistently avoids those poorly generalizing interpolators and converges to a solution that generalizes remarkably well!**
+
+Why does unregularized gradient descent behave as if guided by an "invisible hand"? That is the central theorem of **Implicit Bias (Implicit Regularization)** in deep learning theory—and its entire mechanism takes just **three lines of pure linear algebra** to prove!
+
+---
+
+### 2. A Three-Line Pure Linear Algebra Proof: Gradient Descent Never Enters the Nullspace
+
+Consider the mean-squared-error loss function:
+
+$$
+L(\mathbf{w}) = \frac{1}{2} \|A\mathbf{w} - \mathbf{y}\|_2^2
+$$
+
+#### Line 1: Every Gradient Step Is Locked Strictly Inside the Row Space $\operatorname{Row}(A)$
+Differentiating with respect to $\mathbf{w}$:
+
+$$
+\nabla_{\mathbf{w}} L(\mathbf{w}_t) = A^T (A\mathbf{w}_t - \mathbf{y})
+$$
+
+Notice that regardless of what the residual vector $\mathbf{r}_t := A\mathbf{w}_t - \mathbf{y} \in \mathbb{R}^N$ inside the parentheses looks like, multiplying on the left by $A^T$ produces a linear combination of the columns of $A^T$! That is:
+
+$$
+\nabla_{\mathbf{w}} L(\mathbf{w}_t) \in \operatorname{Col}(A^T) = \operatorname{Row}(A) \qquad (\forall t \ge 0)
+$$
+
+Because $\operatorname{Row}(A) \perp \operatorname{Null}(A)$, the gradient's projection onto $\operatorname{Null}(A)$ is **identically zero throughout training**!
+
+#### Line 2: Induction from Zero Initialization—The Trajectory Never Leaves $\operatorname{Row}(A)$
+Suppose we start at the origin $\mathbf{w}_0 = \mathbf{0} \in \operatorname{Row}(A)$ and run gradient descent with step size $\eta \gt 0$:
+
+$$
+\mathbf{w}_{t+1} = \mathbf{w}_t - \eta \nabla_{\mathbf{w}} L(\mathbf{w}_t) = \mathbf{w}_t - \eta A^T (A\mathbf{w}_t - \mathbf{y})
+$$
+
+By mathematical induction: $\mathbf{w}_0 = \mathbf{0} \in \operatorname{Row}(A)$, and every update $-\eta A^T(A\mathbf{w}_t - \mathbf{y})$ lies in $\operatorname{Row}(A)$. Since a subspace is closed under addition:
+
+$$
+\mathbf{w}_t \in \operatorname{Row}(A) \qquad (\forall t = 0, 1, 2, \dots)
+$$
+
+Throughout the entire optimization trajectory, the nullspace component $P_{\operatorname{Null}(A)}\mathbf{w}_t$ remains pinned at $\mathbf{0}$!
+
+#### Line 3: The Bijection Theorem Pins Down the Unique Limit—The Pseudoinverse Solution $A^+ \mathbf{y}$
+When the step size satisfies the convergence condition $0 \lt \eta \lt \frac{2}{\sigma_1^2(A)}$, convex optimization guarantees convergence to a global least-squares minimizer $\mathbf{w}_\infty \in \mathcal{S}_{\text{LS}}$ (meaning $A\mathbf{w}_\infty = \mathbf{y}$ in the consistent interpolable case, or $A\mathbf{w}_\infty = P_{\operatorname{Col}(A)}\mathbf{y}$ even with inconsistent noise). Because the finite-dimensional subspace $\operatorname{Row}(A)$ is closed, the limit point also satisfies:
+
+$$
+\mathbf{w}_\infty \in \operatorname{Row}(A) \cap \mathcal{S}_{\text{LS}}
+$$
+
+By our **Row-to-Column Space Bijection Theorem** and **Unique Minimum-Norm Least-Squares Theorem**, among the entire least-squares solution set $\mathcal{S}_{\text{LS}} = \mathbf{w}^+ + \operatorname{Null}(A)$, **there is one and only one vector lying in $\operatorname{Row}(A)$**—namely:
+
+$$
+\mathbf{w}_\infty = A^+ \mathbf{y} = \arg\min_{\mathbf{w} \in \mathcal{S}_{\text{LS}}} \|\mathbf{w}\|_2
+$$
+
+**Q.E.D.!** Gradient descent finds the minimum-norm solution without any explicit $\lambda \|\mathbf{w}\|_2^2$ penalty because **the update trajectory itself is geometrically confined to $\operatorname{Row}(A)$, the orthogonal complement of the nullspace**!
+
+---
+
+### 3. Extension to Nonzero Initialization $\mathbf{w}_0 \neq \mathbf{0}$: Why Initialization Scale Directly Controls Generalization
+
+What happens in practice when we use a random nonzero initialization $\mathbf{w}_0 \neq \mathbf{0}$? Orthogonally decompose the initial weights:
+
+$$
+\mathbf{w}_0 = \mathbf{w}_{0,\text{row}} + \mathbf{w}_{0,\text{null}}, \qquad \mathbf{w}_{0,\text{row}} = P_{\operatorname{Row}(A)}\mathbf{w}_0, \quad \mathbf{w}_{0,\text{null}} = P_{\operatorname{Null}(A)}\mathbf{w}_0
+$$
+
+Because every gradient step $\nabla_{\mathbf{w}} L(\mathbf{w}_t) \in \operatorname{Row}(A)$ is orthogonal to $\operatorname{Null}(A)$, gradient descent **cannot see and can never modify** the initial nullspace component $\mathbf{w}_{0,\text{null}}$! Hence $P_{\operatorname{Null}(A)}\mathbf{w}_t \equiv \mathbf{w}_{0,\text{null}}$ for all $t \ge 0$, and the limit point is exactly:
+
+$$
+\mathbf{w}_\infty = A^+ \mathbf{y} + P_{\operatorname{Null}(A)} \mathbf{w}_0 = \arg\min_{\mathbf{w} \in \mathcal{S}_{\text{LS}}} \|\mathbf{w} - \mathbf{w}_0\|_2
+$$
+
+This yields a golden principle confirmed repeatedly in deep learning practice:
+1. Any initial nullspace noise $P_{\operatorname{Null}(A)}\mathbf{w}_0$ from random initialization is **permanently frozen** into the trained model;
+2. Using **small-variance initialization** (keeping $\|\mathbf{w}_0\|_2$ small) or adding mild weight decay (which shrinks the frozen $\operatorname{Null}(A)$ component exponentially as $(1 - \eta \lambda)^t$) pulls the parameters back toward the minimum-norm manifold $\operatorname{Row}(A)$, curbing overfitting and explaining **benign overfitting** and **double descent**!
+
+<CollapsibleCode language="python" title="implicit_bias_gd_pseudoinverse.py">
+```python
+"""
+Verify the core theorem of Lecture 34 AI-15: Implicit Bias of Overparameterized Gradient Descent (GD)
+1. On an overparameterized and rank-deficient linear model (N=10, d=40, rank=8):
+   - Zero-initialized unregularized GD converges automatically and exactly to the
+     Moore-Penrose pseudoinverse solution A^+ y (the unique minimum L2-norm solution);
+   - Random nonzero-initialized GD achieves the exact same zero training loss, but
+     permanently freezes the initial nullspace component P_Null(w0), converging to
+     A^+ y + P_Null(w0) (the least-squares solution closest to w0), with strictly larger norm!
+2. Also verify that in the inconsistent case (with orthogonal noise in Null(A^T)),
+   zero-initialized GD still converges to A^+ y.
+"""
+import torch
+
+def verify_implicit_bias_pseudoinverse():
+    torch.manual_seed(34)
+
+    # Construct a short-and-wide, rank-deficient matrix A in R^{10 x 40}, rank(A) = 8 < N < d
+    N, d, r = 10, 40, 8
+    U_sub, _ = torch.linalg.qr(torch.randn(N, r, dtype=torch.float64))
+    V_sub, _ = torch.linalg.qr(torch.randn(d, r, dtype=torch.float64))
+    S_sub = torch.linspace(3.0, 0.8, r, dtype=torch.float64)
+    A = U_sub @ torch.diag(S_sub) @ V_sub.T
+
+    # 1. Consistent overparameterized interpolation data: y = A @ w_true
+    w_true = torch.randn(d, dtype=torch.float64)
+    y = A @ w_true
+
+    # Compute the theoretical unique minimum-norm pseudoinverse solution w^+ = A^+ y
+    w_pinv = torch.linalg.pinv(A) @ y
+
+    # Safe convergence step size: 0 < eta < 2 / sigma_1^2
+    sigma_1 = S_sub[0].item()
+    eta = 1.0 / (sigma_1 ** 2)
+
+    # Run unregularized zero-initialized gradient descent
+    w_gd_zero = torch.zeros(d, dtype=torch.float64)
+    for _ in range(3000):
+        grad = A.T @ (A @ w_gd_zero - y)
+        w_gd_zero = w_gd_zero - eta * grad
+
+    loss_zero = 0.5 * torch.norm(A @ w_gd_zero - y).item() ** 2
+    dist_to_pinv = torch.norm(w_gd_zero - w_pinv).item()
+
+    print("=" * 72)
+    print("1. Overparameterized & Rank-Deficient Interpolation (N=10, d=40, rank=8):")
+    print(f"   Zero-init GD final training loss:       {loss_zero:.2e}")
+    print(f"   ||w_gd_zero - A^+ y||_2 discrepancy:    {dist_to_pinv:.2e} (exact convergence to A^+ y!)")
+    print(f"   ||w_gd_zero||_2 = {torch.norm(w_gd_zero).item():.6f}  vs  ||A^+ y||_2 = {torch.norm(w_pinv).item():.6f}")
+
+    # 2. Random nonzero-initialized GD: verify that the Null(A) component is permanently frozen
+    w0 = torch.randn(d, dtype=torch.float64)
+    P_row = V_sub @ V_sub.T
+    w0_null = w0 - P_row @ w0  # Initial nullspace projection P_Null(w0)
+
+    w_gd_rand = w0.clone()
+    for _ in range(3000):
+        grad = A.T @ (A @ w_gd_rand - y)
+        w_gd_rand = w_gd_rand - eta * grad
+
+    loss_rand = 0.5 * torch.norm(A @ w_gd_rand - y).item() ** 2
+    w_theory_rand = w_pinv + w0_null
+    dist_to_theory = torch.norm(w_gd_rand - w_theory_rand).item()
+
+    print("\n2. Nonzero-init w0 Gradient Descent (Nullspace Freezing Theorem):")
+    print(f"   Nonzero-init GD final training loss:    {loss_rand:.2e} (also interpolates with zero error!)")
+    print(f"   ||w_gd_rand - (A^+ y + P_Null(w0))||_2 = {dist_to_theory:.2e}")
+    print(f"   ||w_gd_rand||_2 = {torch.norm(w_gd_rand).item():.6f}  >  ||A^+ y||_2 = {torch.norm(w_pinv).item():.6f}")
+    print("   Conclusion: Unregularized GD implicitly finds the least-squares solution closest to w0!")
+
+    # 3. Inconsistent system check (with unreachable orthogonal noise in Null(A^T))
+    y_noisy = y + 0.5 * (torch.randn(N, dtype=torch.float64) - U_sub @ (U_sub.T @ torch.randn(N, dtype=torch.float64)))
+    w_pinv_noisy = torch.linalg.pinv(A) @ y_noisy
+    w_gd_noisy = torch.zeros(d, dtype=torch.float64)
+    for _ in range(3000):
+        w_gd_noisy = w_gd_noisy - eta * (A.T @ (A @ w_gd_noisy - y_noisy))
+    err_noisy = torch.norm(w_gd_noisy - w_pinv_noisy).item()
+    print("\n3. Inconsistent System Check (with unreachable residual):")
+    print(f"   ||w_gd_noisy - A^+ y_noisy||_2 = {err_noisy:.2e} (still locks onto minimum-norm LS solution!)")
+    print("=" * 72)
+
+if __name__ == "__main__":
+    verify_implicit_bias_pseudoinverse()
+```
+</CollapsibleCode>
+
+</FrontierAIReading>

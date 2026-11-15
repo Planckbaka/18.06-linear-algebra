@@ -1,0 +1,1007 @@
+---
+title: "Lecture 32: Change of Basis and Image Compression"
+ocwId: "L31"
+videoEpisode: "P32"
+textbookRef: "§8.2"
+---
+
+In Lecture 31, we stepped outside specific numerical matrices for the first time and met **coordinate-free linear transformations** $T: V \to W$. We learned that once we choose an input basis and an output basis, the operator $T$ is uniquely represented by a matrix.
+
+Today, we answer two fundamental, practical questions that lie at the heart of linear algebra's power: **Why do we change basis? And what makes a basis a "good" basis?**
+
+A clever change of basis pays off along two parallel highways:
+1. **Image & Signal Compression**: Storing a $1024 \times 1024$ grayscale image in the default pixel basis requires over a million highly correlated pixel numbers. Yet if we switch to a smart **orthogonal basis**—such as the **Discrete Cosine Transform (DCT) basis** used in JPEG, or the **Haar wavelet basis** used in JPEG 2000—almost all coordinate coefficients drop close to zero, and we can reconstruct the entire image almost losslessly from just a tiny fraction of the basis vectors!
+2. **Simplifying Linear Operators**: For the same linear transformation $T$, choosing the right input and output bases can collapse a dense, opaque matrix into a crystal-clear **diagonal matrix**. When the input and output share the same eigenbasis $S$, we obtain similarity diagonalization $\Lambda = S^{-1} A S$; when we allow separate orthonormal input and output bases $V$ and $U$, we arrive at the **Singular Value Decomposition (SVD)** $\Sigma = U^T A V$, which works for every matrix on Earth!
+
+---
+
+## 1. The Coordinate Change Formula $\mathbf{x} = W\mathbf{c}$ and the Power of Orthogonal Bases
+
+### 1.1 Pixel Coordinates vs. New Basis Coordinates: From Geometry to Matrix Equations
+
+In $\mathbb{R}^n$, we usually live inside an "invisible" coordinate system—the **standard (canonical) basis** $\mathcal{E} = \{\mathbf{e}_1, \mathbf{e}_2, \dots, \mathbf{e}_n\}$. When an $n$-pixel image is stacked into a column vector $\mathbf{x} = [x_1, x_2, \dots, x_n]^T \in \mathbb{R}^n$, its $i$-th component $x_i$ is simply its coefficient in the standard pixel basis:
+
+$$
+\mathbf{x} = x_1 \mathbf{e}_1 + x_2 \mathbf{e}_2 + \dots + x_n \mathbf{e}_n = I_n \mathbf{x}
+$$
+
+Now suppose we carefully select a new basis $\mathcal{W} = \{\mathbf{w}_1, \mathbf{w}_2, \dots, \mathbf{w}_n\} \subset \mathbb{R}^n$ (for instance, sinusoids, step functions, or eigenvectors) and arrange these $n$ vectors as the columns of an $n \times n$ matrix:
+
+$$
+W = \begin{bmatrix} \vert & \vert & & \vert \\ \mathbf{w}_1 & \mathbf{w}_2 & \cdots & \mathbf{w}_n \\ \vert & \vert & & \vert \end{bmatrix} \in \mathbb{R}^{n \times n}
+$$
+
+Because $\{\mathbf{w}_1, \dots, \mathbf{w}_n\}$ is a **basis** of $\mathbb{R}^n$—linearly independent and spanning all of $\mathbb{R}^n$—the basis matrix $W$ is guaranteed to be **invertible**. That means every image vector $\mathbf{x} \in \mathbb{R}^n$ has a **unique** expansion as a linear combination of the new basis vectors:
+
+$$
+\mathbf{x} = c_1 \mathbf{w}_1 + c_2 \mathbf{w}_2 + \dots + c_n \mathbf{w}_n = W \mathbf{c}
+$$
+
+Let us do a quick $2 \times 2$ warm-up. Take the basis vectors $\mathbf{w}_1 = [1, 1]^T$ and $\mathbf{w}_2 = [1, -1]^T$ (an average mode and a difference mode), so the basis matrix is
+
+$$
+W = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}
+$$
+
+Given the pixel vector $\mathbf{x} = [5, 1]^T$, what are its coordinates $\mathbf{c} = [c_1, c_2]^T$ in the new basis?
+
+$$
+W \mathbf{c} = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} c_1 \\ c_2 \end{bmatrix} = \begin{bmatrix} 5 \\ 1 \end{bmatrix} \implies \mathbf{c} = W^{-1} \mathbf{x} = \frac{1}{2} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} 5 \\ 1 \end{bmatrix} = \begin{bmatrix} 3 \\ 2 \end{bmatrix}
+$$
+
+Check:
+
+$$
+3\begin{bmatrix} 1 \\ 1 \end{bmatrix} + 2\begin{bmatrix} 1 \\ -1 \end{bmatrix} = \begin{bmatrix} 5 \\ 1 \end{bmatrix}
+$$
+
+Notice the two directions of this dictionary:
+- **Analysis / Encoding**: Given the pixels $\mathbf{x}$, find the new coordinates $\mathbf{c} = W^{-1}\mathbf{x}$.
+- **Synthesis / Reconstruction**: Given the new coordinates $\mathbf{c}$, form the linear combination to recover the pixels $\mathbf{x} = W\mathbf{c}$.
+
+<DefinitionCard label="Definition" title="Change-of-Basis Matrix & Coordinate Change Formula">
+
+Let $\mathcal{W} = \{\mathbf{w}_1, \mathbf{w}_2, \dots, \mathbf{w}_n\}$ be a basis of $\mathbb{R}^n$, and form the **change-of-basis matrix** $W = [\mathbf{w}_1 \;\; \mathbf{w}_2 \;\; \cdots \;\; \mathbf{w}_n] \in \mathbb{R}^{n \times n}$ ($\det(W) \ne 0$). For any vector $\mathbf{x} \in \mathbb{R}^n$ (in standard coordinates) and its **coordinate vector** $\mathbf{c} = [c_1, \dots, c_n]^T \in \mathbb{R}^n$ in the basis $\mathcal{W}$, the two are linked by inverse linear maps:
+
+$$
+\mathbf{x} = W \mathbf{c} \quad \Longleftrightarrow \quad \mathbf{c} = W^{-1} \mathbf{x}
+$$
+
+- From new coordinates $\mathbf{c}$ back to standard coordinates $\mathbf{x}$: **multiply on the left by $W$** (linear combination / synthesis).
+- From standard coordinates $\mathbf{x}$ to new coordinates $\mathbf{c}$: **multiply on the left by $W^{-1}$** (coordinate decomposition / analysis).
+
+*(Note: Over $\mathbb{C}^n$, the invertible matrix and vectors live over $\mathbb{C}$; when the basis matrix is unitary $U \in \mathbb{C}^{n\times n}$, the transpose $^T$ in the inversion formula is replaced by the conjugate transpose $^H$, giving $\mathbf{c} = U^H \mathbf{x}$.)*
+
+</DefinitionCard>
+
+### 1.2 Why Orthogonality Makes Analysis and Error Control Effortless
+
+For a general non-orthogonal invertible matrix $W \in \mathbb{R}^{n \times n}$, if an image has $n = 10^6$ pixels, computing $\mathbf{c} = W^{-1}\mathbf{x}$ requires solving a million-by-million dense linear system (complexity $\mathcal{O}(n^3)$—completely hopeless!). Worse still, if the columns of $W$ are nearly collinear, truncating small coefficients in $\mathbf{c}$ can cause wild error amplification when multiplying back by $W$.
+
+The moment our basis is **orthogonal**—or even better, **orthonormal**—everything clicks into place:
+
+<TheoremCard label="Theorem" title="Orthogonal Basis Inversion & Parseval's Identity">
+
+Let $W = [\mathbf{w}_1 \;\; \cdots \;\; \mathbf{w}_n] \in \mathbb{R}^{n \times n}$ be a basis of $\mathbb{R}^n$.
+
+1. **Orthogonal Basis**: If the basis vectors are pairwise orthogonal ($\mathbf{w}_i^T \mathbf{w}_j = 0$ for all $i \ne j$) and nonzero, set $d_i := \|\mathbf{w}_i\|_2^2 \gt 0$ and $D := \operatorname{diag}(d_1, \dots, d_n)$. Then $W^T W = D$, so **inversion requires no elimination**—just transpose and row-scaling:
+   $$
+   W^{-1} = D^{-1} W^T \quad \Longleftrightarrow \quad c_i = \frac{\mathbf{w}_i^T \mathbf{x}}{\mathbf{w}_i^T \mathbf{w}_i} = \frac{\mathbf{w}_i^T \mathbf{x}}{\|\mathbf{w}_i\|_2^2} \;\; (i = 1, \dots, n)
+   $$
+   Moreover, energy obeys the **weighted Pythagorean identity**:
+   $$
+   \|\mathbf{x}\|_2^2 = \sum_{i=1}^n d_i c_i^2 = \sum_{i=1}^n \|\mathbf{w}_i\|_2^2 c_i^2
+   $$
+
+2. **Orthonormal Basis**: If $W = Q \in \mathbb{R}^{n \times n}$ also has unit-length columns ($Q^T Q = I_n$), then:
+   - **Zero-cost inversion**: $\mathbf{c} = Q^T \mathbf{x} \iff \mathbf{x} = Q \mathbf{c}$.
+   - **Parseval's Identity (Energy Conservation)**: $\|\mathbf{x}\|_2^2 = \|\mathbf{c}\|_2^2 = \sum_{i=1}^n c_i^2$.
+   - **Exact $\ell_2$ Error for Hard-Threshold Compression**: If we keep only a subset of indices $S \subseteq \{1, \dots, n\}$ and zero out all coefficients for $i \notin S$ to form $\hat{\mathbf{c}}$, then the reconstructed vector $\hat{\mathbf{x}} = Q \hat{\mathbf{c}} = \sum_{i \in S} c_i \mathbf{q}_i$ has squared Euclidean error **exactly equal** to the sum of squares of the discarded coefficients:
+     $$
+     \|\mathbf{x} - \hat{\mathbf{x}}\|_2^2 = \|\mathbf{c} - \hat{\mathbf{c}}\|_2^2 = \sum_{i \notin S} c_i^2
+     $$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Orthogonal Inversion and Parseval's Exact Truncation Error">
+
+**Step 1 (Orthogonal Inversion and Weighted Energy):**
+Compute the $(i, j)$ entry of $W^T W$: $(W^T W)_{ij} = \mathbf{w}_i^T \mathbf{w}_j$. By orthogonality, this is $0$ for $i \ne j$, and $\|\mathbf{w}_i\|_2^2 = d_i \gt 0$ for $i = j$. Thus $W^T W = D = \operatorname{diag}(d_1, \dots, d_n)$. Since every diagonal entry is strictly positive, $D$ is invertible. Multiplying both sides on the left by $D^{-1}$ gives:
+
+$$
+(D^{-1} W^T) W = I_n \implies W^{-1} = D^{-1} W^T
+$$
+
+(For a square matrix, a left inverse is automatically the two-sided inverse, Lecture 3.) Reading off the $i$-th row of $\mathbf{c} = D^{-1} W^T \mathbf{x}$ yields $c_i = \frac{1}{d_i}\mathbf{w}_i^T \mathbf{x}$. For the signal energy:
+
+$$
+\|\mathbf{x}\|_2^2 = \mathbf{x}^T \mathbf{x} = (W\mathbf{c})^T (W\mathbf{c}) = \mathbf{c}^T (W^T W) \mathbf{c} = \mathbf{c}^T D \mathbf{c} = \sum_{i=1}^n d_i c_i^2
+$$
+
+**Step 2 (Orthonormal Case and Compression Truncation Error):**
+When $W = Q$ satisfies $Q^T Q = I_n$, we have $D = I_n$, so $Q^{-1} = Q^T$ and $\mathbf{c} = Q^T \mathbf{x}$. For the truncated coefficient vector $\hat{\mathbf{c}}$ (where $\hat{c}_i = c_i$ if $i \in S$ and $\hat{c}_i = 0$ otherwise), the reconstruction residual is:
+
+$$
+\mathbf{x} - \hat{\mathbf{x}} = Q \mathbf{c} - Q \hat{\mathbf{c}} = Q (\mathbf{c} - \hat{\mathbf{c}})
+$$
+
+Because an orthogonal matrix preserves inner products and Euclidean lengths ($(Q\mathbf{u})^T(Q\mathbf{u}) = \mathbf{u}^T (Q^T Q) \mathbf{u} = \|\mathbf{u}\|_2^2$):
+
+$$
+\|\mathbf{x} - \hat{\mathbf{x}}\|_2^2 = \|Q(\mathbf{c} - \hat{\mathbf{c}})\|_2^2 = \|\mathbf{c} - \hat{\mathbf{c}}\|_2^2 = \sum_{i \notin S} (c_i - 0)^2 = \sum_{i \notin S} c_i^2
+$$
+
+Therefore, in an orthonormal basis, simply discarding the coefficients with the smallest magnitudes guarantees the **globally minimal $\ell_2$ approximation error** in pixel space for any fixed budget $|S| = k$ of nonzero coefficients!
+
+</ProofCollapse>
+
+---
+
+## 2. Image Compression and the Golden Rules of a "Good Basis": JPEG DCT and Haar Wavelets
+
+### 2.1 Why Not Compress Directly in the Pixel Basis? The Compression Pipeline
+
+View a $1024 \times 1024$ grayscale image as a vector $\mathbf{x} \in \mathbb{R}^{1,048,576}$. Why can we almost never compress an image by simply dropping pixels in the standard pixel basis $\mathcal{E}$?
+- Natural images (blue skies, walls, smooth shading on a face) exhibit strong **spatial correlation**: neighboring pixels have nearly identical values (e.g., $[128, 129, 128, 130, \dots]^T$). Almost no pixel is zero, and the signal energy is spread evenly across all one million basis vectors $\mathbf{e}_i$.
+
+Modern lossy image compression therefore follows a clean three-step pipeline:
+
+1. **Lossless Change of Basis**: Compute $\mathbf{c} = W^{-1}\mathbf{x}$. No information is lost yet—we are merely rewriting the same image in a smarter coordinate language.
+2. **Lossy Thresholding & Quantization**: Choose a threshold $\tau \gt 0$, set tiny coefficients ($|c_i| \lt \tau$) to **zero** (or quantize high-frequency coefficients with a coarser step size), producing a sparse vector $\hat{\mathbf{c}}$ with $k \ll n$ nonzeros.
+3. **Fast Reconstruction**: The decoder receives only the few nonzero coefficients and their indices, and computes $\hat{\mathbf{x}} = W\hat{\mathbf{c}}$ to rebuild the image.
+
+For this pipeline to run at lightning speed while preserving visual quality, the basis matrix $W$ must satisfy **two golden properties**:
+
+<DefinitionCard label="Definition" title="Two Golden Properties of a Compression Basis">
+
+1. **Fast Analysis & Synthesis**: Computing $\mathbf{c} = W^{-1}\mathbf{x}$ and reconstructing $\hat{\mathbf{x}} = W\hat{\mathbf{c}}$ cannot take $\mathcal{O}(n^2)$ dense matrix-vector multiplication. First, the basis should be **orthogonal** ($W^{-1} = D^{-1}W^T$ or $Q^T$, eliminating matrix inversion). Second, it should possess a sparse butterfly or pyramid factorization that drops complexity to $\mathcal{O}(n \log n)$ (like FFT/DCT) or even $\mathcal{O}(n)$ (like wavelets).
+2. **Energy Compaction (Sparsity)**: For typical natural images, almost all of the total energy $\|\mathbf{x}\|_2^2$ must concentrate into a tiny handful of basis coefficients (typically keeping just $5\% \sim 10\%$ of the coefficients captures $95\% \sim 99\%$ of the energy), leaving over $90\%$ of the coefficients near zero so they can be discarded with virtually no visible distortion.
+
+</DefinitionCard>
+
+### 2.2 The JPEG Standard: $8 \times 8$ Separable 2D Discrete Cosine Transform (DCT)
+
+Remember the Fast Fourier Transform (FFT) from Lecture 27? The Fourier basis decomposes signals into complex exponentials (or sines and cosines) in $\mathcal{O}(n \log n)$ time, naturally packing smooth variations into a few low-frequency modes.
+
+However, the classic JPEG standard did not apply a single global 2D Discrete Fourier Transform (DFT) to an entire megapixel image. Instead, it made two masterstrokes of engineering mathematics:
+- **Block-based $8 \times 8$ Windows**: A global transform across the whole image would let a sharp roof edge on the right contaminate the spectrum of a calm sky on the left. Partitioning into $8 \times 8$ ($64$-dimensional) local blocks ensures that most blocks are nearly flat or smoothly varying, with tiny computational overhead per block.
+- **Cosines (DCT) Instead of Periodic DFT**: A periodic DFT wraps the right edge of a block directly onto the left edge. If the left edge has brightness $200$ and the right edge has brightness $40$, periodic wraparound creates an artificial cliff, forcing large high-frequency DFT coefficients and **Gibbs ringing artifacts**. The **Discrete Cosine Transform (DCT-II)** is equivalent to an **even-symmetric mirror extension**, stitching the boundaries smoothly so that energy packs tightly into the lowest frequencies!
+
+Specifically, the 1D $N$-point orthonormal DCT-II matrix $C \in \mathbb{R}^{N \times N}$ ($N = 8$ in JPEG) has entries:
+
+$$
+C_{k, j} = \alpha_k \cos\!\left( \frac{\pi (2j + 1) k}{2N} \right), \qquad k, j \in \{0, 1, \dots, N-1\}
+$$
+
+where $\alpha_0 = \sqrt{\frac{1}{N}}$ and $\alpha_k = \sqrt{\frac{2}{N}}$ for $k \ge 1$, guaranteeing $C^T C = C C^T = I_N$. For an $8 \times 8$ image patch $X \in \mathbb{R}^{8 \times 8}$, we never need to build a $64 \times 64$ matrix; we use a **2D separable transform**—applying the 1D DCT to each column (left-multiplying by $C$) and then to each row (right-multiplying by $C^T$):
+
+$$
+Y = C X C^T \quad \Longleftrightarrow \quad X = C^T Y C
+$$
+
+See how dramatically it compacts energy: if an $8 \times 8$ patch of blue sky has constant intensity $v$ ($X = v \mathbf{1}\mathbf{1}^T$), then because row $0$ of $C$ is the constant vector $\frac{1}{\sqrt{8}}\mathbf{1}^T$ and the other $7$ rows are orthogonal to $\mathbf{1}$, we get $C\mathbf{1} = [\sqrt{8}, 0, \dots, 0]^T$, and hence:
+
+$$
+Y = v (C\mathbf{1})(C\mathbf{1})^T = \begin{bmatrix} 8v & 0 & \cdots & 0 \\ 0 & 0 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & 0 \end{bmatrix}
+$$
+
+All $64$ pixels collapse losslessly into a single DC coefficient $Y_{0,0} = 8v$, while all $63$ AC coefficients are **identically zero**! In real JPEG, dividing $Y_{p,q}$ by a human-visual-system quantization table and rounding turns almost all high-frequency entries into zeros, enabling crisp $10:1$ to $20:1$ compression after zigzag scanning.
+
+### 2.3 The JPEG 2000 Idea: 4-Point Haar Wavelet Basis $W_4$ and Multiresolution Compression
+
+While the DCT excels on smooth regions, its cosine basis functions span the entire $8 \times 8$ block. When a block contains a razor-sharp black-and-white edge (such as text or line art), many high-frequency cosines are needed to synthesize the jump, leading to $8 \times 8$ "blocking artifacts" at high compression ratios.
+
+**Wavelets** overcome this limitation by being **localized in both space and frequency (scale)**, forming the mathematical backbone of the JPEG 2000 standard.
+
+The cleanest prototype—one that lays bare the entire linear algebra—is the **Haar wavelet basis**. Consider the **4-point Haar wavelet matrix $W_4 \in \mathbb{R}^{4 \times 4}$**:
+
+$$
+W_4 = \begin{bmatrix} \mathbf{w}_1 & \mathbf{w}_2 & \mathbf{w}_3 & \mathbf{w}_4 \end{bmatrix} = \begin{bmatrix}
+1 & 1 & 1 & 0 \\
+1 & 1 & -1 & 0 \\
+1 & -1 & 0 & 1 \\
+1 & -1 & 0 & -1
+\end{bmatrix}
+$$
+
+Inspect these four step-function columns through the lens of **Multiresolution Analysis**:
+- **$\mathbf{w}_1 = [1, 1, 1, 1]^T$**: Global average (coarse DC mode across all $4$ pixels).
+- **$\mathbf{w}_2 = [1, 1, -1, -1]^T$**: Medium-scale jump (overall contrast between the left half and right half).
+- **$\mathbf{w}_3 = [1, -1, 0, 0]^T$**: Fine detail on the left (only looks at pixels 1 and 2; strictly zero on the right!).
+- **$\mathbf{w}_4 = [0, 0, 1, -1]^T$**: Fine detail on the right (only looks at pixels 3 and 4; strictly zero on the left!).
+
+Check the pairwise dot products: $\mathbf{w}_1^T\mathbf{w}_2 = 1+1-1-1=0$, $\mathbf{w}_1^T\mathbf{w}_3 = 1-1=0$, $\mathbf{w}_2^T\mathbf{w}_3 = 1-1=0$, and $\mathbf{w}_3^T\mathbf{w}_4 = 0$ (disjoint supports!). Thus, the columns of $W_4$ are **pairwise orthogonal**, with diagonal Gram matrix:
+
+$$
+W_4^T W_4 = D_4 = \operatorname{diag}(4, 4, 2, 2)
+$$
+
+By our Orthogonal Inversion Theorem, with zero Gaussian elimination, we write down the exact inverse:
+
+$$
+W_4^{-1} = D_4^{-1} W_4^T = \begin{bmatrix}
+1/4 & 0 & 0 & 0 \\
+0 & 1/4 & 0 & 0 \\
+0 & 0 & 1/2 & 0 \\
+0 & 0 & 0 & 1/2
+\end{bmatrix}
+\begin{bmatrix}
+1 & 1 & 1 & 1 \\
+1 & 1 & -1 & -1 \\
+1 & -1 & 0 & 0 \\
+0 & 0 & 1 & -1
+\end{bmatrix}
+= \begin{bmatrix}
+1/4 & 1/4 & 1/4 & 1/4 \\
+1/4 & 1/4 & -1/4 & -1/4 \\
+1/2 & -1/2 & 0 & 0 \\
+0 & 0 & 1/2 & -1/2
+\end{bmatrix}
+$$
+
+Dividing each column by its Euclidean length ($\sqrt{4}=2, \sqrt{4}=2, \sqrt{2}, \sqrt{2}$) yields the **orthonormal Haar matrix** $Q_4 = W_4 D_4^{-1/2}$:
+
+$$
+Q_4 = \begin{bmatrix}
+1/2 & 1/2 & 1/\sqrt{2} & 0 \\
+1/2 & 1/2 & -1/\sqrt{2} & 0 \\
+1/2 & -1/2 & 0 & 1/\sqrt{2} \\
+1/2 & -1/2 & 0 & -1/\sqrt{2}
+\end{bmatrix}, \qquad Q_4^T Q_4 = I_4
+$$
+
+#### Worked Example: Haar Compression of $\mathbf{x} = [9, 7, 3, 1]^T$
+
+Take the 4-pixel 1D signal $\mathbf{x} = [9, 7, 3, 1]^T$, whose total energy is $\|\mathbf{x}\|_2^2 = 9^2 + 7^2 + 3^2 + 1^2 = 81 + 49 + 9 + 1 = 140$.
+
+1. **Basis Analysis (Wavelet Coordinates)**:
+   $$
+   \mathbf{c} = W_4^{-1} \mathbf{x} = \begin{bmatrix}
+   (9+7+3+1)/4 \\
+   (9+7-3-1)/4 \\
+   (9-7)/2 \\
+   (3-1)/2
+   \end{bmatrix} = \begin{bmatrix} 5 \\ 3 \\ 1 \\ 1 \end{bmatrix}
+   $$
+   Converting to orthonormal coordinates $\tilde{\mathbf{c}} = Q_4^T \mathbf{x} = D_4^{1/2}\mathbf{c}$:
+   $$
+   \tilde{\mathbf{c}} = \begin{bmatrix} 2\cdot 5 \\ 2\cdot 3 \\ \sqrt{2}\cdot 1 \\ \sqrt{2}\cdot 1 \end{bmatrix} = \begin{bmatrix} 10 \\ 6 \\ \sqrt{2} \\ \sqrt{2} \end{bmatrix}
+   $$
+   Check Parseval's energy distribution: $\tilde{c}_1^2 + \tilde{c}_2^2 + \tilde{c}_3^2 + \tilde{c}_4^2 = 100 + 36 + 2 + 2 = 140 = \|\mathbf{x}\|_2^2$!
+   Look at that compaction: **just the first two coarse basis vectors ($\mathbf{w}_1, \mathbf{w}_2$) capture $136 / 140 = 97.14\%$ of the total energy**, while each fine-detail coefficient holds only $1.43\%$!
+
+2. **Hard Thresholding and Reconstruction**:
+   Set a hard threshold $\tau = 2$ (keeping $|\tilde{c}_i| \ge 2$ and zeroing out $|\tilde{c}_3| = |\tilde{c}_4| = \sqrt{2} \lt 2$) to get the sparse coefficient vector $\hat{\mathbf{c}} = [5, 3, 0, 0]^T$ (a $2:1$ compression).
+   Reconstruct the signal:
+   $$
+   \hat{\mathbf{x}} = W_4 \hat{\mathbf{c}} = 5\begin{bmatrix} 1 \\ 1 \\ 1 \\ 1 \end{bmatrix} + 3\begin{bmatrix} 1 \\ 1 \\ -1 \\ -1 \end{bmatrix} = \begin{bmatrix} 8 \\ 8 \\ 2 \\ 2 \end{bmatrix}
+   $$
+   Compute the reconstruction error:
+   $$
+   \mathbf{x} - \hat{\mathbf{x}} = \begin{bmatrix} 1 \\ -1 \\ 1 \\ -1 \end{bmatrix} \implies \|\mathbf{x} - \hat{\mathbf{x}}\|_2^2 = 1^2 + (-1)^2 + 1^2 + (-1)^2 = 4 = \tilde{c}_3^2 + \tilde{c}_4^2
+   $$
+   The squared pixel error matches the sum of squares of the discarded orthonormal coefficients ($2 + 2 = 4$) to the last digit, while retaining **$97.14\%$** of the signal energy! Better yet, if the input is a sharp step edge $\mathbf{x}_{\text{edge}} = [8, 8, 2, 2]^T$, then $c_3 = c_4 = 0$, so **just $2$ coefficients reconstruct the sharp edge with $100\%$ zero error**—completely free of Fourier/cosine ringing!
+
+<WaveletAndDctCompressionBasisDiagram caption="Comparison of pixel basis, 8x8 DCT cosine modes, and 4-point Haar wavelet multiresolution step functions, illustrating spatial localization and energy compaction." />
+
+<ProofCollapse title="Rigorous Proof: The O(n) Haar Pyramid Algorithm and Multiscale Orthogonality">
+
+Why can real-world image encoders compute the Haar wavelet transform in **$\mathcal{O}(n)$ linear time**—even faster than the $\mathcal{O}(n \log n)$ FFT—without ever forming a matrix?
+
+Examining $W_4^{-1} \mathbf{x}$ reveals a recursive **averaging-and-differencing pyramid**:
+- **Level 1 (Fine scale, $n$ pixels in $n/2$ pairs)**:
+  Pair adjacent pixels $(9,7)$ and $(3,1)$:
+  - Half-differences immediately output the fine-detail coefficients: $c_3 = \frac{9-7}{2} = 1$, $c_4 = \frac{3-1}{2} = 1$.
+  - Pairwise averages pass to the next coarser level: $\mathbf{x}^{(1)} = \left[\frac{9+7}{2}, \frac{3+1}{2}\right]^T = [8, 2]^T$.
+- **Level 2 (Coarse scale, $n/2$ averages)**:
+  Repeat the exact same averaging and half-differencing on $\mathbf{x}^{(1)} = [8, 2]^T$:
+  - Half-difference gives the medium-scale coefficient: $c_2 = \frac{8-2}{2} = 3$.
+  - Average gives the coarsest DC coefficient: $c_1 = \frac{8+2}{2} = 5$.
+
+For any signal of length $n = 2^k$, Level 1 processes $n/2$ pairs, Level 2 processes $n/4$ pairs, and so on. The total operation count forms a geometric series:
+
+$$
+\frac{n}{2} + \frac{n}{4} + \frac{n}{8} + \dots + 1 = n - 1 = \mathcal{O}(n)
+$$
+
+The inverse transform $\mathbf{x} = W_n \mathbf{c}$ simply reverses the pyramid with additions and subtractions (e.g., $8+1=9$, $8-1=7$), also in $\mathcal{O}(n)$ time. Linear-time speed combined with localized multiscale sparsity is the mathematical heart of wavelet compression.
+
+</ProofCollapse>
+
+---
+
+## 3. Change of Basis for Linear Operators: $B = M^{-1} A M$ and the Grand Unification
+
+Now that we know how a **vector's** coordinates change under a new basis ($\mathbf{x} = W\mathbf{c}$), we climb to the second summit of Lecture 32: **When a linear operator $T: \mathbb{R}^n \to \mathbb{R}^n$ is held fixed, how does its matrix representation change when we switch from the standard basis $\mathcal{E}$ to a new basis $\mathcal{W}$?**
+
+### 3.1 The Commutative Diagram Detour and $2 \times 2$ Intuition
+
+Following Lecture 29 (Similar Matrices) and standard MIT 18.06 notation, let us write the invertible change-of-basis matrix as $M = [\mathbf{w}_1 \;\; \cdots \;\; \mathbf{w}_n] \in \mathbb{R}^{n \times n}$ (playing the exact same role as $W$ above).
+
+Suppose $T$ has matrix $A \in \mathbb{R}^{n \times n}$ in the standard basis, mapping $\mathbf{x} \mapsto \mathbf{y} = A\mathbf{x}$. Standing in the new basis $\mathcal{W}$ (where the input has coordinate vector $\mathbf{c}$ with $\mathbf{x} = M\mathbf{c}$), how do we compute the output coordinate vector $\mathbf{c}'$ directly? Take the **three-step detour**:
+
+1. **Lift to standard coordinates**: Translate the input coordinate $\mathbf{c}$ back to $\mathbf{x} = M\mathbf{c}$.
+2. **Apply the standard operator**: Multiply by $A$ to get $\mathbf{y} = A\mathbf{x} = A(M\mathbf{c})$.
+3. **Project back to new coordinates**: Translate $\mathbf{y}$ into the new basis via $\mathbf{c}' = M^{-1}\mathbf{y}$:
+   $$
+   \mathbf{c}' = M^{-1} (A M \mathbf{c}) = (M^{-1} A M)\mathbf{c}
+   $$
+
+Thus, the matrix of the same linear operator $T$ in the new basis $\mathcal{W}$ must be $B = M^{-1} A M$!
+
+#### Numerical Check 1: Commutativity for an Upper-Triangular Operator
+
+Take
+
+$$
+A = \begin{bmatrix} 1 & 2 \\ 0 & 3 \end{bmatrix}, \qquad M = \begin{bmatrix} 1 & 1 \\ 1 & 2 \end{bmatrix}, \qquad M^{-1} = \begin{bmatrix} 2 & -1 \\ -1 & 1 \end{bmatrix}
+$$
+
+Compute the operator matrix in the new basis ($\mathbf{w}_1 = [1, 1]^T, \mathbf{w}_2 = [1, 2]^T$):
+
+$$
+B = M^{-1} A M = \begin{bmatrix} 2 & -1 \\ -1 & 1 \end{bmatrix} \begin{bmatrix} 1 & 2 \\ 0 & 3 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 1 & 2 \end{bmatrix} = \begin{bmatrix} 2 & -1 \\ -1 & 1 \end{bmatrix} \begin{bmatrix} 3 & 5 \\ 3 & 6 \end{bmatrix} = \begin{bmatrix} 3 & 4 \\ 0 & 1 \end{bmatrix}
+$$
+
+Test on the coordinate vector $\mathbf{c} = [1, 1]^T$ using both the "top detour" and the "bottom shortcut":
+- **Top detour ($\mathbf{c} \xrightarrow{M} \mathbf{x} \xrightarrow{A} \mathbf{y} \xrightarrow{M^{-1}} \mathbf{c}'$)**:
+  $\mathbf{x} = M\mathbf{c} = [2, 3]^T \implies \mathbf{y} = A\mathbf{x} = [8, 9]^T \implies \mathbf{c}' = M^{-1}\mathbf{y} = [2\cdot 8 - 9,\; -8 + 9]^T = [7, 1]^T$.
+- **Bottom shortcut ($\mathbf{c} \xrightarrow{B} \mathbf{c}'$)**:
+
+$$
+B\mathbf{c} = \begin{bmatrix} 3 & 4 \\ 0 & 1 \end{bmatrix}\begin{bmatrix} 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 7 \\ 1 \end{bmatrix}
+$$
+
+Both routes match identically! Notice also that $\operatorname{tr}(B) = 3 + 1 = 4 = \operatorname{tr}(A)$ and $\det(B) = 3 = \det(A)$, because $B$ and $A$ represent the exact same geometric operator!
+
+#### Numerical Check 2: A Projection Matrix Collapses to Diagonal Form in the Right Basis
+
+Consider orthogonal projection $T$ onto the line $y = 2x$ (direction $\mathbf{a} = [1, 2]^T$). In the standard basis $\mathcal{E}$, the projection matrix is
+
+$$
+P = \frac{\mathbf{a}\mathbf{a}^T}{\mathbf{a}^T\mathbf{a}} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix}
+$$
+
+which looks dense and full of fractions. Now choose a basis aligned with the geometry: $\mathbf{w}_1 = [1, 2]^T$ (on the line) and $\mathbf{w}_2 = [-2, 1]^T$ (perpendicular to the line), forming the orthogonal-column matrix
+
+$$
+M = \begin{bmatrix} 1 & -2 \\ 2 & 1 \end{bmatrix}, \qquad M^{-1} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix}
+$$
+
+Compute $B = M^{-1} P M$:
+
+$$
+B = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix} \cdot \frac{1}{5}\begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix} \begin{bmatrix} 1 & -2 \\ 2 & 1 \end{bmatrix} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 2 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}
+$$
+
+**Do you see why?** Because $T(\mathbf{w}_1) = \mathbf{w}_1$ and $T(\mathbf{w}_2) = \mathbf{0}$, in this geometrically adapted basis the projection matrix reveals its true diagonal soul: $\operatorname{diag}(1, 0)$!
+
+<TheoremCard label="Theorem" title="Operator Change-of-Basis & Matrix Factorization Synthesis">
+
+1. **Same-Space, Same-Basis Change (Similar Matrices)**: Let $T: \mathbb{R}^n \to \mathbb{R}^n$ have matrix $A \in \mathbb{R}^{n \times n}$ in the standard basis. If both input and output switch to the **same** basis $\mathcal{W}$ given by the invertible matrix $M = [\mathbf{w}_1 \;\cdots\; \mathbf{w}_n] \in \mathbb{R}^{n \times n}$, then the matrix of $T$ in basis $\mathcal{W}$ is uniquely:
+   $$
+   B = M^{-1} A M
+   $$
+   This reveals the true geometric meaning of **similar matrices** from Lecture 29: $A$ and $B$ are similar $\iff$ they represent the same linear operator $T$ in two different bases.
+
+2. **Two-Space / Two-Basis General Change (Including Rectangular Matrices)**: Let $T: \mathbb{R}^n \to \mathbb{R}^m$ have matrix $A \in \mathbb{R}^{m \times n}$ in the standard bases. If the input space $\mathbb{R}^n$ uses basis $V \in \mathbb{R}^{n \times n}$ ($\det(V) \ne 0$) and the output space $\mathbb{R}^m$ independently uses basis $U \in \mathbb{R}^{m \times m}$ ($\det(U) \ne 0$), then the matrix of $T$ with respect to $(V, U)$ is:
+   $$
+   B = U^{-1} A V \in \mathbb{R}^{m \times n}
+   $$
+
+3. **Three Golden Diagonalizations**:
+   - **Diagonalizable square matrix**: Choose the eigenbasis $M = S$ ($n$ linearly independent eigenvectors) to get $S^{-1} A S = \Lambda$.
+   - **Real symmetric matrix ($A = A^T$)**: Choose an orthonormal eigenbasis $M = Q$ to get $Q^T A Q = \Lambda$ (similarity and congruence coincide).
+   - **Any matrix $A \in \mathbb{R}^{m \times n}$ on Earth**: Decouple the orthonormal input basis $V$ and orthonormal output basis $U$ to obtain the **Singular Value Decomposition (SVD)** $U^T A V = \Sigma$!
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Deriving B = M⁻¹AM and U⁻¹AV via Commutative Paths and Column Construction">
+
+**Method 1 (Commutative Diagram Algebra for General Bases $U, V$):**
+Let $\mathbf{x} \in \mathbb{R}^n$ have coordinates $\mathbf{c}_{\text{in}} \in \mathbb{R}^n$ in the input basis $V = [\mathbf{v}_1 \;\cdots\; \mathbf{v}_n]$, so $\mathbf{x} = V \mathbf{c}_{\text{in}}$.
+Let the output $\mathbf{y} = T(\mathbf{x}) = A\mathbf{x} \in \mathbb{R}^m$ have coordinates $\mathbf{c}_{\text{out}} \in \mathbb{R}^m$ in the output basis $U = [\mathbf{u}_1 \;\cdots\; \mathbf{u}_m]$, so $\mathbf{y} = U \mathbf{c}_{\text{out}}$.
+Equating the two expressions for $\mathbf{y}$:
+
+$$
+U \mathbf{c}_{\text{out}} = \mathbf{y} = A \mathbf{x} = A (V \mathbf{c}_{\text{in}})
+$$
+
+Since $U \in \mathbb{R}^{m \times m}$ is invertible, multiplying on the left by $U^{-1}$ yields:
+
+$$
+\mathbf{c}_{\text{out}} = (U^{-1} A V)\mathbf{c}_{\text{in}}
+$$
+
+Hence the matrix of $T$ from basis $V$ to basis $U$ is $B = U^{-1} A V$. In the special case $m = n$ and $U = V = M$, this immediately reduces to $B = M^{-1} A M$.
+
+**Method 2 (Lecture 31 Column-by-Column Construction):**
+By the definition in Lecture 31, the $j$-th column $\mathbf{b}_j$ of $B$ is the coordinate vector of $T(\mathbf{v}_j) = A\mathbf{v}_j$ in the output basis $\{\mathbf{u}_1, \dots, \mathbf{u}_m\}$:
+
+$$
+A\mathbf{v}_j = \sum_{i=1}^m b_{ij}\mathbf{u}_i = U \mathbf{b}_j \implies \mathbf{b}_j = U^{-1} A \mathbf{v}_j
+$$
+
+Stacking all $n$ columns $\mathbf{b}_1, \dots, \mathbf{b}_n$ side by side:
+
+$$
+B = \begin{bmatrix} \mathbf{b}_1 & \cdots & \mathbf{b}_n \end{bmatrix} = U^{-1} A \begin{bmatrix} \mathbf{v}_1 & \cdots & \mathbf{v}_n \end{bmatrix} = U^{-1} A V
+$$
+
+Both viewpoints interlock seamlessly!
+
+</ProofCollapse>
+
+<ChangeOfBasisCommutativeDiagram caption="Commutative diagram showing how a linear operator A in standard coordinates transforms into B = M⁻¹AM in the new basis M, and more generally into B = U⁻¹AV across distinct input/output bases V and U." />
+
+---
+
+## 4. Common Pitfalls & Transcript Errata
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+
+### Pitfall 1: Reversing $M$ and $M^{-1}$ — Writing $\mathbf{c} = M\mathbf{x}$ or $B = M A M^{-1}$
+When we place the new basis vectors into the columns of $M = [\mathbf{w}_1 \;\cdots\; \mathbf{w}_n]$, the basis vectors transform forward: $\mathbf{w}_j = M \mathbf{e}_j$. By **contravariance**, the coordinate vector transforms in the **opposite** direction:
+
+$$
+\mathbf{x} = M \mathbf{c} \quad \Longleftrightarrow \quad \mathbf{c} = M^{-1} \mathbf{x}
+$$
+
+If you write $M A M^{-1}$ in the wrong order, you are actually changing to the basis $M^{-1}$ instead of $M$! **Fail-safe check**: start at the bottom-left with new coordinates $\mathbf{c}$, multiply first by $M$ to get standard coordinates $\mathbf{x} = M\mathbf{c}$, apply $A$ to get $AM\mathbf{c}$, and finally multiply by $M^{-1}$ to read back new coordinates. Because matrix multiplication acts from right to left, the formula must be $M^{-1} A M$.
+
+### Pitfall 2: Forcing Similarity $W^{-1} A W$ onto Different Spaces or Distinct Input/Output Bases
+Similarity $B = M^{-1} A M$ requires a strict condition: **the operator must map a space back to itself ($T: V \to V$, $A$ square), and both input and output must use the exact same basis $M$**.
+- If $A \in \mathbb{R}^{m \times n}$ is rectangular ($m \ne n$), $W^{-1} A W$ is not even dimensionally defined.
+- Even if $A$ is square, whenever the input basis $V$ differs from the output basis $U$ (as in the SVD $U^T A V = \Sigma$), the change-of-basis formula is $U^{-1} A V$ (**matrix equivalence**, not similarity!). Warning: once $U \ne V$, **eigenvalues are no longer preserved** (singular values $\sigma_i$ are generally not eigenvalues $\lambda_i$).
+
+### Pitfall 3: Treating the Integer Haar Matrix $W_4$ as Orthonormal $Q_4$
+The columns of the integer Haar matrix $W_4$ in Section 2 are orthogonal, **not** unit-length: $W_4^T W_4 = \operatorname{diag}(4, 4, 2, 2) \ne I_4$. Therefore:
+1. $W_4^{-1} \ne W_4^T$! Forgetting $D_4^{-1} = \operatorname{diag}(1/4, 1/4, 1/2, 1/2)$ scales reconstructed amplitudes by $2$ or $4$.
+2. The unweighted Parseval error formula $\|\mathbf{x} - \hat{\mathbf{x}}\|_2^2 = \sum_{i \notin S} c_i^2$ holds **only for the orthonormal coefficients $\tilde{\mathbf{c}} = Q_4^T \mathbf{x}$**! Thresholding unnormalized $\mathbf{c} = W_4^{-1}\mathbf{x}$ directly misweights coarse modes ($d_1=4$) against fine modes ($d_3=2$); the true energy sum is $\sum d_i c_i^2 = 4c_1^2 + 4c_2^2 + 2c_3^2 + 2c_4^2$.
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l32-basis-compression-sandbox"
+  title="Change-of-Basis Commutative Diagram & DCT / Haar Compression Sandbox"
+  description="Adjust the 2x2 change-of-basis matrix M to watch M⁻¹(A(Mc)) and (M⁻¹AM)c land on the exact same point; switch between the pixel basis, 8x8 DCT cosine basis, and Haar wavelet basis while dragging the hard threshold \tau to observe sparsity and Parseval reconstruction error ||x - \hat{x}||_2^2."
+/>
+
+---
+
+<KeyTakeaways title="Key Takeaways" items={[
+  "Vector coordinate law: Placing the new basis vectors into the columns of an invertible matrix $W = [\\mathbf{w}_1 \\;\\cdots\\; \\mathbf{w}_n]$ links standard coordinates and new coordinates via $\\mathbf{x} = W\\mathbf{c} \\iff \\mathbf{c} = W^{-1}\\mathbf{x}$.",
+  "Orthogonal inversion & Parseval's theorem: Orthogonal columns satisfy $W^T W = D \\implies W^{-1} = D^{-1}W^T$; orthonormal columns $Q$ satisfy $Q^{-1} = Q^T$, and hard-threshold truncation yields exact pixel squared error $\\|\\mathbf{x} - \\hat{\\mathbf{x}}\\|_2^2 = \\sum_{i \\notin S} c_i^2$.",
+  "Two golden properties of a compression basis: (1) fast forward/inverse transforms (orthogonality eliminates inversion + $\\mathcal{O}(n\\log n)$ butterfly or $\\mathcal{O}(n)$ pyramid structure); (2) high energy compaction (most energy concentrated in a few coefficients).",
+  "JPEG DCT vs. Haar wavelets: JPEG uses $8\\times 8$ separable 2D DCT ($Y = C X C^T$) to compact smooth blocks; Haar wavelets $W_4$ satisfy $W_4^T W_4 = \\operatorname{diag}(4,4,2,2)$, combining spatial localization, $\\mathcal{O}(n)$ speed, and ringing-free representation of sharp edges.",
+  "Operator change of basis: Same-space, same-basis switching yields similarity $B = M^{-1} A M$; distinct input/output bases yield $B = U^{-1} A V$. Choosing eigenbasis $M = S$ gives $\\Lambda$, orthonormal eigenbasis $M = Q$ gives $Q^T A Q = \\Lambda$, and decoupled orthonormal bases $(U, V)$ diagonalize every matrix $A \\in \\mathbb{R}^{m\\times n}$ via the SVD $\\Sigma = U^T A V$."
+]} />
+
+---
+
+## 5. Intuition Problem Set
+
+<ProblemSet title="Intuition Problem Set" description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs.">
+
+<ExerciseCard id="l32-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="4-Point Haar Wavelet Decomposition, Orthonormalization & Hard-Threshold Energy">
+
+Given the 4-pixel signal $\mathbf{x} = [10, 6, 3, 1]^T$ and the 4-point Haar wavelet matrix
+
+$$
+W_4 = \begin{bmatrix} 1 & 1 & 1 & 0 \\ 1 & 1 & -1 & 0 \\ 1 & -1 & 0 & 1 \\ 1 & -1 & 0 & -1 \end{bmatrix}
+$$
+
+1. Use $W_4^{-1} = D_4^{-1} W_4^T$ to compute the coordinate vector $\mathbf{c} = [c_1, c_2, c_3, c_4]^T$ in $W_4$, and write $\mathbf{x}$ as a linear combination of $\mathbf{w}_1, \mathbf{w}_2, \mathbf{w}_3, \mathbf{w}_4$.
+2. Convert $\mathbf{c}$ into the orthonormal Haar coefficients $\tilde{\mathbf{c}} = Q_4^T \mathbf{x}$ (where $Q_4 = W_4 D_4^{-1/2}$), and directly verify Parseval's identity $\|\mathbf{x}\|_2^2 = \sum_{i=1}^4 \tilde{c}_i^2$.
+3. With hard threshold $\tau = 2$ (setting $|\tilde{c}_i| \lt 2$ to zero), find the sparse vector $\hat{\mathbf{c}}$, the reconstructed signal $\hat{\mathbf{x}} = W_4 \hat{\mathbf{c}}$, the squared pixel error $\|\mathbf{x} - \hat{\mathbf{x}}\|_2^2$, and the percentage of retained energy. What happens if we raise the threshold to $\tau = 3$?
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Recall $D_4 = W_4^T W_4 = \\operatorname{diag}(4, 4, 2, 2)$, so $c_1, c_2$ divide by $4$ while $c_3, c_4$ divide by $2$.",
+  "Orthonormal coefficients satisfy $\\tilde{\\mathbf{c}} = D_4^{1/2} \\mathbf{c} = [2c_1, 2c_2, \\sqrt{2}c_3, \\sqrt{2}c_4]^T$, so $\\tilde{c}_3^2 = 2 c_3^2$ and $\\tilde{c}_4^2 = 2 c_4^2$.",
+  "At $\\tau = 2$, compare $|\\tilde{c}_3| = 2\\sqrt{2} \\approx 2.828$ with $|\\tilde{c}_4| = \\sqrt{2} \\approx 1.414$; at $\\tau = 3$, both fine-detail coefficients are truncated."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Using the averaging-and-differencing pyramid, you can read the answer off at a glance: $[10, 6]$ has average $8$ and half-difference $2$, while $[3, 1]$ has average $2$ and half-difference $1$; averaging and differencing $[8, 2]$ gives global mean $5$ and half-contrast $3$. Once scaled to orthonormal energy, the left-half jump ($2\sqrt{2} \approx 2.83$) is stronger than the right-half wiggle ($\sqrt{2} \approx 1.41$). So $\tau = 2$ smartly keeps the left detail and drops only the tiny right ripple; raising $\tau = 3$ keeps the clean two-step silhouette $[8, 8, 2, 2]^T$, still preserving $93.15\%$ of the signal energy!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1:**
+Using $W_4^{-1} = D_4^{-1} W_4^T$ with $D_4 = \operatorname{diag}(4, 4, 2, 2)$:
+
+$$
+\mathbf{c} = \begin{bmatrix}
+(10 + 6 + 3 + 1)/4 \\
+(10 + 6 - 3 - 1)/4 \\
+(10 - 6)/2 \\
+(3 - 1)/2
+\end{bmatrix} = \begin{bmatrix} 5 \\ 3 \\ 2 \\ 1 \end{bmatrix}
+$$
+
+Thus:
+
+$$
+\mathbf{x} = 5\mathbf{w}_1 + 3\mathbf{w}_2 + 2\mathbf{w}_3 + 1\mathbf{w}_4
+$$
+
+**Part 2:**
+Since $Q_4 = W_4 D_4^{-1/2}$, we have $\tilde{\mathbf{c}} = Q_4^T \mathbf{x} = D_4^{-1/2} W_4^T \mathbf{x} = D_4^{1/2} \mathbf{c}$:
+
+$$
+\tilde{\mathbf{c}} = \begin{bmatrix} 2 \cdot 5 \\ 2 \cdot 3 \\ \sqrt{2} \cdot 2 \\ \sqrt{2} \cdot 1 \end{bmatrix} = \begin{bmatrix} 10 \\ 6 \\ 2\sqrt{2} \\ \sqrt{2} \end{bmatrix}
+$$
+
+Checking total signal energy and coefficient energy:
+
+$$
+\|\mathbf{x}\|_2^2 = 10^2 + 6^2 + 3^2 + 1^2 = 100 + 36 + 9 + 1 = 146
+$$
+
+$$
+\sum_{i=1}^4 \tilde{c}_i^2 = 10^2 + 6^2 + (2\sqrt{2})^2 + (\sqrt{2})^2 = 100 + 36 + 8 + 2 = 146
+$$
+
+Exact equality holds.
+
+**Part 3:**
+- **Case (a) $\tau = 2$**:
+  Since $|\tilde{c}_1| = 10 \ge 2$, $|\tilde{c}_2| = 6 \ge 2$, $|\tilde{c}_3| = 2\sqrt{2} \approx 2.828 \ge 2$, only $|\tilde{c}_4| = \sqrt{2} \approx 1.414 \lt 2$ is zeroed out, giving $\hat{\mathbf{c}} = [5, 3, 2, 0]^T$.
+  The reconstructed signal is:
+  $$
+  \hat{\mathbf{x}} = 5\mathbf{w}_1 + 3\mathbf{w}_2 + 2\mathbf{w}_3 = \begin{bmatrix} 10 \\ 6 \\ 2 \\ 2 \end{bmatrix}
+  $$
+  The pixel error is $\mathbf{x} - \hat{\mathbf{x}} = [0, 0, 1, -1]^T$, with squared error $\|\mathbf{x} - \hat{\mathbf{x}}\|_2^2 = 1^2 + (-1)^2 = 2 = \tilde{c}_4^2$, and retained energy $144 / 146 \approx 98.63\%$.
+
+- **Case (b) $\tau = 3$**:
+  Now both $|\tilde{c}_3| = 2\sqrt{2} \lt 3$ and $|\tilde{c}_4| = \sqrt{2} \lt 3$ are zeroed, giving $\hat{\mathbf{c}} = [5, 3, 0, 0]^T$.
+  The reconstructed signal is:
+  $$
+  \hat{\mathbf{x}} = 5\mathbf{w}_1 + 3\mathbf{w}_2 = \begin{bmatrix} 8 \\ 8 \\ 2 \\ 2 \end{bmatrix}
+  $$
+  The error is $\mathbf{x} - \hat{\mathbf{x}} = [2, -2, 1, -1]^T$, with squared error $2^2 + (-2)^2 + 1^2 + (-1)^2 = 10 = 8 + 2 = \tilde{c}_3^2 + \tilde{c}_4^2$, and retained energy $136 / 146 \approx 93.15\%$.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l32-ex2" tier="L2" tierLabel="L2 · Conceptual True/False" title="Conceptual Check: Matrix Order in Operator Change of Basis">
+
+Determine whether the following statement is true or false:
+
+"Let a linear operator $T: \mathbb{R}^n \to \mathbb{R}^n$ have matrix $A$ in the standard basis. If the new basis vectors $\mathbf{w}_1, \dots, \mathbf{w}_n$ are placed as the columns of an invertible matrix $M = [\mathbf{w}_1 \;\cdots\; \mathbf{w}_n]$, then the matrix of $T$ in the new basis $\mathcal{W}$ must equal $M A M^{-1}$."
+
+<TrueFalseInteractive
+  id="l32-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Because $\mathbf{x} = M\mathbf{c}$ and $\mathbf{c}' = M^{-1}\mathbf{y}$, acting on $\mathbf{c}$ first by $M$, then $A$, then $M^{-1}$ produces $M^{-1} A M$, not $M A M^{-1}$!"
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Trace the mapping direction: starting from new coordinates $\\mathbf{c}$, the very first step must convert back to standard coordinates via $\\mathbf{x} = M\\mathbf{c}$.",
+  "Construct a $2\\times 2$ counterexample using $A = \\operatorname{diag}(1, 2)$ and $\\mathbf{w}_1 = [1, 0]^T, \\mathbf{w}_2 = [1, 1]^T$, comparing $T(\\mathbf{w}_2)$ in the basis $\\{\\mathbf{w}_1, \\mathbf{w}_2\\}$ against $M A M^{-1}$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+"Does the inverse go on the left or the right?" is the classic change-of-basis trap. Just remember one sentence: **the job of $M$ is to translate new coordinates $\mathbf{c}$ into old coordinates $\mathbf{x} = M\mathbf{c}$**. Therefore, the rightmost matrix (the one that eats $\mathbf{c}$ first) must be $M$, never $M^{-1}$! Once $M$ turns $\mathbf{c}$ into $\mathbf{x}$, $A$ acts to give $AM\mathbf{c}$, and finally $M^{-1}$ translates the output back into the new basis—giving $M^{-1} A M$.
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **False**.
+
+**General Derivation:**
+From $\mathbf{x} = M\mathbf{c}$ and $\mathbf{y} = A\mathbf{x} = M\mathbf{c}'$, we have $M\mathbf{c}' = A M \mathbf{c}$. Left-multiplying by $M^{-1}$ gives $\mathbf{c}' = (M^{-1} A M)\mathbf{c}$. Thus the matrix in the new basis is $B = M^{-1} A M$, not $M A M^{-1}$ (which are unequal in general unless $M^2 A = A M^2$).
+
+**Explicit $2 \times 2$ Counterexample:**
+Take
+
+$$
+A = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix}, \qquad M = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}, \qquad M^{-1} = \begin{bmatrix} 1 & -1 \\ 0 & 1 \end{bmatrix}
+$$
+
+so $\mathbf{w}_1 = [1, 0]^T$ and $\mathbf{w}_2 = [1, 1]^T$.
+
+1. Direct column check from Lecture 31:
+   $$
+   T(\mathbf{w}_2) = A\begin{bmatrix} 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \end{bmatrix} = (-1)\begin{bmatrix} 1 \\ 0 \end{bmatrix} + 2\begin{bmatrix} 1 \\ 1 \end{bmatrix} = -\mathbf{w}_1 + 2\mathbf{w}_2
+   $$
+   So the second column of the true matrix $B$ must be $[-1, 2]^T$.
+2. Verify $M^{-1} A M$:
+   $$
+   M^{-1} A M = \begin{bmatrix} 1 & -1 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & -2 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & -1 \\ 0 & 2 \end{bmatrix} = B
+   $$
+3. By contrast, the wrong formula gives:
+   $$
+   M A M^{-1} = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & -1 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 2 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & -1 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 1 \\ 0 & 2 \end{bmatrix} \ne B
+   $$
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l32-ex3" tier="L2" tierLabel="L2 · Conceptual True/False" title="Conceptual Check: Hard Thresholding & Parseval's Error in a Non-Orthogonal Basis">
+
+Determine whether the following statement is true or false:
+
+"Let $W \in \mathbb{R}^{n \times n}$ be any invertible basis matrix of $\mathbb{R}^n$ (not necessarily with orthogonal columns), and write $\mathbf{x} = W\mathbf{c}$. If we keep a subset $S$ of coordinates and set the rest to zero to form $\hat{\mathbf{c}}$ (reconstructing $\hat{\mathbf{x}} = W\hat{\mathbf{c}}$), then the squared pixel error $\|\mathbf{x} - \hat{\mathbf{x}}\|_2^2$ still always equals the sum of squares of the discarded coefficients $\sum_{i \notin S} c_i^2$."
+
+<TrueFalseInteractive
+  id="l32-tf2"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! The error satisfies $\|\mathbf{x} - \hat{\mathbf{x}}\|_2^2 = (\mathbf{c} - \hat{\mathbf{c}})^T (W^T W) (\mathbf{c} - \hat{\mathbf{c}})$. It equals $\sum_{i \notin S} c_i^2$ only when $W$ is orthonormal ($W^T W = I_n$); otherwise column lengths and cross-terms change the error!"
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Write the error as a quadratic form: $\\|\\mathbf{x} - \\hat{\\mathbf{x}}\\|_2^2 = \\|W(\\mathbf{c} - \\hat{\\mathbf{c}})\\|_2^2 = \\Delta\\mathbf{c}^T (W^T W) \\Delta\\mathbf{c}$.",
+  "Even if every column is normalized ($\\|\\mathbf{w}_i\\|_2 = 1$), as long as they are not orthogonal ($\\mathbf{w}_i^T \\mathbf{w}_j \\ne 0$), dropping two coefficients introduces a cross-term $2 c_i c_j (\\mathbf{w}_i^T \\mathbf{w}_j)$! Try $\\mathbf{w}_1 = [1, 0]^T$, $\\mathbf{w}_2 = [3/5, 4/5]^T$, and $\\mathbf{c} = [1, 1]^T$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Parseval's identity is the **$n$-dimensional Pythagorean theorem**: the squared hypotenuse equals the sum of squared legs *only when the legs meet at $90^\circ$*! When basis vectors lean toward each other at an oblique angle, discarding two components can cause them to reinforce or partially cancel in pixel space, making the true error much larger or smaller than $\sum c_i^2$—destroying our ability to control compression error simply by thresholding coefficient magnitudes.
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **False**.
+
+Let $\Delta\mathbf{c} = \mathbf{c} - \hat{\mathbf{c}}$ (equal to $c_i$ for $i \notin S$ and $0$ for $i \in S$). The true squared pixel error is:
+
+$$
+\|\mathbf{x} - \hat{\mathbf{x}}\|_2^2 = \|W \Delta\mathbf{c}\|_2^2 = \Delta\mathbf{c}^T (W^T W) \Delta\mathbf{c} = \sum_{i \notin S} \|\mathbf{w}_i\|_2^2 c_i^2 + \sum_{\substack{i, j \notin S \\ i \ne j}} c_i c_j (\mathbf{w}_i^T \mathbf{w}_j)
+$$
+
+This equals $\sum_{i \notin S} c_i^2$ for all $\mathbf{c}$ if and only if $W^T W = I_n$ (i.e., $W$ is **orthonormal**). Non-orthogonality breaks the identity in two ways:
+1. **Non-unit column lengths** (even if pairwise orthogonal, as in Haar $W_4$): the error is weighted as $\sum d_i c_i^2$.
+2. **Cross-terms from non-orthogonal columns** (even when every column has unit length!).
+
+**Counterexample (unit-length columns that are not orthogonal):**
+Take
+
+$$
+W = \begin{bmatrix} 1 & 3/5 \\ 0 & 4/5 \end{bmatrix}
+$$
+
+Clearly $\|\mathbf{w}_1\|_2 = 1$ and $\|\mathbf{w}_2\|_2 = \sqrt{(3/5)^2 + (4/5)^2} = 1$, yet $\mathbf{w}_1^T \mathbf{w}_2 = 3/5 \ne 0$. With $\mathbf{c} = [1, 1]^T$ (so $\mathbf{x} = [8/5, 4/5]^T$), if we drop both coefficients to get $\hat{\mathbf{c}} = [0, 0]^T$:
+- Sum of squares of discarded coefficients: $c_1^2 + c_2^2 = 1^2 + 1^2 = 2$.
+- True squared pixel error: $\|\mathbf{x} - \mathbf{0}\|_2^2 = (8/5)^2 + (4/5)^2 = 80/25 = 3.2 \ne 2$. The extra $1.2$ is precisely the cross-term $2 c_1 c_2 (\mathbf{w}_1^T \mathbf{w}_2) = 2 \cdot 1 \cdot 1 \cdot (3/5) = 1.2$.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l32-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Zero-Calculation Subspace Geometry: Limits of Similarity Diagonalization & the SVD Rescue">
+
+Let $P \in \mathbb{R}^{3 \times 3}$ be the orthogonal projection onto a 2D plane $V \subset \mathbb{R}^3$, and define the Householder reflection operator $H = 2P - I_3$. Also consider the defective (non-diagonalizable) $2 \times 2$ Jordan block
+
+$$
+J = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}
+$$
+
+1. **Without any numerical coordinate calculations**, geometrically construct an orthonormal basis $\mathcal{Q} = \{\mathbf{q}_1, \mathbf{q}_2, \mathbf{q}_3\}$ of $\mathbb{R}^3$ that **simultaneously** diagonalizes $P$ and $H$ into $Q^T P Q$ and $Q^T H Q$, and write down both diagonal matrices explicitly.
+2. Prove that for any invertible change-of-basis matrix $M \in \mathbb{R}^{n\times n}$, the similar matrix $B = M^{-1} A M$ preserves both rank ($\operatorname{rank}(B) = \operatorname{rank}(A)$) and trace ($\operatorname{tr}(B) = \operatorname{tr}(A)$).
+3. Explain why there is **no** invertible matrix $M \in \mathbb{C}^{2 \times 2}$ such that $M^{-1} J M$ is diagonal; yet if we follow Lectures 30 and 31 and allow separate orthonormal input and output bases $(V, U)$, we immediately obtain a diagonal matrix $U^T J V = \Sigma$. Write down $(U, \Sigma, V)$ explicitly!
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 1: Split $\\mathbb{R}^3$ orthogonally as $V \\oplus V^\\perp$ (dimensions $2$ and $1$). On $V$, projection fixes vectors and reflection fixes them; on $V^\\perp$, projection kills them and reflection flips their sign!",
+  "Part 2: Left-multiplying by an invertible matrix preserves the nullspace; right-multiplying by an invertible matrix is an isomorphism on the input space. For trace, use $\\operatorname{tr}(XY) = \\operatorname{tr}(YX)$ from Lecture 29.",
+  "Part 3: If $M^{-1} J M = \\Lambda$ were diagonal, $J^2 = O_2$ would force $\\Lambda^2 = O_2$, a contradiction. For distinct bases, notice $J\\mathbf{e}_2 = \\mathbf{e}_1$ and $J\\mathbf{e}_1 = \\mathbf{0}$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Part 1 captures one of the most beautiful ideas in linear algebra—**orthogonal complement decomposition**: every vector splits uniquely into a piece inside the plane $V$ and a piece perpendicular to $V$. Using an orthonormal basis of $V$ plus the unit normal to $V$, projection simply "keeps the first two coordinates and zeros the third," while reflection "keeps the first two and flips the third." No numbers needed—the diagonal matrices appear instantly!
+Part 3 pinpoints the divide between similarity and the SVD: when input and output are forced to share the same axes, the shear $J$ maps axis 2 onto axis 1, and no single-basis rotation can undo that mismatch. The moment we decouple them—choosing input axes $\mathbf{v}_1 = \mathbf{e}_2, \mathbf{v}_2 = \mathbf{e}_1$ and output axes $\mathbf{u}_1 = \mathbf{e}_1, \mathbf{u}_2 = \mathbf{e}_2$—the shear becomes "send input axis 1 straight to output axis 1 and crush input axis 2 to zero," diagonalizing cleanly to $\operatorname{diag}(1, 0)$!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1 (Geometric Construction of Simultaneous Diagonalizing Basis):**
+Pick any orthonormal basis $\{\mathbf{q}_1, \mathbf{q}_2\}$ of the 2D plane $V$ (e.g., via Gram-Schmidt), and pick a unit normal vector $\mathbf{q}_3$ in the 1D orthogonal complement $V^\perp$ ($\mathbf{q}_3 \perp \mathbf{q}_1, \mathbf{q}_2$). Then $\mathcal{Q} = \{\mathbf{q}_1, \mathbf{q}_2, \mathbf{q}_3\}$ is an orthonormal basis of $\mathbb{R}^3$, and $Q = [\mathbf{q}_1 \;\; \mathbf{q}_2 \;\; \mathbf{q}_3]$ is orthogonal ($Q^{-1} = Q^T$).
+Checking the action on each basis vector:
+- Since $\mathbf{q}_1, \mathbf{q}_2 \in V$: $P\mathbf{q}_1 = \mathbf{q}_1$, $P\mathbf{q}_2 = \mathbf{q}_2$, and $H\mathbf{q}_1 = (2P-I_3)\mathbf{q}_1 = \mathbf{q}_1$, $H\mathbf{q}_2 = \mathbf{q}_2$.
+- Since $\mathbf{q}_3 \in V^\perp$: $P\mathbf{q}_3 = \mathbf{0}$, and $H\mathbf{q}_3 = 2\cdot\mathbf{0} - \mathbf{q}_3 = -\mathbf{q}_3$.
+
+By the operator change-of-basis theorem, both $P$ and $H$ become diagonal in basis $\mathcal{Q}$:
+
+$$
+Q^T P Q = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 0 \end{bmatrix}, \qquad Q^T H Q = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & -1 \end{bmatrix}
+$$
+
+**Part 2 (Similarity Invariance of Rank and Trace):**
+- **Rank**: Left-multiplying by invertible $M^{-1}$ does not change the nullspace ($M^{-1}(AM\mathbf{z}) = \mathbf{0} \iff AM\mathbf{z} = \mathbf{0}$), and right-multiplying by invertible $M$ is a bijection on $\mathbb{R}^n$, so $\dim \operatorname{Null}(B) = \dim \operatorname{Null}(A)$. By Rank-Nullity, $\operatorname{rank}(B) = n - \dim \operatorname{Null}(B) = n - \dim \operatorname{Null}(A) = \operatorname{rank}(A)$.
+- **Trace**: By the cyclic property $\operatorname{tr}(XY) = \operatorname{tr}(YX)$ with $X = M^{-1}$ and $Y = AM$:
+  $$
+  \operatorname{tr}(B) = \operatorname{tr}\big(M^{-1} (A M)\big) = \operatorname{tr}\big((A M) M^{-1}\big) = \operatorname{tr}(A I_n) = \operatorname{tr}(A)
+  $$
+
+**Part 3 (Jordan Block Non-Diagonalizability vs. SVD Two-Basis Diagonalization):**
+- **Proof by contradiction that $M^{-1} J M$ cannot be diagonal**: Suppose $M^{-1} J M = \Lambda = \operatorname{diag}(\lambda_1, \lambda_2)$ for some invertible $M \in \mathbb{C}^{2 \times 2}$. Since
+
+  $$
+  J^2 = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}\begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} = O_2
+  $$
+
+  we get:
+  $$
+  \Lambda^2 = (M^{-1} J M)^2 = M^{-1} J^2 M = M^{-1} O_2 M = O_2 \implies \operatorname{diag}(\lambda_1^2, \lambda_2^2) = O_2 \implies \lambda_1 = \lambda_2 = 0
+  $$
+  Hence $\Lambda = O_2$, which forces $J = M O_2 M^{-1} = O_2$, contradicting $J \ne O_2$ ($\operatorname{rank}(J) = 1 \ne 0$).
+- **Explicit SVD with two orthonormal bases**: Note that $J \mathbf{e}_2 = \mathbf{e}_1$ and $J \mathbf{e}_1 = \mathbf{0}$. Choose the input orthonormal basis $V = [\mathbf{e}_2 \;\; \mathbf{e}_1]$ and the output orthonormal basis $U = [\mathbf{e}_1 \;\; \mathbf{e}_2]$:
+
+  $$
+  U = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}, \qquad V = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+  $$
+
+  Direct multiplication gives:
+  $$
+  U^T J V = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix} = \Sigma
+  $$
+  This is the SVD $J = U \Sigma V^T$: decoupling $V$ and $U$ diagonalizes even a defective matrix!
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l32-ex5" tier="L4" tierLabel="L4 · MIT 18.06 Exam Synthesis" title="Synthesis Challenge: 2D Separable Energy Conservation & Conditioning Disaster of Oblique Bases">
+
+This problem examines why orthonormal bases are irreplaceable in modern compression from two angles: 2D block transforms and matrix conditioning.
+
+1. **2D Separable Haar / DCT Block Transform**:
+   Let the $2 \times 2$ orthonormal transform matrix and $2 \times 2$ grayscale image patch be:
+
+   $$
+   H_2 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}, \qquad X = \begin{bmatrix} 10 & 8 \\ 6 & 4 \end{bmatrix}
+   $$
+
+   (Note $H_2 = H_2^T$ and $H_2^T H_2 = I_2$.)
+   (a) Compute the 2D separable transform $Y = H_2 X H_2^T$, and explain why the bottom-right diagonal frequency coefficient $Y_{11}$ is zero.
+   (b) Prove that for **any** orthogonal matrix $C \in \mathbb{R}^{N \times N}$ ($C^T C = I_N$) and any 2D patch $X \in \mathbb{R}^{N \times N}$, the 2D transform $Y = C X C^T$ strictly preserves Frobenius energy $\|Y\|_F^2 = \|X\|_F^2$ (where $\|M\|_F^2 = \operatorname{tr}(M^T M) = \sum_{i,j} M_{ij}^2$).
+   (c) If we keep only the DC term $Y_{00}$ and zero out all other entries to form $\hat{Y}$, compute the reconstructed patch $\hat{X} = H_2^T \hat{Y} H_2$, and verify directly that $\|X - \hat{X}\|_F^2 = \sum_{(i,j)\ne(0,0)} Y_{ij}^2$.
+
+2. **Why Ill-Conditioned Oblique Bases Cause a Compression Disaster**:
+   Suppose someone instead uses the nearly collinear oblique basis matrix
+
+   $$
+   W_\varepsilon = \begin{bmatrix} 1 & 1 \\ 0 & \varepsilon \end{bmatrix} \qquad (0 \lt \varepsilon \ll 1)
+   $$
+
+   (a) For the unit-length input $\mathbf{x} = [0, 1]^T$ ($\|\mathbf{x}\|_2 = 1$), find $\mathbf{c} = W_\varepsilon^{-1} \mathbf{x}$. How large are the coefficients when $\varepsilon = 10^{-3}$, and why is this disastrous for quantization and storage?
+   (b) Using the SVD from Lecture 30, prove that for any invertible basis matrix $W \in \mathbb{R}^{n \times n}$, coefficient perturbation $\Delta\mathbf{c} = \mathbf{c} - \hat{\mathbf{c}}$ and signal reconstruction error $\Delta\mathbf{x} = W\Delta\mathbf{c}$ satisfy the two-sided singular value bounds:
+   $$
+   \sigma_n(W) \|\Delta\mathbf{c}\|_2 \le \|\Delta\mathbf{x}\|_2 \le \sigma_1(W) \|\Delta\mathbf{c}\|_2
+   $$
+   Explain why condition number $\kappa_2(W) = \sigma_1(W)/\sigma_n(W) = 1$ (a scalar multiple of an orthogonal matrix) is the optimal geometry for suppressing quantization error amplification.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 1(a): Compute $H_2 X$ first (row sums and differences divided by $\\sqrt{2}$), then right-multiply by $H_2^T = H_2$. $Y_{11}$ measures mixed horizontal-vertical twist; a planar ramp $x_{ij} = a i + b j + c$ has zero mixed twist.",
+  "Part 1(b): Expand $\\|Y\\|_F^2 = \\operatorname{tr}(Y^T Y) = \\operatorname{tr}((C X C^T)^T (C X C^T))$, use $C^T C = I_N$ and $\\operatorname{tr}(AB) = \\operatorname{tr}(BA)$ to cancel $C$.",
+  "Part 2(b): Substitute $W = U\\Sigma V^T$ into $\\|W\\Delta\\mathbf{c}\\|_2$; since $U$ and $V^T$ preserve the $\\ell_2$ norm, only the diagonal matrix $\\Sigma$ remains."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Part 1 puts the real engine of JPEG / JPEG 2000 in your hands: left-multiplying by $C$ and right-multiplying by $C^T$ leaves Frobenius energy untouched, kills the mixed-twist term of a planar gradient, and packs $90.7\%$ of the energy into the single DC entry!
+Part 2 explains why compression engineers are obsessed with orthogonality: an oblique basis with nearly parallel columns has to synthesize a unit vector $[0, 1]^T$ by canceling two huge vectors ($[1, 0]^T$ and $[1, 0.001]^T$ with coefficients $\pm 1000$). Any tiny rounding error in coefficient space breaks that delicate cancellation and explodes by a factor of $1000$ in pixel space! An orthonormal basis has all singular values equal to $1$ ($\kappa_2 = 1$), making coordinate space and pixel space isometric with zero noise amplification.
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1 (2D Separable Transform & Frobenius Energy Conservation):**
+
+**(a) Compute the 2D transform:**
+First left-multiply by $H_2$:
+
+$$
+H_2 X = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}\begin{bmatrix} 10 & 8 \\ 6 & 4 \end{bmatrix} = \frac{1}{\sqrt{2}}\begin{bmatrix} 16 & 12 \\ 4 & 4 \end{bmatrix}
+$$
+
+Then right-multiply by $H_2^T = H_2$:
+
+$$
+Y = (H_2 X) H_2^T = \frac{1}{2}\begin{bmatrix} 16 & 12 \\ 4 & 4 \end{bmatrix}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} = \frac{1}{2}\begin{bmatrix} 28 & 4 \\ 8 & 0 \end{bmatrix} = \begin{bmatrix} 14 & 2 \\ 4 & 0 \end{bmatrix}
+$$
+
+Why $Y_{11} = 0$: $Y_{11} = \frac{1}{2}(X_{00} - X_{01} - X_{10} + X_{11}) = \frac{1}{2}(10 - 8 - 6 + 4) = 0$. The patch $X$ decreases by $2$ across every step right and by $4$ across every step down—it is a pure linear plane with zero mixed second difference, so the diagonal high-frequency mode vanishes.
+
+**(b) Prove 2D Frobenius energy conservation:**
+For any orthogonal $C \in \mathbb{R}^{N\times N}$ ($C^T C = C C^T = I_N$):
+
+$$
+\|Y\|_F^2 = \operatorname{tr}(Y^T Y) = \operatorname{tr}\!\left((C X C^T)^T (C X C^T)\right) = \operatorname{tr}\!\left(C X^T (C^T C) X C^T\right)
+$$
+
+Using $C^T C = I_N$ and the cyclic invariance $\operatorname{tr}(C (X^T X) C^T) = \operatorname{tr}\!\left((X^T X)(C^T C)\right)$:
+
+$$
+\|Y\|_F^2 = \operatorname{tr}(C X^T X C^T) = \operatorname{tr}(X^T X C^T C) = \operatorname{tr}(X^T X) = \|X\|_F^2
+$$
+
+(Here $\|X\|_F^2 = 10^2 + 8^2 + 6^2 + 4^2 = 216$ and $\|Y\|_F^2 = 14^2 + 2^2 + 4^2 + 0^2 = 216$.)
+
+**(c) Truncated reconstruction check:**
+Keeping only $Y_{00} = 14$ gives
+
+$$
+\hat{Y} = \begin{bmatrix} 14 & 0 \\ 0 & 0 \end{bmatrix}, \qquad \hat{X} = H_2^T \hat{Y} H_2 = \frac{1}{2}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}\begin{bmatrix} 14 & 0 \\ 0 & 0 \end{bmatrix}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} = \begin{bmatrix} 7 & 7 \\ 7 & 7 \end{bmatrix}
+$$
+
+The residual is
+
+$$
+X - \hat{X} = \begin{bmatrix} 3 & 1 \\ -1 & -3 \end{bmatrix}
+$$
+
+so $\|X - \hat{X}\|_F^2 = 3^2 + 1^2 + (-1)^2 + (-3)^2 = 20$, which equals $Y_{01}^2 + Y_{10}^2 + Y_{11}^2 = 2^2 + 4^2 + 0^2 = 20$.
+
+---
+
+**Part 2 (Ill-Conditioned Oblique Basis & SVD Error Bounds):**
+
+**(a) Coefficient explosion:**
+Inverting $W_\varepsilon$ gives:
+
+$$
+W_\varepsilon^{-1} = \begin{bmatrix} 1 & -1/\varepsilon \\ 0 & 1/\varepsilon \end{bmatrix} \implies \mathbf{c} = W_\varepsilon^{-1} \begin{bmatrix} 0 \\ 1 \end{bmatrix} = \begin{bmatrix} -1/\varepsilon \\ 1/\varepsilon \end{bmatrix}
+$$
+
+When $\varepsilon = 10^{-3}$, $\mathbf{c} = [-1000, 1000]^T$! Even though the signal has unit energy $\|\mathbf{x}\|_2^2 = 1$, its coordinates blow up by a factor of $1000$ due to catastrophic cancellation. Storing huge coefficients wastes bits, and any small quantization error in $c_1, c_2$ fails to cancel and ruins the reconstruction.
+
+**(b) Proof of the two-sided SVD bounds:**
+Write the SVD $W = U \Sigma V^T$ (Lecture 30), where $U, V$ are orthogonal and $\Sigma = \operatorname{diag}(\sigma_1, \dots, \sigma_n)$ with $\sigma_1 \ge \dots \ge \sigma_n \gt 0$. Set $\mathbf{z} := V^T \Delta\mathbf{c}$. Since $V^T$ and $U$ preserve $\ell_2$ norms, $\|\mathbf{z}\|_2 = \|\Delta\mathbf{c}\|_2$ and:
+
+$$
+\|\Delta\mathbf{x}\|_2^2 = \|U \Sigma V^T \Delta\mathbf{c}\|_2^2 = \|\Sigma \mathbf{z}\|_2^2 = \sum_{i=1}^n \sigma_i^2 z_i^2
+$$
+
+Using $\sigma_n^2 \le \sigma_i^2 \le \sigma_1^2$ for all $i$:
+
+$$
+\sigma_n^2 \|\mathbf{z}\|_2^2 = \sum_{i=1}^n \sigma_n^2 z_i^2 \le \sum_{i=1}^n \sigma_i^2 z_i^2 \le \sum_{i=1}^n \sigma_1^2 z_i^2 = \sigma_1^2 \|\mathbf{z}\|_2^2
+$$
+
+Substituting $\|\mathbf{z}\|_2 = \|\Delta\mathbf{c}\|_2$ and taking square roots yields:
+
+$$
+\sigma_n(W) \|\Delta\mathbf{c}\|_2 \le \|\Delta\mathbf{x}\|_2 \le \sigma_1(W) \|\Delta\mathbf{c}\|_2
+$$
+
+The worst-case relative error amplification is the condition number $\kappa_2(W) = \sigma_1(W)/\sigma_n(W)$. If and only if $\kappa_2(W) = 1$ (so $\sigma_1 = \dots = \sigma_n = \alpha \gt 0$, meaning $W = \alpha Q$ is a scaled orthogonal matrix), the bounds collapse to exact isometric scaling $\|\Delta\mathbf{x}\|_2 = \alpha \|\Delta\mathbf{c}\|_2$, completely eliminating directional error amplification.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>
+
+---
+
+<FrontierAIReading
+  id="AI-14"
+  title="From Orthogonal Compression Bases (DCT / Wavelets) to Latent Diffusion"
+  paperRef="Rombach et al. (CVPR 2022) High-Resolution Image Synthesis with Latent Diffusion Models"
+>
+
+### 1. Why Did High-Resolution Pixel-Space Diffusion Hit a "Compute Wall"?
+
+In Lecture 24 (AI-11), we saw the core engine of Denoising Diffusion Probabilistic Models (DDPM): fitting a high-dimensional data distribution via forward Markov noising and reverse neural denoising. In 2022, when Rombach et al. introduced **Latent Diffusion Models (LDM, the architecture behind Stable Diffusion)**, they pinpointed a bottleneck that is mathematically isomorphic to **image compression** in today's lecture:
+
+Suppose you train a diffusion model directly in the **raw pixel basis** of a $512 \times 512$ RGB image:
+- The ambient dimension is $512 \times 512 \times 3 = 786,432$! Every reverse denoising step (often $20 \sim 50$ or more steps) must pass a nearly $800{,}000$-dimensional tensor through a massive U-Net or Diffusion Transformer (DiT).
+- More fundamentally, **most bits and gradients in pixel space are wasted on imperceptible high-frequency micro-textures**—just like the tiny high-frequency DCT coefficients that the human eye barely notices in JPEG. Spending heavy iterative compute on isolated pixel details before semantic structure even emerges is geometrically wasteful!
+
+---
+
+### 2. LDM's Two-Stage Basis Philosophy: Replacing the Pixel Basis with a Learned Perceptual Basis
+
+Compare our **linear orthogonal image compression pipeline** from Lecture 32 with the **two-stage LDM architecture**—they share the exact same mathematical spirit:
+
+| Dimension | Classical Linear Compression (JPEG DCT / Haar Wavelet) | Latent Diffusion Models (LDM / Stable Diffusion) |
+| :--- | :--- | :--- |
+| **Ambient Representation** | High-dim redundant pixel vector $\mathbf{x} \in \mathbb{R}^n$ | High-dim redundant RGB image $\mathbf{x} \in \mathbb{R}^{512 \times 512 \times 3}$ ($786{,}432$-D) |
+| **Analysis / Encoding** | Linear orthogonal projection $\mathbf{c} = Q^T \mathbf{x}$ | Deep convolutional VAE Encoder $\mathbf{z} = \mathcal{E}(\mathbf{x}) \in \mathbb{R}^{64 \times 64 \times 4}$ ($16{,}384$-D) |
+| **Criterion for Dropping Redundancy** | Hard thresholding $\lvert c_i\rvert \lt \tau$ (minimizing $\ell_2$ distortion $\sum_{i\notin S} c_i^2$) | **Perceptual Compression**: preserves semantic manifold structure while adversarial + perceptual (LPIPS) losses discard imperceptible high-frequency detail |
+| **Compression Ratio** | Typically keeps $5\% \sim 15\%$ of coefficients ($7:1 \sim 20:1$) | Spatial downsampling factor $f = 8$ (channels $3 \to 4$) gives an exact **$48:1$ dimension reduction** ($786{,}432 \div 16{,}384 = 48$)! |
+| **Computation in Compressed Space** | Store/transmit only sparse nonzero coordinates $\hat{\mathbf{c}}$ | **Semantic Diffusion Modeling**: U-Net / DiT runs noising and denoising solely in the compact latent space $\mathbf{z}_t \in \mathbb{R}^{64\times 64\times 4}$! |
+| **Synthesis / Decoding** | Linear reconstruction $\hat{\mathbf{x}} = Q \hat{\mathbf{c}}$ | Deep convolutional VAE Decoder $\hat{\mathbf{x}} = \mathcal{D}(\mathbf{z}_0)$ restores crisp high-frequency textures in a single pass |
+
+From a linear algebra perspective, the VAE encoder $\mathcal{E}$ and decoder $\mathcal{D}$ act as **data-driven nonlinear analogues of $W^{-1}$ and $W$**:
+1. In classical Haar wavelets or DCT, the basis is fixed analytically (step functions or cosines), removing only second-order pixel correlations and measuring error by the simple $\ell_2$ Parseval sum $\sum_{i \notin S} c_i^2$.
+2. In LDM, the autoencoder learns a **nonlinear local basis adapted to the natural image manifold**. It compresses a $786{,}432$-dimensional image into a $16{,}384$-dimensional latent $\mathbf{z}$ that preserves 2D spatial topology ($64 \times 64$ grid aligned with the image, much like wavelet coefficients) while stripping away redundant high-frequency noise.
+3. Consequently, **the heavy lifting of perceptual detail removal is done once up front by the autoencoder, freeing the expensive iterative diffusion process to model pure semantic composition and global structure inside a $48\times$ smaller latent space**—which is why consumer GPUs can generate photorealistic high-resolution images in seconds.
+
+---
+
+### 3. Runnable Code Verification: Haar Orthogonal Compaction & Parseval's Identity
+
+The PyTorch script below verifies the orthogonality of the $4 \times 4$ Haar wavelet basis from Lecture 32, and demonstrates energy compaction and Parseval's exact error identity on a $64$-point 1D scanline with a sharp edge when keeping only $12.5\%$ of the coefficients.
+
+<CollapsibleCode language="python" title="haar_wavelet_compaction_demo.py">
+```python
+"""
+Lecture 32 AI-14 Numerical Verification Script:
+1. Verify the orthogonal diagonalization W4^T W4 = diag(4, 4, 2, 2) and the hand-worked signal [9, 7, 3, 1].
+2. Recursively construct an orthonormal Haar basis matrix Q_n of any power-of-two order (Q_n^T Q_n = I_n).
+3. Demonstrate high energy compaction and Parseval's exact error identity on a 64-point signal
+   with a smooth ramp + sharp step edge when keeping only 12.5% (8/64) of the coefficients.
+"""
+import math
+import torch
+
+
+def build_orthonormal_haar(n: int) -> torch.Tensor:
+    """Recursively build an n x n orthonormal Haar wavelet matrix Q_n (n must be a power of 2)."""
+    assert n >= 2 and (n & (n - 1)) == 0, "n must be a power of 2"
+    if n == 2:
+        return torch.tensor([[1.0, 1.0], [1.0, -1.0]]) / math.sqrt(2.0)
+
+    # Coarse low-pass modes spanned by Q_{n/2}; high-pass modes are local pairwise differences
+    q_half = build_orthonormal_haar(n // 2)
+    low_pass = torch.kron(q_half, torch.tensor([[1.0], [1.0]]) / math.sqrt(2.0))
+    high_pass = torch.kron(torch.eye(n // 2), torch.tensor([[1.0], [-1.0]]) / math.sqrt(2.0))
+    return torch.cat([low_pass, high_pass], dim=1)
+
+
+def verify_haar_compaction():
+    print("=" * 68)
+    # 1. Verify 4x4 integer Haar matrix and the lecture example [9, 7, 3, 1]^T
+    W4 = torch.tensor([
+        [1.0,  1.0,  1.0,  0.0],
+        [1.0,  1.0, -1.0,  0.0],
+        [1.0, -1.0,  0.0,  1.0],
+        [1.0, -1.0,  0.0, -1.0],
+    ])
+    D4 = W4.T @ W4
+    Q4 = build_orthonormal_haar(4)
+    ortho_err = (Q4.T @ Q4 - torch.eye(4)).abs().max().item()
+    print("1. 4-Point Haar Check:")
+    print(f"   diag(W4^T W4)          = {torch.diag(D4).tolist()} (expected: [4.0, 4.0, 2.0, 2.0])")
+    print(f"   ||Q4^T Q4 - I_4||_max  = {ortho_err:.2e}")
+
+    x4 = torch.tensor([9.0, 7.0, 3.0, 1.0])
+    c4_tilde = Q4.T @ x4
+    c4_hat = c4_tilde.clone()
+    c4_hat[2:] = 0.0  # Drop the two high-frequency detail coefficients (50% compression)
+    x4_hat = Q4 @ c4_hat
+    err_pixel_4 = torch.sum((x4 - x4_hat) ** 2).item()
+    err_coeff_4 = torch.sum((c4_tilde - c4_hat) ** 2).item()
+    print(f"   Orthonormal c_tilde    = {[round(v, 4) for v in c4_tilde.tolist()]}")
+    print(f"   Reconstructed x_hat    = {x4_hat.round(decimals=4).tolist()}")
+    print(f"   Pixel error ||x-x_hat||^2 = {err_pixel_4:.6f} | Dropped coeff sum = {err_coeff_4:.6f}")
+
+    # 2. Verify energy compaction & Parseval's identity on a 64-point piecewise-smooth signal
+    n = 64
+    Q64 = build_orthonormal_haar(n)
+    assert torch.allclose(Q64.T @ Q64, torch.eye(n), atol=1e-6)
+
+    t = torch.linspace(0.0, 1.0, n)
+    # Simulated image scanline: smooth cosine + sharp step edge
+    x = 1.5 * torch.cos(2.0 * math.pi * t) + torch.where(t < 0.5, 3.0, -1.0)
+    c = Q64.T @ x
+
+    k = 8  # Keep only the top 8 coefficients by magnitude (8/64 = 12.5%, 8:1 compression)
+    topk_idx = torch.topk(c.abs(), k=k).indices
+    mask = torch.zeros_like(c, dtype=torch.bool)
+    mask[topk_idx] = True
+    c_hat = torch.where(mask, c, torch.zeros_like(c))
+    x_hat = Q64 @ c_hat
+
+    total_energy = torch.sum(x ** 2).item()
+    kept_energy = torch.sum(c_hat ** 2).item()
+    recon_err_sq = torch.sum((x - x_hat) ** 2).item()
+    dropped_coeff_sq = torch.sum(c[~mask] ** 2).item()
+
+    print("\n2. 64-Point Scanline Haar Compression (keeping 8/64 = 12.5% coefficients):")
+    print(f"   Total energy ||x||_2^2     = {total_energy:.4f}")
+    print(f"   Retained energy ratio      = {100.0 * kept_energy / total_energy:.2f}%")
+    print(f"   Pixel error ||x-x_hat||^2  = {recon_err_sq:.6f}")
+    print(f"   Dropped sum(c_i^2)         = {dropped_coeff_sq:.6f}")
+    print(f"   Parseval discrepancy       = {abs(recon_err_sq - dropped_coeff_sq):.2e}")
+    print("=" * 68)
+
+
+if __name__ == "__main__":
+    verify_haar_compaction()
+```
+</CollapsibleCode>
+
+</FrontierAIReading>

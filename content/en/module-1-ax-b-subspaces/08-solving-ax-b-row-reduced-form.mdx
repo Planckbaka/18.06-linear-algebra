@@ -1,0 +1,561 @@
+---
+title: "Lecture 08: Solving Ax = b — Row Reduced Form R (Solvability and Solution Structure)"
+ocwId: "L08"
+videoEpisode: "P08"
+textbookRef: "§3.3"
+---
+
+In Lecture 07, we completely mastered the nullspace construction for the homogeneous equation $A\mathbf{x} = \mathbf{0}$. Today, entering MIT 18.06 Lecture 08, we restore a nonzero target vector $\mathbf{b}$ to the right-hand side and bring the entire theory of linear systems together: **For an arbitrary $m\times n$ matrix, when does the inhomogeneous system $A\mathbf{x} = \mathbf{b}$ actually have a solution? Once a solution exists, what is the geometric structure of all solutions? And how does the rank $r$ of the matrix decisively govern the four fundamental regimes of "$0$ solutions, $1$ solution, or $\infty$ solutions"?**
+
+---
+
+## 1. Augmented Elimination in Action: Decoding Solvability from $[A \mid \mathbf{b}]$
+
+Let us bring back our familiar $3\times 4$ matrix $A$ from Lecture 07, but this time augment it on the right with a general target vector $\mathbf{b} = (b_1, b_2, b_3)^T \in \mathbb{R}^3$:
+
+$$
+\begin{cases}
+x_1 + 2x_2 + 2x_3 + 2x_4 = b_1 \\
+2x_1 + 4x_2 + 6x_3 + 8x_4 = b_2 \\
+3x_1 + 6x_2 + 8x_3 + 10x_4 = b_3
+\end{cases}
+$$
+
+Applying the exact same elementary row operations as in Lecture 07 to the augmented matrix $\begin{bmatrix} A \mid \mathbf{b} \end{bmatrix}$ (first $R_2 - 2R_1,\; R_3 - 3R_1$, then $R_3 - R_2$) yields:
+
+$$
+\left[\begin{array}{cccc|c}
+1 & 2 & 2 & 2 & b_1 \\
+2 & 4 & 6 & 8 & b_2 \\
+3 & 6 & 8 & 10 & b_3
+\end{array}\right]
+\longrightarrow
+\left[\begin{array}{cccc|c}
+1 & 2 & 2 & 2 & b_1 \\
+0 & 0 & 2 & 4 & b_2 - 2b_1 \\
+0 & 0 & 2 & 4 & b_3 - 3b_1
+\end{array}\right]
+\longrightarrow
+\left[\begin{array}{cccc|c}
+\mathbf{1} & 2 & 2 & 2 & b_1 \\
+0 & 0 & \mathbf{2} & 4 & b_2 - 2b_1 \\
+0 & 0 & 0 & 0 & \mathbf{b_3 - b_2 - b_1}
+\end{array}\right]
+$$
+
+Look closely at the bottom row! On the left-hand side of the equation, we have four zeros: $0x_1 + 0x_2 + 0x_3 + 0x_4 = 0$; on the right-hand side sits the algebraic expression $b_3 - b_2 - b_1$!
+- If the right-hand side vector you supply is $\mathbf{b} = (1, 5, 7)^T$, the bottom row becomes the contradictory equation **$0 = 7 - 5 - 1 = 1$**, and the system has no solution!
+- The **necessary and sufficient condition for solvability** appears immediately: every algebraic expression on the right-hand side opposite a zero row must equal $0$! In this example:
+
+$$
+b_3 - b_2 - b_1 = 0 \quad \Longleftrightarrow \quad b_3 = b_1 + b_2
+$$
+
+Why is the condition specifically $b_3 = b_1 + b_2$? Look back at the three rows of the original matrix $A$: **because Row 3 of $A$ was originally equal to "Row 1 + Row 2"!** Whenever the rows on the left-hand side satisfy a linear dependence relation, the components $b_1, b_2, b_3$ on the right-hand side must obey that exact same linear relation—this is the direct algebraic translation of our geometric criterion from Lecture 01, **$\mathbf{b} \in \operatorname{Col}(A)$**!
+
+---
+
+## 2. Constructing the Complete Solution: One Particular Solution $\mathbf{x}_p$ + the Entire Nullspace $\mathbf{x}_n$
+
+Now let us pick a right-hand side vector that satisfies the solvability condition, say $\mathbf{b} = (1, 5, \mathbf{6})^T$ (which obeys $6 = 1 + 5$). After elimination, our echelon system simplifies to:
+
+$$
+\left[\begin{array}{cccc|c}
+\mathbf{1} & 2 & 2 & 2 & 1 \\
+0 & 0 & \mathbf{2} & 4 & 3 \\
+0 & 0 & 0 & 0 & 0
+\end{array}\right]
+\quad \Longleftrightarrow \quad
+\begin{cases}
+x_1 + 2x_2 + 2x_3 + 2x_4 = 1 \\
+\phantom{x_1 + 2x_2 + {}} 2x_3 + 4x_4 = 3
+\end{cases}
+$$
+
+What is the fastest way to find **one specific particular solution** $\mathbf{x}_p$?
+Professor Strang's standard shortcut is wonderfully simple: **Since the free variables ($x_2, x_4$) can be assigned any real numbers we please, let us set all free variables equal to $0$ ($x_2 = 0,\; x_4 = 0$)!**
+
+Once the free variables are zeroed out, the free columns vanish from the calculation, leaving a clean, square, invertible upper-triangular back-substitution for the pivot variables:
+- Equation 2: $2x_3 = 3 \implies x_3 = \frac{3}{2}$;
+- Equation 1: $x_1 + 2\left(\frac{3}{2}\right) = 1 \implies x_1 = -2$.
+
+With almost no effort, we have our particular solution:
+
+$$
+\mathbf{x}_p = \begin{bmatrix} -2 \\ \mathbf{0} \\ 3/2 \\ \mathbf{0} \end{bmatrix}
+$$
+
+Next, we simply take the general nullspace solution $\mathbf{x}_n \in \operatorname{Null}(A)$ that we already computed in Lecture 07 and **add it directly to $\mathbf{x}_p$** to obtain the **complete solution** to $A\mathbf{x} = \mathbf{b}$:
+
+$$
+\mathbf{x}_{\text{complete}} = \mathbf{x}_p + \mathbf{x}_n
+= \underbrace{\begin{bmatrix} -2 \\ 0 \\ 3/2 \\ 0 \end{bmatrix}}_{\mathbf{x}_p \;(A\mathbf{x}_p = \mathbf{b})}
++ c_1 \underbrace{\begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix}}_{\mathbf{s}_1}
++ c_2 \underbrace{\begin{bmatrix} 2 \\ 0 \\ -2 \\ 1 \end{bmatrix}}_{\mathbf{s}_2}
+\qquad (c_1, c_2 \in \mathbb{R})
+$$
+
+Let us verify why this captures every solution without missing a single one:
+1. **Every sum $\mathbf{x}_p + \mathbf{x}_n$ is a solution**: $A(\mathbf{x}_p + \mathbf{x}_n) = A\mathbf{x}_p + A\mathbf{x}_n = \mathbf{b} + \mathbf{0} = \mathbf{b}$;
+2. **No solution is left out**: Suppose $\mathbf{x}$ is any solution to $A\mathbf{x} = \mathbf{b}$. Subtract $\mathbf{x}_p$ from it:
+
+$$
+A(\mathbf{x} - \mathbf{x}_p) = A\mathbf{x} - A\mathbf{x}_p = \mathbf{b} - \mathbf{b} = \mathbf{0}
+\quad \Longrightarrow \quad
+\mathbf{x}_n := \mathbf{x} - \mathbf{x}_p \in \operatorname{Null}(A)
+\quad \Longrightarrow \quad
+\mathbf{x} = \mathbf{x}_p + \mathbf{x}_n
+$$
+
+Savor the four-dimensional geometry here: the nullspace $\operatorname{Null}(A)$ is a **two-dimensional subspace plane passing through the origin $\mathbf{0}$** inside $\mathbb{R}^4$; the complete solution set $\mathbf{x}_p + \operatorname{Null}(A)$ is obtained by picking up that two-dimensional plane and **shifting it parallel to itself** by the vector $\mathbf{x}_p$, forming a **two-dimensional affine flat (shifted subspace)**—as long as $\mathbf{b} \neq \mathbf{0}$, it does not pass through the origin, and therefore **it is NOT a subspace**!
+
+---
+
+## 3. The Four Fundamental Families: How Rank $r$ Governs the Fate of Any $m\times n$ Matrix
+
+Now let us step back and survey all possible real matrices $A \in \mathbb{R}^{m\times n}$. A matrix has $m$ rows, $n$ columns, and $r = \operatorname{rank}(A)$ pivots. Because each row contains at most one pivot and each column contains at most one pivot, we always have $r \le m$ and $r \le n$. Depending on **whether $r$ reaches its upper bound $m$ or $n$**, every matrix in the universe falls cleanly into one of **four—and only four—rank regimes**:
+
+<AffineSolutionAndFourRankCasesDiagram caption="Geometric structure of the affine solution flat x_p + Null(A) and the four fundamental rank regimes governing existence and uniqueness of solutions to Ax = b." />
+
+<InteractiveCanvasSlot
+  id="l08-affine-solution-shift"
+  title="Affine Solution Plane x_p + Null(A) & Four Rank Regimes Switcher"
+  description="Interactive sandbox: dynamically adjust the right-hand side vector $\mathbf{b}$ to observe how the solution line or plane $\mathbf{x}_p + \operatorname{Null}(A)$ in 3D space shifts parallel to the nullspace as $\mathbf{b}$ varies; toggle seamlessly between the four canonical matrix archetypes: Full Column Rank ($r=n$), Full Row Rank ($r=m$), Full Rank Invertible ($r=m=n$), and Rank Deficient."
+/>
+
+<DefinitionCard
+  label="Definition 8.1"
+  title="Full Column Rank & Full Row Rank"
+>
+Let the matrix $A \in \mathbb{R}^{m\times n}$ have rank $r = \operatorname{rank}(A)$:
+
+1. **Full Column Rank**: $r = n$ (which necessarily requires $n \le m$), meaning every column is a pivot column and there are **no free variables**.
+2. **Full Row Rank**: $r = m$ (which necessarily requires $m \le n$), meaning every row contains a pivot and $R = \operatorname{rref}(A)$ has **no zero rows**.
+</DefinitionCard>
+
+<TheoremCard
+  label="Theorem 8.1"
+  title="Complete Solution Structure & The Four Rank Regimes"
+>
+Let the real matrix $A \in \mathbb{R}^{m\times n}$ have rank $r = \operatorname{rank}(A)$:
+
+1. **Dual Equivalence Criterion for Solvability**: The system $A\mathbf{x} = \mathbf{b}$ is solvable $\iff$ **geometrically** $\mathbf{b} \in \operatorname{Col}(A)$ $\iff$ **algebraically** whenever augmented elimination reduces a row of $A$ to all zeros, the corresponding entry of $\mathbf{b}$ simultaneously reduces to $0$.
+2. **Affine Complete Solution Decomposition**: Once a particular solution $\mathbf{x}_p$ satisfying $A\mathbf{x}_p = \mathbf{b}$ exists, the complete solution set of $A\mathbf{x} = \mathbf{b}$ is the shifted nullspace $\mathbf{x}_p + \operatorname{Null}(A) = \{\mathbf{x}_p + \mathbf{x}_n : \mathbf{x}_n \in \operatorname{Null}(A)\}$.
+3. **Number of Solutions and Canonical Form of $R = \operatorname{rref}(A)$ Across the Four Rank Regimes** (up to column permutation):
+   - **① Full Column & Row Rank (Invertible Square Matrix) $r = m = n$**: $R = I_n$, $\operatorname{Null}(A) = \{\mathbf{0}\}$ and $\operatorname{Col}(A) = \mathbb{R}^n$ $\implies$ **always a unique solution ($1$ solution)** for every $\mathbf{b}$.
+   - **② Full Column Rank (Tall & Thin Matrix) $r = n \lt m$**: $R = \begin{bmatrix} I_n \\ 0 \end{bmatrix}$, no free variables ($\operatorname{Null}(A) = \{\mathbf{0}\}$), but $m - n \gt 0$ zero-row constraints at the bottom $\implies$ **$0$ solutions or $1$ unique solution** depending on $\mathbf{b}$ (whenever a solution exists, it is guaranteed to be unique!).
+   - **③ Full Row Rank (Short & Wide Matrix) $r = m \lt n$**: After column permutation, $R$ has the form $\begin{bmatrix} I_m & F \end{bmatrix}$, with no zero rows ($\operatorname{Col}(A) = \mathbb{R}^m$) and $n - m \gt 0$ free variables $\implies$ **always infinitely many solutions ($\infty$ solutions)** for **every** $\mathbf{b} \in \mathbb{R}^m$!
+   - **④ Rank Deficient (Neither Full Row nor Full Column Rank) $r \lt m$ and $r \lt n$**: After column permutation, $R$ has the form $\begin{bmatrix} I_r & F \\ 0 & 0 \end{bmatrix}$, with both $m - r \gt 0$ zero-row constraints and $n - r \gt 0$ free variables $\implies$ **$0$ solutions or infinitely many solutions (never a unique solution!)**.
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Why Full Row Rank r = m Guarantees a Solution for Every b ∈ ℝᵐ">
+Suppose $A \in \mathbb{R}^{m\times n}$ satisfies $r = m$, and let $E \in \mathbb{R}^{m\times m}$ denote the invertible product of elementary row operation matrices that reduces $A$ to $R = \operatorname{rref}(A)$ (so $EA = R$).
+Because $r = m$, all $m$ rows of $R$ contain a pivot equal to $1$, so **there are no zero rows at all**! Let the column indices of the $m$ pivots be $j_1 \lt j_2 \lt \cdots \lt j_m$; then these $m$ pivot columns of $R$ are precisely the standard basis vectors $\mathbf{e}_1, \dots, \mathbf{e}_m$ of $\mathbb{R}^m$.
+Now take any $\mathbf{b} \in \mathbb{R}^m$ and define $\mathbf{d} := E\mathbf{b} = (d_1, \dots, d_m)^T \in \mathbb{R}^m$. Construct the vector $\mathbf{x}_p \in \mathbb{R}^n$ directly by setting its $j_k$-th pivot variable entry to $d_k$ ($k = 1, \dots, m$) and all remaining $n - m$ free variable entries to $0$. Then:
+
+$$
+R \mathbf{x}_p = \sum_{k=1}^{m} d_k \mathbf{e}_k = \mathbf{d} = E\mathbf{b}
+$$
+
+Since $E$ is invertible, multiplying both sides on the left by $E^{-1}$ immediately gives $A\mathbf{x}_p = E^{-1}(R\mathbf{x}_p) = E^{-1}(E\mathbf{b}) = \mathbf{b}$! Thus a solution exists for every $\mathbf{b} \in \mathbb{R}^m$ (and when $m \lt n$, because there are $n - m \ge 1$ linearly independent special solutions in the nullspace, there are necessarily infinitely many solutions).
+</ProofCollapse>
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+1. **Pitfall 1: "The particular solution $\mathbf{x}_p$ is unique—only the one obtained by setting all free variables to $0$ qualifies as a particular solution."**
+   **False!** Setting all free variables to $0$ is merely the **most convenient hand-calculation convention** for finding one particular solution, not the only one! In fact, **any point** $\tilde{\mathbf{x}}_p = \mathbf{x}_p + \mathbf{s}_1$ lying on the affine solution flat $\mathbf{x}_p + \operatorname{Null}(A)$ satisfies $A\tilde{\mathbf{x}}_p = \mathbf{b}$ and is completely qualified to serve as the particular solution: $\tilde{\mathbf{x}}_p + \operatorname{Null}(A) = \mathbf{x}_p + \operatorname{Null}(A)$ describes the exact same shifted plane!
+2. **Pitfall 2: Multiplying the particular solution $\mathbf{x}_p$ by an arbitrary constant and writing $c_0 \mathbf{x}_p + c_1 \mathbf{s}_1 + c_2 \mathbf{s}_2$! (A fatal exam mistake!)**
+   **Never multiply $\mathbf{x}_p$ by a free parameter $c_0$!** As soon as you multiply by $c_0 \neq 1$, the left-hand side produces $A(c_0\mathbf{x}_p + \mathbf{x}_n) = c_0 \mathbf{b} \neq \mathbf{b}$! The coefficient in front of $\mathbf{x}_p$ must be locked strictly at **$1$**; arbitrary constants $c_1, c_2 \in \mathbb{R}$ may only multiply the nullspace special solutions $\mathbf{s}_k$!
+3. **Pitfall 3: Concluding from "more equations $m$ than unknowns $n$ (an overdetermined system)" that there cannot be infinitely many solutions.**
+   The behavior of solutions **depends strictly on the rank $r$, never on the outer dimensions $m, n$ alone**! Even for a tall $100 \times 3$ matrix, if its rank is only $r = 2 \lt 3$ (placing it in Regime ④, Rank Deficient), then for any $\mathbf{b}$ lying in its two-dimensional column space plane, it still has **infinitely many solutions**! Only when you strictly know **full column rank $r = n$** can you rule out infinitely many solutions.
+</PitfallAlert>
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "The complete solution to $A\\mathbf{x} = \\mathbf{b}$ is always **$\\mathbf{x} = \\mathbf{x}_p + \\mathbf{x}_n$** (where $A\\mathbf{x}_p = \\mathbf{b}$ and $\\mathbf{x}_n \\in \\operatorname{Null}(A)$); the fastest way to find a particular solution $\\mathbf{x}_p$ by hand is to set all free variables equal to $0$.",
+    "**Never multiply $\\mathbf{x}_p$ by a free constant $c$!** When $\\mathbf{b} \\neq \\mathbf{0}$, the solution set is an affine flat obtained by shifting the nullspace by $\\mathbf{x}_p$, NOT a subspace.",
+    "**Full column rank ($r = n$)** governs uniqueness (no free variables $\\implies 0$ or $1$ solution); **full row rank ($r = m$)** governs existence (no zero rows $\\implies 1$ or $\\infty$ solutions for every $\\mathbf{b}$).",
+    "**Full rank ($r = m = n$)** yields a unique solution for every $\\mathbf{b}$; **rank deficient ($r \\lt \\min(m, n)$)** yields either $0$ or $\\infty$ solutions, never a unique solution."
+  ]}
+/>
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+<ExerciseCard id="l08-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="Full Pipeline Practice: Find the Solvability Condition and Assemble x_p + x_n">
+Consider the $3\times 3$ linear system $A\mathbf{x} = \mathbf{b}$:
+
+$$
+\begin{bmatrix}
+1 & 3 & 1 \\
+2 & 6 & 4 \\
+-1 & -3 & 1
+\end{bmatrix}
+\begin{bmatrix} x_1 \\ x_2 \\ x_3 \end{bmatrix}
+=
+\begin{bmatrix} b_1 \\ b_2 \\ b_3 \end{bmatrix}
+$$
+
+1. Perform elimination on the augmented matrix $[A \mid \mathbf{b}]$ to find the exact equation that $b_1, b_2, b_3$ must satisfy for the system to be solvable, and identify which of the four rank regimes $A$ belongs to;
+2. For $\mathbf{b} = (2, 8, 2)^T$ (which satisfies your condition), set the free variable to $0$ to find the particular solution $\mathbf{x}_p$, and combine it with the nullspace special solution to write the complete solution $\mathbf{x} = \mathbf{x}_p + \mathbf{x}_n$!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Step 1: $R_2 \\leftarrow R_2 - 2R_1$ turns the right-hand side of Row 2 into $b_2 - 2b_1$; $R_3 \\leftarrow R_3 + R_1$ turns Row 3 into $[0, 0, 2 \\mid b_3 + b_1]$!",
+    "Notice that the left-hand sides of Row 2 and Row 3 are both $[0, 0, 2]$! Applying $R_3 \\leftarrow R_3 - R_2$ produces a zero row whose right-hand side is $(b_3 + b_1) - (b_2 - 2b_1) = 3b_1 - b_2 + b_3$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. Inspect the three columns: Column 2, $(3, 6, -3)^T$, is exact $3$ times Column 1, while Column 3 is independent. Thus this $3\times 3$ matrix has rank only $r = 2 \lt 3$, placing it in Regime ④: **Rank Deficient** (either $0$ solutions or infinitely many solutions)! Elimination reveals that the right-hand side of the zero row is $3b_1 - b_2 + b_3 = 0$.
+2. For $\mathbf{b} = (2, 8, 2)^T$ (checking $6 - 8 + 2 = 0$, it passes!), the free variable is $x_2$:
+   - Setting $x_2 = 0$, two quick steps of back-substitution give $\mathbf{x}_p = (0, 0, 2)^T$ (which you can spot at a glance: $\mathbf{b} = (2,8,2)^T$ is simply $2$ times Column 3, $(1,4,1)^T$!);
+   - Because Column 2 equals $3$ times Column 1, the nullspace special solution is immediately $\mathbf{s}_1 = (-3, 1, 0)^T$! Add them together and you are done!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. Perform elementary row operations on the augmented matrix:
+
+$$
+\left[\begin{array}{ccc|c}
+1 & 3 & 1 & b_1 \\
+2 & 6 & 4 & b_2 \\
+-1 & -3 & 1 & b_3
+\end{array}\right]
+\xrightarrow{\substack{R_2 - 2R_1 \\ R_3 + R_1}}
+\left[\begin{array}{ccc|c}
+1 & 3 & 1 & b_1 \\
+0 & 0 & 2 & b_2 - 2b_1 \\
+0 & 0 & 2 & b_3 + b_1
+\end{array}\right]
+\xrightarrow{R_3 - R_2}
+\left[\begin{array}{ccc|c}
+\mathbf{1} & 3 & 1 & b_1 \\
+0 & 0 & \mathbf{2} & b_2 - 2b_1 \\
+0 & 0 & 0 & 3b_1 - b_2 + b_3
+\end{array}\right]
+$$
+
+   - The necessary and sufficient condition for solvability is **$3b_1 - b_2 + b_3 = 0$**;
+   - Since $r = 2 \lt m = 3$ and $r = 2 \lt n = 3$, $A$ belongs to **Regime ④ (Rank Deficient)**.
+
+2. Substituting $\mathbf{b} = (2, 8, 2)^T$ (which satisfies $3(2)-8+2=0$), the pivot variables are $x_1, x_3$ and the free variable is $x_2$:
+   - Set $x_2 = 0$: $2x_3 = 8 - 2(2) = 4 \implies x_3 = 2$; $x_1 + 2 = 2 \implies x_1 = 0$, giving $\mathbf{x}_p = (0, 0, 2)^T$.
+   - Reducing to $R = \begin{bmatrix} 1 & 3 & 0 \\ 0 & 0 & 1 \\ 0 & 0 & 0 \end{bmatrix}$ and setting $x_2 = 1$ yields the nullspace special solution $\mathbf{s}_1 = (-3, 1, 0)^T$.
+   - The complete solution is:
+
+$$
+\mathbf{x} = \begin{bmatrix} 0 \\ 0 \\ 2 \end{bmatrix} + c \begin{bmatrix} -3 \\ 1 \\ 0 \end{bmatrix} \quad (c \in \mathbb{R})
+$$
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l08-ex2" tier="L2" tierLabel="L2 · Conceptual True/False" title="Conceptual Check: Can a Tall Matrix (More Equations Than Unknowns) Ever Have Infinitely Many Solutions?">
+Determine whether the following statement is true or false:
+
+> **Statement**: For a linear system $A\mathbf{x} = \mathbf{b}$ with $5$ equations and $3$ unknowns (where $A \in \mathbb{R}^{5\times 3}$), because there are more equations than unknowns, for any given $\mathbf{b}$ the system can only have "no solution" or "a unique solution"—it can never have infinitely many solutions.
+
+<TrueFalseInteractive
+  id="l08-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! The statement omits the crucial hypothesis of full column rank ($\operatorname{rank}(A) = 3$)! If the three columns of $A \in \mathbb{R}^{5\times 3}$ are collinear (for example, rank $r = 1 \lt 3$), the system still has $3 - 1 = 2$ free variables, and for $\mathbf{b} = \mathbf{0}$ (or any $\mathbf{b}$ in the column space) it immediately has infinitely many solutions!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "What if all $5$ equations are simply the exact same equation $x_1 + x_2 + x_3 = 1$ repeated $5$ times?!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Never be fooled by the outer shape of a matrix—what truly governs the system is its **rank $r$**! If $5$ equations merely repeat the exact same constraint $5$ times ($r=1$), there is effectively only $1$ independent constraint on $3$ unknowns, leaving $2$ free variables to sweep out an entire two-dimensional plane of infinitely many solutions!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+Construct a minimal counterexample: let every row of $A \in \mathbb{R}^{5\times 3}$ be $[1, 1, 1]$, and let the right-hand side be $\mathbf{b} = (1, 1, 1, 1, 1)^T \in \mathbb{R}^5$.
+Then $\operatorname{rank}(A) = 1 \lt n = 3$, so there are $3 - 1 = 2$ free variables ($x_2, x_3$), and the complete solution is
+
+$$
+\mathbf{x} = \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix} + c_1 \begin{bmatrix} -1 \\ 1 \\ 0 \end{bmatrix} + c_2 \begin{bmatrix} -1 \\ 0 \\ 1 \end{bmatrix} \quad (c_1, c_2 \in \mathbb{R})
+$$
+
+which has infinitely many solutions. Hence the statement is false.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l08-ex3" tier="L2" tierLabel="L2 · Conceptual True/False" title="Conceptual Check: Can a Wide Matrix (More Unknowns Than Equations) Ever Have a Unique Solution?">
+Determine whether the following statement is true or false:
+
+> **Statement**: If a matrix $A \in \mathbb{R}^{m\times n}$ has strictly fewer rows than columns ($m \lt n$), then regardless of how the right-hand side vector $\mathbf{b} \in \mathbb{R}^m$ is chosen, the system $A\mathbf{x} = \mathbf{b}$ can **never** have a unique solution (it can only have no solution or infinitely many solutions).
+
+<TrueFalseInteractive
+  id="l08-tf2"
+  correct={true}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="True! This is one of the sharpest consequences of the four-rank-regime table: since $r \le m \lt n$, the number of free variables $n - r \ge n - m \ge 1$ is strictly positive, meaning the nullspace $\operatorname{Null}(A)$ necessarily contains infinitely many nonzero vectors! Thus as soon as one particular solution $\mathbf{x}_p$ exists, $\mathbf{x}_p + \operatorname{Null}(A)$ immediately expands into infinitely many solutions and can never reduce to a single point!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "A unique solution requires the nullspace to contain only the zero vector (i.e., $n - r = 0 \\iff r = n$)!",
+    "But the rank $r$ can never exceed the number of rows $m$! Since $m \\lt n$, can $r$ ever equal $n$?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+The necessary and sufficient condition for a unique solution is **zero free variables ($r = n$)**. A short, wide matrix inherently has too few rows ($m \lt n$): even if every single row produces a pivot, the total number of pivots $r$ is at most $m$ and can never reach $n$! Because at least one free variable is always left roaming the nullspace, either $\mathbf{b} \notin \operatorname{Col}(A)$ and there are $0$ solutions, or you find one foothold $\mathbf{x}_p$ and adding the nullspace line immediately turns it into $\infty$ solutions!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+For any $A \in \mathbb{R}^{m\times n}$ with $m \lt n$, its rank satisfies $r = \operatorname{rank}(A) \le m \lt n$.
+By Theorem 7.1(2), the number of free variables is $n - r \ge 1$, so there exists a nonzero special solution $\mathbf{s}_1 \in \operatorname{Null}(A) \setminus \{\mathbf{0}\}$.
+For any $\mathbf{b} \in \mathbb{R}^m$:
+- If $\mathbf{b} \notin \operatorname{Col}(A)$, the number of solutions is $0$;
+- If $\mathbf{b} \in \operatorname{Col}(A)$, let $\mathbf{x}_p$ be a particular solution; then by Theorem 8.1(2), for every $c \in \mathbb{R}$, $\mathbf{x}_p + c\mathbf{s}_1$ gives a distinct solution (infinitely many solutions).
+
+Hence under no circumstances can there be a unique solution, and the statement is always true.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l08-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Matrix-Free Reasoning: Extracting the Nullspace and New Solutions from Two Known Solutions">
+(Classic MIT 18.06 Midterm Conceptual Problem) Suppose you do not know the entries of the matrix $A \in \mathbb{R}^{3\times 3}$ at all, but experiments reveal that:
+- For the same nonzero right-hand side vector $\mathbf{b} \neq \mathbf{0}$, both $\mathbf{u} = (2, 1, 1)^T$ and $\mathbf{v} = (0, 3, -1)^T$ are solutions to $A\mathbf{x} = \mathbf{b}$!
+
+**Without guessing any entries of $A$**, rigorously answer the following:
+1. Is the sum $\mathbf{u} + \mathbf{v} = (2, 4, 0)^T$ a solution to $A\mathbf{x} = \mathbf{b}$? What about the affine combination $t\mathbf{u} + (1-t)\mathbf{v}$ ($t \in \mathbb{R}$)?
+2. Write down an explicit **nonzero vector** in the nullspace $\operatorname{Null}(A)$, and determine all possible values for the rank $r$ of the $3\times 3$ matrix $A$!
+3. If the right-hand side is replaced by $3\mathbf{b}$, write down an entire line of infinitely many solutions to $A\mathbf{x} = 3\mathbf{b}$!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "You know $A\\mathbf{u} = \\mathbf{b}$ and $A\\mathbf{v} = \\mathbf{b}$! Adding them gives $A(\\mathbf{u}+\\mathbf{v}) = 2\\mathbf{b} \\neq \\mathbf{b}$; what happens when you **subtract** them to form $A(\\mathbf{u} - \\mathbf{v})$?!",
+    "Since $\\mathbf{b} \\neq \\mathbf{0}$ has a solution, $A$ cannot be the zero matrix (so $r \\ge 1$); and since the nullspace contains the nonzero vector $\\mathbf{u}-\\mathbf{v}$, $A$ is not invertible (so $r \\lt 3$)! Which integer ranks remain between $1$ and $3$?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. Adding two inhomogeneous solutions doubles the right-hand side to $2\mathbf{b}$, so $\mathbf{u} + \mathbf{v}$ is certainly not a solution! However, whenever the two weights add up to $1$ (an **affine combination** $t\mathbf{u} + (1-t)\mathbf{v}$, which geometrically traces the entire line passing through $\mathbf{u}$ and $\mathbf{v}$!), the right-hand side evaluates to $t\mathbf{b} + (1-t)\mathbf{b} = \mathbf{b}$, so every point on that line is a solution!
+2. Subtracting the two solutions, $\mathbf{w} = \mathbf{u} - \mathbf{v} = (2, -2, 2)^T$, cancels $\mathbf{b}$ on the right-hand side to zero, handing us the nonzero nullspace vector $(1, -1, 1)^T$ on a silver platter! Since $A$ is neither the zero matrix (it produces $\mathbf{b} \neq \mathbf{0}$, so $r \ge 1$) nor invertible ($r \le 2$), the rank $r$ can only be **$1$ or $2$**!
+3. Want to hit $3\mathbf{b}$? Scale the particular solution by $3$ to get $3\mathbf{u} = (6, 3, 3)^T$, then add any multiple of the nullspace direction $c(1, -1, 1)^T$ we just found!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. By linearity, $A(\mathbf{u} + \mathbf{v}) = A\mathbf{u} + A\mathbf{v} = 2\mathbf{b}$. Since $\mathbf{b} \neq \mathbf{0}$, we have $2\mathbf{b} \neq \mathbf{b}$, so $\mathbf{u} + \mathbf{v}$ is **not** a solution. On the other hand, for any $t \in \mathbb{R}$:
+
+$$
+A\big(t\mathbf{u} + (1-t)\mathbf{v}\big) = t A\mathbf{u} + (1-t) A\mathbf{v} = t\mathbf{b} + (1-t)\mathbf{b} = \mathbf{b}
+$$
+
+   Thus every vector on the affine line $\{t\mathbf{u} + (1-t)\mathbf{v} : t \in \mathbb{R}\}$ is a solution.
+
+2. Subtracting the two equations yields $A(\mathbf{u} - \mathbf{v}) = \mathbf{b} - \mathbf{b} = \mathbf{0}$, so the nonzero vector
+
+$$
+\mathbf{s} = \mathbf{u} - \mathbf{v} = \begin{bmatrix} 2 \\ -2 \\ 2 \end{bmatrix} \in \operatorname{Null}(A) \setminus \{\mathbf{0}\}
+$$
+
+   - Because $\operatorname{Null}(A) \neq \{\mathbf{0}\}$, we have $n - r = 3 - r \ge 1 \implies r \le 2$;
+   - Because there exists $\mathbf{u}$ with $A\mathbf{u} = \mathbf{b} \neq \mathbf{0}$, we know $A \neq 0 \implies r \ge 1$.
+   Hence $r = \operatorname{rank}(A) \in \{\mathbf{1, 2}\}$ (both values are possible).
+
+3. Since $A(3\mathbf{u}) = 3(A\mathbf{u}) = 3\mathbf{b}$ and $A\mathbf{s} = \mathbf{0}$, for every $c \in \mathbb{R}$ the vectors
+
+$$
+\mathbf{x}(c) = 3\mathbf{u} + c\left(\frac{1}{2}\mathbf{s}\right) = \begin{bmatrix} 6 \\ 3 \\ 3 \end{bmatrix} + c \begin{bmatrix} 1 \\ -1 \\ 1 \end{bmatrix}
+$$
+
+   all satisfy $A\mathbf{x}(c) = 3\mathbf{b}$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l08-ex5" tier="L4" tierLabel="L4 · MIT 18.06 Exam Synthesis" title="MIT 18.06 Capstone Challenge: Reverse-Engineering the Entire System Ax = b from Its Complete Solution">
+Suppose the **complete solution set (containing all solutions and no others)** of an unknown linear system $A\mathbf{x} = \mathbf{b}$ is the following shifted line in $\mathbb{R}^3$:
+
+$$
+\mathbf{x} = \begin{bmatrix} 2 \\ 0 \\ 0 \end{bmatrix} + c \begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix} \qquad (c \in \mathbb{R})
+$$
+
+1. How many columns must the coefficient matrix $A$ have? What **must** its rank $r = \operatorname{rank}(A)$ be? What is the minimum number of rows needed to write down such a matrix $A$?
+2. Explicitly construct the simplest **$2\times 3$ matrix $A$ and right-hand side vector $\mathbf{b} \in \mathbb{R}^2$** whose complete solution set is this exact line!
+3. If you are additionally told that "$A$ is a $2\times 3$ **reduced row echelon form matrix $R$**", are $R$ and the corresponding right-hand side vector $\mathbf{d}$ uniquely determined? Write them down!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1: The solution vector $\\mathbf{x}$ has $3$ components, so $A$ must have $n = 3$ columns! The nullspace part has $1$ free parameter $c$ (meaning $n - r = 1$), so $r = 3 - 1 = 2$! Since the rank is $2$, the minimum number of rows required is $m = 2$!",
+    "Parts 2 & 3: The single free variable sits in Column 3 (since the special solution $\\mathbf{s} = (1, 1, 1)^T$ has $1$ in its last entry), and the first two columns are pivot columns! Reverse-engineer the $2\\times 3$ matrix $R$ as in Lecture 07: put $I_2$ in the first two columns and $(-1, -1)^T$ in Column 3 so that $R(1,1,1)^T = \\mathbf{0}$; finally, multiply $R$ by $\\mathbf{x}_p = (2, 0, 0)^T$ to obtain the right-hand side vector $\\mathbf{d}$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+This is Professor Strang's signature Quiz 1 touchstone problem testing whether students have truly connected the first eight lectures!
+1. $\mathbf{x} \in \mathbb{R}^3 \implies n = 3$ columns; the nullspace is a one-dimensional line ($n - r = 1$) $\implies$ **rank must be $r = 2$**; to hold $2$ pivots, we need at least **$m = 2$ rows**!
+2. First build a $2\times 3$ reduced row echelon matrix $R$ targeting the nullspace: to annihilate $(1, 1, 1)^T$ with rank $2$, write the two simplest independent difference equations $x_1 - x_3 = ?$ and $x_2 - x_3 = ?$! Plug in the particular solution $\mathbf{x}_p = (2, 0, 0)^T$ to find the right-hand sides: the first equation equals $2 - 0 = 2$, and the second equals $0 - 0 = 0$! Checking the solution set: $x_1 = 2 + x_3,\; x_2 = x_3$, and setting $x_3 = c$ reproduces the given line!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **Determining Dimensions and Rank**:
+   - Since $\mathbf{x} \in \mathbb{R}^3$, $A$ must have **$n = 3$ columns**;
+   - By Theorem 8.1(2), the solution set is $\mathbf{x}_p + \operatorname{Null}(A)$, so $\operatorname{Null}(A) = \operatorname{span}\{(1, 1, 1)^T\}$ is spanned by $1$ basis vector, meaning $n - r = 1 \implies r = \operatorname{rank}(A) = \mathbf{2}$;
+   - From $r \le m$, the number of rows satisfies $m \ge \mathbf{2}$, so at least $2$ rows are required.
+
+2. **Explicit Construction of a $2\times 3$ System** (taking the RREF directly):
+
+$$
+A = \begin{bmatrix}
+1 & 0 & -1 \\
+0 & 1 & -1
+\end{bmatrix} \in \mathbb{R}^{2\times 3}, \qquad
+\mathbf{b} = A \begin{bmatrix} 2 \\ 0 \\ 0 \end{bmatrix} = \begin{bmatrix} 2 \\ 0 \end{bmatrix} \in \mathbb{R}^2
+$$
+
+   Verification: $A\mathbf{x} = \mathbf{b} \iff \begin{cases} x_1 - x_3 = 2 \\ x_2 - x_3 = 0 \end{cases} \iff \mathbf{x} = (2 + x_3,\; x_3,\; x_3)^T = (2,0,0)^T + x_3(1,1,1)^T$, matching completely!
+
+3. **Uniqueness Proof Under RREF**: Suppose the matrix itself is required to be a $2\times 3$ reduced row echelon matrix $R$:
+   - Since $r = 2$, there must be two pivots. If the pivot columns were Columns 1 and 3 (or Columns 2 and 3), the free column would be Column 2 (or Column 1). However, since $(1,1,1)^T \in \operatorname{Null}(R)$, if Column 2 were free then $R = \begin{bmatrix} 1 & a & 0 \\ 0 & 0 & 1 \end{bmatrix}$, which gives $R(1,1,1)^T = (1+a,\; 1)^T \neq (0,0)^T$, a contradiction! By the same reasoning, Column 1 cannot be the sole free column.
+   - Therefore, the two pivot columns **must be Columns 1 and 2**, which uniquely determines $R = \begin{bmatrix} 1 & 0 & -1 \\ 0 & 1 & -1 \end{bmatrix}$; consequently, the right-hand side vector is also uniquely determined as $\mathbf{d} = R(2,0,0)^T = (2, 0)^T$!
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>
+
+<FrontierAIReading
+  id="AI-03"
+  title="Null-Space Knowledge Editing in LLMs (AlphaEdit): Updating Facts with Zero Interference via x_p + x_n"
+  paperRef="Fang et al. (ICLR 2025 Oral) AlphaEdit: Null-Space Constrained Knowledge Editing for Language Models · Meng et al. (NeurIPS 2022) ROME"
+>
+
+Imagine a pressing real-world engineering challenge: a Large Language Model (LLM) trained at a cost of tens of millions of dollars stores a vast repository of accurate world knowledge (such as "The capital of France is Paris" or "The speed of light is approximately $3\times 10^8\text{ m/s}$"), but as time passes, certain facts change (for example, "a country inaugurates a new prime minister" or "an open-source library releases a new major version"). If you fine-tune the weights directly with gradient descent, updating just a few dozen new facts often causes catastrophic forgetting or cross-talk corruption of the model's existing knowledge!
+
+**AlphaEdit**, winner of an **ICLR 2025 Oral (top paper award)**, presents a pure linear-algebraic solution that will make every reader of MIT 18.06 Lecture 08 cheer—**its entire core mechanism is an exact realization of Lecture 08's inhomogeneous complete solution decomposition $\mathbf{x} = \mathbf{x}_p + \mathbf{x}_n$ inside linear associative memory layers!**
+
+### 1. Viewing a Transformer FFN Layer as a Linear Key-Value Store $W K_0 = V_0$
+
+In a Transformer feed-forward network (FFN, consisting of two linear projections sandwiching a nonlinear activation), the second down-projection weight matrix $W \in \mathbb{R}^{d_{\text{out}} \times d_{\text{mid}}}$ acts as a **Linear Associative Memory**:
+- Suppose the intermediate activation key vectors corresponding to **$N_0$ existing facts we wish to strictly preserve** are stacked into the matrix $K_0 = \begin{bmatrix} \mathbf{k}_1 & \cdots & \mathbf{k}_{N_0} \end{bmatrix} \in \mathbb{R}^{d_{\text{mid}} \times N_0}$ (in practical LLMs, the effective rank of preserved activations satisfies $r_0 \lt d_{\text{mid}}$, meaning $K_0^T$ is a **short, wide matrix with plenty of free variables**!), and the current correct outputs are $V_0 = W K_0$;
+- Now we want to write one (or a batch of) **new facts**: when the new key matrix $K_1 \in \mathbb{R}^{d_{\text{mid}} \times N_1}$ is fed in, we want the updated weights $W' = W + \Delta W$ to output the new target values $V_1^*$!
+
+---
+
+### 2. Isomorphism Between the Zero-Interference Constraint $\Delta W K_0 = 0$ and $\mathbf{x}_p + \mathbf{x}_n$
+
+Let us translate "learn the new facts while causing zero interference to old facts" into simultaneous matrix equations for the weight update $\Delta W$ (taking the transpose makes each column identical to our standard Lecture 08 system $A\mathbf{x} = \mathbf{b}$!):
+
+1. **Hard Zero-Interference Constraint on Old Memory (Homogeneous Nullspace Part)**:
+
+$$
+(W + \Delta W) K_0 = W K_0 \quad \Longleftrightarrow \quad \Delta W \, K_0 = 0 \quad \Longleftrightarrow \quad K_0^T (\Delta W)^T = 0
+$$
+
+   Look at the rightmost equation: **it requires every row of the weight update $\Delta W$ (every column of its transpose) to lie strictly inside the nullspace $\operatorname{Null}(K_0^T)$ of the preserved key matrix!** As long as this holds, no matter how far $\Delta W$ moves inside that nullspace, whenever an old query $\mathbf{k}_j \in \operatorname{Col}(K_0)$ enters the layer, the perturbation term $\Delta W \mathbf{k}_j = \mathbf{0}$ vanishes identically—preserving prior memories with **mathematically zero error**!
+
+2. **Hitting the New Fact Targets Exactly (Inhomogeneous Particular Solution Part)**:
+   Simultaneously, within the degrees of freedom permitted by $\operatorname{Null}(K_0^T)$, we require the new keys to match the inhomogeneous target residual $R_1 := V_1^* - W K_1$:
+
+$$
+(W + \Delta W) K_1 = V_1^* \quad \Longleftrightarrow \quad \Delta W \, K_1 = R_1
+$$
+
+   How do we satisfy both conditions at once? Let $P_{\text{null}} \in \mathbb{R}^{d_{\text{mid}} \times d_{\text{mid}}}$ be the orthogonal projection matrix onto the left nullspace $\operatorname{Null}(K_0^T)$ of the preserved keys (so $P_{\text{null}} K_0 = 0$). Parameterize the update as $\Delta W = \tilde{\Delta} P_{\text{null}}$:
+   - On one hand, multiplying on the right by $K_0$ automatically satisfies $\Delta W K_0 = \tilde{\Delta}(P_{\text{null}} K_0) = 0$ (locked inside the nullspace!);
+   - On the other hand, the new-fact equation reduces to solving a short, wide full-row-rank system (**Regime ③, $r = m \lt n$**, from this lecture!) for the projected new keys $K_{1,\perp} := P_{\text{null}} K_1$:
+
+$$
+\tilde{\Delta} (P_{\text{null}} K_1) = R_1
+$$
+
+   As long as the new fact keys $K_1$ do not lie entirely inside the subspace spanned by the old keys ($P_{\text{null}} K_1 \neq 0$), this wide system has infinitely many exact solutions—writing the new facts $(W + \Delta W)K_1 = V_1^*$ with pinpoint accuracy while leaving every preserved fact $(W + \Delta W)K_0 = WK_0$ untouched to the last decimal place!
+
+<CollapsibleCode title="PyTorch Tensor Dimension Verification (20-Line AlphaEdit Null-Space Knowledge Editing Prototype)">
+
+```python
+import torch
+
+torch.manual_seed(1806)
+
+d_mid, d_out = 128, 64
+N_old, N_new = 80, 4   # Preserve 80 old facts (r_0 = 80 < 128, leaving 48 nullspace degrees of freedom!), write 4 new facts
+
+W = torch.randn(d_out, d_mid)
+K_0 = torch.randn(d_mid, N_old)        # Activation keys of old facts to preserve
+V_0_orig = W @ K_0                     # Original outputs on old facts
+
+K_1 = torch.randn(d_mid, N_new)        # Activation keys of new facts to edit
+V_1_target = torch.randn(d_out, N_new) # Desired target values for new facts
+
+# 1. Extract an orthonormal basis (128 x 48) of Null(K_0^T) and build the nullspace projector P_null: P_null @ K_0 == 0
+U, S, _ = torch.linalg.svd(K_0, full_matrices=True)
+U_null = U[:, N_old:]                  # (128, 48) orthonormal basis of the nullspace
+P_null = U_null @ U_null.T             # (128, 128) nullspace projection operator
+
+# 2. Solve for the new-fact particular solution inside the nullspace: Delta_W @ K_1 = V_1_target - W @ K_1, with rows locked in Null(K_0^T)
+R_1 = V_1_target - W @ K_1             # Target residual b for new facts
+K_1_proj = P_null @ K_1                # New keys projected onto the nullspace (128, 4)
+Delta_W = R_1 @ torch.linalg.pinv(K_1_proj) @ P_null  # Exact update constrained to the nullspace
+
+W_edited = W + Delta_W
+
+# 3. Dual verification: 100% exact hit on new facts, 0.000000 interference on all 80 old facts!
+new_err = torch.norm(W_edited @ K_1 - V_1_target).item()
+old_interference = torch.norm(W_edited @ K_0 - V_0_orig).item()
+assert new_err < 1e-4 and old_interference < 1e-5
+print(f"New fact error: {new_err:.2e} | Old memory interference: {old_interference:.2e}")
+```
+
+</CollapsibleCode>
+
+</FrontierAIReading>

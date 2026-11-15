@@ -1,0 +1,831 @@
+---
+title: "Lecture 31: Linear Transformations and Their Matrices"
+ocwId: "L30"
+videoEpisode: "P31"
+textbookRef: "§8.1–8.2"
+---
+
+In the first thirty lectures, our starting point was almost always to **write down a concrete matrix $A \in \mathbb{R}^{m \times n}$ first**, and then study the product $\mathbf{x} \mapsto A\mathbf{x}$—its column space, nullspace, orthogonal projections, eigendecomposition, and singular value decomposition. Today, however, Prof. Gilbert Strang flips the camera around to reveal the deepest abstract perspective in linear algebra: **first comes the coordinate-free "linear transformation," and only later comes the "matrix," which depends on our choice of bases**.
+
+Think about it: "rotate every vector in the plane counterclockwise by $30^\circ$ around the origin," "project every vector in 3D orthogonally onto a plane through the origin," or in calculus, "take the derivative $\frac{d}{dt}$ of a polynomial"—long before you draw coordinate axes or pick a basis, those geometric actions and function operators already exist in their own right!
+
+So here is the central question: **how does an abstract operator—perhaps acting on polynomials or matrices rather than columns of numbers—turn into an ordinary rectangular matrix $A \in \mathbb{R}^{m\times n}$?** And if we switch to better input and output bases, how can a dense, complicated matrix collapse into a clean diagonal matrix? This lecture builds the complete two-way bridge between abstract operators and concrete matrices.
+
+---
+
+## I. Coordinate-Free Axioms of Linearity and the "Origin Veto Rule"
+
+Before introducing any coordinate system or matrix, let us capture the essence of "linearity" in pure, coordinate-free language.
+
+### 1. Why Is Linearity So Special?
+
+At the heart of every linear rule lies the **Superposition Principle**: the output of a combined input equals the exact same combination of the individual outputs. Whether your vectors live in Euclidean space $\mathbb{R}^n$, the polynomial space $\mathcal{P}_n$, or the matrix space $\mathbb{R}^{p\times q}$, as long as a map obeys this single rule, the entire machinery of linear algebra—the four fundamental subspaces, rank, eigenvalues, and the SVD—carries right over.
+
+<DefinitionCard title="Linear Transformation and Linear Operator">
+
+Let $V$ and $W$ be two vector spaces over the real numbers $\mathbb{R}$ (the same definition holds over $\mathbb{C}$ or any field). A mapping $T: V \to W$ is called a **linear transformation** from $V$ to $W$ if for **all** vectors $\mathbf{v}, \mathbf{w} \in V$ and **all** real scalars $c, d \in \mathbb{R}$:
+
+$$
+T(c\mathbf{v} + d\mathbf{w}) = cT(\mathbf{v}) + dT(\mathbf{w})
+$$
+
+When the output space is the same as the input space ($W = V$), we often call $T: V \to V$ a **linear operator** on $V$.
+
+This single superposition axiom is completely equivalent to checking two separate rules:
+1. **Additivity**: $T(\mathbf{v} + \mathbf{w}) = T(\mathbf{v}) + T(\mathbf{w})$ for all $\mathbf{v}, \mathbf{w} \in V$.
+2. **Homogeneity (Scaling)**: $T(c\mathbf{v}) = cT(\mathbf{v})$ for all $c \in \mathbb{R}$ and all $\mathbf{v} \in V$.
+
+</DefinitionCard>
+
+### 2. Two Immediate Algebraic Consequences
+
+Directly from the axioms—without touching a single matrix—we get two remarkably useful structural facts:
+
+1. **Zero Preservation (The Instant Veto Test)**: Set $c = 0$ in the homogeneity rule to obtain:
+   $$
+   T(\mathbf{0}_V) = T(0 \cdot \mathbf{0}_V) = 0 \cdot T(\mathbf{0}_V) = \mathbf{0}_W
+   $$
+   **Geometric intuition**: A linear transformation must pin the origin $\mathbf{0}_V$ of the input space squarely onto the origin $\mathbf{0}_W$ of the output space! Whenever you see a mapping with $T(\mathbf{0}_V) \ne \mathbf{0}_W$, you do not need any further calculation—**veto it on the spot: it is not linear**.
+2. **Preservation of General Linear Combinations**: By induction, for any finite list of vectors $\mathbf{v}_1, \dots, \mathbf{v}_k \in V$ and scalars $c_1, \dots, c_k \in \mathbb{R}$:
+   $$
+   T\left(\sum_{j=1}^k c_j \mathbf{v}_j\right) = \sum_{j=1}^k c_j T(\mathbf{v}_j)
+   $$
+   In particular, sending a line $\mathbf{v}_0 + t\mathbf{d}$ ($t \in \mathbb{R}$) through $T$ produces $T(\mathbf{v}_0) + t T(\mathbf{d})$: a linear transformation always maps lines to lines (or to a single point if $T(\mathbf{d}) = \mathbf{0}_W$), and maps evenly spaced parallel grids to evenly spaced parallel grids.
+
+---
+
+## II. A Gallery of Examples: Geometric Transformations, Abstract Operators, and Nonlinear "Impostors"
+
+The best way to sharpen your instinct for linearity is to place genuine linear operators side by side with several deceptively tidy nonlinear **impostors** that show up constantly in applications and exams.
+
+### 1. Classic Geometric Linear Transformations in $\mathbb{R}^2$ (Defined Without Coordinates)
+
+- **Rotation ($R_\theta$)**: Rotate every vector in the plane counterclockwise by angle $\theta$ around the origin. Scaling and vector addition commute with rotation (if you rotate a parallelogram by $\theta$, its diagonal is still the rotated sum vector), and the origin stays fixed. In standard Cartesian coordinates, its matrix is:
+
+  $$
+  R_\theta = \begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix}
+  $$
+
+- **Reflection ($H$) Across a Line Through the Origin**: For example, reflecting across the $45^\circ$ line $y = x$ swaps $(x, y)$ to $(y, x)$. The origin lies on the mirror line so it does not move, and superposition holds. Notice that linearity does not require preserving orientation ($\det(H) = -1$).
+- **Orthogonal Projection ($P$) onto a Subspace Through the Origin**: For instance, projecting every vector in $\mathbb{R}^2$ orthogonally onto the line $L$ at $30^\circ$ to the $x$-axis. Projection squashes the 2D plane onto a 1D line (so it is singular and non-invertible), yet **that does not affect its linearity one bit**! Linearity only asks for $P(c\mathbf{x} + d\mathbf{y}) = cP(\mathbf{x}) + dP(\mathbf{y})$, never invertibility or dimension preservation.
+- **Shear**: For example, $T(x_1, x_2) = (x_1 + 2x_2, x_2)$, which slides horizontal layers to turn a square into a slanted parallelogram. Angles change, but the origin stays fixed and parallel grid lines remain parallel and evenly spaced.
+
+### 2. Linear Operators on Abstract Vector Spaces Beyond $\mathbb{R}^n$
+
+Here is where linear algebra shows its true power: **a vector does not have to be a column of numbers!** Any space equipped with valid addition and scalar multiplication supports linear transformations:
+
+- **Differentiation Operator**: Let $\mathcal{P}_n$ denote the vector space of real polynomials of degree at most $n$ ($\dim \mathcal{P}_n = n + 1$). Define the derivative map $D = \frac{d}{dt}: \mathcal{P}_3 \to \mathcal{P}_2$ by $D(p) = p'$. By the basic rules of calculus:
+  $$
+  \frac{d}{dt}(c\, p(t) + d\, q(t)) = c\, p'(t) + d\, q'(t)
+  $$
+  Therefore, **differentiation is a genuine linear transformation**!
+- **Integration Operator**: Define $J: \mathcal{P}_2 \to \mathcal{P}_3$ by $(Jq)(t) = \int_0^t q(s)\,ds$. By linearity of the definite integral, $(J(c\, q_1 + d\, q_2))(t) = c(Jq_1)(t) + d(Jq_2)(t)$, so integration is linear as well.
+- **Operators on Matrix Spaces**: On $V = \mathbb{R}^{n \times n}$, fix a matrix $M \in \mathbb{R}^{n\times n}$. Both left multiplication $T_M(X) = MX$ and the transpose map $T_{\text{tr}}(X) = X^T$ satisfy $T_{\text{tr}}(cX + dY) = cX^T + dY^T$, so both are linear operators!
+
+### 3. Four Classic Nonlinear "Impostors"
+
+Watch out for these four mappings—they are frequently mistaken for linear transformations in engineering and homework problems. Check which axiom each one breaks:
+
+1. **Affine Translation**: $T(\mathbf{x}) = \mathbf{x} + \mathbf{v}_0$ (with $\mathbf{v}_0 \ne \mathbf{0}$), or more generally an affine transformation $T(\mathbf{x}) = A\mathbf{x} + \mathbf{b}$ ($\mathbf{b} \ne \mathbf{0}$).
+   - **The flaw**: It maps lines to lines and preserves parallel grids, but it moves the origin: $T(\mathbf{0}) = \mathbf{b} \ne \mathbf{0}$! Homogeneity also fails: $T(2\mathbf{x}) = 2A\mathbf{x} + \mathbf{b} \ne 2(A\mathbf{x} + \mathbf{b}) = 2T(\mathbf{x})$. Thus, **an affine map with $\mathbf{b} \ne \mathbf{0}$ is not a linear transformation**.
+2. **Euclidean Length / Norm**: $T(\mathbf{x}) = \|\mathbf{x}\|_2 : \mathbb{R}^2 \to \mathbb{R}$.
+   - **The flaw**: It satisfies $T(\mathbf{0}) = 0$, sneaking past the origin test, yet it breaks both additivity and homogeneity! Take standard basis vectors $\mathbf{e}_1 = [1, 0]^T$ and $\mathbf{e}_2 = [0, 1]^T$:
+
+     $$
+     T(\mathbf{e}_1 + \mathbf{e}_2) = \left\|\begin{bmatrix} 1 \\ 1 \end{bmatrix}\right\|_2 = \sqrt{2} \ne 1 + 1 = T(\mathbf{e}_1) + T(\mathbf{e}_2)
+     $$
+
+     And for the negative scalar $c = -1$, $T(-\mathbf{e}_1) = \|-\mathbf{e}_1\|_2 = +1 \ne -1 = -T(\mathbf{e}_1)$.
+3. **Elementwise Squaring**: $T(x_1, x_2) = (x_1^2, x_2^2)$. Even though $T(\mathbf{0}) = \mathbf{0}$, we have $T(2\mathbf{x}) = 4T(\mathbf{x}) \ne 2T(\mathbf{x})$.
+4. **Matrix Determinant**: $T(A) = \det(A) : \mathbb{R}^{n\times n} \to \mathbb{R}$ ($n \ge 2$).
+   - **The flaw**: The determinant is linear in **one row or one column at a time** (it is *multilinear*), not as a function of the entire matrix: $\det(2I_2) = 2^2 \det(I_2) = 4 \ne 2\det(I_2)$, and $\det(I_2 + (-I_2)) = \det(O) = 0 \ne 1 + 1 = \det(I_2) + \det(-I_2)$.
+
+<LinearTransformationGeometryExamplesDiagram caption="Comparison of genuine geometric linear transformations (rotation, reflection, projection, shear) against nonlinear impostors (affine translation, Euclidean norm, elementwise squaring)." />
+
+---
+
+## III. Kernel, Range, and "Unique Determination on a Basis"
+
+In matrix language, the nullspace $\operatorname{Null}(A)$ and column space $\operatorname{Col}(A)$ take center stage. For a coordinate-free linear transformation $T: V \to W$, they correspond to two intrinsic subspaces that do not depend on any basis.
+
+<DefinitionCard title="Kernel and Range (Image) of a Linear Transformation">
+
+Let $T: V \to W$ be a linear transformation between real vector spaces. We define:
+1. **The Kernel of $T$ (abstract nullspace)**: the set of all inputs squashed to the zero vector, which forms a subspace of the input space $V$:
+   $$
+   \ker(T) = \{\mathbf{v} \in V \mid T(\mathbf{v}) = \mathbf{0}_W\} \subseteq V
+   $$
+2. **The Range / Image of $T$**: the set of all possible outputs, which forms a subspace of the output space $W$:
+   $$
+   \operatorname{Im}(T) = \{T(\mathbf{v}) \in W \mid \mathbf{v} \in V\} \subseteq W
+   $$
+
+When $V$ is finite-dimensional, the abstract **Rank-Nullity Theorem** holds:
+
+$$
+\dim \ker(T) + \dim \operatorname{Im}(T) = \dim V
+$$
+
+</DefinitionCard>
+
+Why is $\ker(T)$ guaranteed to be a subspace of $V$, and $\operatorname{Im}(T)$ a subspace of $W$? Check closure directly: if $\mathbf{v}_1, \mathbf{v}_2 \in \ker(T)$, then $T(c\mathbf{v}_1 + d\mathbf{v}_2) = cT(\mathbf{v}_1) + dT(\mathbf{v}_2) = c\mathbf{0}_W + d\mathbf{0}_W = \mathbf{0}_W$, so any linear combination stays in $\ker(T)$. Likewise, if $\mathbf{y}_1 = T(\mathbf{v}_1)$ and $\mathbf{y}_2 = T(\mathbf{v}_2)$ lie in $\operatorname{Im}(T)$, then $c\mathbf{y}_1 + d\mathbf{y}_2 = T(c\mathbf{v}_1 + d\mathbf{v}_2) \in \operatorname{Im}(T)$. Once we pick bases and represent $T$ by a matrix $A$, $\ker(T)$ will match $\operatorname{Null}(A)$ and $\operatorname{Im}(T)$ will match $\operatorname{Col}(A)$!
+
+Next comes the fundamental theorem explaining why a finite matrix can completely capture a transformation acting on an infinite vector space:
+
+<TheoremCard title="Unique Determination of a Linear Transformation on a Basis">
+
+Let $V$ and $W$ be real vector spaces, and let $\mathcal{B}_V = \{\mathbf{v}_1, \mathbf{v}_2, \dots, \mathbf{v}_n\}$ be a basis for $V$. For **any** choice of $n$ target vectors $\mathbf{y}_1, \mathbf{y}_2, \dots, \mathbf{y}_n \in W$ (repeats, zero vectors, and linear dependence are all allowed), there exists a **unique** linear transformation $T: V \to W$ such that:
+
+$$
+T(\mathbf{v}_j) = \mathbf{y}_j \quad (\forall j = 1, 2, \dots, n)
+$$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Why Specifying the Images of n Basis Vectors Locks Down the Entire Space">
+
+**1. Existence:**
+Because $\mathcal{B}_V = \{\mathbf{v}_1, \dots, \mathbf{v}_n\}$ is a basis for $V$, every vector $\mathbf{v} \in V$ has a **unique** expansion as a linear combination:
+
+$$
+\mathbf{v} = c_1 \mathbf{v}_1 + c_2 \mathbf{v}_2 + \dots + c_n \mathbf{v}_n
+$$
+
+Define the map $T: V \to W$ by:
+
+$$
+T(\mathbf{v}) := c_1 \mathbf{y}_1 + c_2 \mathbf{y}_2 + \dots + c_n \mathbf{y}_n
+$$
+
+Since the coefficients $c_1, \dots, c_n$ are uniquely determined by $\mathbf{v}$, $T$ is well-defined. Setting $\mathbf{v} = \mathbf{v}_j$ gives $c_j = 1$ and all other coefficients $0$, so $T(\mathbf{v}_j) = \mathbf{y}_j$. To verify linearity, let $\mathbf{u} = \sum_{j=1}^n a_j \mathbf{v}_j$ and $\mathbf{w} = \sum_{j=1}^n b_j \mathbf{v}_j$. For any $\alpha, \beta \in \mathbb{R}$:
+
+$$
+\alpha \mathbf{u} + \beta \mathbf{w} = \sum_{j=1}^n (\alpha a_j + \beta b_j) \mathbf{v}_j
+$$
+
+Applying the definition of $T$ gives:
+
+$$
+T(\alpha \mathbf{u} + \beta \mathbf{w}) = \sum_{j=1}^n (\alpha a_j + \beta b_j) \mathbf{y}_j = \alpha \sum_{j=1}^n a_j \mathbf{y}_j + \beta \sum_{j=1}^n b_j \mathbf{y}_j = \alpha T(\mathbf{u}) + \beta T(\mathbf{w})
+$$
+
+Hence $T$ is indeed a linear transformation.
+
+**2. Uniqueness:**
+Suppose $S: V \to W$ is any other linear transformation satisfying $S(\mathbf{v}_j) = \mathbf{y}_j$ for $j = 1, \dots, n$. Then for every $\mathbf{v} = \sum_{j=1}^n c_j \mathbf{v}_j \in V$, linearity of $S$ forces:
+
+$$
+S(\mathbf{v}) = S\left(\sum_{j=1}^n c_j \mathbf{v}_j\right) = \sum_{j=1}^n c_j S(\mathbf{v}_j) = \sum_{j=1}^n c_j \mathbf{y}_j = T(\mathbf{v})
+$$
+
+Thus $S \equiv T$, so the linear transformation is uniquely determined.
+
+</ProofCollapse>
+
+**Think about how remarkable this is**: $\mathbb{R}^3$ or $\mathcal{P}_2$ contains infinitely many vectors, yet you never have to specify what $T$ does to all of them. Once you state where the $n$ basis vectors go, the linearity axioms lock down the fate of every remaining vector in the space like precision gears!
+
+---
+
+## IV. The Master Rule: Constructing the Matrix $A$ from Any Two Bases
+
+Now we turn to the heart of textbook §8.2. To turn an abstract transformation $T: V \to W$ into a concrete real matrix $A \in \mathbb{R}^{m \times n}$, we first use **coordinates** to digitize the abstract spaces.
+
+Let $\mathcal{B}_V = (\mathbf{v}_1, \mathbf{v}_2, \dots, \mathbf{v}_n)$ be an **ordered basis** of the $n$-dimensional space $V$ (order matters: swapping two basis vectors swaps two columns of the matrix!). For every $\mathbf{v} \in V$, there are unique scalars $x_1, \dots, x_n \in \mathbb{R}$ such that $\mathbf{v} = x_1 \mathbf{v}_1 + \dots + x_n \mathbf{v}_n$. We assemble these coefficients into the **coordinate vector** of $\mathbf{v}$ with respect to $\mathcal{B}_V$:
+
+$$
+[\mathbf{v}]_{\mathcal{B}_V} = \begin{bmatrix} x_1 \\ x_2 \\ \vdots \\ x_n \end{bmatrix} \in \mathbb{R}^n
+$$
+
+Similarly, if $\mathcal{B}_W = (\mathbf{w}_1, \dots, \mathbf{w}_m)$ is an ordered basis of the $m$-dimensional output space $W$, then each output $T(\mathbf{v}) \in W$ has a unique coordinate vector $[T(\mathbf{v})]_{\mathcal{B}_W} \in \mathbb{R}^m$.
+
+**The ultimate question**: Can we find an $m \times n$ matrix $A$ such that **applying $T$ in the abstract space is completely equivalent to multiplying by $A$ in coordinate space**, namely:
+
+$$
+[T(\mathbf{v})]_{\mathcal{B}_W} = A \, [\mathbf{v}]_{\mathcal{B}_V} \quad (\forall \mathbf{v} \in V)
+$$
+
+Not only does such a matrix exist uniquely, the recipe for building it is astonishingly simple—Gilbert Strang calls it **The Master Rule** for constructing the matrix of a linear transformation.
+
+<TheoremCard title="Matrix Representation Theorem (The Master Rule)">
+
+Let $V$ and $W$ be finite-dimensional vector spaces over $\mathbb{R}$ with $\dim V = n$ and $\dim W = m$. Fix an ordered basis $\mathcal{B}_V = (\mathbf{v}_1, \dots, \mathbf{v}_n)$ for the input space $V$ and an ordered basis $\mathcal{B}_W = (\mathbf{w}_1, \dots, \mathbf{w}_m)$ for the output space $W$, and let $T: V \to W$ be a linear transformation.
+
+Then there exists a **unique** matrix $A = [T]_{\mathcal{B}_W \leftarrow \mathcal{B}_V} \in \mathbb{R}^{m \times n}$ satisfying the coordinate intertwining formula for all $\mathbf{v} \in V$:
+
+$$
+[T(\mathbf{v})]_{\mathcal{B}_W} = A \, [\mathbf{v}]_{\mathcal{B}_V}
+$$
+
+Moreover, the $j$-th **column** of $A$ ($j = 1, 2, \dots, n$) is the coordinate vector of $T(\mathbf{v}_j)$ with respect to the output basis $\mathcal{B}_W$:
+
+$$
+A = \Big[\, [T(\mathbf{v}_1)]_{\mathcal{B}_W} \;\Big|\; [T(\mathbf{v}_2)]_{\mathcal{B}_W} \;\Big|\; \cdots \;\Big|\; [T(\mathbf{v}_n)]_{\mathcal{B}_W} \,\Big]
+$$
+
+In other words, if $T(\mathbf{v}_j) = \sum_{i=1}^m a_{ij} \mathbf{w}_i$, then the coefficient $a_{ij}$ sits in row $i$, column $j$ of $A$.
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Why the Coordinates of T(v_j) Must Fill the Columns, and Why This A Is Unique">
+
+**1. Verification that $A$ satisfies the coordinate formula:**
+Define the $j$-th column of $A$ to be $\mathbf{a}_j := [T(\mathbf{v}_j)]_{\mathcal{B}_W} \in \mathbb{R}^m$, meaning $T(\mathbf{v}_j) = \sum_{i=1}^m a_{ij}\mathbf{w}_i$.
+For any $\mathbf{v} \in V$, let its input coordinate vector be $[\mathbf{v}]_{\mathcal{B}_V} = [x_1, x_2, \dots, x_n]^T$, so $\mathbf{v} = \sum_{j=1}^n x_j \mathbf{v}_j$.
+By linearity of $T$:
+
+$$
+T(\mathbf{v}) = T\left(\sum_{j=1}^n x_j \mathbf{v}_j\right) = \sum_{j=1}^n x_j T(\mathbf{v}_j) = \sum_{j=1}^n x_j \left(\sum_{i=1}^m a_{ij} \mathbf{w}_i\right) = \sum_{i=1}^m \left(\sum_{j=1}^n a_{ij} x_j\right) \mathbf{w}_i
+$$
+
+By uniqueness of coordinate expansions, the $i$-th coordinate of $T(\mathbf{v})$ in $\mathcal{B}_W$ is $\sum_{j=1}^n a_{ij} x_j = (A [\mathbf{v}]_{\mathcal{B}_V})_i$. Therefore:
+
+$$
+[T(\mathbf{v})]_{\mathcal{B}_W} = A \, [\mathbf{v}]_{\mathcal{B}_V}
+$$
+
+From the column picture, this is even cleaner: since taking coordinates $\mathbf{y} \mapsto [\mathbf{y}]_{\mathcal{B}_W}$ is itself a linear isomorphism,
+
+$$
+[T(\mathbf{v})]_{\mathcal{B}_W} = \left[\sum_{j=1}^n x_j T(\mathbf{v}_j)\right]_{\mathcal{B}_W} = \sum_{j=1}^n x_j [T(\mathbf{v}_j)]_{\mathcal{B}_W} = \sum_{j=1}^n x_j \mathbf{a}_j = A \, [\mathbf{v}]_{\mathcal{B}_V}
+$$
+
+**2. Uniqueness of $A$:**
+Suppose any matrix $M \in \mathbb{R}^{m\times n}$ satisfies $[T(\mathbf{v})]_{\mathcal{B}_W} = M [\mathbf{v}]_{\mathcal{B}_V}$ for all $\mathbf{v} \in V$.
+Plug in $\mathbf{v} = \mathbf{v}_j$, the $j$-th input basis vector. Since $\mathbf{v}_j = 0\mathbf{v}_1 + \dots + 1\mathbf{v}_j + \dots + 0\mathbf{v}_n$, its coordinate vector is the $j$-th standard unit vector $[\mathbf{v}_j]_{\mathcal{B}_V} = \mathbf{e}_j \in \mathbb{R}^n$. Thus:
+
+$$
+[T(\mathbf{v}_j)]_{\mathcal{B}_W} = M \mathbf{e}_j = \text{column } j \text{ of } M
+$$
+
+Hence every column of $M$ is forced to equal $[T(\mathbf{v}_j)]_{\mathcal{B}_W}$, so $M = A$. Q.E.D.
+
+</ProofCollapse>
+
+### Where Does Matrix Multiplication Come From? Composition of Transformations!
+
+Back in Module 1 (Lecture 3), we simply defined matrix multiplication by the "row dot column" rule. With the Master Rule in hand, we can finally answer the deepest philosophical question about matrices: **why is matrix multiplication defined that way, rather than entrywise?**
+
+<TheoremCard title="Composition of Linear Transformations Equals Matrix Multiplication">
+
+Let $U, V, W$ be finite-dimensional real vector spaces with ordered bases $\mathcal{B}_U$ ($\dim p$), $\mathcal{B}_V$ ($\dim n$), and $\mathcal{B}_W$ ($\dim m$).
+Let $T: U \to V$ and $S: V \to W$ be linear transformations with matrix representations:
+
+$$
+A = [T]_{\mathcal{B}_V \leftarrow \mathcal{B}_U} \in \mathbb{R}^{n \times p}, \qquad B = [S]_{\mathcal{B}_W \leftarrow \mathcal{B}_V} \in \mathbb{R}^{m \times n}
+$$
+
+Then the composite map $S \circ T : U \to W$, defined by $(S \circ T)(\mathbf{u}) := S(T(\mathbf{u}))$, is also a linear transformation, and its matrix with respect to $\mathcal{B}_U$ and $\mathcal{B}_W$ is precisely the **matrix product $BA$**:
+
+$$
+[S \circ T]_{\mathcal{B}_W \leftarrow \mathcal{B}_U} = B A \in \mathbb{R}^{m \times p}
+$$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: A Two-Line Derivation Revealing the True Origin of Matrix Associativity">
+
+**1. Linearity:** For any $\mathbf{u}_1, \mathbf{u}_2 \in U$ and $c, d \in \mathbb{R}$:
+
+$$
+(S \circ T)(c\mathbf{u}_1 + d\mathbf{u}_2) = S(T(c\mathbf{u}_1 + d\mathbf{u}_2)) = S(cT(\mathbf{u}_1) + dT(\mathbf{u}_2)) = cS(T(\mathbf{u}_1)) + dS(T(\mathbf{u}_2))
+$$
+
+So $S \circ T$ is indeed linear.
+
+**2. Matrix Product:** For any $\mathbf{u} \in U$, apply the coordinate formula twice:
+
+$$
+[(S \circ T)(\mathbf{u})]_{\mathcal{B}_W} = [S(T(\mathbf{u}))]_{\mathcal{B}_W} = B \, [T(\mathbf{u})]_{\mathcal{B}_V} = B \left( A \, [\mathbf{u}]_{\mathcal{B}_U} \right) = (BA) \, [\mathbf{u}]_{\mathcal{B}_U}
+$$
+
+By uniqueness in the Matrix Representation Theorem, the matrix representing $S \circ T$ must be $BA$. Q.E.D.
+
+</ProofCollapse>
+
+What a flash of insight: **matrix multiplication is literally the composition of linear transformations (apply $A$ first on the right, then $B$ on the left)**. And because function composition is automatically associative—$(R \circ S) \circ T = R \circ (S \circ T)$—matrix multiplication inherits associativity $(CB)A = C(BA)$ without a single tedious triple-sum calculation!
+
+<MatrixRepresentationFromBasesDiagram caption="How the Master Rule builds the m×n matrix A column by column from the output coordinates [T(v_j)]_{B_W}, intertwining abstract action T with matrix multiplication A[v]_{B_V}." />
+
+---
+
+## V. Worked Examples: Turning Calculus into Matrices and Finding "Good Bases"
+
+Theory comes alive on concrete examples. Let us look at two showcase examples that capture the heart of §8.1–8.2: first, turning differentiation and integration into rectangular matrices; second, seeing how a change of basis collapses a dense projection matrix into a simple diagonal matrix.
+
+### 1. Turning Calculus into Matrices: Differentiation $A_{\text{diff}}$ and Integration $A_{\text{int}}$
+
+Consider the space of real polynomials of degree at most $3$, $V = \mathcal{P}_3$ ($\dim = 4$), and degree at most $2$, $W = \mathcal{P}_2$ ($\dim = 3$). Equip them with the standard monomial ordered bases:
+
+$$
+\mathcal{B}_V = (1,\, t,\, t^2,\, t^3), \qquad \mathcal{B}_W = (1,\, t,\, t^2)
+$$
+
+#### (1) Constructing the Differentiation Matrix for $D = \frac{d}{dt}: \mathcal{P}_3 \to \mathcal{P}_2$
+
+Following the Master Rule, apply $D$ to each of the 4 input basis vectors in $\mathcal{B}_V$ and write the results in the output basis $\mathcal{B}_W = (1, t, t^2)$:
+- $D(1) = 0 = 0\cdot 1 + 0\cdot t + 0\cdot t^2 \implies [D(1)]_{\mathcal{B}_W} = [0, 0, 0]^T$
+- $D(t) = 1 = 1\cdot 1 + 0\cdot t + 0\cdot t^2 \implies [D(t)]_{\mathcal{B}_W} = [1, 0, 0]^T$
+- $D(t^2) = 2t = 0\cdot 1 + 2\cdot t + 0\cdot t^2 \implies [D(t^2)]_{\mathcal{B}_W} = [0, 2, 0]^T$
+- $D(t^3) = 3t^2 = 0\cdot 1 + 0\cdot t + 3\cdot t^2 \implies [D(t^3)]_{\mathcal{B}_W} = [0, 0, 3]^T$
+
+Place these 4 coordinate vectors **as the columns** of a $3 \times 4$ **differentiation matrix**:
+
+$$
+A_{\text{diff}} = [D]_{\mathcal{B}_W \leftarrow \mathcal{B}_V} = \begin{bmatrix} 0 & 1 & 0 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 3 \end{bmatrix} \in \mathbb{R}^{3 \times 4}
+$$
+
+Let us test it! For $p(t) = 2 + 5t - 3t^2 + 4t^3$, its coordinate vector is $[p]_{\mathcal{B}_V} = [2, 5, -3, 4]^T$:
+
+$$
+A_{\text{diff}} [p]_{\mathcal{B}_V} = \begin{bmatrix} 0 & 1 & 0 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 3 \end{bmatrix} \begin{bmatrix} 2 \\ 5 \\ -3 \\ 4 \end{bmatrix} = \begin{bmatrix} 5 \\ -6 \\ 12 \end{bmatrix}
+$$
+
+Translating back via $\mathcal{B}_W$ gives $5 - 6t + 12t^2 = p'(t)$!
+
+Better yet, all four fundamental subspaces spring to life immediately:
+- **Nullspace**: $\operatorname{Null}(A_{\text{diff}}) = \operatorname{span}\{[1, 0, 0, 0]^T\}$, which corresponds to $\ker(D) = \operatorname{span}\{1\}$—the **constant polynomials**, whose derivative is zero!
+- **Column space**: $\operatorname{Col}(A_{\text{diff}}) = \mathbb{R}^3$, which corresponds to $\operatorname{Im}(D) = \mathcal{P}_2$—every quadratic polynomial is the derivative of some cubic! The matrix has full row rank $r = 3$, and $\dim \ker(D) + \dim \operatorname{Im}(D) = 1 + 3 = 4 = \dim \mathcal{P}_3$.
+
+#### (2) Constructing the Integration Matrix $J: \mathcal{P}_2 \to \mathcal{P}_3$ and Seeing the Fundamental Theorem of Calculus
+
+Going the other way, define the definite integral operator $(Jq)(t) = \int_0^t q(s)\,ds$ (now the input basis is $\mathcal{B}_W = (1, t, t^2)$ and the output basis is $\mathcal{B}_V = (1, t, t^2, t^3)$):
+- $J(1) = t \implies [0, 1, 0, 0]^T$
+- $J(t) = \frac{1}{2}t^2 \implies [0, 0, 1/2, 0]^T$
+- $J(t^2) = \frac{1}{3}t^3 \implies [0, 0, 0, 1/3]^T$
+
+Thus $J$ is represented by the $4 \times 3$ **integration matrix**:
+
+$$
+A_{\text{int}} = [J]_{\mathcal{B}_V \leftarrow \mathcal{B}_W} = \begin{bmatrix} 0 & 0 & 0 \\ 1 & 0 & 0 \\ 0 & 1/2 & 0 \\ 0 & 0 & 1/3 \end{bmatrix} \in \mathbb{R}^{4 \times 3}
+$$
+
+Now translate the Fundamental Theorem of Calculus into **matrix multiplication** via the Composition Theorem:
+1. **Integrate first, then differentiate ($D \circ J : \mathcal{P}_2 \to \mathcal{P}_2$)**:
+   $$
+   A_{\text{diff}} A_{\text{int}} = \begin{bmatrix} 0 & 1 & 0 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 3 \end{bmatrix} \begin{bmatrix} 0 & 0 & 0 \\ 1 & 0 & 0 \\ 0 & 1/2 & 0 \\ 0 & 0 & 1/3 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix} = I_3
+   $$
+   In matrix language, the Fundamental Theorem $\frac{d}{dt}\int_0^t q(s)\,ds = q(t)$ simply says that $A_{\text{int}}$ is a **right inverse** of $A_{\text{diff}}$ (possible because $A_{\text{diff}}$ has full row rank $r = m = 3$)!
+2. **Differentiate first, then integrate ($J \circ D : \mathcal{P}_3 \to \mathcal{P}_3$)**:
+   $$
+   A_{\text{int}} A_{\text{diff}} = \begin{bmatrix} 0 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix} \ne I_4
+   $$
+   Why is there a $0$ in the top-left corner instead of a $1$? Because $\int_0^t p'(s)\,ds = p(t) - p(0)$—**the constant term $p(0)$ is permanently lost during differentiation**! From the rank viewpoint, the product of a $4 \times 3$ matrix and a $3 \times 4$ matrix has rank at most $3$, so it can never equal the rank-4 identity $I_4$. $A_{\text{diff}}$ has a right inverse but no left inverse—the very shape of the matrices enforces the one-way information loss of calculus!
+
+### 2. Change the Basis, Diagonalize the Matrix: Standard Basis vs. Eigenbasis
+
+The same linear transformation can look completely different in different bases. Consider the orthogonal projection $P: \mathbb{R}^2 \to \mathbb{R}^2$ onto the line $L = \operatorname{span}\{[1, 2]^T\}$.
+
+- **View A (In the standard basis $\mathcal{E} = (\mathbf{e}_1, \mathbf{e}_2)$ for both input and output)**:
+  Using the projection formula $P\mathbf{x} = \frac{\mathbf{a}\mathbf{a}^T}{\mathbf{a}^T\mathbf{a}}\mathbf{x}$ with $\mathbf{a} = [1, 2]^T$ and $\mathbf{a}^T\mathbf{a} = 5$:
+
+  $$
+  P(\mathbf{e}_1) = \frac{1}{5}\begin{bmatrix} 1 \\ 2 \end{bmatrix}, \qquad P(\mathbf{e}_2) = \frac{2}{5}\begin{bmatrix} 1 \\ 2 \end{bmatrix}
+  $$
+
+  Stacking these as columns gives a dense matrix with no zeros:
+
+  $$
+  [P]_{\mathcal{E} \leftarrow \mathcal{E}} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix}
+  $$
+
+- **View B (In the eigenbasis $\mathcal{B} = (\mathbf{v}_1, \mathbf{v}_2)$, where $\mathbf{v}_1 = [1, 2]^T \in L$ and $\mathbf{v}_2 = [-2, 1]^T \in L^\perp$)**:
+  Apply the Master Rule again:
+  - $\mathbf{v}_1$ already lies on $L$, so projection leaves it unchanged: $P(\mathbf{v}_1) = \mathbf{v}_1 = 1\cdot \mathbf{v}_1 + 0\cdot \mathbf{v}_2 \implies [P(\mathbf{v}_1)]_{\mathcal{B}} = [1, 0]^T$.
+  - $\mathbf{v}_2$ is perpendicular to $L$, so projection kills it: $P(\mathbf{v}_2) = \mathbf{0} = 0\cdot \mathbf{v}_1 + 0\cdot \mathbf{v}_2 \implies [P(\mathbf{v}_2)]_{\mathcal{B}} = [0, 0]^T$.
+  So in the eigenbasis $\mathcal{B}$, **the exact same geometric projection $P$** collapses to the simplest possible diagonal matrix:
+
+  $$
+  [P]_{\mathcal{B} \leftarrow \mathcal{B}} = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}
+  $$
+
+**How does the Composition Theorem connect View A and View B?** Let the identity operator $\operatorname{id}(\mathbf{v}) = \mathbf{v}$ handle "changing coordinates without changing the vector." Assemble the basis vectors of $\mathcal{B}$ as the columns of the **change-of-basis matrix**:
+
+$$
+S = [\mathbf{v}_1 \;\; \mathbf{v}_2] = \begin{bmatrix} 1 & -2 \\ 2 & 1 \end{bmatrix}
+$$
+
+Notice that $S = [\operatorname{id}]_{\mathcal{E} \leftarrow \mathcal{B}}$ (check: $[\mathbf{v}]_{\mathcal{E}} = x_1 \mathbf{v}_1 + x_2 \mathbf{v}_2 = S[\mathbf{v}]_{\mathcal{B}}$), and its inverse is $S^{-1} = [\operatorname{id}]_{\mathcal{B} \leftarrow \mathcal{E}}$. By the Composition Theorem:
+
+$$
+[P]_{\mathcal{B} \leftarrow \mathcal{B}} = [\operatorname{id}]_{\mathcal{B} \leftarrow \mathcal{E}} \, [P]_{\mathcal{E} \leftarrow \mathcal{E}} \, [\operatorname{id}]_{\mathcal{E} \leftarrow \mathcal{B}} = S^{-1} [P]_{\mathcal{E} \leftarrow \mathcal{E}} S
+$$
+
+Let us check the arithmetic! Since
+
+$$
+S^{-1} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix}
+$$
+
+we compute:
+
+$$
+\frac{1}{5}\begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix} \cdot \frac{1}{5}\begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix} \cdot \begin{bmatrix} 1 & -2 \\ 2 & 1 \end{bmatrix} = \frac{1}{5}\begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 2 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}
+$$
+
+**The grand synthesis of the entire course clicks into place right here**:
+- When $V = W$ and we insist on using **the same basis for input and output** ($\mathcal{B}_V = \mathcal{B}_W$), changing bases produces a **similarity transformation** $S^{-1}AS$ (Lectures 22 and 29), whose ideal target is the eigenvalue diagonal matrix $\Lambda$ (or the Jordan normal form $J$ if eigenvectors are missing).
+- When we allow the input space $V$ and output space $W$ to **choose two independent orthonormal bases** $\mathcal{B}_V = (\mathbf{v}_1, \dots, \mathbf{v}_n)$ and $\mathcal{B}_W = (\mathbf{u}_1, \dots, \mathbf{u}_m)$, **every** linear transformation $T$ (with standard matrix $A \in \mathbb{R}^{m\times n}$) is represented by the pure diagonal singular value matrix $\Sigma = U^T A V$ (because $A\mathbf{v}_j = \sigma_j \mathbf{u}_j$, whose output coordinates are simply $\sigma_j \mathbf{e}_j$). That is the true "change-of-basis geometry" behind the Singular Value Decomposition from Lecture 30!
+
+---
+
+<PitfallAlert title="Common Pitfalls & Conceptual Traps">
+
+### 1. Calling an Affine Map $A\mathbf{x} + \mathbf{b}$ ($\mathbf{b} \ne \mathbf{0}$) a Linear Transformation
+In deep learning ("Linear Layer") and signal processing ("linear system"), people casually refer to $\mathbf{y} = W\mathbf{x} + \mathbf{b}$ as a linear map, and in high school $y = kx + b$ is called a "linear function." **In strict linear algebra, whenever $\mathbf{b} \ne \mathbf{0}$, it is an affine transformation—never a linear transformation!** The test is unforgiving: $T(\mathbf{0}) = \mathbf{0}$ and $T(c\mathbf{x} + d\mathbf{y}) = cT(\mathbf{x}) + dT(\mathbf{y})$.
+
+### 2. Putting $[T(\mathbf{v}_j)]_{\mathcal{B}_W}$ into Row $j$ of $A$ Instead of Column $j$
+This is the single most common mistake when first learning §8.2! Always remember:
+- Our vectors are **column vectors**, and $A[\mathbf{v}]_{\mathcal{B}_V}$ forms linear combinations of the **columns** of $A$.
+- Because the $j$-th basis vector has coordinate $[\mathbf{v}_j]_{\mathcal{B}_V} = \mathbf{e}_j$, the product $A\mathbf{e}_j$ extracts **column $j$** of $A$.
+If you write the transformed coordinates horizontally as rows, you end up constructing the **wrong transpose $A^T$**! (For the derivative $D: \mathcal{P}_3 \to \mathcal{P}_2$, writing rows instead of columns would give a $4 \times 3$ matrix instead of $3 \times 4$—even the dimensions fail!)
+
+### 3. Assuming Input and Output Bases Must Match, or That Spaces Must Have Equal Dimension ($m = n$)
+From Lectures 22 to 29 we saw $S^{-1}AS$ so often that it is easy to assume every linear transformation has a square matrix using a single basis. In reality:
+- As $D = \frac{d}{dt}: \mathcal{P}_3 \to \mathcal{P}_2$ shows, input and output spaces can be completely different with $n \ne m$, yielding a rectangular $m \times n$ matrix.
+- Even when $V = W$, you are free to pick $\mathcal{B}_V$ and $\mathcal{B}_W$ independently. The matrix then transforms by $B = Q^{-1} A P$ (which only preserves rank), *not* by similarity $S^{-1}AS$ (which preserves eigenvalues and requires $\mathcal{B}_V = \mathcal{B}_W$).
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l31-linear-transform-bases"
+  title="Basis Change and Matrix Representation Lab"
+  description="Adjust the input basis $\mathcal{B}_V$ and output basis $\mathcal{B}_W$ freely to watch how the matrix representation $[T]_{\mathcal{B}_W \leftarrow \mathcal{B}_V}$ of the same geometric transformation $T$ simplifies from a dense matrix to a diagonal matrix or SVD normal form $\Sigma$, and compare how an affine shift breaks the origin-fixed rule."
+/>
+
+---
+
+<KeyTakeaways title="Key Takeaways" items={[
+  "Coordinate-free definition: $T: V \\to W$ is linear iff $T(c\\mathbf{v}+d\\mathbf{w})=cT(\\mathbf{v})+dT(\\mathbf{w})$ for all $\\mathbf{v},\\mathbf{w}\\in V$ and $c,d\\in \\mathbb{R}$; immediately $T(\\mathbf{0}_V)=\\mathbf{0}_W$, so any shift of the origin vetoes linearity.",
+  "Beware nonlinear impostors: affine translations $A\\mathbf{x}+\\mathbf{b}$ ($\\mathbf{b}\\ne \\mathbf{0}$), the Euclidean norm $\\|\\mathbf{x}\\|_2$, elementwise squaring $x_i^2$, and the determinant $\\det(A)$ ($n\\ge 2$) are all nonlinear.",
+  "Unique determination on a basis: once you specify the images $T(\\mathbf{v}_1),\\dots,T(\\mathbf{v}_n) \\in W$ of a basis $\\{\\mathbf{v}_1,\\dots,\\mathbf{v}_n\\}$ of $V$, a unique linear transformation $T$ is locked in across the entire space.",
+  "The Master Rule: fix input basis $\\mathcal{B}_V$ and output basis $\\mathcal{B}_W$; place $[T(\\mathbf{v}_j)]_{\\mathcal{B}_W}$ as column $j$ of $A$ to guarantee $[T(\\mathbf{v})]_{\\mathcal{B}_W} = A[\\mathbf{v}]_{\\mathcal{B}_V}$.",
+  "Composition equals matrix multiplication: applying $T: U \\to V$ followed by $S: V \\to W$ produces $S \\circ T$, whose matrix is strictly the product $BA$—the geometric origin of matrix associativity.",
+  "The art of choosing bases: using the same basis for input and output gives similarity $S^{-1}AS$ (Lectures 22, 29); allowing two independent orthonormal bases diagonalizes any linear map into $\\Sigma = U^T A V$ (Lecture 30 SVD)."
+]} />
+
+---
+
+## VI. Practice Problem Set
+
+<ProblemSet title="Intuition Problem Set" description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs.">
+
+<ExerciseCard id="l31-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="Building a 2×3 Matrix Column by Column in Taylor and Skew Bases">
+
+Consider the linear transformation $T: \mathcal{P}_2 \to \mathbb{R}^2$ that evaluates a quadratic polynomial at two points:
+
+$$
+T(p) = \begin{bmatrix} p(1) \\ p(0) \end{bmatrix}
+$$
+
+Equip the input space $V = \mathcal{P}_2$ with the Taylor ordered basis centered at $t = 1$, $\mathcal{B}_V = \big(1,\, t-1,\, (t-1)^2\big)$, and equip the output space $W = \mathbb{R}^2$ with the skew ordered basis $\mathcal{B}_W = (\mathbf{w}_1, \mathbf{w}_2)$ where:
+
+$$
+\mathbf{w}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}, \qquad \mathbf{w}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+1. Verify that $T$ is linear, and use the Master Rule to find its matrix representation $A = [T]_{\mathcal{B}_W \leftarrow \mathcal{B}_V} \in \mathbb{R}^{2 \times 3}$.
+2. Given $p(t) = 2 + 4(t-1) + 6(t-1)^2$, compute $T(p)$ directly from the definition, and then compute $[T(p)]_{\mathcal{B}_W} = A[p]_{\mathcal{B}_V}$ and convert back to $\mathbb{R}^2$ to verify they match.
+3. From the nullspace and column space of $A$, find bases for $\ker(T)$ and $\operatorname{Im}(T)$, and verify the Rank-Nullity Theorem $\dim \ker(T) + \dim \operatorname{Im}(T) = \dim \mathcal{P}_2$.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Plug each of the three basis polynomials of $\\mathcal{B}_V$ into $T(p) = [p(1), p(0)]^T$, noting that $(t-1)$ and $(t-1)^2$ both vanish at $t=1$.",
+  "To find the coordinates $(c_1, c_2)$ of any $[y_1, y_2]^T \\in \\mathbb{R}^2$ in $\\mathcal{B}_W$, solve $c_1 \\mathbf{w}_1 + c_2 \\mathbf{w}_2 = [y_1, y_2]^T$ by adding and subtracting the two rows: $c_1 = (y_1 + y_2)/2$ and $c_2 = (y_1 - y_2)/2$.",
+  "Once you find the nullspace basis vector $[0, 1, 1]^T$ of $A$, remember to translate it back into the polynomial $1\\cdot(t-1) + 1\\cdot(t-1)^2$ in $\\mathcal{P}_2$!"
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+The evaluation map $p \mapsto [p(1), p(0)]^T$ simply reads two fixed coordinates of a function viewed as a vector, so linearity is immediate. By centering the polynomial basis at $t = 1$, the first component $p(1)$ depends *only* on the first basis vector $1$, because the other two basis polynomials vanish at $t = 1$! Meanwhile, $\ker(T)$ consists of quadratic polynomials that vanish at both $t = 0$ and $t = 1$—without touching a matrix, you can guess those are the multiples of $t(t-1)$, which matches $\operatorname{Null}(A)$!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1: Linearity and Matrix Construction**
+
+For any $p, q \in \mathcal{P}_2$ and $c, d \in \mathbb{R}$:
+
+$$
+T(cp + dq) = \begin{bmatrix} (cp + dq)(1) \\ (cp + dq)(0) \end{bmatrix} = c\begin{bmatrix} p(1) \\ p(0) \end{bmatrix} + d\begin{bmatrix} q(1) \\ q(0) \end{bmatrix} = cT(p) + dT(q)
+$$
+
+So $T$ is linear. Next, apply $T$ to each basis vector of $\mathcal{B}_V$ and expand in $\mathcal{B}_W$, using $\mathbf{y} = [y_1, y_2]^T = \frac{y_1+y_2}{2}\mathbf{w}_1 + \frac{y_1-y_2}{2}\mathbf{w}_2$:
+
+- **$j=1$**: $\mathbf{v}_1 = 1 \implies T(1) = [1, 1]^T = 1\cdot \mathbf{w}_1 + 0\cdot \mathbf{w}_2 \implies [T(1)]_{\mathcal{B}_W} = [1, 0]^T$.
+- **$j=2$**: $\mathbf{v}_2 = t-1 \implies T(t-1) = [0, -1]^T = -\frac{1}{2}\mathbf{w}_1 + \frac{1}{2}\mathbf{w}_2 \implies [T(t-1)]_{\mathcal{B}_W} = [-1/2, 1/2]^T$.
+- **$j=3$**: $\mathbf{v}_3 = (t-1)^2 \implies T((t-1)^2) = [0, 1]^T = \frac{1}{2}\mathbf{w}_1 - \frac{1}{2}\mathbf{w}_2 \implies [T((t-1)^2)]_{\mathcal{B}_W} = [1/2, -1/2]^T$.
+
+Placing these three coordinate vectors as columns gives:
+
+$$
+A = [T]_{\mathcal{B}_W \leftarrow \mathcal{B}_V} = \begin{bmatrix} 1 & -1/2 & 1/2 \\ 0 & 1/2 & -1/2 \end{bmatrix}
+$$
+
+**Part 2: Direct Evaluation vs. Matrix Multiplication**
+
+- **Direct evaluation**: $p(1) = 2 + 0 + 0 = 2$ and $p(0) = 2 + 4(-1) + 6(-1)^2 = 4$, so:
+
+  $$
+  T(p) = \begin{bmatrix} 2 \\ 4 \end{bmatrix}
+  $$
+
+- **Matrix multiplication**: In $\mathcal{B}_V$, $[p]_{\mathcal{B}_V} = [2, 4, 6]^T$. Compute:
+
+  $$
+  [T(p)]_{\mathcal{B}_W} = A [p]_{\mathcal{B}_V} = \begin{bmatrix} 1 & -1/2 & 1/2 \\ 0 & 1/2 & -1/2 \end{bmatrix} \begin{bmatrix} 2 \\ 4 \\ 6 \end{bmatrix} = \begin{bmatrix} 2 - 2 + 3 \\ 0 + 2 - 3 \end{bmatrix} = \begin{bmatrix} 3 \\ -1 \end{bmatrix}
+  $$
+
+  Converting back to $\mathbb{R}^2$:
+
+  $$
+  3\mathbf{w}_1 - 1\mathbf{w}_2 = 3\begin{bmatrix} 1 \\ 1 \end{bmatrix} - \begin{bmatrix} 1 \\ -1 \end{bmatrix} = \begin{bmatrix} 2 \\ 4 \end{bmatrix}
+  $$
+
+  Exact match!
+
+**Part 3: Kernel, Image, and Rank-Nullity**
+
+Solve $A\mathbf{c} = \mathbf{0}$: row 2 gives $\frac{1}{2}c_2 - \frac{1}{2}c_3 = 0 \implies c_2 = c_3$, and row 1 then gives $c_1 = 0$. Thus $\operatorname{Null}(A) = \operatorname{span}\{[0, 1, 1]^T\}$. Translating back into $\mathcal{P}_2$ gives $(t-1) + (t-1)^2 = t(t-1)$, so:
+
+$$
+\ker(T) = \operatorname{span}\{t(t-1)\}, \qquad \dim \ker(T) = 1
+$$
+
+The first two columns of $A$, $[1, 0]^T$ and $[-1/2, 1/2]^T$, are linearly independent, so $\operatorname{Col}(A) = \mathbb{R}^2$. Hence $\operatorname{Im}(T) = \mathbb{R}^2$ (with basis $\{(1,0)^T, (0,1)^T\}$ or $\mathcal{B}_W$) and $\dim \operatorname{Im}(T) = 2$.
+Check: $\dim \ker(T) + \dim \operatorname{Im}(T) = 1 + 2 = 3 = \dim \mathcal{P}_2$.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l31-ex2" tier="L2" tierLabel="L2 · Conceptual True/False" title="True or False: Are Origin Preservation and Full Real Homogeneity Enough for Linearity?">
+
+Determine whether the following statement is true or false:
+
+"Suppose a map $T: \mathbb{R}^2 \to \mathbb{R}$ satisfies $T(\mathbf{0}) = 0$ and obeys homogeneity $T(c\mathbf{x}) = cT(\mathbf{x})$ for **all** real scalars $c \in \mathbb{R}$ (positive, zero, and negative) and all $\mathbf{x} \in \mathbb{R}^2$. Then $T$ must be a linear transformation."
+
+<TrueFalseInteractive
+  id="l31-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Even when homogeneity holds for all positive and negative real scalars $c \in \mathbb{R}$, it never implies additivity $T(\mathbf{x}+\mathbf{y}) = T(\mathbf{x}) + T(\mathbf{y})$. A classic counterexample is $T(x_1, x_2) = (x_1^3 + x_2^3)^{1/3}$, which satisfies $T(c\mathbf{x}) = cT(\mathbf{x})$ yet $T(\mathbf{e}_1 + \mathbf{e}_2) = 2^{1/3} \ne 2 = T(\mathbf{e}_1) + T(\mathbf{e}_2)$."
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Translate the condition geometrically: homogeneity only forces the function to scale proportionally along each ray (or line) through the origin. Does it force the level curves across different rays to be straight lines?",
+  "For any $c \\in \\mathbb{R}$ (including negative numbers), $c^3$ and the real cube root $(\\cdot)^{1/3}$ pull minus signs right out! Try $T(x_1, x_2) = \\sqrt[3]{x_1^3 + x_2^3}$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+A linear function on $\mathbb{R}^2$ must have **straight lines** as its level sets $T(x_1, x_2) = 1$. Homogeneity $T(c\mathbf{x}) = cT(\mathbf{x})$ only dictates linear scaling along each individual ray out of the origin—it has no control over whether the level curve $T = 1$ is straight or curved! Pick any origin-symmetric curve that is not a line (such as $x_1^3 + x_2^3 = 1$) as your $T = 1$ contour and extend radially by scaling, and you immediately get a homogeneous map that fails additivity.
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **False**. Here is an explicit counterexample:
+
+Define $T: \mathbb{R}^2 \to \mathbb{R}$ by:
+
+$$
+T(x_1, x_2) = \sqrt[3]{x_1^3 + x_2^3}
+$$
+
+1. **Origin preservation and full real homogeneity**:
+   Clearly $T(0, 0) = 0$. For any $\mathbf{x} = [x_1, x_2]^T \in \mathbb{R}^2$ and any $c \in \mathbb{R}$ (positive, negative, or zero, since the real cube root preserves signs):
+   $$
+   T(c\mathbf{x}) = \sqrt[3]{(cx_1)^3 + (cx_2)^3} = \sqrt[3]{c^3 (x_1^3 + x_2^3)} = c \sqrt[3]{x_1^3 + x_2^3} = c T(\mathbf{x})
+   $$
+   So $T$ satisfies homogeneity for all real scalars.
+2. **Failure of additivity**:
+   Take $\mathbf{e}_1 = [1, 0]^T$ and $\mathbf{e}_2 = [0, 1]^T$. Then:
+   $$
+   T(\mathbf{e}_1) = \sqrt[3]{1^3 + 0^3} = 1, \qquad T(\mathbf{e}_2) = \sqrt[3]{0^3 + 1^3} = 1
+   $$
+   So $T(\mathbf{e}_1) + T(\mathbf{e}_2) = 2$. However:
+   $$
+   T(\mathbf{e}_1 + \mathbf{e}_2) = T(1, 1) = \sqrt[3]{1^3 + 1^3} = \sqrt[3]{2} \approx 1.260 \ne 2
+   $$
+
+Thus $T$ is not linear; both additivity and homogeneity are indispensable.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l31-ex3" tier="L2" tierLabel="L2/L3 · Similarity vs. Equivalence" title="True or False: Are Matrices of a Linear Operator in Different Bases Always Similar?">
+
+Determine whether the following statement is true or false:
+
+"Let $T: V \to V$ be a linear operator on a finite-dimensional space $V$. Suppose Alice chooses the **same** basis $\mathcal{B}$ for both input and output to get the square matrix $A = [T]_{\mathcal{B} \leftarrow \mathcal{B}}$, while Bob chooses a basis $\mathcal{B}_1$ for the input space and a basis $\mathcal{B}_2$ for the output space (allowing $\mathcal{B}_1 \ne \mathcal{B}_2$) to get the square matrix $B = [T]_{\mathcal{B}_2 \leftarrow \mathcal{B}_1}$. Then $B$ and $A$ must be **similar** (i.e., $B = S^{-1} A S$ for some invertible matrix $S$)."
+
+<TrueFalseInteractive
+  id="l31-tf2"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Similarity $B = S^{-1} A S$ holds only when Bob also uses the same basis for input and output ($\mathcal{B}_1 = \mathcal{B}_2$). When $\mathcal{B}_1 \ne \mathcal{B}_2$, the transformation law is matrix equivalence $B = Q^{-1} A P$, which does not preserve trace or eigenvalues! For $T = \operatorname{id}$, taking $\mathcal{B}_1 = (\mathbf{e}_1, \mathbf{e}_2)$ and $\mathcal{B}_2 = (\mathbf{e}_2, \mathbf{e}_1)$ gives $A = I_2$ versus the swap matrix $B = [[0, 1], [1, 0]]$, which are never similar."
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Recall the composition formula: $B = [\\operatorname{id}]_{\\mathcal{B}_2 \\leftarrow \\mathcal{B}} \\cdot [T]_{\\mathcal{B} \\leftarrow \\mathcal{B}} \\cdot [\\operatorname{id}]_{\\mathcal{B} \\leftarrow \\mathcal{B}_1}$. Are the two change-of-basis matrices on the left and right still inverses of each other?",
+  "Try the simplest operator $T = \\operatorname{id}: \\mathbb{R}^2 \\to \\mathbb{R}^2$. Using any single basis gives $I_2$, but what happens if you reverse the order of the two vectors in the output basis?"
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Similarity $S^{-1}AS$ locks down eigenvalues and the trace precisely because the matrices on the left and right are inverses of each other—which requires changing the input basis and output basis *together* in lockstep! Once you decouple the input basis $\mathcal{B}_1$ from the output basis $\mathcal{B}_2$ (as in Gaussian elimination or the SVD), the left and right multipliers decouple into $B = Q^{-1} A P$. At that point only the *rank* is preserved; eigenvalues, trace, and determinant can all change completely!
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **False**.
+
+**General Change-of-Basis Formula (Equivalence, Not Similarity):**
+Let $P = [\operatorname{id}]_{\mathcal{B} \leftarrow \mathcal{B}_1}$ be the change-of-basis matrix from $\mathcal{B}_1$ to $\mathcal{B}$, and $Q = [\operatorname{id}]_{\mathcal{B} \leftarrow \mathcal{B}_2}$ from $\mathcal{B}_2$ to $\mathcal{B}$ (both $P, Q$ are invertible). By the Composition Theorem:
+
+$$
+B = [T]_{\mathcal{B}_2 \leftarrow \mathcal{B}_1} = [\operatorname{id}]_{\mathcal{B}_2 \leftarrow \mathcal{B}} \, [T]_{\mathcal{B} \leftarrow \mathcal{B}} \, [\operatorname{id}]_{\mathcal{B} \leftarrow \mathcal{B}_1} = Q^{-1} A P
+$$
+
+When $\mathcal{B}_1 \ne \mathcal{B}_2$, we generally have $P \ne Q$, so $B$ and $A$ are **matrix equivalent**, not similar ($S^{-1}AS$).
+
+**Minimal Counterexample:**
+Take the identity operator $T = \operatorname{id}$ on $V = \mathbb{R}^2$.
+- Alice uses the standard basis $\mathcal{B} = (\mathbf{e}_1, \mathbf{e}_2)$ for both input and output, obtaining $A = [\operatorname{id}]_{\mathcal{B}\leftarrow \mathcal{B}} = I_2$ (eigenvalues $1, 1$; trace $\operatorname{tr}(A) = 2$).
+- Bob chooses input basis $\mathcal{B}_1 = (\mathbf{e}_1, \mathbf{e}_2)$ and reversed output basis $\mathcal{B}_2 = (\mathbf{e}_2, \mathbf{e}_1)$. By the Master Rule:
+  - $T(\mathbf{e}_1) = \mathbf{e}_1 = 0\cdot \mathbf{e}_2 + 1\cdot \mathbf{e}_1 \implies [0, 1]^T$
+  - $T(\mathbf{e}_2) = \mathbf{e}_2 = 1\cdot \mathbf{e}_2 + 0\cdot \mathbf{e}_1 \implies [1, 0]^T$
+  This yields the permutation matrix:
+
+  $$
+  B = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+  $$
+
+For every invertible $S$, $S^{-1} I_2 S = I_2 \ne B$ (moreover, $\operatorname{tr}(B) = 0 \ne 2 = \operatorname{tr}(A)$ and $B$ has eigenvalues $1, -1$). Thus $B$ is not similar to $A$.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l31-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Nilpotent Differentiation Operator and Inverting a Polynomial Differential Equation">
+
+Consider the linear operator $D = \frac{d}{dt}: \mathcal{P}_3 \to \mathcal{P}_3$ on $\mathcal{P}_3$ in the monomial ordered basis $\mathcal{B} = (1, t, t^2, t^3)$, whose matrix is strictly upper triangular:
+
+$$
+A_D = [D]_{\mathcal{B} \leftarrow \mathcal{B}} = \begin{bmatrix} 0 & 1 & 0 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 3 \\ 0 & 0 & 0 & 0 \end{bmatrix}
+$$
+
+1. **Without solving any system of equations**, use the Composition Theorem to write the matrix $A_L$ of the second-order differential operator $L(p) = p'' - 2p' + p$ in basis $\mathcal{B}$, and determine immediately whether $L: \mathcal{P}_3 \to \mathcal{P}_3$ is invertible (i.e., does $p'' - 2p' + p = q$ have a unique solution in $\mathcal{P}_3$ for every $q \in \mathcal{P}_3$?).
+2. Explain from the operator itself why $A_D^4 = O$ (a **nilpotent operator**), use a finite polynomial identity to prove $(I_4 - A_D)^{-1} = I_4 + A_D + A_D^2 + A_D^3$, and mentally compute the unique cubic polynomial solution $p(t)$ to $p(t) - p'(t) = t^3$.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 1: $p'' = (D \\circ D)(p)$ corresponds to $A_D^2$! Since $A_D$ is strictly upper triangular, both $A_D$ and $A_D^2$ have all zeros on the main diagonal. What is on the main diagonal after adding $I_4$?",
+  "Part 2: Differentiating any cubic polynomial $4$ times always gives zero, so $D^4 = 0$. What cancels when you multiply $(I_4 - A_D)(I_4 + A_D + A_D^2 + A_D^3)$?",
+  "For the last step, you do not even need the $4\\times 4$ matrices: apply the operator identity $(I - D)^{-1} = I + D + D^2 + D^3$ directly to $q(t) = t^3$ and sum its derivatives!"
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Differentiation lowers the degree of a polynomial by 1 each time, so four derivatives send every cubic polynomial to zero ($D^4 = 0$)—the natural calculus prototype of a nilpotent Jordan block from Lecture 29! Because all eigenvalues of $D$ are $0$, all eigenvalues of $I - D$ are $1 \ne 0$, guaranteeing invertibility! Even better, the geometric series $(1-x)^{-1} = 1 + x + x^2 + \cdots$ **truncates cleanly** at the fourth term because $D^4 = 0$, turning an ODE into a quick mental derivative sum!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1: Matrix of $L$ and Zero-Calculation Invertibility**
+
+By the Composition Theorem, $D^2 = D \circ D$ corresponds to $A_D^2$, and linear combinations of operators correspond to linear combinations of matrices. Hence $L = D^2 - 2D + \operatorname{id}$ has matrix:
+
+$$
+A_L = A_D^2 - 2A_D + I_4
+$$
+
+Since $A_D$ is **strictly upper triangular** (zeros on and below the main diagonal), $A_D^2$ is also strictly upper triangular (its only nonzero entries are $2$ at $(1,3)$ and $6$ at $(2,4)$). Adding $I_4$ puts $1$'s along the main diagonal of an upper triangular matrix:
+
+$$
+A_L = \begin{bmatrix} 1 & -2 & 2 & 0 \\ 0 & 1 & -4 & 6 \\ 0 & 0 & 1 & -6 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+The determinant of a triangular matrix is the product of its diagonal entries, so with zero row reduction:
+
+$$
+\det(A_L) = 1 \cdot 1 \cdot 1 \cdot 1 = 1 \ne 0
+$$
+
+Therefore $A_L$ is invertible, $\ker(L) = \{0\}$, and $\operatorname{Im}(L) = \mathcal{P}_3$. Conclusion: for every $q \in \mathcal{P}_3$, $p'' - 2p' + p = q$ has a unique solution $p \in \mathcal{P}_3$.
+
+**Part 2: Nilpotence and Solving the ODE via Operator Inversion**
+
+For every cubic polynomial $p(t) = c_0 + c_1 t + c_2 t^2 + c_3 t^3 \in \mathcal{P}_3$, the fourth derivative vanishes identically: $p^{(4)}(t) \equiv 0$, meaning $D^4 = 0$ and thus $A_D^4 = O$ (nilpotent).
+
+Multiplying out:
+
+$$
+(I_4 - A_D)(I_4 + A_D + A_D^2 + A_D^3) = I_4 + A_D + A_D^2 + A_D^3 - A_D - A_D^2 - A_D^3 - A_D^4 = I_4 - A_D^4 = I_4
+$$
+
+For square matrices, a right inverse is the two-sided inverse, so $(I_4 - A_D)^{-1} = I_4 + A_D + A_D^2 + A_D^3$, corresponding to $(\operatorname{id} - D)^{-1} = \operatorname{id} + D + D^2 + D^3$.
+
+Applying this inverse to $(\operatorname{id} - D)(p) = t^3$:
+
+$$
+p(t) = (\operatorname{id} + D + D^2 + D^3)(t^3) = t^3 + \frac{d}{dt}(t^3) + \frac{d^2}{dt^2}(t^3) + \frac{d^3}{dt^3}(t^3) = t^3 + 3t^2 + 6t + 6
+$$
+
+Check: $p'(t) = 3t^2 + 6t + 6$, so $p(t) - p'(t) = t^3$. Exact!
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l31-ex5" tier="L4" tierLabel="L4 · MIT 18.06 Exam Synthesis" title="Transpose Operator on Matrix Spaces and General n×n Dimension Decomposition">
+
+Treat the $2 \times 2$ real matrices as a $4$-dimensional vector space $V = \mathbb{R}^{2 \times 2}$ with the standard ordered basis:
+
+$$
+E_{11} = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}, \quad E_{12} = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}, \quad E_{21} = \begin{bmatrix} 0 & 0 \\ 1 & 0 \end{bmatrix}, \quad E_{22} = \begin{bmatrix} 0 & 0 \\ 0 & 1 \end{bmatrix}
+$$
+
+Define the **transpose operator** $T: V \to V$ by $T(X) = X^T$.
+
+1. Prove that $T$ is a linear operator, and write its $4 \times 4$ matrix representation $A = [T]_{\mathcal{E} \leftarrow \mathcal{E}}$ in $\mathcal{E} = (E_{11}, E_{12}, E_{21}, E_{22})$.
+2. Find all eigenvalues and eigenspaces $\ker(T - \operatorname{id})$ and $\ker(T + \operatorname{id})$ of $T$. Construct an **eigenbasis** $\mathcal{B}$ of $V$ consisting of symmetric and skew-symmetric matrices, and write $[T]_{\mathcal{B} \leftarrow \mathcal{B}}$.
+3. **Generalize to $n \times n$**: Let $T: \mathbb{R}^{n \times n} \to \mathbb{R}^{n \times n}$ be the transpose operator $T(X) = X^T$ on the $n^2$-dimensional space of $n \times n$ matrices. **Without writing an $n^2 \times n^2$ matrix**, express in terms of $n$:
+   - the dimensions of the symmetric subspace $\mathcal{S}_n = \ker(T - \operatorname{id})$ and the skew-symmetric subspace $\mathcal{A}_n = \ker(T + \operatorname{id})$, and prove $\mathbb{R}^{n\times n} = \mathcal{S}_n \oplus \mathcal{A}_n$;
+   - exact closed-form formulas for the trace $\operatorname{tr}(T)$ and determinant $\det(T)$ (verifying they agree with Part 1 at $n = 2$).
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 1: $T(E_{11}) = E_{11}$, $T(E_{12}) = E_{21}$, $T(E_{21}) = E_{12}$, $T(E_{22}) = E_{22}$. Put their 4-component coordinate vectors in $\\mathcal{E}$ as columns to get a $4\\times 4$ permutation matrix.",
+  "Part 2: Since $(X^T)^T = X$, we have $T^2 = \\operatorname{id}$, so any eigenvalue $\\lambda$ satisfies $\\lambda^2 = 1 \\implies \\lambda \\in \\{+1, -1\\}$. $T(X) = X$ defines symmetric matrices and $T(X) = -X$ defines skew-symmetric matrices!",
+  "Part 3: How many free entries (diagonal + upper triangle) does an $n\\times n$ symmetric matrix have? For skew-symmetric matrices the diagonal must be zero—how many free entries remain? Then $\\det(T)$ is the product of all eigenvalues and $\\operatorname{tr}(T)$ is their sum!"
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+To most people, "transpose" is just flipping a matrix across its diagonal. Viewed from Lecture 31, it is a textbook symmetric orthogonal linear operator on an $n^2$-dimensional space! Because $T^2 = I$, it splits $\mathbb{R}^{n\times n}$ cleanly into two orthogonal halves: symmetric matrices that stay put (eigenvalue $+1$) and skew-symmetric matrices that flip sign (eigenvalue $-1$). Every diagonal entry $E_{ii}$ stays fixed (contributing $+1$), while every off-diagonal pair $(E_{ij}, E_{ji})$ swaps (contributing one $+1$ and one $-1$, which cancel in the trace and multiply to $-1$ in the determinant). Seeing that lets you read off the dimensions, trace, and determinant without ever writing an $n^2 \times n^2$ matrix!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1: Linearity and $4 \times 4$ Standard Matrix**
+
+For any $X, Y \in \mathbb{R}^{2\times 2}$ and $c, d \in \mathbb{R}$:
+
+$$
+T(cX + dY) = (cX + dY)^T = cX^T + dY^T = cT(X) + dT(Y)
+$$
+
+So $T$ is linear. Applying $T$ to $\mathcal{E} = (E_{11}, E_{12}, E_{21}, E_{22})$:
+- $T(E_{11}) = E_{11} \implies [1, 0, 0, 0]^T$
+- $T(E_{12}) = E_{21} \implies [0, 0, 1, 0]^T$
+- $T(E_{21}) = E_{12} \implies [0, 1, 0, 0]^T$
+- $T(E_{22}) = E_{22} \implies [0, 0, 0, 1]^T$
+
+Assembling these as columns gives the $4 \times 4$ symmetric permutation matrix:
+
+$$
+A = [T]_{\mathcal{E} \leftarrow \mathcal{E}} = \begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+We read off $\operatorname{tr}(A) = 1 + 0 + 0 + 1 = 2$ and $\det(A) = -1$ (one row swap).
+
+**Part 2: Eigenvalues, Eigenspaces, and Diagonalization**
+
+Since $(X^T)^T = X$, $T^2 = \operatorname{id}$ ($A^2 = I_4$). If $T(X) = \lambda X$ with $X \ne O$, then $X = T^2(X) = \lambda^2 X \implies \lambda^2 = 1 \implies \lambda \in \{1, -1\}$.
+- **For $\lambda = +1$**: $T(X) = X \iff X^T = X$, the subspace $\ker(T - \operatorname{id})$ of **symmetric matrices**, with basis:
+  $$
+  \{E_{11},\; E_{22},\; E_{12} + E_{21}\} \quad (\dim = 3)
+  $$
+- **For $\lambda = -1$**: $T(X) = -X \iff X^T = -X$, the subspace $\ker(T + \operatorname{id})$ of **skew-symmetric matrices**, with basis:
+  $$
+  \{E_{12} - E_{21}\} \quad (\dim = 1)
+  $$
+
+With the eigenbasis $\mathcal{B} = (E_{11},\, E_{22},\, E_{12} + E_{21},\, E_{12} - E_{21})$, the Master Rule gives the diagonal matrix:
+
+$$
+[T]_{\mathcal{B} \leftarrow \mathcal{B}} = \operatorname{diag}(1, 1, 1, -1) = \begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & -1 \end{bmatrix}
+$$
+
+**Part 3: Generalization to $\mathbb{R}^{n \times n}$**
+
+1. **Eigenspace Dimensions and Direct Sum**:
+   - Symmetric subspace $\mathcal{S}_n = \ker(T - \operatorname{id})$: spanned by the $n$ diagonal matrices $E_{ii}$ ($1 \le i \le n$) and the $\frac{n(n-1)}{2}$ symmetric off-diagonal matrices $E_{ij} + E_{ji}$ ($1 \le i \lt j \le n$), which are linearly independent, so:
+     $$
+     \dim \mathcal{S}_n = n + \frac{n(n-1)}{2} = \frac{n(n+1)}{2}
+     $$
+   - Skew-symmetric subspace $\mathcal{A}_n = \ker(T + \operatorname{id})$: diagonal entries must be $0$, spanned by the $\frac{n(n-1)}{2}$ linearly independent matrices $E_{ij} - E_{ji}$ ($1 \le i \lt j \le n$), so:
+     $$
+     \dim \mathcal{A}_n = \frac{n(n-1)}{2}
+     $$
+   - Intersection and sum: if $X \in \mathcal{S}_n \cap \mathcal{A}_n$, then $X = X^T = -X \implies 2X = O \implies X = O$, so $\mathcal{S}_n \cap \mathcal{A}_n = \{O\}$. Moreover, $\dim \mathcal{S}_n + \dim \mathcal{A}_n = \frac{n(n+1)}{2} + \frac{n(n-1)}{2} = n^2 = \dim \mathbb{R}^{n\times n}$. Hence $\mathbb{R}^{n\times n} = \mathcal{S}_n \oplus \mathcal{A}_n$, matching the unique decomposition $X = \frac{X + X^T}{2} + \frac{X - X^T}{2}$.
+
+2. **Trace and Determinant of $T$** (since $T$ diagonalizes in an eigenbasis to $\frac{n(n+1)}{2}$ copies of $+1$ and $\frac{n(n-1)}{2}$ copies of $-1$, and similarity preserves trace and determinant):
+   - **Trace**:
+     $$
+     \operatorname{tr}(T) = \frac{n(n+1)}{2}(+1) + \frac{n(n-1)}{2}(-1) = n
+     $$
+     (Geometrically, this equals the $n$ fixed standard basis vectors $E_{11}, \dots, E_{nn}$!)
+   - **Determinant**:
+     $$
+     \det(T) = (+1)^{\frac{n(n+1)}{2}} (-1)^{\frac{n(n-1)}{2}} = (-1)^{\frac{n(n-1)}{2}}
+     $$
+     At $n = 2$, $\operatorname{tr}(T) = 2$ and $\det(T) = (-1)^1 = -1$, matching Part 1 identically!
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>

@@ -1,0 +1,508 @@
+---
+title: "Lecture 07: Solving Ax = 0 (Pivot Variables, Special Solutions & RREF)"
+ocwId: "L07"
+videoEpisode: "P07"
+textbookRef: "§3.2"
+---
+
+In Lecture 06, we defined the nullspace conceptually as $\operatorname{Null}(A) = \{\mathbf{x} \in \mathbb{R}^n : A\mathbf{x} = \mathbf{0}\}$. Yet when confronted with a general $m \times n$ rectangular matrix—neither square nor invertible, and tangled with both redundant rows and redundant columns—**what systematic, foolproof algorithm lets us compute and describe every single vector in that infinite nullspace?**
+
+In MIT 18.06 Lecture 07, Professor Gilbert Strang lays down the computational backbone of the entire course: push elimination on a rectangular matrix all the way to its **Reduced Row Echelon Form (RREF)** $R = \operatorname{rref}(A)$, count the single most important number associated with any matrix—its **rank** $r$—and use the $n - r$ **free variables** to read off all the **special solutions** spanning the nullspace at a glance!
+
+---
+
+## 1. Following Strang's Blackboard Example: Complete Elimination on a 3×4 Matrix
+
+Let us set aside abstract notation and dissect the exact $3 \times 4$ matrix $A \in \mathbb{R}^{3\times 4}$ that Professor Strang works through at the blackboard:
+
+$$
+A = \begin{bmatrix}
+1 & 2 & 2 & 2 \\
+2 & 4 & 6 & 8 \\
+3 & 6 & 8 & 10
+\end{bmatrix}
+$$
+
+(A sharp eye immediately spots two hidden dependencies: Column 2 is twice Column 1, and Row 3 is the exact sum of Row 1 and Row 2! Let us watch how Gaussian elimination honestly exposes both dependencies.)
+
+### 1.1 Stage 1: Forward Elimination to Echelon Form $U$, Identifying Pivot Columns and Rank $r$
+
+1. **First pivot**: The top-left $(1,1)$ entry is $\boxed{1} \neq 0$. Perform $R_2 \leftarrow R_2 - 2R_1$ and $R_3 \leftarrow R_3 - 3R_1$ to clear out everything below the first pivot in Column 1:
+
+$$
+A \longrightarrow
+\begin{bmatrix}
+\mathbf{1} & 2 & 2 & 2 \\
+0 & \mathbf{0} & 2 & 4 \\
+0 & \mathbf{0} & 2 & 4
+\end{bmatrix}
+$$
+
+2. **Searching for the second pivot (the crucial cross-column jump!)**: By habit, we look at the $(2,2)$ position first—and hit a $0$! Don't panic. Following our Lecture 02 rule, we look down to the $(3,2)$ position hoping for a row exchange—and it is $0$ there too!
+   In the world of square matrices, this meant singular breakdown. But when solving $A\mathbf{x} = \mathbf{0}$ for a rectangular matrix, **having no pivot in this column does not stop us from marching to the right**! We mark Column 2 as a pivotless **free column** and shift our gaze rightwards to the $(2,3)$ entry in Column 3—where a loud, nonzero $\boxed{2}$ is waiting! That $\boxed{2}$ is our **second pivot**!
+3. Using the second pivot, execute $R_3 \leftarrow R_3 - 1R_2$. The entire third row becomes zero, yielding the **row echelon form** $U$:
+
+$$
+U = \begin{bmatrix}
+\boxed{1} & 2 & 2 & 2 \\
+0 & 0 & \boxed{2} & 4 \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+$$
+
+Now let us tally the results: the entire matrix has produced **only $r = 2$ pivots** (located in **Column 1** and **Column 3**). This integer $r$ is the single most important invariant in linear algebra—the **rank** of matrix $A$, written $\operatorname{rank}(A) = 2$!
+
+### 1.2 Constructing the $n - r = 2$ Special Solutions from $U\mathbf{x} = \mathbf{0}$
+
+By the equivalence theorem from Lecture 02, $A\mathbf{x} = \mathbf{0} \iff U\mathbf{x} = \mathbf{0}$, which expands into two effective equations in four unknowns:
+
+$$
+\begin{cases}
+x_1 + 2x_2 + 2x_3 + 2x_4 = 0 \\
+\phantom{x_1 + 2x_2 + {}} 2x_3 + 4x_4 = 0
+\end{cases}
+$$
+
+The four unknowns naturally split into two camps:
+- **Pivot Variables**: The variables corresponding to columns with pivots, namely **$x_1, x_3$** ($r = 2$ of them, strictly locked in by the equations);
+- **Free Variables**: The variables corresponding to columns without pivots, namely **$x_2, x_4$** ($n - r = 4 - 2 = 2$ of them, which can be assigned **arbitrary real values**; once chosen, the pivot variables are uniquely determined by back-substitution!).
+
+To span the entire nullspace as cleanly as possible, we don't plug in random numbers; instead, we let the two free variables $(x_2, x_4)$ **take turns being the standard unit pairs $(1, 0)$ and $(0, 1)$**:
+
+- **First special solution $\mathbf{s}_1$ (set $x_2 = 1,\; x_4 = 0$)**:
+  From the second equation, $2x_3 + 0 = 0 \implies x_3 = 0$. Substituting into the first equation gives $x_1 + 2(1) + 0 + 0 = 0 \implies x_1 = -2$. Thus:
+
+$$
+\mathbf{s}_1 = \begin{bmatrix} -2 \\ \mathbf{1} \\ 0 \\ \mathbf{0} \end{bmatrix}
+\quad \text{(Geometric meaning: Column 2 is exactly } 2 \text{ times Column 1!)}
+$$
+
+- **Second special solution $\mathbf{s}_2$ (set $x_2 = 0,\; x_4 = 1$)**:
+  From the second equation, $2x_3 + 4(1) = 0 \implies x_3 = -2$. Substituting into the first equation gives $x_1 + 0 + 2(-2) + 2(1) = 0 \implies x_1 = 2$. Thus:
+
+$$
+\mathbf{s}_2 = \begin{bmatrix} 2 \\ \mathbf{0} \\ -2 \\ \mathbf{1} \end{bmatrix}
+\quad \text{(Geometric meaning: Column 4 equals } {-2} \text{ times Column 1 plus } 2 \text{ times Column 3!)}
+$$
+
+Consequently, the complete solution to $A\mathbf{x} = \mathbf{0}$ (the entire nullspace $\operatorname{Null}(A) \subseteq \mathbb{R}^4$) consists of all linear combinations of these two special solutions:
+
+$$
+\mathbf{x} = x_2 \begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix}
++ x_4 \begin{bmatrix} 2 \\ 0 \\ -2 \\ 1 \end{bmatrix}
+\quad (x_2, x_4 \in \mathbb{R})
+$$
+
+---
+
+## 2. One Step Further: Reduced Row Echelon Form $R = \operatorname{rref}(A)$ and the Nullspace Matrix $N$
+
+Finding the special solutions from $U$ still required two steps of back-substitution by hand. If we invest just a tiny bit more effort on $U$—performing **upward elimination** and **dividing each pivot row by its pivot to make every pivot equal to $1$**—the special solutions become stamped right onto the face of the matrix, ready to be read off with zero back-substitution!
+
+Continue with two elementary row operations on $U$: (1) divide Row 2 by its pivot $2$ to get $[0, 0, 1, 2]$; (2) subtract $2$ times the new Row 2 from Row 1 to eliminate the $2$ directly above the second pivot:
+
+$$
+U = \begin{bmatrix}
+1 & 2 & 2 & 2 \\
+0 & 0 & 2 & 4 \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+\xrightarrow{R_2 \leftarrow \frac{1}{2}R_2}
+\begin{bmatrix}
+1 & 2 & 2 & 2 \\
+0 & 0 & 1 & 2 \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+\xrightarrow{R_1 \leftarrow R_1 - 2R_2}
+R = \begin{bmatrix}
+\mathbf{1} & \underline{2} & \mathbf{0} & \underline{-2} \\
+\mathbf{0} & \underline{0} & \mathbf{1} & \underline{2} \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+$$
+
+This is the uniquely determined ultimate simplified form of matrix $A$—its **Reduced Row Echelon Form (RREF)** $R = \operatorname{rref}(A)$! Now compare our two hand-computed special solutions $\mathbf{s}_1 = (-2, 1, 0, 0)^T$ and $\mathbf{s}_2 = (2, 0, -2, 1)^T$ with the two underlined free columns $(2, 0)^T$ and $(-2, 2)^T$ in the nonzero rows of $R$:
+
+**The values of the pivot variables $(-2, 0)$ and $(2, -2)$ inside the special solutions are literally the entries of the free columns in $R$ with their signs flipped!**
+
+Why does this clean sign reversal always happen? Suppose we reorder the columns (by right-multiplying by a column permutation matrix $P_{\text{col}}$) so that the $r$ pivot columns of $R$ sit on the left and the $n - r$ free columns sit on the right. Then $R$ necessarily takes a textbook block form:
+
+$$
+R_{\text{sorted}} = \begin{bmatrix}
+I_r & F \\
+0 & 0
+\end{bmatrix} \in \mathbb{R}^{m\times n}
+$$
+
+Partitioning the unknown vector correspondingly into pivot and free blocks $\mathbf{x} = (\mathbf{x}_{\text{pivot}}, \mathbf{x}_{\text{free}})^T$, the equation $R_{\text{sorted}}\mathbf{x} = \mathbf{0}$ decodes in a single line:
+
+$$
+I_r \mathbf{x}_{\text{pivot}} + F \mathbf{x}_{\text{free}} = \mathbf{0}
+\quad \Longleftrightarrow \quad
+\mathbf{x}_{\text{pivot}} = -F \mathbf{x}_{\text{free}}
+$$
+
+Setting the free-variable vector $\mathbf{x}_{\text{free}}$ successively to the columns of the identity matrix $I_{n-r}$ and stacking all $n - r$ special solutions side by side into an $n \times (n - r)$ **nullspace matrix** $N$ gives the most famous block formula of this lecture:
+
+$$
+N = \begin{bmatrix}
+-F \\
+I_{n-r}
+\end{bmatrix} \in \mathbb{R}^{n \times (n-r)}
+\quad \Longrightarrow \quad
+R_{\text{sorted}} N = \begin{bmatrix} I_r & F \\ 0 & 0 \end{bmatrix} \begin{bmatrix} -F \\ I_{n-r} \end{bmatrix} = \begin{bmatrix} -F + F \\ 0 \end{bmatrix} = 0
+$$
+
+<RrefNullspaceBlockDiagram caption="Block decomposition of the Reduced Row Echelon Form R = [I_r, F; 0, 0] (after grouping pivot columns first) and the resulting Nullspace Matrix N = [-F; I_{n-r}] whose columns are the n - r special solutions." />
+
+<InteractiveCanvasSlot
+  id="l07-rref-special-solutions"
+  title="R = rref(A) Pivot/Free Column Extractor & Special Solution Generator"
+  description="Interactive exploration: step through forward elimination $A \to U$ and upward elimination $U \to R$ for any 3×4 or 4×5 integer matrix, highlight the pivot identity block $I_r$ and free submatrix $F$, and dynamically flip signs to generate the $n-r$ special solution vectors."
+/>
+
+<DefinitionCard
+  label="Definition 7.1"
+  title="Rank of a Matrix, Reduced Row Echelon Form (RREF), and Special Solutions"
+>
+Let $A \in \mathbb{R}^{m\times n}$ be a real matrix:
+
+1. **Reduced Row Echelon Form $R = \operatorname{rref}(A)$**: A row echelon matrix satisfying the following canonical rules (for every given matrix $A$, its $R$ is **uniquely determined**):
+   - All zero rows (if any) lie at the very bottom of the matrix;
+   - The first nonzero entry (**pivot**) of each nonzero row is strictly equal to $1$, and the column index of the pivot in any lower row is strictly greater than that in the row above it (the staircase steps strictly down and to the right);
+   - In every **pivot column** containing a pivot $1$, **all other entries both above and below that pivot are $0$**.
+2. **Rank of a Matrix**: The total number of nonzero pivots produced by elimination is called the **rank** of $A$, denoted $r = \operatorname{rank}(A)$. It always obeys the fundamental bounds:
+
+$$
+0 \le \operatorname{rank}(A) \le \min(m, n)
+$$
+
+3. **Special Solutions**: Among the $n$ unknowns, the $r$ pivot columns correspond to **pivot variables**, and the remaining $n - r$ free columns correspond to **free variables**. Setting the $k$-th free variable equal to $1$ and all other $n - r - 1$ free variables equal to $0$ (for $k = 1, \dots, n - r$) uniquely determines $n - r$ nullspace vectors $\mathbf{s}_1, \dots, \mathbf{s}_{n-r} \in \operatorname{Null}(A)$, called the **special solutions** of $A$.
+</DefinitionCard>
+
+<TheoremCard
+  label="Theorem 7.1"
+  title="Nullspace Basis via Special Solutions & Wide-Matrix Corollary"
+>
+Suppose $A \in \mathbb{R}^{m\times n}$ has rank $\operatorname{rank}(A) = r$:
+
+1. **Invariance of the Nullspace and Span of Special Solutions**: Elementary row operations do not change the nullspace, i.e., $\operatorname{Null}(A) = \operatorname{Null}(U) = \operatorname{Null}(R)$. Whenever $n - r \gt 0$, $A$ has exactly $n - r$ linearly independent special solutions $\mathbf{s}_1, \dots, \mathbf{s}_{n-r}$, and the entire nullspace is precisely the set of their linear combinations:
+
+$$
+\operatorname{Null}(A) = \left\{ c_1 \mathbf{s}_1 + c_2 \mathbf{s}_2 + \cdots + c_{n-r} \mathbf{s}_{n-r} : c_1, \dots, c_{n-r} \in \mathbb{R} \right\}
+$$
+
+   If $r = n$ (no free variables), there are no special solutions and $\operatorname{Null}(A) = \{\mathbf{0}\}$.
+2. **Short-and-Wide Matrices Always Have Nonzero Nullspace Vectors (More Unknowns than Equations Theorem)**: If the **number of columns strictly exceeds the number of rows** ($n \gt m$), then because $r \le m \lt n$, the number of free variables satisfies $n - r \ge n - m \ge 1$. Hence the homogeneous system $A\mathbf{x} = \mathbf{0}$ **must have infinitely many nonzero solutions**!
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Why Can Every Nullspace Vector Be Uniquely Written as a Linear Combination of the n − r Special Solutions?">
+Without loss of generality, reorder the column indices so that the first $r$ columns are pivot columns and the last $n-r$ columns are free columns. In this ordering, $R$ has the block form with top rows $[I_r\;\; F]$ and bottom zero rows, and the $k$-th special solution is $\mathbf{s}_k = (-\mathbf{f}_k, \mathbf{e}_k)^T$, where $\mathbf{f}_k$ is the $k$-th column of $F$ and $\mathbf{e}_k \in \mathbb{R}^{n-r}$ is the $k$-th standard basis vector.
+1. **Every solution is a linear combination (Spanning)**: Take any $\mathbf{x} = (\mathbf{u}, \mathbf{v})^T \in \operatorname{Null}(A) = \operatorname{Null}(R)$, where $\mathbf{u} \in \mathbb{R}^r$ and $\mathbf{v} = (v_1, \dots, v_{n-r})^T \in \mathbb{R}^{n-r}$. From $R\mathbf{x} = \mathbf{0}$ we obtain $\mathbf{u} + F\mathbf{v} = \mathbf{0} \implies \mathbf{u} = -F\mathbf{v} = -\sum_{k=1}^{n-r} v_k \mathbf{f}_k$. Therefore:
+
+$$
+\mathbf{x} = \begin{bmatrix} -\sum_{k=1}^{n-r} v_k \mathbf{f}_k \\ \sum_{k=1}^{n-r} v_k \mathbf{e}_k \end{bmatrix} = \sum_{k=1}^{n-r} v_k \begin{bmatrix} -\mathbf{f}_k \\ \mathbf{e}_k \end{bmatrix} = \sum_{k=1}^{n-r} v_k \mathbf{s}_k
+$$
+
+2. **Uniqueness of coefficients (Linear Independence)**: Suppose $c_1\mathbf{s}_1 + \cdots + c_{n-r}\mathbf{s}_{n-r} = \mathbf{0}$. Inspecting just the bottom block of $n - r$ free-variable components gives $I_{n-r} \mathbf{c} = (c_1, \dots, c_{n-r})^T = \mathbf{0}$, which immediately forces $c_1 = \cdots = c_{n-r} = 0$! This proves that the $n - r$ special solutions are automatically linearly independent!
+</ProofCollapse>
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+1. **Pitfall 1: Blindly stacking $[-F;\; I]$ top-to-bottom when pivot and free columns are interleaved! (A classic exam disaster!)**
+   The block formula $N = [-F;\; I_{n-r}]$ holds in stacked form **only when all pivot columns come first (columns $1, \dots, r$) and all free columns come last (columns $r+1, \dots, n$)**! In practice—as in our lecture example where the pivot columns are **Columns 1 and 3** and the free columns are **Columns 2 and 4**—**never blindly stack $-F$ above $I$**. Instead, first place $(1,0)$ and $(0,1)$ into the free-variable slots (slots 2 and 4), and then slot the entries of $-F$ into the pivot-variable positions (slots 1 and 3), yielding $(-2, \mathbf{1}, 0, \mathbf{0})^T$ and $(2, \mathbf{0}, -2, \mathbf{1})^T$! Always spend 3 seconds mentally checking $R\mathbf{s}_k = \mathbf{0}$ to verify the signs and positions!
+2. **Pitfall 2: Forgetting to flip the sign of the free block $F$ when reading off special solutions!**
+   Because the equation is $I_r \mathbf{x}_{\text{pivot}} \mathbf{+} F \mathbf{x}_{\text{free}} = \mathbf{0}$, moving $F\mathbf{x}_{\text{free}}$ to the right-hand side to solve for the pivot variables **requires a minus sign** ($\mathbf{x}_{\text{pivot}} = -F\mathbf{x}_{\text{free}}$)! Forgetting to negate $F$ is the single most common point-loser on exams.
+3. **Pitfall 3: Confusing Lecture 07's "Special Solutions" (to $A\mathbf{x}=\mathbf{0}$) with Lecture 08's "Particular Solution" ($\mathbf{x}_p$ to $A\mathbf{x}=\mathbf{b}$)**
+   Keep the terminology crystal clear: **Special Solutions** specifically refer to the $n - r$ nullspace basis vectors of the homogeneous equation $A\mathbf{x}=\mathbf{0}$ obtained by setting one free variable to $1$ and the rest to $0$ in turn; whereas next lecture's **Particular Solution** $\mathbf{x}_p$ is one specific vector satisfying the nonhomogeneous equation $A\mathbf{x}_p = \mathbf{b}$.
+</PitfallAlert>
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "The **rank $r = \\operatorname{rank}(A)$** of a matrix equals the **number of pivots** produced by elimination, and always satisfies $0 \\le r \\le \\min(m, n)$.",
+    "Among the $n$ unknowns in $A\\mathbf{x} = \\mathbf{0}$, there are **$r$ pivot variables** and **$n - r$ free variables**; setting the free variables in turn to $(1,0,\\dots)$ uniquely generates $n-r$ linearly independent **special solutions** spanning the nullspace.",
+    "The Reduced Row Echelon Form $R = \\operatorname{rref}(A)$ turns the pivot columns into identity columns: if the columns are ordered with pivot columns first so that the nonzero rows form $[I_r\\;\\; F]$, then the nullspace matrix is $N = [-F;\\; I_{n-r}]$; if pivot and free columns are interleaved, always place components into their respective variable slots.",
+    "Whenever there are more unknowns than equations (**a wide matrix with $n \\gt m$**), there is at least $n - m \\ge 1$ free variable, so $A\\mathbf{x} = \\mathbf{0}$ is guaranteed to have infinitely many nonzero solutions."
+  ]}
+/>
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+<ExerciseCard id="l07-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="Interleaved Pivot Columns in Action: Computing RREF and Slotting Special Solutions">
+Suppose a $3 \times 5$ matrix $A$ has already undergone forward elimination to reach the echelon form $U$:
+
+$$
+U = \begin{bmatrix}
+0 & 2 & 4 & 2 & -6 \\
+0 & 0 & 0 & 1 & 3 \\
+0 & 0 & 0 & 0 & 0
+\end{bmatrix}
+$$
+
+1. Identify the rank $r$ of this matrix, which columns are pivot columns, and which columns are free columns. (Pay special attention to Column 1 being all zeros!)
+2. Continue upward elimination and normalization on $U$ to find $R = \operatorname{rref}(U)$.
+3. Write down all $n - r$ special solutions in their proper variable slots, and verify each one by checking $R\mathbf{s}_k = \mathbf{0}$!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Column 1 is all $0$s, so it has no pivot! Thus Column 1 itself is a **free column** ($x_1$ is a free variable)! The two pivots sit in Column 2 (value $2$) and Column 4 (value $1$), so the rank is $r = 2$, and there are $5 - 2 = 3$ free variables: $x_1, x_3, x_5$!",
+    "To reach $R$: first divide Row 1 by $2$ to get $[0, 1, 2, 1, -3]$, then subtract Row 2 from Row 1 to clear the $1$ in position $(1,4)$, making Row 1 of $R$ equal to $[0, 1, 2, 0, -6]$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+This exercise cures the reflex of assuming "Column 1 must always be a pivot column"!
+- Column 1 is entirely zero, which means multiplying $x_1$ by ten thousand still gives $\mathbf{0}$ and has zero impact on the equation—so setting $x_1 = 1$ and all other variables to $0$ hands us the standard basis vector $\mathbf{s}_1 = (1, 0, 0, 0, 0)^T$ as a free special solution on the spot!
+- Once reduced to $R$, we only need to look at the two pivot slots $x_2, x_4$: plugging in $x_3 = 1$ and $x_5 = 1$ in turn and flipping signs balances the equations and gives all three special solutions cleanly!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. The two nonzero pivots lie in **Column 2** and **Column 4**, so the rank is $r = \mathbf{2}$; the pivot variables are $x_2, x_4$; the free columns are **Columns 1, 3, and 5** (giving $5 - 2 = 3$ free variables $x_1, x_3, x_5$).
+2. First apply $R_1 \leftarrow \frac{1}{2}R_1$ to get $[0, 1, 2, 1, -3]$, then apply $R_1 \leftarrow R_1 - R_2$ to clear the entry above the pivot in Column 4, yielding the unique Reduced Row Echelon Form:
+
+$$
+R = \begin{bmatrix}
+0 & \mathbf{1} & 2 & \mathbf{0} & -6 \\
+0 & \mathbf{0} & 0 & \mathbf{1} & 3 \\
+0 & 0 & 0 & 0 & 0
+\end{bmatrix}
+\quad \Longleftrightarrow \quad
+\begin{cases}
+x_2 = -2x_3 + 6x_5 \\
+x_4 = -3x_5
+\end{cases}
+$$
+
+3. Setting the three free variables $(x_1, x_3, x_5)$ successively to $(1,0,0)$, $(0,1,0)$, and $(0,0,1)$ produces the $3$ linearly independent special solutions:
+
+$$
+\mathbf{s}_1 = \begin{bmatrix} \mathbf{1} \\ 0 \\ \mathbf{0} \\ 0 \\ \mathbf{0} \end{bmatrix}, \qquad
+\mathbf{s}_2 = \begin{bmatrix} \mathbf{0} \\ -2 \\ \mathbf{1} \\ 0 \\ \mathbf{0} \end{bmatrix}, \qquad
+\mathbf{s}_3 = \begin{bmatrix} \mathbf{0} \\ 6 \\ \mathbf{0} \\ -3 \\ \mathbf{1} \end{bmatrix}
+$$
+
+   Mental verification: $R\mathbf{s}_1 = \mathbf{0}$, $R\mathbf{s}_2 = (-2+2,\; 0,\; 0)^T = \mathbf{0}$, and $R\mathbf{s}_3 = (6-6,\; -3+3,\; 0)^T = \mathbf{0}$—all vanish identically!
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l07-ex2" tier="L2" tierLabel="L2 · Conceptual True/False" title="Conceptual Check: Do Aᵀ and A Always Have the Same Number of Free Variables?">
+Determine whether the following statement is true or false:
+
+> **Statement**: Suppose a rectangular matrix $A \in \mathbb{R}^{3\times 5}$ has rank $r = 2$. Because transposition does not change the rank (as we will prove rigorously later, $\operatorname{rank}(A^T) = \operatorname{rank}(A) = 2$), the systems $A^T\mathbf{y} = \mathbf{0}$ and $A\mathbf{x} = \mathbf{0}$ have the exact same number of free variables.
+
+<TrueFalseInteractive
+  id="l07-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Although both matrices share the same rank ($r = 2$), the number of free variables equals 'number of columns of that matrix minus the rank': $A \in \mathbb{R}^{3\times 5}$ has $5$ columns and thus $5 - 2 = 3$ free variables, whereas $A^T \in \mathbb{R}^{5\times 3}$ has only $3$ columns and thus only $3 - 2 = 1$ free variable!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Count the **number of columns** of each matrix! $A$ is $3\\times 5$ ($5$ unknowns), whereas $A^T$ is $5\\times 3$ (only $3$ unknowns)!",
+    "Apply the formula 'number of free variables = number of columns - $r$' to compute $5 - 2$ versus $3 - 2$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+The number of pivot variables (the rank $r=2$) really is the same on both sides, but the total pool of unknowns is different! Solving $A\mathbf{x}=\mathbf{0}$ searches inside $\mathbb{R}^5$, where $5$ total variables minus $2$ pivot variables leaves **$3$ degrees of freedom**; solving $A^T\mathbf{y}=\mathbf{0}$ searches inside $\mathbb{R}^3$, where $3$ total variables minus $2$ pivot variables leaves only **$1$ degree of freedom**! (This is a direct preview of the dimension formulas $n-r$ versus $m-r$ for the Four Fundamental Subspaces in Lecture 10!)
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+For $A \in \mathbb{R}^{3\times 5}$ with $\operatorname{rank}(A) = 2$:
+- $A$ has $n = 5$ columns, so the number of free variables for $A\mathbf{x} = \mathbf{0}$ is $n - r = 5 - 2 = \mathbf{3}$;
+- $A^T \in \mathbb{R}^{5\times 3}$ has $m = 3$ columns and $\operatorname{rank}(A^T) = 2$, so the number of free variables for $A^T\mathbf{y} = \mathbf{0}$ is $m - r = 3 - 2 = \mathbf{1} \neq 3$.
+
+Concrete counterexample: take
+
+$$
+A = \begin{bmatrix}
+1 & 0 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0
+\end{bmatrix}
+$$
+
+Clearly $\operatorname{Null}(A)$ has $3$ special solutions, whereas $\operatorname{Null}(A^T)$ has only $1$ special solution $(0, 0, 1)^T$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l07-ex3" tier="L2" tierLabel="L2 · Conceptual True/False" title="Conceptual Check: Does Every 3×4 Homogeneous System Have Infinitely Many Nonzero Solutions?">
+Determine whether the following statement is true or false:
+
+> **Statement**: For **every** $3 \times 4$ real matrix $A \in \mathbb{R}^{3\times 4}$ (whether it is the zero matrix or filled with random real numbers), the homogeneous linear system $A\mathbf{x} = \mathbf{0}$ is guaranteed to have infinitely many nonzero solutions.
+
+<TrueFalseInteractive
+  id="l07-tf2"
+  correct={true}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="True! By Part 2 of Theorem 7.1, since $m = 3$ and $n = 4$, the number of pivots cannot exceed the number of rows ($r \le 3$). Thus the number of free variables satisfies $n - r = 4 - r \ge 4 - 3 = 1$! Having at least 1 free variable guarantees at least 1 nonzero special solution $\mathbf{s}_1$, and all its scalar multiples $c\mathbf{s}_1$ provide infinitely many nonzero solutions!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Each row can contain at most $1$ pivot! With only $3$ rows in total, can the number of pivots $r$ ever exceed $3$?",
+    "Out of $4$ unknowns, at most $3$ can be pivot variables, leaving at least $4 - 3 = 1$ free variable that can be set to any real number $c \\in \\mathbb{R}$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Three linear locks ($3$ equations) can never completely lock down four degrees of freedom ($4$ unknowns)! Even if all $3$ locks are completely independent and effective ($r=3$), at least $1$ free dial remains that can be turned to any nonzero setting; and if any locks are redundant or broken ($r \lt 3$), there are even more free dials!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+For any $A \in \mathbb{R}^{3\times 4}$, since each row contains at most one pivot, its rank satisfies $0 \le r = \operatorname{rank}(A) \le 3$. Therefore, the number of free variables obeys:
+
+$$
+n - r = 4 - r \ge 4 - 3 = 1
+$$
+
+By Part 1 of Theorem 7.1, there exists at least one nonzero special solution $\mathbf{s}_1 \in \operatorname{Null}(A) \setminus \{\mathbf{0}\}$ (whose first free-variable component equals $1 \neq 0$). Consequently, for every nonzero real scalar $c \in \mathbb{R} \setminus \{0\}$, the vectors $c\mathbf{s}_1$ are distinct nonzero solutions, guaranteeing infinitely many nonzero solutions.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l07-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Reverse-Engineering RREF from the Nullspace: Uniquely Reconstructing Matrix R">
+(Classic MIT 18.06 reverse-engineering problem) Suppose the nullspace $\operatorname{Null}(R)$ of a $3 \times 4$ Reduced Row Echelon Form matrix $R = \operatorname{rref}(A)$ is spanned by the following two vectors:
+
+$$
+\mathbf{s}_1 = \begin{bmatrix} 2 \\ 1 \\ 0 \\ 0 \end{bmatrix}, \qquad
+\mathbf{s}_2 = \begin{bmatrix} -3 \\ 0 \\ 4 \\ 1 \end{bmatrix}
+$$
+
+**Without setting up 12 unknown entries and solving a system of equations**, simply inspect where the patterns $(1, 0)$ and $(0, 1)$ appear across $\mathbf{s}_1$ and $\mathbf{s}_2$:
+1. Immediately lock down which two columns are free columns and which two are pivot columns, and write down the **unique possible** $3 \times 4$ Reduced Row Echelon Form matrix $R$!
+2. Question: Is the original $3 \times 4$ matrix $A$ itself also uniquely determined? If not, how can you generate every $3 \times 4$ matrix $A$ that shares this exact same nullspace from $R$?
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Look at $\\mathbf{s}_1$ and $\\mathbf{s}_2$ for the two slots where one entry is $1$ and the other is $0$: component 2 has $(1, 0)$ and component 4 has $(0, 1)$! This immediately reveals that **Column 2** and **Column 4** are the free columns, which forces **Column 1** and **Column 3** to be the pivot columns!",
+    "Since Columns 1 and 3 are pivot columns, in $R$ they must be the first two columns of the $3\\times 3$ identity matrix, $(1,0,0)^T$ and $(0,1,0)^T$; then negate the pivot-variable components from the special solutions and place them into Columns 2 and 4!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. The detective work is lightning fast:
+   - Row 2 of $(\mathbf{s}_1, \mathbf{s}_2)$ is $(1, 0)$ and Row 4 is $(0, 1)$. Case closed: **Columns 2 and 4 are the free columns, and Columns 1 and 3 are the pivot columns (rank $r=2$, with Row 3 all zeros)**!
+   - Fill Pivot Columns 1 and 3 directly with the standard unit columns $(1,0,0)^T$ and $(0,1,0)^T$;
+   - From $R\mathbf{s}_1 = \mathbf{0}$, Column 2 must be $-2$ times Column 1, i.e., $(-2, 0, 0)^T$; from $R\mathbf{s}_2 = \mathbf{0}$, Column 4 must be $+3$ times Column 1 minus $4$ times Column 3, i.e., $(3, -4, 0)^T$! The entire matrix $R$ is uniquely revealed!
+2. $R$ is unique, but there are infinitely many original matrices $A$! Simply left-multiply $R$ by **any invertible $3 \times 3$ matrix $E^{-1}$** ($A = E^{-1} R$, which scrambles the rows of $R$ via invertible linear combinations), and the nullspace remains completely unchanged!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **Proof of uniqueness and explicit construction of $R$**:
+   - Since $\operatorname{Null}(R) = \operatorname{span}\{\mathbf{s}_1, \mathbf{s}_2\}$ is spanned by $2$ linearly independent basis vectors, we have $4 - r = 2 \implies r = 2$, so Row 3 of $R$ must be the zero row $[0, 0, 0, 0]$.
+   - If Column 1 were all zeros, then $(1,0,0,0)^T \in \operatorname{Null}(R)$; however, $(1,0,0,0)^T \notin \operatorname{span}\{\mathbf{s}_1, \mathbf{s}_2\}$ (because zeros in components 2 and 4 force both combination coefficients to be zero). Thus Column 1 must contain the first pivot $\implies$ Column 1 of $R$ is $\mathbf{r}_1 = (1, 0, 0)^T$.
+   - From $R\mathbf{s}_1 = 2\mathbf{r}_1 + 1\mathbf{r}_2 = \mathbf{0}$, Column 2 is $\mathbf{r}_2 = -2\mathbf{r}_1 = (-2, 0, 0)^T$ (a non-pivot free column).
+   - If Column 3 were also a free column, the first 3 columns would have rank only $1$ and the second pivot would appear in Column 4, which would force component 3 to be free and component 4 to be $0$ in $\mathbf{s}_2$, contradicting $\mathbf{s}_2 = (-3, 0, 4, 1)^T$ (or directly note that $(0,0,1,0)^T \notin \operatorname{Null}(R)$). Hence the second pivot must lie in Column 3 $\implies \mathbf{r}_3 = (0, 1, 0)^T$.
+   - Finally, $R\mathbf{s}_2 = -3\mathbf{r}_1 + 4\mathbf{r}_3 + \mathbf{r}_4 = \mathbf{0}$ uniquely determines $\mathbf{r}_4 = 3\mathbf{r}_1 - 4\mathbf{r}_3 = (3, -4, 0)^T$. Putting the columns together gives:
+
+$$
+R = \begin{bmatrix}
+1 & -2 & 0 & 3 \\
+0 & 0 & 1 & -4 \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+$$
+
+2. **Parameterization of the family of original matrices $A$**: $A$ is not unique. For any invertible matrix $M \in \mathbb{R}^{3\times 3}$, setting $A = M R$ guarantees $\operatorname{rref}(A) = R$ and $\operatorname{Null}(A) = \operatorname{Null}(R)$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard id="l07-ex5" tier="L4" tierLabel="L4 · MIT 18.06 Exam Synthesis" title="MIT 18.06 Exam Challenge: RREF and Hyperplane Nullspace of a Rank-1 Outer Product uvᵀ">
+Let $\mathbf{u} = (u_1, u_2, \dots, u_m)^T \in \mathbb{R}^m$ and $\mathbf{v} = (v_1, v_2, \dots, v_n)^T \in \mathbb{R}^n$ be nonzero column vectors, and for simplicity assume their first components are nonzero: $u_1 \neq 0,\; v_1 \neq 0$. Consider the rank-1 outer product matrix $A = \mathbf{u}\mathbf{v}^T \in \mathbb{R}^{m\times n}$:
+1. **Write down $R = \operatorname{rref}(\mathbf{u}\mathbf{v}^T)$ in one step** in terms of $v_1, \dots, v_n$ (and notice what happens to all the information in $\mathbf{u}$ inside $R$!).
+2. Find the rank $r$ and the number of free variables of $A = \mathbf{u}\mathbf{v}^T$, and write down all $n - 1$ special solutions $\mathbf{s}_1, \dots, \mathbf{s}_{n-1}$. Explain from the geometry of the dot product why $A\mathbf{x} = \mathbf{0}$ is equivalent to the single scalar equation $\mathbf{v}^T \mathbf{x} = 0$!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "The $i$-th row of $A = \\mathbf{u}\\mathbf{v}^T$ is $u_i \\mathbf{v}^T$, so every row is a scalar multiple of Row 1 ($u_1 \\mathbf{v}^T$)! A single elimination sweep zeroes out Rows $2$ through $m$, and dividing Row 1 by its leading entry $u_1 v_1$ immediately gives $R$!",
+    "Use associativity to rewrite $(\\mathbf{u}\\mathbf{v}^T)\\mathbf{x} = \\mathbf{u}(\\mathbf{v}^T\\mathbf{x})$: since $\\mathbf{u} \\neq \\mathbf{0}$, a nonzero vector multiplied by a scalar equals the zero vector if and only if that scalar $\\mathbf{v}^T\\mathbf{x} = 0$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. A striking revelation: in $\mathbf{u}\mathbf{v}^T$, the column vector $\mathbf{u}$ only controls the scaling ratios between the rows. Once row reduction produces $R = \operatorname{rref}(\mathbf{u}\mathbf{v}^T)$, Rows $2$ through $m$ become $0$, and dividing Row 1 by $u_1 v_1$ **wipes out every trace of the column vector $\mathbf{u}$**, leaving only the normalized row vector $\frac{1}{v_1}\mathbf{v}^T$! This is ironclad proof that row reduction erases the column-space direction $\mathbf{u}$ while preserving the row-space and nullspace structure $\mathbf{v}^T$!
+2. Since $(\mathbf{u}\mathbf{v}^T)\mathbf{x} = \mathbf{u}(\mathbf{v}^T\mathbf{x}) = \mathbf{0} \iff \mathbf{v}^T\mathbf{x} = 0$, the nullspace of a rank-1 matrix is simply the **$(n-1)$-dimensional hyperplane** in $\mathbb{R}^n$ orthogonal to $\mathbf{v}$!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. The $i$-th row of $A = \mathbf{u}\mathbf{v}^T$ is $u_i [v_1, v_2, \dots, v_n]$. Because $u_1 \neq 0$, performing $R_i \leftarrow R_i - \frac{u_i}{u_1} R_1$ for $i = 2, \dots, m$ turns Rows $2$ through $m$ into zero rows. Next, since $v_1 \neq 0$, performing $R_1 \leftarrow \frac{1}{u_1 v_1} R_1$ immediately yields the unique Reduced Row Echelon Form:
+
+$$
+R = \operatorname{rref}(\mathbf{u}\mathbf{v}^T) =
+\begin{bmatrix}
+1 & \dfrac{v_2}{v_1} & \dfrac{v_3}{v_1} & \cdots & \dfrac{v_n}{v_1} \\
+0 & 0 & 0 & \cdots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+0 & 0 & 0 & \cdots & 0
+\end{bmatrix} \in \mathbb{R}^{m\times n}
+$$
+
+2. There is only $1$ pivot at position $(1,1)$, so the rank is $r = \operatorname{rank}(\mathbf{u}\mathbf{v}^T) = \mathbf{1}$, and there are **$n - 1$ free variables** ($x_2, \dots, x_n$). Here the free block is $F = [v_2/v_1, \dots, v_n/v_1] \in \mathbb{R}^{1\times(n-1)}$, giving the $n - 1$ special solutions:
+
+$$
+\mathbf{s}_1 = \begin{bmatrix} -v_2 / v_1 \\ 1 \\ 0 \\ \vdots \\ 0 \end{bmatrix}, \quad
+\mathbf{s}_2 = \begin{bmatrix} -v_3 / v_1 \\ 0 \\ 1 \\ \vdots \\ 0 \end{bmatrix}, \quad \dots, \quad
+\mathbf{s}_{n-1} = \begin{bmatrix} -v_n / v_1 \\ 0 \\ 0 \\ \vdots \\ 1 \end{bmatrix}
+$$
+
+   By associativity of matrix multiplication, $A\mathbf{x} = (\mathbf{u}\mathbf{v}^T)\mathbf{x} = (\mathbf{v}^T\mathbf{x})\mathbf{u}$. Since $\mathbf{u} \neq \mathbf{0}$, the scalar multiple $(\mathbf{v}^T\mathbf{x})\mathbf{u} = \mathbf{0} \iff \mathbf{v}^T\mathbf{x} = 0$, proving that the nullspace is precisely the hyperplane through the origin with normal vector $\mathbf{v}$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>

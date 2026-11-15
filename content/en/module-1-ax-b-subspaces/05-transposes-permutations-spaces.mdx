@@ -1,0 +1,497 @@
+---
+title: "Lecture 05: Transposes, Permutations, and Vector Spaces ℝⁿ"
+ocwId: "L05"
+videoEpisode: "P05"
+textbookRef: "§2.7, §3.1"
+---
+
+MIT 18.06 Lecture 05 is a watershed bridge in the course: the first half concludes Chapter 2 on matrix algebra (examining the **permutation matrices $P$** left over from $PA = LU$ in Lecture 04, along with the **transpose operator $A^T$** and **symmetric matrices $A^T A$** that run through the entire book); the second half swings open the grand doors to Chapter 3—**leaping from concrete elimination computations to the abstract, geometrically rich world of Vector Spaces and Subspaces**.
+
+---
+
+## 1. Permutation Matrices: The Orthogonal Group of Row Reorderings
+
+In Lecture 04, to handle zero entries appearing in pivot positions, we upgraded our complete elimination factorization to $PA = LU$. What exactly do the **permutation matrices** $P$ that multiply $A$ on the left look like? How many of them are there? And what special property do their inverses obey?
+
+Taking $3\times 3$ square matrices as our prototype, if we reorder the three rows of the identity matrix $I_3$ in **every possible permutation**, we get $3! = 3 \times 2 \times 1 = 6$ distinct $3\times 3$ permutation matrices:
+
+$$
+\underbrace{\begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}}_{I_3},\;
+\underbrace{\begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}}_{P_{12}},\;
+\underbrace{\begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ 1 & 0 & 0 \end{bmatrix}}_{P_{13}},\;
+\underbrace{\begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & 1 & 0 \end{bmatrix}}_{P_{23}},\;
+\underbrace{\begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ 1 & 0 & 0 \end{bmatrix}}_{P_{\text{cycle 1}}},\;
+\underbrace{\begin{bmatrix} 0 & 0 & 1 \\ 1 & 0 & 0 \\ 0 & 1 & 0 \end{bmatrix}}_{P_{\text{cycle 2}}}
+$$
+
+Look closely at the last two **cyclic permutation matrices**, which require two row exchanges to build: in $P_{\text{cycle 1}}$, row 1 is the original row 2, row 2 is the original row 3, and row 3 is the original row 1. Notice a crucial detail:
+- A single row-swap matrix like $P_{12}$ is its own inverse: $P_{12}^{-1} = P_{12}$;
+- However, the square of the cyclic permutation $P_{\text{cycle 1}}$ is **not** equal to $I_3$! Its inverse is $P_{\text{cycle 2}}$, which cycles the rows in the opposite direction—and if you compare their entries side by side, you will be delighted to discover that **$P_{\text{cycle 2}}$ is none other than the transpose matrix $P_{\text{cycle 1}}^T$, obtained by flipping $P_{\text{cycle 1}}$ across its main diagonal!**
+
+Generalizing to $n \times n$ matrices: reordering the $n$ rows of $I_n$ yields **$n!$ permutation matrices** (for instance, $24$ for $n=4$, and $120$ for $n=5$). Under matrix multiplication, these $n!$ matrices form a closed algebraic group (performing one row reordering followed by another is still a row reordering), and every single permutation matrix satisfies a remarkably elegant identity:
+
+$$
+P^T P = I_n \quad \Longleftrightarrow \quad P^{-1} = P^T
+$$
+
+Why does this hold? Through the lens of dot products, you can see it in a heartbeat: every row and every column of $P$ contains **exactly one $1$ and $0$s everywhere else**, with the $1$s in different columns occupying different rows! Therefore, row $i$ of $P^T$ (which is column $i$ of $P$) hits a $1$-meets-$1$ match to give a dot product of $1$ only when paired with column $i$ of $P$ itself, and gives $0$ when dotted with any other column! (This is our very first discrete prototype of the "orthogonal matrices $Q^T Q = I$" that will take center stage in Module 2, Lecture 17!)
+
+---
+
+## 2. Transposes and the King of Symmetric Matrices: $A^T A$
+
+Exchanging the rows and columns of any rectangular matrix $A \in \mathbb{R}^{m\times n}$ (so row $i$ becomes column $i$) produces the dimension-flipped **transpose matrix** $A^T \in \mathbb{R}^{n\times m}$, defined entrywise by $(A^T)_{ij} = A_{ji}$:
+
+$$
+A = \begin{bmatrix} 1 & 3 \\ 2 & 3 \\ 4 & 1 \end{bmatrix} \in \mathbb{R}^{3\times 2}
+\quad \Longrightarrow \quad
+A^T = \begin{bmatrix} 1 & 2 & 4 \\ 3 & 3 & 1 \end{bmatrix} \in \mathbb{R}^{2\times 3}
+$$
+
+If a **square matrix** coincides with itself after being flipped across its main diagonal—meaning $S^T = S$—we call it a **symmetric matrix**.
+
+Across applied mathematics, statistics (covariance matrices), least-squares regression, and graph theory, symmetric matrices are the undisputed stars. **Even when your raw data matrix $R \in \mathbb{R}^{m\times n}$ is tall, wide, and completely asymmetric, how can you instantly manufacture a handsome symmetric square matrix out of it?**
+
+Prof. Strang's answer is simple and profound: **multiply it by its own transpose—compute $R^T R$ (or $R R^T$)!**
+
+Let's test $A^T A$ on the example above:
+
+$$
+A^T A =
+\begin{bmatrix} 1 & 2 & 4 \\ 3 & 3 & 1 \end{bmatrix}
+\begin{bmatrix} 1 & 3 \\ 2 & 3 \\ 4 & 1 \end{bmatrix}
+=
+\begin{bmatrix}
+21 & \mathbf{13} \\
+\mathbf{13} & 19
+\end{bmatrix}
+$$
+
+Both off-diagonal entries are "the dot product of column 1 and column 2 of $A$." Because the dot product of real vectors commutes ($\mathbf{a}_1^T \mathbf{a}_2 = \mathbf{a}_2^T \mathbf{a}_1 = 13$), the product is born symmetric! Better yet, using the algebraic **reverse-order law** for the transpose of a product, $(AB)^T = B^T A^T$, takes just half a line to prove this universally for any real matrix by transposing $R^T R$ as a whole:
+
+$$
+(R^T R)^T = R^T (R^T)^T = R^T R
+$$
+
+<DefinitionCard
+  label="Definition 5.1"
+  title="Transpose, Symmetric Matrix, and Permutation Matrix"
+>
+1. **Transpose Matrix**: Given $A \in \mathbb{R}^{m\times n}$, its transpose $A^T \in \mathbb{R}^{n\times m}$ is defined by $(A^T)_{ij} := A_{ji}$ for all $1 \le i \le n$ and $1 \le j \le m$.
+2. **Real Symmetric Matrix**: Let $S \in \mathbb{R}^{n\times n}$ be a **square matrix**. If $S^T = S$ (i.e., $S_{ij} = S_{ji}$), then $S$ is called a real symmetric matrix.
+3. **Permutation Matrix**: An $n\times n$ matrix obtained by reordering the rows of the identity matrix $I_n$ in any permutation is called a permutation matrix (there are $n!$ such matrices of order $n$). Every row and every column contains a single $1$, with all other entries equal to $0$.
+</DefinitionCard>
+
+<TheoremCard
+  label="Theorem 5.1"
+  title="Transpose Laws, Orthogonal Permutation Inverse P⁻¹ = Pᵀ, and Symmetric LDLᵀ Factorization"
+>
+1. **Reverse-Order Law for Products and Commutativity with Inversion**: For any conformable real matrices $A \in \mathbb{R}^{m\times n},\; B \in \mathbb{R}^{n\times p}$ and any invertible square matrix $M \in \mathbb{R}^{n\times n}$:
+
+$$
+(A + C)^T = A^T + C^T, \qquad (AB)^T = B^T A^T, \qquad (M^{-1})^T = (M^T)^{-1}
+$$
+
+2. **Permutation Group Properties**: The product $P_1 P_2$ of any two $n \times n$ permutation matrices $P_1, P_2$ is again a permutation matrix; moreover, every permutation matrix $P \in \mathbb{R}^{n\times n}$ satisfies **$P^T P = P P^T = I_n$**, so $P^{-1} = P^T$.
+3. **Universal Symmetric Construction**: For **any rectangular real matrix** $R \in \mathbb{R}^{m\times n}$, both $R^T R \in \mathbb{R}^{n\times n}$ and $R R^T \in \mathbb{R}^{m\times m}$ are guaranteed to be real symmetric square matrices.
+4. **$LDL^T$ Factorization of Symmetric Matrices**: If an **invertible real symmetric matrix** $A = A^T \in \mathbb{R}^{n\times n}$ admits a row-exchange-free factorization $A = L D \tilde{U}$, then necessarily $\tilde{U} = L^T$, so the factorization automatically simplifies to the symmetric form (cutting the elimination work in half to $\approx \frac{1}{6}n^3$):
+
+$$
+A = L D L^T
+$$
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: (AB)ᵀ = BᵀAᵀ and Symmetric Uniqueness Implies Ũ = Lᵀ">
+1. **Proof of $(AB)^T = B^T A^T$**: First consider the core case where the right-hand matrix is a single column vector $\mathbf{x} \in \mathbb{R}^n$: $A\mathbf{x} = \sum_{k=1}^n x_k \mathbf{a}_k$ is a linear combination of the columns of $A$. Transposing both sides gives $(A\mathbf{x})^T = \sum_{k=1}^n x_k \mathbf{a}_k^T = \mathbf{x}^T A^T$, which is the exact same linear combination of the rows of $A^T$ via left-multiplication by $\mathbf{x}^T$! Next, assemble $B = \begin{bmatrix} \mathbf{b}_1 & \cdots & \mathbf{b}_p \end{bmatrix}$ column by column:
+
+$$
+(AB)^T = \begin{bmatrix} A\mathbf{b}_1 & \cdots & A\mathbf{b}_p \end{bmatrix}^T
+= \begin{bmatrix} (A\mathbf{b}_1)^T \\ \vdots \\ (A\mathbf{b}_p)^T \end{bmatrix}
+= \begin{bmatrix} \mathbf{b}_1^T A^T \\ \vdots \\ \mathbf{b}_p^T A^T \end{bmatrix}
+= B^T A^T
+$$
+
+2. **Proof that a symmetric matrix satisfies $\tilde{U} = L^T$**: Suppose $A = A^T$ is invertible and $A = L D \tilde{U}$ (where $L$ is unit lower-triangular, $D$ is a nonzero diagonal matrix, and $\tilde{U}$ is unit upper-triangular). Applying the reverse-order transpose law twice via $(XYZ)^T = Z^T Y^T X^T$:
+
+$$
+A = A^T = (L D \tilde{U})^T = \tilde{U}^T D^T L^T = (\tilde{U}^T) D (L^T)
+$$
+
+   Notice that $\tilde{U}^T$ is unit lower-triangular, $L^T$ is unit upper-triangular, and $D^T = D$! By **Theorem 4.1, Part 2 (Uniqueness of the $LDU$ Factorization for Invertible Matrices)** from Lecture 04, comparing $L D \tilde{U} = (\tilde{U}^T) D (L^T)$ uniquely locks in $\tilde{U} = L^T$. Q.E.D.! (This also explains the miracle you computed by hand in Exercise `l04-ex1` of Lecture 04!)
+</ProofCollapse>
+
+---
+
+## 3. Opening the Doors to Chapter 3: Vector Spaces $\mathbb{R}^n$ and Subspaces
+
+From this point forward, our gaze shifts away from one or two isolated vectors toward **entire collections of vectors that are self-contained under linear operations**.
+
+What is the real **vector space** $\mathbb{R}^n$? Geometrically, $\mathbb{R}^2$ is the 2D plane consisting of all column vectors with $2$ real components, $\mathbb{R}^3$ is 3D physical space consisting of all column vectors with $3$ real components, and $\mathbb{R}^n$ is the home of all $n\times 1$ real column vectors. We call them "vector spaces" because inside them you can freely perform two fundamental operations—**vector addition ($\mathbf{v} + \mathbf{w}$)** and **scalar multiplication ($c\mathbf{v}$)**, combined into **arbitrary linear combinations $c\mathbf{v} + d\mathbf{w}$**—subject to the eight standard axioms (commutativity, associativity, existence of a zero vector, additive inverses, distributive laws, etc.), and the resulting vector will never leave the space.
+
+Yet the true heart of linear algebra lies in **subspaces**—geometric slices living inside a larger ambient space $\mathbb{R}^n$ that form complete, self-contained smaller vector spaces in their own right!
+
+### 3.1 Iron Rule #1: Why Must Every Subspace Pass Through the Origin $\mathbf{0}$?
+
+Beginners are often tempted to call any straight line in $\mathbb{R}^2$ a subspace. **Put the brakes on that thought immediately!**
+
+Suppose a set $S \subseteq \mathbb{R}^2$ is a shifted line that **misses the origin** $(0, 0)^T$ (for example, all points on the line $x + 2y = 3$). Pick any vector $\mathbf{v} \in S$ on that line:
+- For $S$ to qualify as a valid subspace, multiplying $\mathbf{v}$ by **any real scalar $c \in \mathbb{R}$** must keep the result inside $S$;
+- Now simply choose the scalar **$c = 0$**! Computing $0 \cdot \mathbf{v} = \mathbf{0} = (0, 0)^T$ drops us right onto the origin, which lies outside the line—so $0\mathbf{v} \notin S$, and $S$ is disqualified on the spot!
+
+Now examine another famous "impostor"—the **first quadrant** of the 2D plane, $Q_1 = \{(x, y)^T \in \mathbb{R}^2 : x \ge 0,\; y \ge 0\}$:
+- Does it contain the origin $(0,0)^T$? Yes!
+- If you add any two vectors in the first quadrant, does $\mathbf{v} + \mathbf{w}$ stay in the first quadrant? Yes! (It is closed under addition!)
+- **Is it a subspace? Absolutely not!** Pick $\mathbf{v} = (2, 1)^T \in Q_1$ and multiply by the negative scalar $c = -1$: $(-1)\mathbf{v} = (-2, -1)^T$ flies straight into the third quadrant! (It fails closure under multiplication by negative scalars!)
+
+<SubspacesOfR2AndImpostorsDiagram caption="True subspaces of ℝ² (lines through the origin) versus classic impostors: a shifted line misses the origin under c = 0, the first quadrant fails under negative scalar multiplication c < 0, and a union of two lines fails under vector addition." />
+
+<InteractiveCanvasSlot
+  id="l05-subspace-closure-tester"
+  title="ℝ² / ℝ³ Subspace Closure Tester"
+  description="Interactive sandbox: switch between candidate sets in 2D or 3D (line through the origin, shifted line, first quadrant, union of two lines, plane through the origin), drag the linear combination sliders $c\mathbf{v} + d\mathbf{w}$, and see in real time whether the combined vector breaks out of the set."
+/>
+
+<DefinitionCard
+  label="Definition 5.2"
+  title="Subspace of ℝⁿ & Closure under Linear Combinations"
+>
+Let $V \subseteq \mathbb{R}^n$ be a nonempty subset ($V \neq \varnothing$). We call $V$ a **subspace** of $\mathbb{R}^n$ if and only if $V$ is **closed under all real linear combinations**—that is, for any vectors $\mathbf{v}, \mathbf{w} \in V$ and any real scalars $c, d \in \mathbb{R}$, we always have:
+
+$$
+c\mathbf{v} + d\mathbf{w} \in V
+$$
+
+(Equivalently split into two rules: ① Closure under addition: $\mathbf{v}, \mathbf{w} \in V \implies \mathbf{v} + \mathbf{w} \in V$; ② Closure under scalar multiplication: $\mathbf{v} \in V, c \in \mathbb{R} \implies c\mathbf{v} \in V$. Since $V$ is nonempty, setting $c = d = 0$ immediately guarantees that **the zero vector $\mathbf{0} \in V$**.)
+</DefinitionCard>
+
+### 3.2 Complete Classification: What Are All the Subspaces of $\mathbb{R}^2$ and $\mathbb{R}^3$?
+
+Under the magnifying glass of Definition 5.2, the complete list of valid subspaces in 2D and 3D space is crystal clear, with zero gray area:
+
+- **All Subspaces of $\mathbb{R}^2$ (3 types in total, dimensions 0, 1, 2)**:
+  1. **The zero subspace $\{\mathbf{0}\}$** (containing only the single point $(0,0)^T$, since $\mathbf{0} + \mathbf{0} = \mathbf{0}$ and $c\mathbf{0} = \mathbf{0}$ is completely closed! Note that this is the singleton set $\{\mathbf{0}\}$, never the empty set $\varnothing$!);
+  2. **Any infinite straight line $L$ passing through the origin $\mathbf{0}$**;
+  3. **The entire 2D plane $\mathbb{R}^2$ itself**.
+
+- **All Subspaces of $\mathbb{R}^3$ (4 types in total, dimensions 0, 1, 2, 3)**:
+  1. **The zero subspace $\{\mathbf{0}\}$** ($0$-dimensional);
+  2. **Any infinite straight line $L$ passing through the origin** ($1$-dimensional);
+  3. **Any infinite flat plane $P$ passing through the origin** ($2$-dimensional);
+  4. **The entire 3D space $\mathbb{R}^3$ itself** ($3$-dimensional).
+
+Finally, let us return to our old friend, an $m\times n$ matrix $A \in \mathbb{R}^{m\times n}$: starting from a matrix, how do we build a genuine subspace of $\mathbb{R}^m$ in one second? The answer is the **column space $\operatorname{Col}(A)$** seeded back in Lecture 01—take **all possible linear combinations** of the columns of $A$! Because $\operatorname{Col}(A)$ is by definition the set of all linear combinations of the columns, taking any two combinations $A\mathbf{x}_1$ and $A\mathbf{x}_2$ inside it and forming a new linear combination $c(A\mathbf{x}_1) + d(A\mathbf{x}_2) = A(c\mathbf{x}_1 + d\mathbf{x}_2)$ automatically produces another linear combination of the columns of $A$! In the next lecture (Lecture 06), we will bring the column space and its twin brother, the **nullspace $\operatorname{Null}(A)$**, onto the stage together.
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+1. **Pitfall 1: "The empty set $\varnothing$ is the smallest zero-dimensional subspace" (Conceptual confusion!)**
+   **Wrong!** The very first axiom of any vector space or subspace is that it **must contain the additive identity (the zero vector $\mathbf{0}$)**. Consequently, every subspace has at least $1$ element; the smallest subspace is the singleton set **$\{\mathbf{0}\}$** (which has dimension $0$), whereas the empty set $\varnothing$ does not even contain the zero vector and is **never** a subspace!
+2. **Pitfall 2: "Checking $\mathbf{0} \in S$ is enough to prove $S$ is a subspace" (Confusing a necessary condition with a sufficient one!)**
+   Having $\mathbf{0} \in S$ is only a **necessary condition** (useful for instantly disqualifying shifted sets that miss the origin: $\mathbf{0} \notin S \implies$ definitely not a subspace), never a sufficient condition! For instance, the parabola $\{(x, y)^T : y = x^2\}$, the first quadrant, and the union of the two coordinate axes all pass through the origin $\mathbf{0}$, yet every one of them breaks closure under addition or scalar multiplication, so none of them is a subspace!
+3. **Pitfall 3: "The product $AB$ of two symmetric matrices $A$ and $B$ is also symmetric"**
+   One line with the reverse-order transpose law reveals the truth: $(AB)^T = B^T A^T = BA$! Thus **$AB$ is symmetric if and only if $A$ and $B$ commute ($AB = BA$)**! Multiplying almost any two non-commuting $2\times 2$ symmetric matrices produces a non-symmetric matrix.
+4. **Pitfall 4: Treating $R^T R$ and $R R^T$ of a rectangular matrix as having the same size**
+   If $R \in \mathbb{R}^{3\times 2}$, then $R^T R$ is a $2\times 2$ symmetric matrix, whereas $R R^T$ is a $3\times 3$ symmetric matrix (not only do their sizes differ, the latter is a singular symmetric matrix of rank at most $2$!).
+</PitfallAlert>
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "There are $n!$ permutation matrices of order $n$, forming a closed group under multiplication, and every permutation matrix obeys the orthogonal inverse law **$P^{-1} = P^T$** (i.e., $P^T P = I_n$).",
+    "Transposing a product reverses the order: **$(AB)^T = B^T A^T$**; for any $m\\times n$ real matrix $R$, both the inner-product matrix $R^T R$ and the outer-product matrix $R R^T$ are guaranteed to be real symmetric square matrices.",
+    "If an invertible real symmetric matrix $A = A^T$ requires no row exchanges, its $LDU$ factorization automatically collapses symmetrically into **$A = L D L^T$**.",
+    "The sole necessary and sufficient criterion for a nonempty set $V \\subseteq \\mathbb{R}^n$ to be a subspace is **closure under all real linear combinations** ($\\forall \\mathbf{v}, \\mathbf{w} \\in V, \\forall c, d \\in \\mathbb{R} \\implies c\\mathbf{v} + d\\mathbf{w} \\in V$); any set missing the origin $\\mathbf{0}$ is immediately disqualified."
+  ]}
+/>
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+<ExerciseCard
+  id="l05-ex1"
+  tier="L1"
+  tierLabel="L1 · Quick Geometric Check"
+  title="Cyclic Permutation Powers and Inner vs. Outer Symmetric Products: P³ = I and RᵀR vs. RRᵀ"
+>
+1. Consider the $3\times 3$ cyclic permutation matrix $P = \begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ 1 & 0 & 0 \end{bmatrix}$. Without grinding through entry-by-entry multiplication, use the physical action of "cyclic row shifting" to write down $P^2$, $P^3$, and the inverse $P^{-1}$ directly, and verify that $P^{-1} = P^T = P^2$!
+2. Given the $1\times 3$ row matrix $R = \begin{bmatrix} 1 & -2 & 3 \end{bmatrix} \in \mathbb{R}^{1\times 3}$, compute $R R^T$ and $R^T R$, and compare their dimensions, symmetry, and invertibility!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Left-multiplying by $P$ sends $(x_1, x_2, x_3)^T$ to $(x_2, x_3, x_1)^T$ (shifting every component up by one slot cyclically)! What happens when you shift twice in a row? What about three times in a row—does it land right back at $(x_1, x_2, x_3)^T$?",
+    "$R$ is $1\\times 3$ and $R^T$ is $3\\times 1$: $R R^T$ is a $(1\\times 3)(3\\times 1) = 1\\times 1$ scalar inner product, whereas $R^T R$ is a $(3\\times 1)(1\\times 3) = 3\\times 3$ rank-1 outer product matrix!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. Picture the three slots as a carousel: rotating by 1 slot is $P$, rotating by 2 slots is $P^2$, and rotating by 3 slots brings everyone right back to the start ($P^3 = I_3$)! Since $P \cdot P^2 = I_3$, undoing a "1-slot forward rotation" is the exact same thing as either a "2-slot forward rotation ($P^2$)" or a "1-slot backward rotation ($P^T$)"—so $P^{-1} = P^2 = P^T$ are three faces of the same matrix!
+2. $R R^T = [1^2 + (-2)^2 + 3^2] = [14]$ is a nonzero $1\times 1$ full-rank invertible matrix; flipping the order to $R^T R$ produces a $3\times 3$ symmetric rank-1 outer-product grid whose three columns are all multiples of one another, making it 100% singular and non-invertible!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. For any $\mathbf{x} = (x_1, x_2, x_3)^T \in \mathbb{R}^3$, we have $P\mathbf{x} = (x_2, x_3, x_1)^T$, so $P^2\mathbf{x} = (x_3, x_1, x_2)^T$ and $P^3\mathbf{x} = (x_1, x_2, x_3)^T = \mathbf{x} \implies P^3 = I_3$. This immediately gives:
+
+$$
+P^2 = \begin{bmatrix}
+0 & 0 & 1 \\
+1 & 0 & 0 \\
+0 & 1 & 0
+\end{bmatrix} = P^T = P^{-1}
+$$
+
+2. Computing the two symmetric products:
+
+$$
+R R^T = \begin{bmatrix} 1 & -2 & 3 \end{bmatrix} \begin{bmatrix} 1 \\ -2 \\ 3 \end{bmatrix} = \begin{bmatrix} 14 \end{bmatrix} \in \mathbb{R}^{1\times 1} \quad (\text{symmetric and invertible, with inverse } [\tfrac{1}{14}])
+$$
+
+$$
+R^T R = \begin{bmatrix} 1 \\ -2 \\ 3 \end{bmatrix} \begin{bmatrix} 1 & -2 & 3 \end{bmatrix}
+= \begin{bmatrix}
+1 & -2 & 3 \\
+-2 & 4 & -6 \\
+3 & -6 & 9
+\end{bmatrix} \in \mathbb{R}^{3\times 3} \quad (\text{symmetric but singular, since } (R^TR)(2,1,0)^T = \mathbf{0})
+$$
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l05-ex2"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Conceptual Check: Is the Product AB of Two Real Symmetric Matrices Necessarily Symmetric?"
+>
+Determine whether the following statement is true or false, and construct a minimal $2\times 2$ counterexample in your head:
+
+> **Statement**: If $A \in \mathbb{R}^{n\times n}$ and $B \in \mathbb{R}^{n\times n}$ ($n \ge 2$) are both real symmetric matrices (i.e., $A^T = A$ and $B^T = B$), then their product $AB$ must also be a real symmetric matrix.
+
+<TrueFalseInteractive
+  id="l05-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! By the reverse-order transpose law $(AB)^T = B^T A^T = BA$, the product $AB$ is symmetric if and only if $A$ and $B$ happen to commute ($AB = BA$)!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "The sole test for symmetry is to compute $(AB)^T$: by the shoes-and-socks reverse-order law, $(AB)^T = B^T A^T = BA$!",
+    "Try multiplying a simple diagonal matrix $A = \\begin{bmatrix} 1 & 0 \\\\ 0 & 2 \\end{bmatrix}$ by a symmetric off-diagonal matrix $B = \\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix}$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+When a transpose hits a product, the factors must reverse order! Even though $A$ and $B$ are individually unchanged by transposition, $(AB)^T$ flips around to become $BA$. Left-multiplying by the diagonal matrix $\operatorname{diag}(1, 2)$ scales **row 2** by $2$, whereas right-multiplying by it scales **column 2** by $2$—one horizontal and one vertical scaling immediately breaks mirror symmetry across the main diagonal! (Contrast this with the sandwich product **$ABA$**, which is *always* symmetric because $(ABA)^T = A^T B^T A^T = ABA$!)
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+Construct a minimal $2\times 2$ counterexample by choosing the real symmetric matrices:
+
+$$
+A = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix} = A^T, \qquad
+B = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} = B^T
+$$
+
+Compute their product and its transpose:
+
+$$
+AB = \begin{bmatrix} 0 & 1 \\ 2 & 0 \end{bmatrix}, \qquad
+(AB)^T = \begin{bmatrix} 0 & 2 \\ 1 & 0 \end{bmatrix} = BA \neq AB
+$$
+
+Thus $AB$ is not symmetric. (Necessary and sufficient condition: for symmetric $A$ and $B$, $AB$ is symmetric $\iff (AB)^T = AB \iff BA = AB$.)
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l05-ex3"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Conceptual Check: Is the Origin-Centered Double Cone b₁² + b₂² − b₃² = 0 a Subspace?"
+>
+Determine whether the following statement is true or false:
+
+> **Statement**: In 3D space $\mathbb{R}^3$, the double cone $S = \{(x, y, z)^T \in \mathbb{R}^3 : x^2 + y^2 - z^2 = 0\}$ both contains the origin $\mathbf{0}$ and is closed under multiplication by any real scalar (if $\mathbf{v} \in S$, then $c\mathbf{v} \in S$ for all $c \in \mathbb{R}$); therefore $S$ is a subspace of $\mathbb{R}^3$.
+
+<TrueFalseInteractive
+  id="l05-tf2"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! This is the classic litmus test for whether you forgot to check closure under addition: although $S$ contains the origin and is closed under all scalar multiples $c\mathbf{v}$ (being a bundle of infinitely many lines through the origin), adding two vectors from different sides of the cone gives $(1, 0, 1)^T + (0, 1, 1)^T = (1, 1, 2)^T$, where $1^2 + 1^2 - 2^2 = -2 \neq 0$—addition jumps right off the cone!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Checking 'contains the origin' and 'closure under scalar multiplication $c\\mathbf{v} \\in S$' leaves out which half of the definition? Did we check vector addition $\\mathbf{v} + \\mathbf{w} \\in S$?",
+    "Try adding two simple integer points on the cone, such as $\\mathbf{v} = (1, 0, 1)^T$ and $\\mathbf{w} = (-1, 0, 1)^T$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+This problem teaches a vital geometric lesson! Many students think "contains the origin + closed under positive and negative stretching $c\mathbf{v}$" is enough to make a subspace—wrong! That only guarantees the set is a "starburst bundle" of lines through the origin (the ruling lines of the cone). The moment you add two vectors lying on different ruling lines tip-to-tail, their sum dives into the hollow interior of the cone! In $\mathbb{R}^3$, a genuine 2D subspace must be a **flat plane**, with zero quadratic curvature allowed!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+Pick two explicit vectors in $S$:
+
+$$
+\mathbf{v} = \begin{bmatrix} 1 \\ 0 \\ 1 \end{bmatrix} \in S \;\; (1^2 + 0^2 - 1^2 = 0), \qquad
+\mathbf{w} = \begin{bmatrix} -1 \\ 0 \\ 1 \end{bmatrix} \in S \;\; ((-1)^2 + 0^2 - 1^2 = 0)
+$$
+
+Test their sum $\mathbf{u} = \mathbf{v} + \mathbf{w} = (0, 0, 2)^T$:
+
+$$
+0^2 + 0^2 - 2^2 = -4 \neq 0 \quad \Longrightarrow \quad \mathbf{v} + \mathbf{w} \notin S
+$$
+
+Closure under addition fails, so $S$ is not a subspace of $\mathbb{R}^3$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l05-ex4"
+  tier="L3"
+  tierLabel="L3 · Zero-Calculation Subspace Reasoning"
+  title="Subspace Litmus Test: Rapid Closure Screening for Four Sets in ℝ³"
+>
+In $\mathbb{R}^3$, determine whether each of the following four sets is a subspace of $\mathbb{R}^3$. If it is, describe its geometric shape; if not, state which closure rule it violates:
+1. $S_1 = \left\{ (b_1, b_2, b_3)^T \in \mathbb{R}^3 : b_1 + 2b_2 - 3b_3 = 0 \right\}$
+2. $S_2 = \left\{ (b_1, b_2, b_3)^T \in \mathbb{R}^3 : b_1 + 2b_2 - 3b_3 = 1 \right\}$
+3. $S_3 = \left\{ (b_1, b_2, b_3)^T \in \mathbb{R}^3 : b_1 b_2 = 0 \right\}$
+4. $S_4 = \text{the set of all vectors of the form } c \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix} + d \begin{bmatrix} 0 \\ 2 \\ -1 \end{bmatrix} \; (c, d \in \mathbb{R})$
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Use the 'zero-vector test ($\\mathbf{0} \\in S_i$?)' to eliminate $S_2$ in one second!",
+    "Watch out for $S_3$ ($b_1 b_2 = 0$): this means '$b_1 = 0$ **or** $b_2 = 0$' (the union of two coordinate planes, the $yz$-plane and the $xz$-plane)! Grab one vector from each plane, say $(1, 0, 0)^T$ and $(0, 1, 0)^T$, add them together, and check whether the product of their first two components is still $0$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+- **$S_1$ (✓ Subspace)**: A **plane through the origin** defined by a homogeneous linear equation! The left side is linear and the right side is zero: $0 + 0 = 0$ and $c\cdot 0 = 0$, so it is always closed.
+- **$S_2$ (✗ Not a subspace)**: The constant term is $1 \neq 0$; plugging in the origin $(0,0,0)^T$ gives $0 \neq 1$. A shifted plane missing the origin is immediately disqualified!
+- **$S_3$ (✗ Not a subspace)**: The most deceptive trap! $b_1 b_2 = 0$ looks homogeneous (it contains the origin and is closed under scalar multiplication), but geometrically it is the **union of two perpendicular coordinate planes**! Adding $(1,0,0)^T$ from one plane to $(0,1,0)^T$ from the other gives $(1,1,0)^T$, whose product is $1\times 1 = 1 \neq 0$, landing right in the gap between the two planes!
+- **$S_4$ (✓ Subspace)**: This is the **column space** of the matrix $\begin{bmatrix} 1 & 0 \\ 1 & 2 \\ 0 & -1 \end{bmatrix}$ (the plane through the origin spanned by two non-collinear vectors), which is closed under linear combinations by construction!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **$S_1$ is a subspace**: Clearly $\mathbf{0} \in S_1$. For any $\mathbf{u}, \mathbf{v} \in S_1$ and $\alpha, \beta \in \mathbb{R}$, let $\mathbf{n} = (1, 2, -3)^T$. Then $\mathbf{n}^T(\alpha\mathbf{u} + \beta\mathbf{v}) = \alpha(\mathbf{n}^T\mathbf{u}) + \beta(\mathbf{n}^T\mathbf{v}) = \alpha\cdot 0 + \beta\cdot 0 = 0 \implies \alpha\mathbf{u} + \beta\mathbf{v} \in S_1$ (a 2D plane through the origin).
+2. **$S_2$ is not a subspace**: Testing the zero vector gives $0 + 2(0) - 3(0) = 0 \neq 1 \implies \mathbf{0} \notin S_2$, violating the necessary condition for a subspace.
+3. **$S_3$ is not a subspace**: Take $\mathbf{u} = (1, 0, 0)^T \in S_3$ and $\mathbf{v} = (0, 1, 0)^T \in S_3$; their sum $\mathbf{u} + \mathbf{v} = (1, 1, 0)^T$ has $1 \cdot 1 = 1 \neq 0 \implies \mathbf{u} + \mathbf{v} \notin S_3$, violating closure under addition.
+4. **$S_4$ is a subspace**: Let $A = \begin{bmatrix} 1 & 0 \\ 1 & 2 \\ 0 & -1 \end{bmatrix}$; then $S_4 = \{A\mathbf{x} : \mathbf{x} \in \mathbb{R}^2\} = \operatorname{Col}(A)$. For any $A\mathbf{x}_1, A\mathbf{x}_2 \in S_4$ and $\alpha, \beta \in \mathbb{R}$, we have $\alpha(A\mathbf{x}_1) + \beta(A\mathbf{x}_2) = A(\alpha\mathbf{x}_1 + \beta\mathbf{x}_2) \in S_4$ (a 2D plane through the origin).
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l05-ex5"
+  tier="L4"
+  tierLabel="L4 · MIT 18.06 Exam Synthesis"
+  title="MIT 18.06 Synthesis Challenge: Permutation Parity & Symmetric/Skew-Symmetric Decomposition"
+>
+(Combining permutation inverse properties with matrix symmetry and subspace decomposition)
+1. Let $P \in \mathbb{R}^{4\times 4}$ be the $4\times 4$ cyclic permutation matrix that maps $(x_1, x_2, x_3, x_4)^T$ to $(x_4, x_1, x_2, x_3)^T$. **What is the minimum number of single row exchanges** required to obtain $P$ from $I_4$? Also find the smallest positive integer $k$ satisfying $P^k = I_4$ and the smallest positive integer $m$ satisfying $P^T = P^m$.
+2. A square matrix $K \in \mathbb{R}^{n\times n}$ is called **skew-symmetric** if $K^T = -K$. Prove that:
+   - Every diagonal entry of a skew-symmetric matrix must be $0$;
+   - **Every square matrix** $M \in \mathbb{R}^{n\times n}$ can be **uniquely** decomposed as the sum of a symmetric matrix $S$ and a skew-symmetric matrix $K$, $M = S + K$! (Write down explicit formulas for $S$ and $K$ in terms of $M$ and $M^T$, and prove uniqueness!)
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1: Track $(1, 2, 3, 4) \\to (4, 1, 2, 3)$—how many adjacent swaps does it take to bubble row 4 all the way up to row 1? One full cycle takes 4 steps, so $P^4 = I_4$; multiplying both sides by $P^{-1} = P^T$ immediately gives $P^T = P^3$!",
+    "Part 2: Analogous to splitting any function into an even part $\\frac{f(x)+f(-x)}{2}$ plus an odd part $\\frac{f(x)-f(-x)}{2}$! Write $M = S + K$ and transpose both sides to get $M^T = S^T + K^T = S - K$; adding and subtracting the two equations solves for $S$ and $K$ immediately!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. Swapping the player in slot 4 successively with slots 3, 2, and 1 takes **3 row exchanges** to reach $(4, 1, 2, 3)$! Each application shifts every slot down by 1 position cyclically, so 4 shifts return everyone home ($k=4$), and stepping backward by 1 slot ($P^{-1} = P^T$) is identical to stepping forward by 3 slots ($m=3$)!
+2. Splitting an arbitrary square matrix into "symmetric + skew-symmetric" parts is one of the most classic decompositions in linear algebra: $(M + M^T)/2$ is born symmetric, $(M - M^T)/2$ is born skew-symmetric (subtracting the diagonal from itself leaves all $0$s!), their sum reconstructs $M$ exactly, and there is no second way to do it!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **Analysis of the $4\times 4$ cyclic permutation $P$**:
+
+$$
+P = \begin{bmatrix}
+0 & 0 & 0 & 1 \\
+1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0
+\end{bmatrix} = P_{12} P_{23} P_{34}
+$$
+
+   - Each single row exchange can increase the length of a connected cycle by at most $1$, so a single cycle of length $4$ requires a minimum of $4 - 1 = \mathbf{3}$ **row exchanges** (an odd permutation).
+   - For general $\mathbf{x} \in \mathbb{R}^4$, none of $P\mathbf{x}, P^2\mathbf{x}, P^3\mathbf{x}$ is identically $\mathbf{x}$, whereas $P^4\mathbf{x} = \mathbf{x}$, so the smallest positive period is $k = \mathbf{4}$.
+   - From $P^4 = I_4$ and Theorem 5.1 Part 2 ($P^{-1} = P^T$), left-multiplying both sides by $P^T$ gives $P^T = P^3$, so the smallest positive integer is $m = \mathbf{3}$.
+
+2. **Skew-symmetric properties and unique decomposition $M = S + K$**:
+   - If $K^T = -K$, inspecting the $(i, i)$ main diagonal entry gives $(K^T)_{ii} = K_{ii} = -K_{ii} \implies 2K_{ii} = 0 \implies K_{ii} = 0$ for all $i = 1, \dots, n$.
+   - **Uniqueness (assuming existence to derive the formulas)**: Suppose $M = S + K$ with $S^T = S$ and $K^T = -K$. Transposing both sides yields:
+
+$$
+M^T = (S + K)^T = S^T + K^T = S - K
+$$
+
+     Adding and subtracting $M = S + K$ and $M^T = S - K$, then dividing by $2$, forces:
+
+$$
+S = \frac{1}{2}(M + M^T), \qquad K = \frac{1}{2}(M - M^T)
+$$
+
+     This proves that if a decomposition exists, $S$ and $K$ are uniquely determined.
+   - **Existence verification**: For the explicit formulas above, $S + K = \frac{1}{2}(M+M^T) + \frac{1}{2}(M-M^T) = M$; moreover, $S^T = \frac{1}{2}(M^T + M) = S$ (symmetric) and $K^T = \frac{1}{2}(M^T - M) = -K$ (skew-symmetric). Q.E.D.!
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>

@@ -1,0 +1,992 @@
+---
+title: "Lecture 35: Final Course Review — The Grand Panorama of Linear Algebra"
+ocwId: "L34"
+videoEpisode: "P35"
+textbookRef: "Course Grand Finale"
+---
+
+In the final lecture of MIT 18.06, Prof. Gilbert Strang stands at the blackboard and looks back over the entire journey we have climbed since Lecture 01. From two lines intersecting in the plane, $A\mathbf{x} = \mathbf{b}$, all the way to the summit of the **Singular Value Decomposition (SVD)** and the **Moore-Penrose Pseudoinverse**, this course might look like a collection of dozens of formulas and techniques. Yet once you strip away the computational details, the entire edifice of linear algebra rests on just **two central pillars** and **one unifying geometric spirit**:
+
+1. **The Two Pillars**:
+   - **Pillar I: The Four Fundamental Subspaces** — establishing exact dimension counting, $90^\circ$ **orthogonal complement** splittings in the input space $\mathbb{R}^n$ and output space $\mathbb{R}^m$, and the SVD orthonormal bijection between them;
+   - **Pillar II: The Four Great Factorizations** — Gaussian elimination $PA = LU$, orthogonalization $A = QR$, spectral diagonalization $A = S\Lambda S^{-1}$ (with its symmetric crown $A = Q\Lambda Q^T$), and the universal decomposition $A = U\Sigma V^T$. Each factorization turns static matrix structure into a sequence of transparent geometric actions.
+2. **One Geometric Spirit**:
+   Whether a system has a unique solution or no solution at all, whether $A$ is square or rectangular, invertible or singular, **$A\mathbf{x}$ is always a linear combination of the columns of $A$**, and the essence of optimal approximation is always **orthogonal projection onto a subspace**.
+
+This grand finale brings together a visual mind map, the three-part Fundamental Theorem, a master comparison table of all factorizations, three cross-module Rosetta Stone theorems, a top-10 pitfall inspection, and six comprehensive MIT 18.06 final-exam synthesis problems so that all 35 lectures lock together into a single, permanent mental framework.
+
+<GrandFinaleFourSubspacesFactorizationsDiagram caption="Grand Finale overview: the Four Fundamental Subspaces (Row(A) ⊥ Null(A) in ℝⁿ and Col(A) ⊥ Null(Aᵀ) in ℝᵐ) linked by the SVD bijection A = UΣVᵀ, alongside the Four Great Factorizations (PA = LU, A = QR, SΛS⁻¹ / QΛQᵀ, and UΣVᵀ)." />
+
+---
+
+## 1. Pillar I: The Three-Part Fundamental Theorem of Linear Algebra (From Lecture 06 to Lecture 34)
+
+Before stating the abstract theorem, let us do what Gilbert Strang loves most: take **one tiny $3 \times 2$ integer matrix** and see all three parts of the Fundamental Theorem (Part I dimensions, Part II orthogonal complements, Part III SVD orthonormal bases and pseudoinverse bijection) at a single glance.
+
+### 1.1 Tier 1 Geometric and Numerical X-Ray: A $3 \times 2$ Rank-1 Matrix
+
+Consider the rectangular, rank-deficient matrix $A \in \mathbb{R}^{3\times 2}$:
+
+$$
+A = \begin{bmatrix} 3 & 4 \\ 6 & 8 \\ 6 & 8 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix} \begin{bmatrix} 3 & 4 \end{bmatrix}
+$$
+
+With no heavy calculation—just the column picture and the rank-1 outer product—every piece of its geometry is immediately visible:
+
+1. **Fundamental Theorem Part I (Dimension Conservation)**:
+   Column 2 of $A$ is $\frac{4}{3}$ times Column 1, and Rows 2 and 3 are each $2$ times Row 1, so the rank is $r = \operatorname{rank}(A) = 1$ (with $m = 3, n = 2$). Therefore:
+   - In the input space $\mathbb{R}^2$: $\dim\operatorname{Row}(A) = r = 1$ and $\dim\operatorname{Null}(A) = n - r = 2 - 1 = 1$;
+   - In the output space $\mathbb{R}^3$: $\dim\operatorname{Col}(A) = r = 1$ and $\dim\operatorname{Null}(A^T) = m - r = 3 - 1 = 2$.
+2. **Fundamental Theorem Part II (Orthogonal Complements)**:
+   - In $\mathbb{R}^2$, the row space $\operatorname{Row}(A) = \operatorname{span}\{[3, 4]^T\}$ is a line; the nullspace $\operatorname{Null}(A)$ satisfies $3x_1 + 4x_2 = 0$, so $\operatorname{Null}(A) = \operatorname{span}\{[-4, 3]^T\}$. Clearly $[3, 4] \cdot [-4, 3]^T = -12 + 12 = 0$—the two lines meet at $90^\circ$ as exact orthogonal complements!
+   - In $\mathbb{R}^3$, the column space $\operatorname{Col}(A) = \operatorname{span}\{[1, 2, 2]^T\}$ is a line; the left nullspace $\operatorname{Null}(A^T)$ satisfies $y_1 + 2y_2 + 2y_3 = 0$, a 2D plane spanned by $[-2, 1, 0]^T$ and $[-2, 0, 1]^T$, perpendicular to $[1, 2, 2]^T$—the exact orthogonal complement plane of $\operatorname{Col}(A)$!
+3. **Fundamental Theorem Part III (SVD Orthonormal Bases & Pseudoinverse Bijection)**:
+   Normalize the row vector $[3, 4]^T$ (length $\sqrt{3^2 + 4^2} = 5$) and the column vector $[1, 2, 2]^T$ (length $\sqrt{1^2 + 2^2 + 2^2} = 3$):
+
+   $$
+   \mathbf{v}_1 = \frac{1}{5}\begin{bmatrix} 3 \\ 4 \end{bmatrix}, \quad \mathbf{v}_2 = \frac{1}{5}\begin{bmatrix} -4 \\ 3 \end{bmatrix}; \qquad \mathbf{u}_1 = \frac{1}{3}\begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}
+   $$
+
+   Applying Gram-Schmidt to the basis of $\operatorname{Null}(A^T)$ completes the left singular basis with:
+
+   $$
+   \mathbf{u}_2 = \frac{1}{\sqrt{5}}\begin{bmatrix} -2 \\ 1 \\ 0 \end{bmatrix}, \qquad \mathbf{u}_3 = \frac{1}{3\sqrt{5}}\begin{bmatrix} -2 \\ -4 \\ 5 \end{bmatrix}
+   $$
+
+   The single nonzero singular value is $\sigma_1 = 3 \times 5 = 15$, satisfying:
+
+   $$
+   A\mathbf{v}_1 = 15\mathbf{u}_1, \qquad A\mathbf{v}_2 = \mathbf{0}, \qquad A^+\mathbf{u}_1 = \frac{1}{15}\mathbf{v}_1, \qquad A^+\mathbf{u}_2 = A^+\mathbf{u}_3 = \mathbf{0}
+   $$
+
+   And the Moore-Penrose pseudoinverse is:
+
+   $$
+   A^+ = \frac{1}{15}\mathbf{v}_1 \mathbf{u}_1^T = \frac{1}{225}\begin{bmatrix} 3 & 6 & 6 \\ 4 & 8 & 8 \end{bmatrix}
+   $$
+
+   Between the 1D line $\operatorname{Row}(A)$ and the 1D line $\operatorname{Col}(A)$, $A$ and $A^+$ reduce the entire linear map to **multiplication by the scalar $15$ and its reciprocal $\frac{1}{15}$**!
+
+### 1.2 Tier 2 Rigorous Formulation: The Three-Part Fundamental Theorem
+
+<TheoremCard label="Theorem" title="The Fundamental Theorem of Linear Algebra (Parts I, II, and III)">
+
+Let $A \in \mathbb{R}^{m\times n}$ be any real matrix of rank $r = \operatorname{rank}(A)$ ($0 \le r \le \min(m,n)$). Denote the column space by $\operatorname{Col}(A)$ (Strang's $C(A)$), the nullspace by $\operatorname{Null}(A)$ ($N(A)$), the row space by $\operatorname{Row}(A) = \operatorname{Col}(A^T)$, and the left nullspace by $\operatorname{Null}(A^T)$. Then:
+
+1. **Part I: Dimensions**:
+   - $\operatorname{Row}(A), \operatorname{Null}(A) \subseteq \mathbb{R}^n$, with $\dim\operatorname{Row}(A) = r$ and $\dim\operatorname{Null}(A) = n - r$ (the Rank-Nullity Theorem: $\dim\operatorname{Row}(A) + \dim\operatorname{Null}(A) = n$);
+   - $\operatorname{Col}(A), \operatorname{Null}(A^T) \subseteq \mathbb{R}^m$, with $\dim\operatorname{Col}(A) = r$ and $\dim\operatorname{Null}(A^T) = m - r$ (so $\dim\operatorname{Col}(A) + \dim\operatorname{Null}(A^T) = m$).
+   - Viewing $A$ as a linear transformation $T: \mathbb{R}^n \to \mathbb{R}^m$ ($T(\mathbf{x}) = A\mathbf{x}$), we have $\ker(T) = \operatorname{Null}(A)$ and $\operatorname{Im}(T) = \operatorname{Col}(A)$.
+2. **Part II: Orthogonal Complements**:
+   - In $\mathbb{R}^n$, the row space and nullspace are orthogonal complements:
+     $$
+     \operatorname{Null}(A) = \operatorname{Row}(A)^\perp \quad \text{and} \quad \mathbb{R}^n = \operatorname{Row}(A) \oplus \operatorname{Null}(A)
+     $$
+     Every $\mathbf{x} \in \mathbb{R}^n$ has a **unique** orthogonal decomposition $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$ ($\mathbf{x}_r \in \operatorname{Row}(A), \mathbf{x}_n \in \operatorname{Null}(A)$), obeying Pythagoras: $\|\mathbf{x}\|_2^2 = \|\mathbf{x}_r\|_2^2 + \|\mathbf{x}_n\|_2^2$.
+   - In $\mathbb{R}^m$, the column space and left nullspace are orthogonal complements:
+     $$
+     \operatorname{Null}(A^T) = \operatorname{Col}(A)^\perp \quad \text{and} \quad \mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T)
+     $$
+     Every $\mathbf{b} \in \mathbb{R}^m$ has a **unique** orthogonal decomposition $\mathbf{b} = \mathbf{p} + \mathbf{e}$ (projection $\mathbf{p} \in \operatorname{Col}(A)$, orthogonal error $\mathbf{e} \in \operatorname{Null}(A^T)$).
+3. **Part III: Orthonormal Bases & Diagonalization via SVD**:
+   There exist orthogonal matrices $U = [\mathbf{u}_1, \dots, \mathbf{u}_m] \in \mathbb{R}^{m\times m}$ and $V = [\mathbf{v}_1, \dots, \mathbf{v}_n] \in \mathbb{R}^{n\times n}$ and unique positive singular values $\sigma_1 \ge \dots \ge \sigma_r \gt 0$ such that $A = U\Sigma V^T$, simultaneously supplying orthonormal bases for all four fundamental subspaces:
+   - $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ is an orthonormal basis for $\operatorname{Row}(A)$; $\{\mathbf{v}_{r+1}, \dots, \mathbf{v}_n\}$ is an orthonormal basis for $\operatorname{Null}(A)$;
+   - $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ is an orthonormal basis for $\operatorname{Col}(A)$; $\{\mathbf{u}_{r+1}, \dots, \mathbf{u}_m\}$ is an orthonormal basis for $\operatorname{Null}(A^T)$.
+   Restricted to $\operatorname{Row}(A) \to \operatorname{Col}(A)$, $A$ is a **dimension-preserving bijection** with inverse $A^+ = V\Sigma^+ U^T$:
+   $$
+   A\mathbf{v}_i = \sigma_i \mathbf{u}_i, \quad A^T\mathbf{u}_i = \sigma_i \mathbf{v}_i, \quad A^+\mathbf{u}_i = \frac{1}{\sigma_i}\mathbf{v}_i \quad (1 \le i \le r)
+   $$
+   Meanwhile $A\mathbf{v}_j = \mathbf{0}$ ($j \gt r$) and $A^+\mathbf{u}_k = \mathbf{0}$ ($k \gt r$), with $A^+ A = V_r V_r^T = P_{\operatorname{Row}(A)}$ and $A A^+ = U_r U_r^T = P_{\operatorname{Col}(A)}$.
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: The Complete Three-Part Fundamental Theorem (RREF, Duality, and SVD)">
+
+**Step 1 (Part I: Dimensions)**:  
+Perform Gauss-Jordan elimination on $A \in \mathbb{R}^{m\times n}$ to obtain its unique Reduced Row Echelon Form $R = \operatorname{rref}(A) = EA$, where $E$ is an invertible product of elementary row-operation matrices. Left multiplication by invertible $E$ preserves the nullspace ($A\mathbf{x} = \mathbf{0} \iff EA\mathbf{x} = \mathbf{0}$) and preserves the row space ($\operatorname{Row}(A) = \operatorname{Row}(R)$). Let $R$ have $r$ nonzero rows (hence $r$ pivot columns):
+- The $r$ nonzero rows of $R$ each have a leading $1$ in a column where all other rows have $0$, so they are linearly independent; thus $\dim\operatorname{Row}(A) = \dim\operatorname{Row}(R) = r$.
+- The remaining $n - r$ free variables each generate one special solution (forming the $n - r$ linearly independent columns of the nullspace matrix $N$), so $\dim\operatorname{Null}(A) = n - r$.
+- For $\operatorname{Col}(A)$, the $r$ pivot columns of $R$ are linearly independent and span all columns of $R$. Since $A = E^{-1}R$ preserves all linear dependence relations among columns ($A\mathbf{c} = \mathbf{0} \iff R\mathbf{c} = \mathbf{0}$), the same $r$ pivot columns of $A$ are linearly independent and span $\operatorname{Col}(A)$. Hence $\dim\operatorname{Col}(A) = r = \dim\operatorname{Row}(A)$. Replacing $A$ by $A^T$ (which leaves rank unchanged) yields $\dim\operatorname{Null}(A^T) = m - r$.
+
+**Step 2 (Part II: Orthogonal Complements)**:  
+If $\mathbf{x} \in \operatorname{Null}(A)$, then $A\mathbf{x} = \mathbf{0}$ means $\mathbf{r}_i^T \mathbf{x} = 0$ for every row $\mathbf{r}_i^T$ of $A$. Any vector $\mathbf{y} = A^T\mathbf{z} \in \operatorname{Row}(A)$ satisfies $\mathbf{y}^T \mathbf{x} = (A^T\mathbf{z})^T\mathbf{x} = \mathbf{z}^T(A\mathbf{x}) = 0$, so $\operatorname{Null}(A) \subseteq \operatorname{Row}(A)^\perp$. Conversely, if $\mathbf{x} \in \operatorname{Row}(A)^\perp$, then $\mathbf{x}$ is orthogonal to every row of $A$, so $A\mathbf{x} = \mathbf{0}$ and $\mathbf{x} \in \operatorname{Null}(A)$. Thus $\operatorname{Null}(A) = \operatorname{Row}(A)^\perp$. Replacing $A$ by $A^T$ gives $\operatorname{Null}(A^T) = \operatorname{Col}(A)^\perp$. Because orthogonal subspaces intersect only at $\mathbf{0}$ ($\mathbf{w} \in V \cap V^\perp \implies \|\mathbf{w}\|_2^2 = \mathbf{w}^T\mathbf{w} = 0 \implies \mathbf{w} = \mathbf{0}$) and the dimensions from Part I sum to $n$ and $m$ respectively, we obtain the orthogonal direct sums $\mathbb{R}^n = \operatorname{Row}(A) \oplus \operatorname{Null}(A)$ and $\mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T)$.
+
+**Step 3 (Part III: SVD Orthonormal Bases & Pseudoinverse Bijection)**:  
+Consider the real symmetric positive semidefinite matrix $A^T A \in \mathbb{R}^{n\times n}$. By the lemma $\operatorname{Null}(A^T A) = \operatorname{Null}(A)$ (Lecture 16), $\operatorname{rank}(A^T A) = r$. By the Spectral Theorem for real symmetric matrices (Lecture 26), $A^T A$ has an orthonormal eigenbasis $\{\mathbf{v}_1,\dots,\mathbf{v}_n\}$ where the first $r$ eigenvectors have positive eigenvalues $\sigma_i^2 \gt 0$ and the last $n - r$ have eigenvalue $0$. For $j \gt r$, $A^T A\mathbf{v}_j = \mathbf{0} \implies \|A\mathbf{v}_j\|_2^2 = 0 \implies A\mathbf{v}_j = \mathbf{0}$, so $\{\mathbf{v}_{r+1},\dots,\mathbf{v}_n\}$ is an orthonormal basis for $\operatorname{Null}(A)$; by Part II, $\{\mathbf{v}_1,\dots,\mathbf{v}_r\}$ must be an orthonormal basis for $\operatorname{Row}(A)$. For $1 \le i \le r$, define $\mathbf{u}_i = \frac{1}{\sigma_i}A\mathbf{v}_i \in \operatorname{Col}(A)$. Then $\mathbf{u}_i^T \mathbf{u}_j = \frac{1}{\sigma_i\sigma_j}\mathbf{v}_i^T A^T A\mathbf{v}_j = \delta_{ij}$, so $\{\mathbf{u}_1,\dots,\mathbf{u}_r\}$ is automatically an orthonormal basis for $\operatorname{Col}(A)$, and $A^T\mathbf{u}_i = \frac{1}{\sigma_i}A^T A\mathbf{v}_i = \sigma_i\mathbf{v}_i$. Extending with Gram-Schmidt in $\operatorname{Null}(A^T)$ gives $\{\mathbf{u}_{r+1},\dots,\mathbf{u}_m\}$. Setting $A^+ = V\Sigma^+ U^T = \sum_{i=1}^r \frac{1}{\sigma_i}\mathbf{v}_i\mathbf{u}_i^T$ yields $A^+\mathbf{u}_i = \frac{1}{\sigma_i}\mathbf{v}_i$ ($i \le r$), $A^+\mathbf{u}_k = \mathbf{0}$ ($k \gt r$), $A^+ A = \sum_{i=1}^r \mathbf{v}_i\mathbf{v}_i^T = P_{\operatorname{Row}(A)}$, and $A A^+ = \sum_{i=1}^r \mathbf{u}_i\mathbf{u}_i^T = P_{\operatorname{Col}(A)}$.
+
+</ProofCollapse>
+
+---
+
+## 2. Pillar II: Master Comparison of the Four Great Factorizations
+
+Across MIT 18.06, we built four workhorse matrix factorizations (plus two specialized companions for symmetric and defective matrices: **Cholesky / $LDL^T$** and the **Jordan Canonical Form**). When you face a new matrix in science or engineering, your first instinct should not be blind computation—it should be **picking the right factorization for the job**.
+
+<DefinitionCard label="Master Table" title="Master Comparison of the Four Great Factorizations (+ Cholesky & Jordan)">
+
+| Factorization | Applicability & Matrix Shape | Subspaces Explicitly Revealed | Key Algebraic & Geometric Invariants | Core Problems Solved | Cost & Numerical Stability |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **1. Gaussian Elimination**<br/>$PA = LU$<br/>(Symmetric $A = LDL^T$ / Cholesky $A = R^T R$) | Any $A \in \mathbb{R}^{m\times n}$ (most often square); symmetric without row swaps $A=LDL^T$; SPD $A = R^T R$ | Preserves $\operatorname{Row}(A)$ and $\operatorname{Null}(A)$; pivot columns of $U$ locate a basis in $A$ for $\operatorname{Col}(A)$; **alters** $\operatorname{Col}(A)$ itself | $\det(A) = \pm \prod_{i=1}^n u_{ii}$; number of pivots equals $\operatorname{rank}(A)$; for symmetric $A$, pivot signs match eigenvalue signs | Exact linear systems $A\mathbf{x} = \mathbf{b}$; special solutions $N = [-F; I]$; **destroys eigenvalues** | $\mathcal{O}(\frac{1}{3}n^3)$ elimination + $\mathcal{O}(n^2)$ back substitution; partial pivoting $P$ ensures stability |
+| **2. Orthogonal-Triangular**<br/>$A = QR$ | Full-column-rank $A \in \mathbb{R}^{m\times n}$ ($\operatorname{rank}(A) = n \le m$), including invertible $m = n$ | Columns of $Q \in \mathbb{R}^{m\times n}$ form an **orthonormal basis** of $\operatorname{Col}(A)$ | Preserves parallelotope volume: for square $A$, $\operatorname{Vol}(A) = \lvert\det A\rvert = \prod_{i=1}^n r_{ii}$; lengths and angles live in $R$ | Decouples least squares into $R\hat{\mathbf{x}} = Q^T\mathbf{b}$; projection simplifies to $P = QQ^T$ | $\mathcal{O}(2mn^2 - \frac{2}{3}n^3)$; condition number $\kappa(R) = \kappa(A)$—**extremely stable** (avoids squaring $\kappa(A)$) |
+| **3. Spectral / Diagonalization**<br/>$A = S\Lambda S^{-1}$<br/>Symmetric: $A = Q\Lambda Q^T$<br/>(Unitary $U\Lambda U^H$; Defective $MJM^{-1}$) | $S\Lambda S^{-1}$: square matrices with $n$ independent eigenvectors; $Q\Lambda Q^T$: any **real symmetric** $A = A^T$; $MJM^{-1}$: any square matrix | Diagonalization requires eigenvectors spanning $\mathbb{C}^n$; for symmetric $A$, distinct eigenspaces are **mutually orthogonal**; $0$-eigenspace is $\operatorname{Null}(A)$ | Similarity invariants: characteristic polynomial, $\operatorname{tr}(A) = \sum \lambda_i$, $\det(A) = \prod \lambda_i$, algebraic/geometric multiplicities, Jordan blocks | Discrete powers $\mathbf{u}_k = A^k \mathbf{u}_0$; continuous ODEs $\mathbf{u}(t) = e^{At}\mathbf{u}_0$; Markov steady states ($\lambda_1 = 1$); SPD quadratic minimization & ellipsoid axes | Iterative QR algorithm; orthogonal $Q$ has $\kappa(Q) = 1$ (rock-solid); non-orthogonal $S$ can be ill-conditioned if eigenvectors are nearly collinear |
+| **4. Singular Value Decomposition**<br/>$A = U\Sigma V^T$<br/>(Complex: $A = U\Sigma V^H$) | **Every matrix on Earth** $A \in \mathbb{R}^{m\times n}$ (zero restrictions: rectangular, singular, defective, all welcome) | **Simultaneously** gives orthonormal bases for all four fundamental subspaces: $V_r, V_{n-r}, U_r, U_{m-r}$ | Unique nonnegative singular values $\sigma_i = \sqrt{\lambda_i(A^T A)}$; $\lVert A\rVert_2 = \sigma_1$; $\lVert A\rVert_F = \sqrt{\sum \sigma_i^2}$; $\kappa_2(A) = \sigma_1/\sigma_r$ | Eckart-Young best rank-$k$ approximation $A_k = \sum_{i=1}^k \sigma_i\mathbf{u}_i\mathbf{v}_i^T$; **pseudoinverse** $\mathbf{x}^+ = A^+\mathbf{b} = V\Sigma^+U^T\mathbf{b}$ | Gold standard of numerical stability; computed via bidiagonalization + implicit QR without ever forming ill-conditioned $A^T A$ |
+
+</DefinitionCard>
+
+> **Change of Basis and the Coordinate-Free View (Lectures 31–32)**:  
+> From the abstract perspective of a linear operator $T: V \to W$, all four factorizations are simply **clever choices of input and output bases**!
+> - If you demand that the input and output bases **be identical**, the ultimate diagonalizing basis is the **eigenbasis $S$** ($A = S\Lambda S^{-1}$)—and only when $A$ is real symmetric (or normal) can that single basis be orthonormal ($Q\Lambda Q^T$).
+> - If you allow the input basis $V$ and output basis $U$ to be **chosen independently and orthonormal**, then **every** matrix $A$ diagonalizes cleanly into pure nonnegative stretches $\Sigma$ ($A = U\Sigma V^T$)! The change-of-basis laws $M^{-1}AM$ and $U^T A V$ govern the two great worlds of linear algebra: *dynamical evolution within one space* versus *geometric mapping between two spaces*.
+
+---
+
+## 3. Cross-Module Rosetta Stones: Three Unifying Theorems
+
+The best way to master the final exam is to see how theorems from four separate modules collapse into a few deep principles. These three **Rosetta Stone** theorems tie all 35 lectures together.
+
+### 3.1 Theorem A: The Twelve-Fold Equivalence of Invertibility and Full Rank
+
+<TheoremCard label="Theorem A" title="The Twelve-Fold Grand Equivalence of Invertibility and Full Rank">
+
+Let $A \in \mathbb{R}^{n\times n}$ be a square real matrix. The following twelve statements, spanning all four modules of the course, are **mutually equivalent** (either all twelve hold, or none hold):
+
+1. **Inverse Exists (Module I)**: There exists a unique matrix $A^{-1} \in \mathbb{R}^{n\times n}$ such that $A^{-1}A = AA^{-1} = I_n$.
+2. **Unique Solution (Module I)**: For every $\mathbf{b} \in \mathbb{R}^n$, the system $A\mathbf{x} = \mathbf{b}$ has a unique solution.
+3. **Full Rank & RREF (Module I)**: $\operatorname{rank}(A) = n$, equivalently $\operatorname{rref}(A) = I_n$.
+4. **Full Set of Pivots (Module I)**: Gaussian elimination with row exchanges $PA = LU$ produces $n$ nonzero pivots ($u_{ii} \ne 0$ for all $i$).
+5. **Trivial Nullspaces (Module I)**: $\operatorname{Null}(A) = \{\mathbf{0}\}$ and $\operatorname{Null}(A^T) = \{\mathbf{0}\}$.
+6. **Basis of $\mathbb{R}^n$ (Module I)**: The $n$ columns (and $n$ rows) of $A$ are linearly independent and form a basis of $\mathbb{R}^n$ ($\operatorname{Col}(A) = \operatorname{Row}(A) = \mathbb{R}^n$).
+7. **Invertible $QR$ (Module II)**: $A = QR$ exists with strictly positive diagonal entries in $R$ ($r_{ii} \gt 0$).
+8. **SPD Normal Matrix (Module II & IV)**: $A^T A$ (and $AA^T$) is strictly symmetric positive definite (SPD), and the least-squares solution reduces to the exact solution $(A^T A)^{-1}A^T\mathbf{b} = A^{-1}\mathbf{b}$.
+9. **Nonzero Determinant (Module III)**: $\det(A) \ne 0$, equivalently the $n$-dimensional volume of the parallelotope spanned by the columns is $\operatorname{Vol}(A) = \lvert\det A\rvert \gt 0$.
+10. **No Zero Eigenvalue (Module III)**: $\lambda = 0$ is not an eigenvalue of $A$ (every eigenvalue $\lambda_i \in \mathbb{C}$ satisfies $\lambda_i \ne 0$).
+11. **All Singular Values Positive (Module IV)**: All $n$ singular values are strictly positive ($\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_n \gt 0$), and $A^+ = A^{-1}$.
+12. **One-Sided Inverse Is Two-Sided (Module IV)**: $A$ has a left inverse or a right inverse (for a square matrix, any one-sided inverse is automatically unique and equal to $A^{-1}$).
+
+**The Rectangular Bifurcation ($A \in \mathbb{R}^{m\times n}$, $m \ne n$)**: When $m \ne n$, a two-sided inverse $A^{-1}$ never exists, and the twelve properties split into two dual cases:
+- **Full Column Rank ($r = n \lt m$)**: Equivalent to $\operatorname{Null}(A) = \{\mathbf{0}\}$, non-unique left inverses (such as $A_L^{-1} = (A^T A)^{-1}A^T$), $A^T A$ SPD, $\sigma_n \gt 0$, and at most one solution (use least squares when $\mathbf{b} \notin \operatorname{Col}(A)$).
+- **Full Row Rank ($r = m \lt n$)**: Equivalent to $\operatorname{Null}(A^T) = \{\mathbf{0}\}$, $\operatorname{Col}(A) = \mathbb{R}^m$, non-unique right inverses (such as $A_R^{-1} = A^T(AA^T)^{-1}$), and infinitely many exact solutions for every $\mathbf{b}$ (use the pseudoinverse for the minimum-norm solution).
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: The Logical Equivalence Loop of Theorem A">
+
+- $(1) \implies (2)$: If $A^{-1}$ exists, $\mathbf{x} = A^{-1}\mathbf{b}$ solves $A\mathbf{x} = \mathbf{b}$; if $A\mathbf{x}_1 = A\mathbf{x}_2 = \mathbf{b}$, multiplying on the left by $A^{-1}$ gives $\mathbf{x}_1 = \mathbf{x}_2$.
+- $(2) \implies (5) \implies (3)$: Taking $\mathbf{b} = \mathbf{0}$, uniqueness means $\operatorname{Null}(A) = \{\mathbf{0}\}$. By Rank-Nullity, $\operatorname{rank}(A) = n - 0 = n$, so every row and column has a pivot and $\operatorname{rref}(A) = I_n$.
+- $(3) \implies (4) \implies (9)$: Full rank guarantees a nonzero pivot at every step of elimination, producing $n$ nonzero diagonal entries $u_{ii}$; thus $\det(A) = (\det P)^{-1}\prod_{i=1}^n u_{ii} \ne 0$.
+- $(9) \iff (10)$: Setting $\lambda = 0$ in the characteristic polynomial gives $\det(A) = \det(A - 0\cdot I) = \prod_{i=1}^n \lambda_i$, which is nonzero if and only if no eigenvalue is $0$.
+- $(5) \iff (8) \iff (11)$: Since $\operatorname{Null}(A^T A) = \operatorname{Null}(A)$, the nullspace is trivial if and only if $\mathbf{x}^T A^T A\mathbf{x} = \|A\mathbf{x}\|_2^2 \gt 0$ for all $\mathbf{x} \ne \mathbf{0}$, i.e., $A^T A$ is SPD. That holds if and only if all eigenvalues $\sigma_i^2$ of $A^T A$ are positive, so $\sigma_n \gt 0$, and then $A^+ = V\Sigma^{-1}U^T = (U\Sigma V^T)^{-1} = A^{-1}$.
+- $(9) \implies (1)$: The cofactor formula $A^{-1} = \frac{1}{\det A} C^T$ constructs the unique two-sided inverse, closing the loop.
+
+</ProofCollapse>
+
+---
+
+### 3.2 Theorem B: Unifying Exact Solutions, Least Squares, and the Pseudoinverse
+
+In Lectures 01–08 we solved $A\mathbf{x} = \mathbf{b}$; in Lectures 15–17, when no exact solution existed, we moved to least squares $A^T A\hat{\mathbf{x}} = A^T\mathbf{b}$; in Lecture 34, when even $A^T A$ is singular (infinitely many least-squares solutions), SVD and $A^+$ deliver the unique optimal solution. **These are not three separate tricks—they are one single variational projection problem!**
+
+<TheoremCard label="Theorem B" title="Unified Solvability: Exact, Least Squares, and Minimum-Norm Pseudoinverse">
+
+Let $A \in \mathbb{R}^{m\times n}$ ($\operatorname{rank}(A) = r$) and $\mathbf{b} \in \mathbb{R}^m$. Consider the two-stage minimization: first minimize the residual norm $\|A\mathbf{x} - \mathbf{b}\|_2$, and among all minimizers, pick the vector with the smallest Euclidean length $\|\mathbf{x}\|_2$.
+
+1. **General Case (Lecture 34 — SVD & Pseudoinverse)**: This two-stage problem always has a **unique** optimal solution $\mathbf{x}^+ \in \mathbb{R}^n$:
+   $$
+   \mathbf{x}^+ = A^+\mathbf{b} = V\Sigma^+ U^T\mathbf{b} = \sum_{i=1}^r \frac{\mathbf{u}_i^T \mathbf{b}}{\sigma_i} \mathbf{v}_i
+   $$
+   Geometrically, $\mathbf{x}^+$ lies purely in $\operatorname{Row}(A)$ (zero nullspace component), and $A\mathbf{x}^+ = \mathbf{p} = P_{\operatorname{Col}(A)}\mathbf{b}$ is the orthogonal projection of $\mathbf{b}$ onto $\operatorname{Col}(A)$. The set of all least-squares solutions is the affine subspace $\mathcal{S}_{\text{LS}} = \mathbf{x}^+ + \operatorname{Null}(A)$, and any other least-squares solution $\hat{\mathbf{x}} = \mathbf{x}^+ + \mathbf{x}_n$ ($\mathbf{x}_n \in \operatorname{Null}(A) \setminus \{\mathbf{0}\}$) satisfies $\|\hat{\mathbf{x}}\|_2^2 = \|\mathbf{x}^+\|_2^2 + \|\mathbf{x}_n\|_2^2 \gt \|\mathbf{x}^+\|_2^2$.
+2. **Special Case 1: Full Column Rank ($r = n \le m$, Lectures 15–17)**: Here $\operatorname{Null}(A) = \{\mathbf{0}\}$, so $\mathcal{S}_{\text{LS}}$ is a single point. $A^T A$ is invertible, $A^+$ reduces to the classical left inverse $A^+ = (A^T A)^{-1}A^T$, and:
+   $$
+   \mathbf{x}^+ = \hat{\mathbf{x}} = (A^T A)^{-1} A^T \mathbf{b} = R^{-1} Q^T \mathbf{b}
+   $$
+3. **Special Case 2: Full Row Rank ($r = m \lt n$, Lecture 34)**: Here $\operatorname{Col}(A) = \mathbb{R}^m$, so the minimum residual is $0$ (infinitely many exact solutions). $AA^T$ is invertible, $A^+$ reduces to the minimum-norm right inverse $A^+ = A^T(AA^T)^{-1}$, and:
+   $$
+   \mathbf{x}^+ = A^T (AA^T)^{-1}\mathbf{b}
+   $$
+4. **Special Case 3: Square Invertible ($r = m = n$, Lectures 01–04)**: All cases coincide at the unique exact solution $\mathbf{x}^+ = A^{-1}\mathbf{b} = U^{-1}L^{-1}P\mathbf{b}$.
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Double Pythagoras and the Pseudoinverse">
+
+Decompose any $\mathbf{x} \in \mathbb{R}^n$ as $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$ ($\mathbf{x}_r \in \operatorname{Row}(A), \mathbf{x}_n \in \operatorname{Null}(A)$), and decompose $\mathbf{b} \in \mathbb{R}^m$ as $\mathbf{b} = \mathbf{p} + \mathbf{e}$ ($\mathbf{p} = P_{\operatorname{Col}(A)}\mathbf{b} \in \operatorname{Col}(A), \mathbf{e} \in \operatorname{Null}(A^T)$).
+
+**Step 1 (Minimizing the residual)**: Note that $A\mathbf{x} = A\mathbf{x}_r + A\mathbf{x}_n = A\mathbf{x}_r \in \operatorname{Col}(A)$. Because $A\mathbf{x}_r - \mathbf{p} \in \operatorname{Col}(A)$ is orthogonal to $\mathbf{e} \in \operatorname{Col}(A)^\perp$, Pythagoras in $\mathbb{R}^m$ gives:
+
+$$
+\|A\mathbf{x} - \mathbf{b}\|_2^2 = \|(A\mathbf{x}_r - \mathbf{p}) - \mathbf{e}\|_2^2 = \|A\mathbf{x}_r - \mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2 \ge \|\mathbf{e}\|_2^2
+$$
+
+Equality holds if and only if $A\mathbf{x}_r = \mathbf{p}$. Since $A: \operatorname{Row}(A) \to \operatorname{Col}(A)$ is a bijection (Fundamental Theorem Part III), there is a unique $\mathbf{x}_r \in \operatorname{Row}(A)$ satisfying $A\mathbf{x}_r = \mathbf{p}$, namely $\mathbf{x}^+ = A^+\mathbf{p} = A^+\mathbf{b}$ (as $A^+\mathbf{e} = \mathbf{0}$).
+
+**Step 2 (Minimizing the solution norm)**: For any least-squares minimizer $\hat{\mathbf{x}} = \mathbf{x}^+ + \mathbf{x}_n$, orthogonality $\mathbf{x}^+ \perp \mathbf{x}_n$ gives Pythagoras in $\mathbb{R}^n$:
+
+$$
+\|\hat{\mathbf{x}}\|_2^2 = \|\mathbf{x}^+\|_2^2 + \|\mathbf{x}_n\|_2^2 \ge \|\mathbf{x}^+\|_2^2
+$$
+
+Strict equality holds if and only if $\mathbf{x}_n = \mathbf{0}$. Substituting $A = U\Sigma V^T$, the condition $A\mathbf{x}_r = \mathbf{p}$ reads $\sigma_i(\mathbf{v}_i^T \mathbf{x}_r) = \mathbf{u}_i^T \mathbf{b}$ ($1 \le i \le r$), giving $\mathbf{x}^+ = \sum_{i=1}^r \frac{\mathbf{u}_i^T\mathbf{b}}{\sigma_i}\mathbf{v}_i = V\Sigma^+ U^T \mathbf{b} = A^+\mathbf{b}$. When $r = n$, $A^T A = V_r \Sigma_r^2 V_r^T \implies (A^T A)^{-1}A^T = V_r\Sigma_r^{-1}U_r^T = A^+$; when $r = m$, $A^T(AA^T)^{-1} = A^+$ analogously.
+
+</ProofCollapse>
+
+---
+
+### 3.3 Theorem C: Spectral Unity of Dynamics, Markov Chains, and Quadratic Forms
+
+<TheoremCard label="Theorem C" title="Spectral Unity: Discrete Powers, Continuous ODEs, Markov Steady States, and Quadratic Forms">
+
+1. **Diagonalizable Dynamical Systems (Module III, $A = S\Lambda S^{-1} \in \mathbb{C}^{n\times n}$)**:
+   - **Discrete $\mathbf{u}_{k+1} = A\mathbf{u}_k$**: $\mathbf{u}_k = \sum_{i=1}^n c_i \lambda_i^k \mathbf{x}_i$. Asymptotic stability ($\lim_{k\to\infty}\mathbf{u}_k = \mathbf{0}$) $\iff$ spectral radius $\rho(A) = \max_i \lvert\lambda_i\rvert \lt 1$.
+   - **Continuous $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$**: $\mathbf{u}(t) = e^{At}\mathbf{u}(0) = \sum_{i=1}^n c_i e^{\lambda_i t}\mathbf{x}_i$. Asymptotic stability ($\lim_{t\to\infty}\mathbf{u}(t) = \mathbf{0}$) $\iff$ $\operatorname{Re}(\lambda_i) \lt 0$ for all $i$ (for $2\times 2$ real matrices, equivalently $\operatorname{tr}(A) \lt 0$ and $\det(A) \gt 0$).
+   - **Positive Markov Matrix ($m_{ij} \gt 0$, $\mathbf{1}^T M = \mathbf{1}^T$)**: Always has $\lambda_1 = 1$ with all other $\lvert\lambda_i\rvert \lt 1$ ($i \ge 2$). The left eigenvector $\mathbf{1}^T$ forces all transient modes to satisfy $\mathbf{1}^T \mathbf{x}_i = 0$, conserving total probability and driving $\lim_{k\to\infty} M^k \mathbf{u}_0 = \mathbf{u}_\infty \in \operatorname{Null}(M - I)$. Its continuous-time generator $\frac{d\mathbf{u}}{dt} = (M - I)\mathbf{u}$ has eigenvalues $\mu_i = \lambda_i - 1$ and converges to the exact same steady state $\mathbf{u}_\infty$!
+   - *(Defective note)*: If $A$ is not diagonalizable, the Jordan form $A = MJM^{-1}$ shows that $\lvert\lambda_i\rvert \lt 1$ (discrete) and $\operatorname{Re}(\lambda_i) \lt 0$ (continuous) remain necessary and sufficient, because exponential decay always beats polynomial factors $k^p$ or $t^p$.
+2. **Real Symmetric Matrices & Quadratic Optimization (Module IV, $A = A^T \in \mathbb{R}^{n\times n}$)**:
+   - **Spectral Theorem**: $A = Q\Lambda Q^T = \sum_{i=1}^n \lambda_i \mathbf{q}_i\mathbf{q}_i^T$ with all eigenvalues real ($\lambda_1 \ge \dots \ge \lambda_n \in \mathbb{R}$) and an orthonormal eigenbasis $Q$.
+   - **Rayleigh Quotient Bounds**: For any nonzero $\mathbf{x} \in \mathbb{R}^n$, setting $\mathbf{y} = Q^T\mathbf{x}$ gives:
+     $$
+     \lambda_{\min} \le \frac{\mathbf{x}^T A \mathbf{x}}{\mathbf{x}^T \mathbf{x}} = \frac{\sum_{i=1}^n \lambda_i y_i^2}{\sum_{i=1}^n y_i^2} \le \lambda_{\max}
+     $$
+   - **Five Equivalent Tests for Symmetric Positive Definite (SPD)**: A real symmetric matrix $A$ is positive definite $\iff$ (i) $\mathbf{x}^T A\mathbf{x} \gt 0$ for all $\mathbf{x} \ne \mathbf{0}$; (ii) all $\lambda_i \gt 0$; (iii) all leading principal determinants $\Delta_k \gt 0$; (iv) all pivots without row exchanges satisfy $d_i \gt 0$; (v) $A = R^T R$ for some full-column-rank $R$ (Cholesky). Geometrically, $\mathbf{x}^T A\mathbf{x} = 1$ is an $n$-dimensional ellipsoid with principal axes along $\mathbf{q}_i$ and semi-axis lengths $\frac{1}{\sqrt{\lambda_i}}$, and the quadratic energy $\frac{1}{2}\mathbf{x}^T A\mathbf{x} - \mathbf{b}^T\mathbf{x}$ has a unique strict global minimum at $\mathbf{x}^* = A^{-1}\mathbf{b}$.
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Spectral Stability and Rayleigh Quotient Bounds">
+
+**Part 1 (Dynamics & Defective Matrices)**:  
+When $A = S\Lambda S^{-1}$, $A^k = S\Lambda^k S^{-1}$ and $e^{At} = S e^{\Lambda t} S^{-1}$ decouple the system into $n$ scalar modes $\lambda_i^k$ and $e^{\lambda_i t}$. For $\lambda_i = \alpha_i + i\beta_i$, $\lvert\lambda_i^k\rvert = \lvert\lambda_i\rvert^k \to 0 \iff \lvert\lambda_i\rvert \lt 1$, and $\lvert e^{\lambda_i t}\rvert = e^{\alpha_i t} \to 0 \iff \alpha_i = \operatorname{Re}(\lambda_i) \lt 0$. If $A$ has a Jordan block $J_m(\lambda_i) = \lambda_i I_m + N$ ($N^m = O$), then $J_m(\lambda_i)^k = \sum_{j=0}^{m-1}\binom{k}{j}\lambda_i^{k-j}N^j$ and $e^{J_m(\lambda_i)t} = e^{\lambda_i t}\sum_{j=0}^{m-1}\frac{t^j}{j!}N^j$. Whenever $\lvert\lambda_i\rvert \lt 1$ (or $\operatorname{Re}(\lambda_i) \lt 0$), exponential decay overwhelms any fixed-degree polynomial $k^j$ or $t^j$ ($j \le m - 1$), so all trajectories still converge to $\mathbf{0}$.
+
+**Part 2 (Markov Continuous Generator & Shared Steady State)**:  
+From $\mathbf{1}^T M = \mathbf{1}^T$ we get $\mathbf{1}^T(M - I) = \mathbf{0}^T$. Thus $\frac{d}{dt}(\mathbf{1}^T\mathbf{u}(t)) = \mathbf{1}^T(M - I)\mathbf{u}(t) = 0$, keeping total probability constant at $1$. Moreover, $M - I$ has eigenvalues $\mu_i = \lambda_i - 1$: $\mu_1 = 0$ shares the eigenvector $\mathbf{u}_\infty$, while every other eigenvalue satisfies $\operatorname{Re}(\mu_i) = \operatorname{Re}(\lambda_i) - 1 \le \lvert\lambda_i\rvert - 1 \lt 0$, so $e^{(M-I)t}\mathbf{u}(0) \to \mathbf{u}_\infty$.
+
+**Part 3 (Rayleigh Quotient & Ellipsoid Geometry)**:  
+Since $Q^T Q = I_n$, the orthogonal change of variables $\mathbf{x} = Q\mathbf{y}$ preserves Euclidean length ($\|\mathbf{x}\|_2^2 = \|\mathbf{y}\|_2^2 = \sum y_i^2$) and eliminates all cross terms:
+
+$$
+\mathbf{x}^T A\mathbf{x} = (Q\mathbf{y})^T (Q\Lambda Q^T)(Q\mathbf{y}) = \mathbf{y}^T \Lambda \mathbf{y} = \sum_{i=1}^n \lambda_i y_i^2
+$$
+
+Hence $\lambda_{\min}\sum y_i^2 \le \sum \lambda_i y_i^2 \le \lambda_{\max}\sum y_i^2$; dividing by $\sum y_i^2 \gt 0$ yields the Rayleigh quotient bounds, attained at $\mathbf{x} = \mathbf{q}_1$ and $\mathbf{x} = \mathbf{q}_n$. In particular, $\mathbf{x}^T A\mathbf{x} \gt 0$ for all $\mathbf{x} \ne \mathbf{0}$ iff $\lambda_{\min} \gt 0$, in which case $\sum_{i=1}^n \lambda_i y_i^2 = 1 \iff \sum_{i=1}^n \frac{y_i^2}{(1/\sqrt{\lambda_i})^2} = 1$, an ellipsoid with semi-axes $\frac{1}{\sqrt{\lambda_i}}$.
+
+</ProofCollapse>
+
+---
+
+## 4. Top 10 Common Pitfalls & Exam Traps
+
+Before walking out of MIT 18.06—and before applying linear algebra in future science or engineering work—burn these **10 classic conceptual traps** into memory:
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata: Top 10 Linear Algebra Traps">
+
+1. **Pitfall 1: Row operations preserve the column space?**  
+   **False!** Elementary row operations $EA = U$ preserve the **row space $\operatorname{Row}(A)$** and **nullspace $\operatorname{Null}(A)$**, but they **destroy the column space $\operatorname{Col}(A)$** (and $\operatorname{Null}(A^T)$). To find a basis for $\operatorname{Col}(A)$, you must return to the **original matrix $A$** and extract the columns corresponding to the pivot columns of $U$—never use the columns of $U$!
+2. **Pitfall 2: Two subspaces intersecting only at $\mathbf{0}$ must be orthogonal complements?**  
+   **Confusing direct-sum complements with orthogonal complements!** In $\mathbb{R}^2$, $L_1 = \operatorname{span}\{[1, 0]^T\}$ and $L_2 = \operatorname{span}\{[1, 1]^T\}$ satisfy $L_1 \cap L_2 = \{\mathbf{0}\}$ and $\mathbb{R}^2 = L_1 \oplus L_2$, yet they meet at $45^\circ$, not $90^\circ$. **Orthogonal complements ($V^\perp$)** require not only zero intersection and complementary dimensions, but also $\mathbf{v}^T \mathbf{w} = 0$ for every pair.
+3. **Pitfall 3: A tall orthonormal matrix $Q \in \mathbb{R}^{m\times n}$ ($m \gt n$) satisfies both $Q^T Q = I$ and $Q Q^T = I$?**  
+   **A dangerous pseudo-projection trap!** When $Q$ has $n$ orthonormal columns and $m \gt n$, $Q^T Q = I_n$ always holds; however, $Q Q^T$ is $m \times m$ of rank at most $n \lt m$, so **$Q Q^T \ne I_m$**! Instead, $Q Q^T = P_{\operatorname{Col}(Q)}$ is the orthogonal projection onto $\operatorname{Col}(Q)$ (with $n$ eigenvalues equal to $1$ and $m - n$ equal to $0$). Only when $Q$ is **square** ($m = n$) does $Q^T = Q^{-1}$ make $Q Q^T = I_n$.
+4. **Pitfall 4: $\det(A + B) = \det A + \det B$ and $\det(cA) = c\det A$?**  
+   **Both false!** The determinant is linear in **each row individually**, not in the matrix as a whole: $\det(I_2 + I_2) = 4 \ne 1 + 1 = 2$, and scaling an $n \times n$ matrix scales all $n$ rows, giving $\det(cA) = c^n \det(A)$ and $\det(-A) = (-1)^n \det(A)$.
+5. **Pitfall 5: The diagonal entries (pivots) of $U$ from elimination are the eigenvalues of $A$?**  
+   **The biggest cross-module mix-up!** Row elimination $EA = U$ preserves the nullspace and $\det(A) = \pm\det(U)$, but **completely destroys eigenvalues and eigenvectors**. Eigenvalues are preserved only under **similarity transformations** $M^{-1}AM$, not one-sided row operations $EA$. Only when $A$ is already triangular do its diagonal entries serve as both pivots and eigenvalues.
+6. **Pitfall 6: Invertible implies diagonalizable, and singular ($\det A = 0$) implies non-diagonalizable?**  
+   **Completely independent properties!** Invertibility asks whether $0$ is an eigenvalue ($\det A \ne 0$); diagonalizability asks whether there are $n$ linearly independent eigenvectors ($\operatorname{GM} = \operatorname{AM}$ for every $\lambda$).
+   - **Invertible but not diagonalizable**: The Jordan block $J = [[2, 1], [0, 2]]$ ($\det J = 4 \ne 0$, yet $\lambda = 2$ has only $1$ eigenvector).
+   - **Singular but diagonalizable**: $B = [[1, 0], [0, 0]]$ ($\det B = 0$, yet $B$ is already diagonal).
+7. **Pitfall 7: Positive eigenvalues (or positive leading minors) alone make a non-symmetric matrix positive definite?**  
+   **Forgetting symmetry!** Take $A = [[1, 10], [0, 1]]$: both eigenvalues are $+1 \gt 0$, both leading principal minors are $1 \gt 0$, and both pivots are $1 \gt 0$. Yet for $\mathbf{x} = [1, -1]^T$, $\mathbf{x}^T A\mathbf{x} = 1 - 10 + 1 = -8 \lt 0$! Quadratic forms $\mathbf{x}^T A\mathbf{x} = \mathbf{x}^T\left(\frac{A+A^T}{2}\right)\mathbf{x}$ see only the **symmetric part** $\frac{A+A^T}{2}$ (whose eigenvalues here are $1 \pm 5$, including $-4$). Without $A = A^T$ (or $A = A^H$), all SPD tests fail.
+8. **Pitfall 8: Confusing pivots, eigenvalues, and singular values!**  
+   - **Pivots $\ne$ Eigenvalues**: For symmetric $A = [[1, 2], [2, 1]]$, the pivots are $1, -3$ while the eigenvalues are $3, -1$. **What is preserved** (Sylvester's Law of Inertia): for a real symmetric matrix, the *numbers* of positive and negative pivots equal the *numbers* of positive and negative eigenvalues.
+   - **$\lvert$Eigenvalues$\rvert \ne$ Singular Values**: For the shear $A = [[1, 2], [0, 1]]$, $\lambda_1 = \lambda_2 = 1$, yet $A^T A = [[1, 2], [2, 5]]$ has eigenvalues $3 \pm 2\sqrt{2}$, so $\sigma_1 = \sqrt{2} + 1 \approx 2.414 \ne 1$ and $\sigma_2 = \sqrt{2} - 1 \approx 0.414 \ne 1$. Only for normal matrices ($A^T A = AA^T$, e.g., symmetric or orthogonal) do $\sigma_i = \lvert\lambda_i\rvert$.
+9. **Pitfall 9: Computing SVD by independently eigendecomposing $A^T A$ for $V$ and $AA^T$ for $U$?**  
+   **Sign-flip and degenerate-subspace disaster!** Any unit eigenvector $-\mathbf{u}_i$ is still an eigenvector of $AA^T$, so independent decompositions can easily give $A\mathbf{v}_i = -\sigma_i \mathbf{u}_i$ (or misalign bases inside a repeated singular-value plane), reconstructing the wrong matrix! **Ironclad rule**: eigendecompose **one side only** (say $A^T A$ for $V$) and lock in the other side via $\mathbf{u}_i = \frac{1}{\sigma_i} A\mathbf{v}_i$.
+10. **Pitfall 10: Assuming $(AB)^+ = B^+ A^+$ always holds, or confusing one-sided inverses with $A^+$!**  
+    **The reverse-order law fails in general for pseudoinverses!** Take $A = [1, 0]$ and $B = [1, 1]^T$: $AB = [1]$ so $(AB)^+ = [1]$, whereas $A^+ = [1, 0]^T$ and $B^+ = [\frac{1}{2}, \frac{1}{2}]$, giving $B^+ A^+ = [\frac{1}{2}] \ne [1]$. (Extra hypotheses—such as $A$ having orthonormal columns, $B$ having orthonormal rows, or both being invertible—are required.) Also remember: a full-rank rectangular matrix has **infinitely many** one-sided left or right inverses, but **only one** Moore-Penrose pseudoinverse $A^+$, uniquely tied to orthogonal projection.
+
+</PitfallAlert>
+
+---
+
+## 5. Interactive Sandbox & Key Takeaways
+
+<InteractiveCanvasSlot
+  id="l35-grand-finale-explorer"
+  title="Grand Finale Interactive Workbench: Four Subspaces × Four Factorizations"
+  description="Select any $2\times 2$, $3\times 2$, or $2\times 3$ matrix (invertible, singular, SPD, or defective shear) and explore in real time the orthogonal splitting of the four fundamental subspaces, $PA=LU$ pivoting, $QR$ volume deformation, eigen-directions on the $\operatorname{tr}-\det$ stability plane, and the unit circle mapping to an ellipse via $A = U\Sigma V^T$."
+/>
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "**The Two Pillars**: All 35 lectures rest on the Four Fundamental Subspaces ($\\operatorname{Row}(A) \\perp \\operatorname{Null}(A)$ in $\\mathbb{R}^n$, $\\operatorname{Col}(A) \\perp \\operatorname{Null}(A^T)$ in $\\mathbb{R}^m$) and the Four Great Factorizations ($PA=LU$, $A=QR$, $S\\Lambda S^{-1}/Q\\Lambda Q^T$, and $U\\Sigma V^T$).",
+    "**The Three-Part Fundamental Theorem**: Part I fixes dimensions ($r, n-r, m-r$); Part II establishes orthogonal complement direct sums ($\\mathbb{R}^n = \\operatorname{Row}(A) \\oplus \\operatorname{Null}(A)$); Part III uses SVD to equip all four subspaces with orthonormal bases so $A: \\operatorname{Row}(A) \\to \\operatorname{Col}(A)$ is a diagonalized bijection with inverse $A^+$.",
+    "**Unification of Linear Solving**: Exact solutions ($A^{-1}\\mathbf{b}$), overdetermined least squares ($(A^T A)^{-1}A^T\\mathbf{b}$), and rank-deficient minimum-norm solutions ($\\mathbf{x}^+ = A^+\\mathbf{b} = V\\Sigma^+ U^T\\mathbf{b}$) all do the same thing: orthogonally project $\\mathbf{b}$ onto $\\operatorname{Col}(A)$ and take the unique preimage in $\\operatorname{Row}(A)$ with zero nullspace component.",
+    "**Determinants and Volume**: $\\lvert\\det A\\rvert = \\operatorname{Vol}(A) = \\prod r_{ii}$ measures the volume scaling of a square map, and the zeros of $\\det(A - \\lambda I) = 0$ unlock spectral decomposition and dynamical systems.",
+    "**Spectral Unity and Boundaries**: Diagonalizable $A = S\\Lambda S^{-1}$ governs discrete powers $A^k$ (stable $\\iff \\rho(A) \\lt 1$), continuous flows $e^{At}$ (stable $\\iff \\operatorname{Re}(\\lambda_i) \\lt 0$), and Markov steady states ($\\lambda_1 = 1$). Real symmetric matrices upgrade to real eigenvalues and orthonormal bases $Q\\Lambda Q^T$, where SPD ($\\lambda_i \\gt 0$) characterizes convex minima and ellipsoids; defective matrices fall back to Jordan blocks $MJM^{-1}$.",
+    "**SVD and Low-Rank Approximation**: Every matrix decomposes into $r$ orthogonal rank-1 layers $A = \\sum_{i=1}^r \\sigma_i \\mathbf{u}_i \\mathbf{v}_i^T$ with signs locked by $\\mathbf{u}_i = \\frac{1}{\\sigma_i}A\\mathbf{v}_i$, and the $k$-term truncation $A_k$ is optimal in both the spectral and Frobenius norms."
+  ]}
+/>
+
+---
+
+## 6. MIT 18.06 Grand Finale Synthesis Exam (6 Cross-Module Problems)
+
+These six problems are crafted to true MIT 18.06 final-exam standard: **each problem deliberately bridges at least two modules**, testing whether you have connected subspaces, projections, determinants, eigenvalues, positive definiteness, and SVD/pseudoinverses into a single toolkit.
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+### Exercise 1 (L1): Four Subspaces, Rank-1 Complement Projection, and SPD $A^T A$
+
+<ExerciseCard
+  id="l35-ex1"
+  tier="L1"
+  tierLabel="L1 · Quick Geometric Check"
+  title="Four Subspaces, Rank-1 Complement Projection, and Symmetric Positive Definite AᵀA"
+>
+
+Consider the $3\times 2$ real matrix $A$ and target vector $\mathbf{b} \in \mathbb{R}^3$:
+
+$$
+A = \begin{bmatrix} 1 & 1 \\ 1 & 0 \\ 0 & 1 \end{bmatrix}, \qquad \mathbf{b} = \begin{bmatrix} 3 \\ 0 \\ 0 \end{bmatrix}
+$$
+
+1. Find the rank $r$ of $A$, and state the dimension and a basis for each of the four fundamental subspaces $\operatorname{Row}(A)$, $\operatorname{Null}(A)$, $\operatorname{Col}(A)$, and $\operatorname{Null}(A^T)$.
+2. Form $S = A^T A$ and verify that $S$ is strictly **symmetric positive definite (SPD)** using both the *eigenvalue* test and the *pivot / leading principal minor* test.
+3. Solve the normal equations $A^T A\hat{\mathbf{x}} = A^T\mathbf{b}$ for $\hat{\mathbf{x}}$, compute the projection $\mathbf{p} = A\hat{\mathbf{x}}$ and error $\mathbf{e} = \mathbf{b} - \mathbf{p}$, and verify $\mathbf{b} = \mathbf{p} + \mathbf{e}$ with $\mathbf{p} \perp \mathbf{e}$.
+4. **Smart Shortcut**: Instead of computing $A(A^T A)^{-1}A^T$, use a basis vector $\mathbf{n}$ of $\operatorname{Null}(A^T)$ to form the **rank-1 projection** $P_\perp = \frac{\mathbf{n}\mathbf{n}^T}{\mathbf{n}^T\mathbf{n}}$, immediately deduce $P = I_3 - P_\perp$ onto $\operatorname{Col}(A)$, and state all eigenvalues and the trace $\operatorname{tr}(P)$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1: The two columns of $A$ are linearly independent, so $r = 2 = n$; $\\operatorname{Null}(A^T)$ is a 1D line, so solving $A^T\\mathbf{n} = \\mathbf{0}$ gives the normal vector $\\mathbf{n}$ immediately.",
+    "Part 2: Compute $S = A^T A = [[2, 1], [1, 2]]$ and inspect its row sum, determinant, and eigenvalues.",
+    "Part 4: Because $\\mathbb{R}^3 = \\operatorname{Col}(A) \\oplus \\operatorname{Null}(A^T)$ are orthogonal complements, projecting onto the 2D plane is the identity minus projection onto its 1D normal line!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Geometrically, the two columns of $A$ span a tilted 2D plane $\operatorname{Col}(A)$ through the origin in $\mathbb{R}^3$, and its orthogonal complement $\operatorname{Null}(A^T)$ is the 1D normal line perpendicular to that plane.
+
+Computing the $3\times 3$ projection matrix $P = A(A^T A)^{-1}A^T$ directly requires three matrix multiplications. Because the normal line is **one-dimensional**, projecting onto it is a single **rank-1 outer product** $\frac{\mathbf{n}\mathbf{n}^T}{\mathbf{n}^T\mathbf{n}}$! Subtracting that normal projection from $I_3$ instantly gives the plane projection $P$—a textbook demonstration of Module I (orthogonal complements + rank-1 building blocks) powering Module II (orthogonal projection).
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**1. The Four Fundamental Subspaces**:  
+The two columns $[1, 1, 0]^T$ and $[1, 0, 1]^T$ are not multiples of each other, so $A$ has full column rank $r = \operatorname{rank}(A) = 2$ ($m = 3, n = 2$).
+- $\operatorname{Row}(A) = \mathbb{R}^2$ ($\dim = 2$), basis $\{[1, 0]^T, [0, 1]^T\}$;
+- $\operatorname{Null}(A) = \{\mathbf{0}\}$ ($\dim = 2 - 2 = 0$);
+- $\operatorname{Col}(A) = \operatorname{span}\{[1, 1, 0]^T, [1, 0, 1]^T\}$ ($\dim = 2$);
+- $\operatorname{Null}(A^T)$ ($\dim = 3 - 2 = 1$): solving $A^T\mathbf{n} = \mathbf{0}$ gives:
+
+$$
+\begin{bmatrix} 1 & 1 & 0 \\ 1 & 0 & 1 \end{bmatrix}\begin{bmatrix} y_1 \\ y_2 \\ y_3 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies y_2 = -y_1,\; y_3 = -y_1 \implies \mathbf{n} = \begin{bmatrix} 1 \\ -1 \\ -1 \end{bmatrix}
+$$
+
+**2. Verifying $S = A^T A$ Is SPD**:  
+
+$$
+S = A^T A = \begin{bmatrix} 1 & 1 & 0 \\ 1 & 0 & 1 \end{bmatrix}\begin{bmatrix} 1 & 1 \\ 1 & 0 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}
+$$
+
+which is clearly symmetric.
+- **Leading minors & pivots**: $\Delta_1 = 2 \gt 0$ and $\Delta_2 = \det(S) = 4 - 1 = 3 \gt 0$ (pivots $d_1 = 2 \gt 0$, $d_2 = \frac{3}{2} \gt 0$).
+- **Eigenvalues**: $\lambda^2 - 4\lambda + 3 = (\lambda - 3)(\lambda - 1) = 0$, so $\lambda_1 = 3 \gt 0$ and $\lambda_2 = 1 \gt 0$.
+Thus $S = A^T A$ is strictly SPD.
+
+**3. Least-Squares Solution & Orthogonal Decomposition**:  
+Computing $S^{-1}$ and $A^T\mathbf{b}$ gives:
+
+$$
+S^{-1} = \frac{1}{3}\begin{bmatrix} 2 & -1 \\ -1 & 2 \end{bmatrix}, \qquad A^T\mathbf{b} = \begin{bmatrix} 3 \\ 3 \end{bmatrix}
+$$
+
+and therefore:
+
+$$
+\hat{\mathbf{x}} = S^{-1} A^T\mathbf{b} = \frac{1}{3}\begin{bmatrix} 2 & -1 \\ -1 & 2 \end{bmatrix}\begin{bmatrix} 3 \\ 3 \end{bmatrix} = \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+$$
+
+$$
+\mathbf{p} = A\hat{\mathbf{x}} = \begin{bmatrix} 1 & 1 \\ 1 & 0 \\ 0 & 1 \end{bmatrix}\begin{bmatrix} 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 2 \\ 1 \\ 1 \end{bmatrix}, \qquad \mathbf{e} = \mathbf{b} - \mathbf{p} = \begin{bmatrix} 3 \\ 0 \\ 0 \end{bmatrix} - \begin{bmatrix} 2 \\ 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 1 \\ -1 \\ -1 \end{bmatrix}
+$$
+
+Clearly $\mathbf{p} \in \operatorname{Col}(A)$, $\mathbf{e} = \mathbf{n} \in \operatorname{Null}(A^T)$, and $\mathbf{p}^T\mathbf{e} = 2 - 1 - 1 = 0$.
+
+**4. Rank-1 Complement Projection & Spectrum of $P$**:  
+Since $\mathbf{n}^T\mathbf{n} = 1^2 + (-1)^2 + (-1)^2 = 3$, the 1D normal projection is:
+
+$$
+P_\perp = \frac{\mathbf{n}\mathbf{n}^T}{\mathbf{n}^T\mathbf{n}} = \frac{1}{3}\begin{bmatrix} 1 \\ -1 \\ -1 \end{bmatrix}\begin{bmatrix} 1 & -1 & -1 \end{bmatrix} = \frac{1}{3}\begin{bmatrix} 1 & -1 & -1 \\ -1 & 1 & 1 \\ -1 & 1 & 1 \end{bmatrix}
+$$
+
+Hence the projection onto $\operatorname{Col}(A)$ is:
+
+$$
+P = I_3 - P_\perp = \frac{1}{3}\begin{bmatrix} 2 & 1 & 1 \\ 1 & 2 & -1 \\ 1 & -1 & 2 \end{bmatrix}
+$$
+
+Because $P$ fixes every vector in $\operatorname{Col}(A)$ (2D) and kills $\operatorname{Null}(A^T)$ (1D), its eigenvalues are $\{1, 1, 0\}$ and its trace is $\operatorname{tr}(P) = \frac{2+2+2}{3} = 2 = \operatorname{rank}(A)$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 2 (L2): $PA = LU$ Pivoting, $A = QR$, and Parallelotope Volume
+
+<ExerciseCard
+  id="l35-ex2"
+  tier="L2"
+  tierLabel="L2 · Elimination, QR & Volume"
+  title="PA = LU Row-Exchange Elimination, QR Factorization, and Determinant Volume"
+>
+
+Consider the $3\times 3$ real matrix:
+
+$$
+A = \begin{bmatrix} 0 & 1 & 1 \\ 1 & 1 & 0 \\ 1 & 1 & 2 \end{bmatrix}
+$$
+
+1. Find the elimination factorization $PA = LU$ (explicitly giving the permutation matrix $P$, unit lower triangular $L$, and upper triangular $U$).
+2. Apply Gram-Schmidt to the columns of $A$ to find the orthogonal matrix $Q$ and upper triangular $R$ with positive diagonal entries ($r_{ii} \gt 0$) such that $A = QR$.
+3. Use both $PA = LU$ and $A = QR$ to compute $\det(A)$, $\det(Q)$, and the geometric volume $\operatorname{Vol}(A)$ of the 3D parallelepiped spanned by the columns of $A$; explain why $\det(Q)$ carries a minus sign while the volume agrees.
+4. For $\mathbf{b} = [2, 2, 4]^T$, briefly compare solving $A\mathbf{x} = \mathbf{b}$ via $PA = LU$ versus $A = QR$ and find the unique solution $\mathbf{x}$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1: Since $A_{11} = 0$, the first step must swap Rows 1 and 2, giving a permutation $P$ with $\\det(P) = -1$.",
+    "Part 2: The column lengths and projections are very clean: $\\|\\mathbf{a}_1\\| = \\sqrt{2}$, and subtracting the $\\mathbf{a}_1$-component from $\\mathbf{a}_2$ leaves $\\mathbf{v}_2 = [1, 0, 0]^T$, already a unit coordinate vector!",
+    "Part 3: $\\det(A) = \\det(Q)\\det(R)$, and when $Q$ includes a reflection, $\\det(Q) = -1$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Here is linear algebra's classic dual perspective: $PA = LU$ watches the **rows** (swapping and eliminating rows to reach echelon form), whereas $A = QR$ watches the **columns** (straightening three slanted column vectors one by one into mutually perpendicular unit vectors).
+
+Although the factors $L, U$ and $Q, R$ look completely different, they measure the exact same geometric quantity—the volume $\operatorname{Vol}(A) = 2$ of the parallelepiped spanned by the three columns! In $LU$, that volume appears as the product of the pivots after row permutation; in $QR$, it appears as the product of the perpendicular "heights" $r_{11}, r_{22}, r_{33}$ of each new column above the subspace spanned by the previous ones.
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**1. $PA = LU$ Elimination**:  
+Because entry $(1,1)$ is $0$, swap Rows 1 and 2 using $P$:
+
+$$
+P = \begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}, \qquad PA = \begin{bmatrix} 1 & 1 & 0 \\ 0 & 1 & 1 \\ 1 & 1 & 2 \end{bmatrix}
+$$
+
+Subtract $1$ times Row 1 from Row 3 ($l_{31} = 1$); Row 2 already has pivot $1$ with $0$ below it ($l_{32} = 0$), yielding:
+
+$$
+L = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 1 & 0 & 1 \end{bmatrix}, \qquad U = \begin{bmatrix} 1 & 1 & 0 \\ 0 & 1 & 1 \\ 0 & 0 & 2 \end{bmatrix}
+$$
+
+Checking $LU = PA$ confirms the factorization.
+
+**2. Gram-Schmidt & $A = QR$**:  
+Write the columns as $\mathbf{a}_1 = [0, 1, 1]^T$, $\mathbf{a}_2 = [1, 1, 1]^T$, $\mathbf{a}_3 = [1, 0, 2]^T$:
+- **Column 1**: $r_{11} = \|\mathbf{a}_1\|_2 = \sqrt{2}$, $\mathbf{q}_1 = \frac{1}{\sqrt{2}}[0, 1, 1]^T$.
+- **Column 2**: $r_{12} = \mathbf{q}_1^T \mathbf{a}_2 = \frac{2}{\sqrt{2}} = \sqrt{2}$, residual $\mathbf{v}_2 = \mathbf{a}_2 - r_{12}\mathbf{q}_1 = [1, 1, 1]^T - [0, 1, 1]^T = [1, 0, 0]^T$, so $r_{22} = 1$ and $\mathbf{q}_2 = [1, 0, 0]^T$.
+- **Column 3**: $r_{13} = \mathbf{q}_1^T\mathbf{a}_3 = \sqrt{2}$, $r_{23} = \mathbf{q}_2^T\mathbf{a}_3 = 1$, residual $\mathbf{v}_3 = [1, 0, 2]^T - [0, 1, 1]^T - [1, 0, 0]^T = [0, -1, 1]^T$, so $r_{33} = \sqrt{2}$ and $\mathbf{q}_3 = \frac{1}{\sqrt{2}}[0, -1, 1]^T$.
+
+Hence:
+
+$$
+Q = \begin{bmatrix} 0 & 1 & 0 \\ 1/\sqrt{2} & 0 & -1/\sqrt{2} \\ 1/\sqrt{2} & 0 & 1/\sqrt{2} \end{bmatrix}, \qquad R = \begin{bmatrix} \sqrt{2} & \sqrt{2} & \sqrt{2} \\ 0 & 1 & 1 \\ 0 & 0 & \sqrt{2} \end{bmatrix}
+$$
+
+**3. Determinants, Orientation, and Volume**:  
+- From $PA = LU$: $\det(P) = -1$, $\det(L) = 1$, $\det(U) = 1\cdot 1\cdot 2 = 2$, so $\det(A) = \det(P)^{-1}\det(U) = -2$.
+- From $A = QR$: $\det(R) = \sqrt{2}\cdot 1\cdot \sqrt{2} = 2$. Expanding along Column 2 gives $\det(Q) = -1\cdot\left(\frac{1}{2} + \frac{1}{2}\right) = -1$ ($Q$ is an improper orthogonal matrix—a rotation composed with a reflection, reversing handedness). Thus $\det(A) = \det(Q)\det(R) = -2$.
+- The geometric volume is $\operatorname{Vol}(A) = \lvert\det A\rvert = \det(R) = 2$.
+
+**4. Solving $A\mathbf{x} = \mathbf{b}$ Both Ways**:  
+- **$LU$ path**: Solve $L\mathbf{c} = P\mathbf{b} = [2, 2, 4]^T \implies \mathbf{c} = [2, 2, 2]^T$; back-substitute $U\mathbf{x} = \mathbf{c} \implies 2x_3 = 2 \Rightarrow x_3 = 1$, $x_2 + 1 = 2 \Rightarrow x_2 = 1$, $x_1 + 1 = 2 \Rightarrow x_1 = 1$.
+- **$QR$ path**: Rotate to $Q^T\mathbf{b} = [3\sqrt{2}, 2, \sqrt{2}]^T$; back-substitute $R\mathbf{x} = Q^T\mathbf{b} \implies \sqrt{2}x_3 = \sqrt{2} \Rightarrow x_3 = 1$, $x_2 + 1 = 2 \Rightarrow x_2 = 1$, $\sqrt{2}(x_1 + 1 + 1) = 3\sqrt{2} \Rightarrow x_1 = 1$.
+
+Both yield the unique solution:
+
+$$
+\mathbf{x} = \begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix}
+$$
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 3 (L2): Discrete Markov Chains, Continuous Generators, and $\operatorname{tr}-\det$ Stability
+
+<ExerciseCard
+  id="l35-ex3"
+  tier="L2"
+  tierLabel="L2 · Markov, ODEs & Stability"
+  title="Discrete Markov Transitions, Continuous Generator ODEs, and Trace-Determinant Stability"
+>
+
+This problem explores the spectral bridge between discrete probability chains and continuous differential equations:
+
+**Part I**: Let the 2-state Markov transition matrix and initial distribution be:
+
+$$
+M = \begin{bmatrix} 0.7 & 0.2 \\ 0.3 & 0.8 \end{bmatrix}, \qquad \mathbf{u}_0 = \begin{bmatrix} 1 \\ 0 \end{bmatrix}
+$$
+
+1. Find the eigenvalues and eigenvectors of $M$, write the closed-form formula for $\mathbf{u}_k = M^k\mathbf{u}_0$, and find the steady state $\mathbf{u}_\infty$.
+2. Form the continuous-time Markov generator $A = M - I_2$, solve the initial value problem $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$ with $\mathbf{u}(0) = \mathbf{u}_0$, and use the left nullspace $\operatorname{Null}(A^T)$ to prove that total probability $\mathbf{1}^T\mathbf{u}(t) \equiv 1$ is conserved and $\lim_{t\to\infty}\mathbf{u}(t) = \mathbf{u}_\infty$.
+
+**Part II**: Consider the parameterized continuous system $\frac{d\mathbf{v}}{dt} = B_c \mathbf{v}$, where:
+
+$$
+B_c = \begin{bmatrix} -1 & 2 \\ c & -3 \end{bmatrix}, \qquad c \in \mathbb{R}
+$$
+
+3. Using the $\operatorname{tr}(B_c)-\det(B_c)$ stability plane, classify the exact intervals of $c$ for which the origin is a **stable spiral**, a **stable node**, a **degenerate line of neutral equilibria**, or an **unstable saddle**.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1: Each column of $M$ sums to 1, so $\\lambda_1 = 1$; read $\\lambda_2$ in one second from $\\operatorname{tr}(M) = \\lambda_1 + \\lambda_2$.",
+    "Part 2: $A = M - I$ has the exact same eigenvectors as $M$, with each eigenvalue shifted down by $1$!",
+    "Part 3: Compute $\\operatorname{tr}(B_c) = -4 \\lt 0$ and $\\det(B_c) = 3 - 2c$, then check the sign of the discriminant $\\Delta = (\\operatorname{tr} B_c)^2 - 4\\det(B_c)$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+The discrete Markov iteration $\mathbf{u}_{k+1} = M\mathbf{u}_k$ and the continuous ODE $\frac{d\mathbf{u}}{dt} = (M - I)\mathbf{u}$ are "discrete movie frames" and "continuous water flow" of the exact same transition process! Shifting $M$ to $M - I$ shifts the discrete stability boundary (the unit circle $\lvert\lambda\rvert = 1$) at $\lambda_1 = 1$ directly onto the continuous stability boundary (the imaginary axis $\operatorname{Re}(\mu) = 0$) at $\mu_1 = 0$, while pushing every $\lvert\lambda_i\rvert \lt 1$ strictly into the left half-plane $\operatorname{Re}(\mu_i) \lt 0$—guaranteeing both systems glide to the identical steady state!
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**1. Discrete Markov Eigendecomposition & Steady State**:  
+Since every column of $M$ sums to $1$, $\lambda_1 = 1$. From $\operatorname{tr}(M) = 0.7 + 0.8 = 1.5 = 1 + \lambda_2$, we get $\lambda_2 = 0.5$.
+- For $\lambda_1 = 1$: solving $(M - I)\mathbf{x}_1 = \mathbf{0}$:
+  $$
+  \begin{bmatrix} -0.3 & 0.2 \\ 0.3 & -0.2 \end{bmatrix}\mathbf{x}_1 = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 2 \\ 3 \end{bmatrix}
+  $$
+  which normalizes to $\mathbf{u}_\infty = [0.4, 0.6]^T$.
+- For $\lambda_2 = 0.5$: solving $(M - 0.5I)\mathbf{x}_2 = \mathbf{0}$:
+  $$
+  \begin{bmatrix} 0.2 & 0.2 \\ 0.3 & 0.3 \end{bmatrix}\mathbf{x}_2 = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+  $$
+
+Decomposing $\mathbf{u}_0 = [1, 0]^T = 1\cdot[0.4, 0.6]^T + 0.6\cdot[1, -1]^T$ gives:
+
+$$
+\mathbf{u}_k = M^k \mathbf{u}_0 = \begin{bmatrix} 0.4 \\ 0.6 \end{bmatrix} + 0.6\,(0.5)^k \begin{bmatrix} 1 \\ -1 \end{bmatrix} \xrightarrow{k\to\infty} \mathbf{u}_\infty = \begin{bmatrix} 0.4 \\ 0.6 \end{bmatrix}
+$$
+
+**2. Continuous Generator ODE & Probability Conservation**:  
+The generator matrix is:
+
+$$
+A = M - I_2 = \begin{bmatrix} -0.3 & 0.2 \\ 0.3 & -0.2 \end{bmatrix}
+$$
+
+which shares the eigenvectors $\mathbf{u}_\infty$ and $\mathbf{x}_2$ with eigenvalues $\mu_1 = 1 - 1 = 0$ and $\mu_2 = 0.5 - 1 = -0.5$. Thus:
+
+$$
+\mathbf{u}(t) = e^{At}\mathbf{u}(0) = e^{0\cdot t}\begin{bmatrix} 0.4 \\ 0.6 \end{bmatrix} + 0.6\,e^{-0.5 t}\begin{bmatrix} 1 \\ -1 \end{bmatrix} = \begin{bmatrix} 0.4 + 0.6\,e^{-0.5 t} \\ 0.6 - 0.6\,e^{-0.5 t} \end{bmatrix}
+$$
+
+Clearly $\lim_{t\to\infty}\mathbf{u}(t) = \mathbf{u}_\infty$. Moreover, $A^T\mathbf{1} = (M^T - I)\mathbf{1} = \mathbf{0}$, so $\mathbf{1} \in \operatorname{Null}(A^T)$ and:
+
+$$
+\frac{d}{dt}(\mathbf{1}^T\mathbf{u}(t)) = \mathbf{1}^T \frac{d\mathbf{u}}{dt} = \mathbf{1}^T A\mathbf{u}(t) = (A^T\mathbf{1})^T\mathbf{u}(t) = 0 \implies \mathbf{1}^T\mathbf{u}(t) \equiv \mathbf{1}^T\mathbf{u}(0) = 1
+$$
+
+**3. Phase-Plane Classification via $\operatorname{tr}(B_c)$ and $\det(B_c)$**:  
+For $B_c$, $\operatorname{tr}(B_c) = -1 - 3 = -4 \lt 0$ (constant!), $\det(B_c) = 3 - 2c$, and the discriminant is:
+
+$$
+\Delta = (\operatorname{tr} B_c)^2 - 4\det(B_c) = 16 - 4(3 - 2c) = 4 + 8c
+$$
+
+This partitions $c \in \mathbb{R}$ into four regimes:
+- **Stable spiral** ($\det \gt 0, \Delta \lt 0$, complex eigenvalues with negative real part): $3 - 2c \gt 0$ and $4 + 8c \lt 0 \implies c \lt -\frac{1}{2}$.
+- **Stable node** ($\det \gt 0, \Delta \ge 0$, two negative real eigenvalues): $-\frac{1}{2} \le c \lt \frac{3}{2}$ (including the critical repeated-root case $c = -\frac{1}{2}$).
+- **Degenerate line of neutral equilibria** ($\det = 0$, one zero eigenvalue): $c = \frac{3}{2}$ ($\lambda_1 = 0, \lambda_2 = -4$; trajectories converge along $\mathbf{x}_2$ to points on the equilibrium line).
+- **Unstable saddle** ($\det \lt 0$, one positive and one negative real eigenvalue): $c \gt \frac{3}{2}$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 4 (L3): Symmetric Spectral Theorem $Q\Lambda Q^T$, Radical-Free Cholesky, and Ellipsoid Geometry
+
+<ExerciseCard
+  id="l35-ex4"
+  tier="L3"
+  tierLabel="L3 · Spectral & Cholesky Geometry"
+  title="Real Symmetric Spectral Theorem QΛQᵀ, Cholesky Factorization, and Quadratic Ellipsoid Geometry"
+>
+
+Consider the real symmetric matrix:
+
+$$
+A = \begin{bmatrix} 4 & -6 \\ -6 & 13 \end{bmatrix}
+$$
+
+1. Find an orthogonal diagonalization $A = Q\Lambda Q^T$ with $\det(Q) = +1$ ($Q$ a pure rotation), and write the spectral expansion $A = \lambda_1 \mathbf{q}_1\mathbf{q}_1^T + \lambda_2 \mathbf{q}_2\mathbf{q}_2^T$ as a sum of two orthogonal rank-1 projections.
+2. Use elimination without row exchanges to compute $A = LDL^T$ and the **Cholesky factorization** $A = R^T R$ (where $R$ is upper triangular with positive diagonal entries—and notice it contains no square roots!).
+3. Using the spectral factorization from Part 1, describe the ellipse $\mathbf{x}^T A\mathbf{x} = 16$: give the directions of its principal axes, its semi-axis lengths, and its area.
+4. State the global maximum and minimum of the Rayleigh quotient $\frac{\mathbf{x}^T A\mathbf{x}}{\mathbf{x}^T\mathbf{x}}$, and find the unique minimizer $\mathbf{x}^*$ of $f(\mathbf{x}) = \frac{1}{2}\mathbf{x}^T A\mathbf{x} - \mathbf{b}^T\mathbf{x}$ for $\mathbf{b} = [2, 5]^T$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1: $\\operatorname{tr}(A) = 17$ and $\\det(A) = 52 - 36 = 16$, so the characteristic equation $\\lambda^2 - 17\\lambda + 16 = 0$ factors by inspection!",
+    "Part 2: $R = \\sqrt{D} L^T$. With pivots $d_1 = 4$ and $d_2 = 4$, the square roots are integers!",
+    "Part 3: Divide $\\lambda_1 y_1^2 + \\lambda_2 y_2^2 = 16$ by $16$ to put the ellipse in standard form $\\frac{y_1^2}{a^2} + \\frac{y_2^2}{b^2} = 1$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+This problem is the marriage of Lectures 26 and 28. In standard coordinates, $4x_1^2 - 12x_1 x_2 + 13x_2^2 = 16$ is a tilted ellipse with an annoying cross term $-12x_1 x_2$. Rotating into the orthonormal eigenbasis $Q$ aligns the coordinate grid with the ellipse's true axes of symmetry—the cross term vanishes instantly, leaving $16y_1^2 + y_2^2 = 16$!
+
+Cholesky factorization $A = R^T R$ takes a completely different route: instead of rotating, it writes the quadratic form as a squared Euclidean norm $\mathbf{x}^T A\mathbf{x} = \|R\mathbf{x}\|_2^2$ via fast $\mathcal{O}(n^3/6)$ elimination, immediately proving strict convexity and uniqueness of the minimum.
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**1. Spectral Factorization $A = Q\Lambda Q^T$**:  
+With $\operatorname{tr}(A) = 17$ and $\det(A) = 4(13) - (-6)^2 = 16$:
+
+$$
+\lambda^2 - 17\lambda + 16 = (\lambda - 16)(\lambda - 1) = 0 \implies \lambda_1 = 16, \quad \lambda_2 = 1
+$$
+
+- For $\lambda_1 = 16$: $(A - 16I)\mathbf{q}_1 = \mathbf{0}$, i.e., $[[-12, -6], [-6, -3]]\mathbf{q}_1 = \mathbf{0}$, giving $\mathbf{q}_1 = \frac{1}{\sqrt{5}}[-1, 2]^T$.
+- For $\lambda_2 = 1$: $(A - I)\mathbf{q}_2 = \mathbf{0}$, i.e., $[[3, -6], [-6, 12]]\mathbf{q}_2 = \mathbf{0}$, giving $\mathbf{q}_2 = \frac{1}{\sqrt{5}}[2, 1]^T$.
+
+Taking:
+
+$$
+Q = [\mathbf{q}_2 \;\; \mathbf{q}_1] = \frac{1}{\sqrt{5}}\begin{bmatrix} 2 & -1 \\ 1 & 2 \end{bmatrix}, \qquad \Lambda = \begin{bmatrix} 1 & 0 \\ 0 & 16 \end{bmatrix}
+$$
+
+gives $\det(Q) = \frac{4 - (-1)}{5} = +1$ (a pure rotation). (Equivalently, keeping $\Lambda = \operatorname{diag}(16, 1)$ and negating $\mathbf{q}_2$ to $\mathbf{q}_2' = \frac{1}{\sqrt{5}}[-2, -1]^T$ also gives $\det(Q) = +1$.) In either case, the spectral expansion is:
+
+$$
+A = 16\mathbf{q}_1\mathbf{q}_1^T + 1\mathbf{q}_2\mathbf{q}_2^T = \frac{16}{5}\begin{bmatrix} 1 & -2 \\ -2 & 4 \end{bmatrix} + \frac{1}{5}\begin{bmatrix} 4 & 2 \\ 2 & 1 \end{bmatrix}
+$$
+
+**2. $LDL^T$ and Radical-Free Cholesky $A = R^T R$**:  
+Subtract $-\frac{6}{4} = -\frac{3}{2}$ times Row 1 from Row 2 (i.e., add $\frac{3}{2}$ times Row 1):
+
+$$
+\begin{bmatrix} 4 & -6 \\ -6 & 13 \end{bmatrix} \to \begin{bmatrix} 4 & -6 \\ 0 & 13 - \frac{3}{2}\cdot 6 \end{bmatrix} = \begin{bmatrix} 4 & -6 \\ 0 & 4 \end{bmatrix}
+$$
+
+Thus:
+
+$$
+D = \begin{bmatrix} 4 & 0 \\ 0 & 4 \end{bmatrix}, \qquad L = \begin{bmatrix} 1 & 0 \\ -3/2 & 1 \end{bmatrix}, \qquad \sqrt{D} = \begin{bmatrix} 2 & 0 \\ 0 & 2 \end{bmatrix}
+$$
+
+which gives $R = \sqrt{D} L^T$:
+
+$$
+R = \begin{bmatrix} 2 & 0 \\ 0 & 2 \end{bmatrix}\begin{bmatrix} 1 & -3/2 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 2 & -3 \\ 0 & 2 \end{bmatrix}
+$$
+
+Check:
+
+$$
+R^T R = \begin{bmatrix} 2 & 0 \\ -3 & 2 \end{bmatrix}\begin{bmatrix} 2 & -3 \\ 0 & 2 \end{bmatrix} = \begin{bmatrix} 4 & -6 \\ -6 & 13 \end{bmatrix} = A
+$$
+
+**3. Ellipse Geometry**:  
+Writing $\mathbf{x} = y_1\mathbf{q}_1 + y_2\mathbf{q}_2$, the equation $\mathbf{x}^T A\mathbf{x} = 16$ becomes $16y_1^2 + y_2^2 = 16$, or:
+
+$$
+\frac{y_1^2}{1^2} + \frac{y_2^2}{4^2} = 1
+$$
+
+- **Minor semi-axis**: along $\mathbf{q}_1 = \frac{1}{\sqrt{5}}[-1, 2]^T$, length $a_1 = \sqrt{16/\lambda_1} = 1$.
+- **Major semi-axis**: along $\mathbf{q}_2 = \frac{1}{\sqrt{5}}[2, 1]^T$, length $a_2 = \sqrt{16/\lambda_2} = 4$.
+- **Area**: $\text{Area} = \pi a_1 a_2 = 4\pi$.
+
+**4. Rayleigh Quotient & Global Minimum**:  
+By Theorem C, the Rayleigh quotient has global maximum $\lambda_{\max} = 16$ (along $\mathbf{q}_1$) and global minimum $\lambda_{\min} = 1$ (along $\mathbf{q}_2$). Setting $\nabla f(\mathbf{x}) = A\mathbf{x} - \mathbf{b} = \mathbf{0}$ gives:
+
+$$
+\mathbf{x}^* = A^{-1}\mathbf{b} = \frac{1}{16}\begin{bmatrix} 13 & 6 \\ 6 & 4 \end{bmatrix}\begin{bmatrix} 2 \\ 5 \end{bmatrix} = \frac{1}{16}\begin{bmatrix} 56 \\ 32 \end{bmatrix} = \begin{bmatrix} 3.5 \\ 2 \end{bmatrix}
+$$
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 5 (L4): Full SVD Construction, Eckart-Young Best Rank-1 Approximation, and Minimum-Norm Pseudoinverse
+
+<ExerciseCard
+  id="l35-ex5"
+  tier="L4"
+  tierLabel="L4 · MIT 18.06 Exam Synthesis"
+  title="Full SVD Construction, Eckart-Young Best Rank-1 Approximation, and Minimum-Norm Pseudoinverse"
+>
+
+Consider the rectangular full-row-rank matrix $A \in \mathbb{R}^{2\times 3}$:
+
+$$
+A = \begin{bmatrix} 2 & 5 & 4 \\ 6 & 3 & 0 \end{bmatrix}
+$$
+
+1. **Choose the Smart Side**: Eigendecompose the smaller $2\times 2$ matrix $AA^T$ to find the singular values $\sigma_1 \gt \sigma_2 \gt 0$ and left singular matrix $U = [\mathbf{u}_1 \;\; \mathbf{u}_2]$. Then use $\mathbf{v}_i = \frac{1}{\sigma_i}A^T\mathbf{u}_i$ (and complete with a basis vector $\mathbf{v}_3 \in \operatorname{Null}(A)$) to construct the full SVD $A = U\Sigma V^T$.
+2. By the Eckart-Young Theorem, find the best rank-1 approximation $A_1$ to $A$ in both the spectral norm ($\|\cdot\|_2$) and Frobenius norm ($\|\cdot\|_F$), and compute the approximation errors $\|A - A_1\|_2$ and $\|A - A_1\|_F$.
+3. Construct the Moore-Penrose pseudoinverse $A^+ = V\Sigma^+ U^T \in \mathbb{R}^{3\times 2}$, and verify that $AA^+ = I_2$ (a right inverse) while $A^+ A = P_{\operatorname{Row}(A)} \ne I_3$.
+4. For $\mathbf{b} = [9, 27]^T$, compute $\mathbf{x}^+ = A^+\mathbf{b}$. Compare it with the standard RREF particular solution $\mathbf{x}_0$ obtained by setting the free variable $x_3 = 0$, verify numerically that $\|\mathbf{x}^+\|_2 \lt \|\mathbf{x}_0\|_2$, and explain the orthogonality behind this inequality.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1: $A$ is $2\\times 3$, so $AA^T = [[45, 27], [27, 45]]$ is a symmetric $2\\times 2$ matrix with equal diagonal entries—its eigenvectors are immediately $[1, 1]^T/\\sqrt{2}$ and $[1, -1]^T/\\sqrt{2}$!",
+    "Part 2: $A_1 = \\sigma_1 \\mathbf{u}_1 \\mathbf{v}_1^T$ turns out to be a pure integer matrix, and the error equals $\\sigma_2$.",
+    "Parts 3–4: Since $\\sigma_1 = 6\\sqrt{2}$ and $\\sigma_2 = 3\\sqrt{2}$, the $\\sqrt{2}$ factors cancel with $\\frac{1}{\\sqrt{2}}$ in $\\mathbf{u}_1, \\mathbf{u}_2$ to give clean fractions over $36$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+$A \in \mathbb{R}^{2\times 3}$ represents an **underdetermined system (2 equations, 3 unknowns)** with a whole 1D line of exact solutions parallel to $\operatorname{Null}(A)$. Setting the free variable $x_3 = 0$ in RREF merely picks an arbitrary "off-center" point $\mathbf{x}_0$ where that solution line pierces the $x_1 x_2$-plane.
+
+The SVD pseudoinverse solution $\mathbf{x}^+ = A^+\mathbf{b}$ strips out every trace of the nullspace and drops a perpendicular straight onto the row space $\operatorname{Row}(A)$—landing at the unique closest point to the origin, i.e., the **minimum-norm exact solution**!
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**1. Full SVD $A = U\Sigma V^T$**:  
+Compute the $2\times 2$ matrix $AA^T$:
+
+$$
+A A^T = \begin{bmatrix} 2 & 5 & 4 \\ 6 & 3 & 0 \end{bmatrix}\begin{bmatrix} 2 & 6 \\ 5 & 3 \\ 4 & 0 \end{bmatrix} = \begin{bmatrix} 45 & 27 \\ 27 & 45 \end{bmatrix}
+$$
+
+Because the diagonal entries are equal, the eigenvalues and unit eigenvectors follow by inspection:
+- $\lambda_1 = 45 + 27 = 72 \implies \sigma_1 = \sqrt{72} = 6\sqrt{2}$, $\mathbf{u}_1 = \frac{1}{\sqrt{2}}[1, 1]^T$;
+- $\lambda_2 = 45 - 27 = 18 \implies \sigma_2 = \sqrt{18} = 3\sqrt{2}$, $\mathbf{u}_2 = \frac{1}{\sqrt{2}}[1, -1]^T$.
+
+Lock in the right singular vectors via $\mathbf{v}_i = \frac{1}{\sigma_i}A^T\mathbf{u}_i$ (avoiding any sign mismatch!):
+
+$$
+\mathbf{v}_1 = \frac{1}{6\sqrt{2}}\begin{bmatrix} 2 & 6 \\ 5 & 3 \\ 4 & 0 \end{bmatrix}\frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ 1 \end{bmatrix} = \frac{1}{12}\begin{bmatrix} 8 \\ 8 \\ 4 \end{bmatrix} = \frac{1}{3}\begin{bmatrix} 2 \\ 2 \\ 1 \end{bmatrix}
+$$
+
+$$
+\mathbf{v}_2 = \frac{1}{3\sqrt{2}}\begin{bmatrix} 2 & 6 \\ 5 & 3 \\ 4 & 0 \end{bmatrix}\frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ -1 \end{bmatrix} = \frac{1}{6}\begin{bmatrix} -4 \\ 2 \\ 4 \end{bmatrix} = \frac{1}{3}\begin{bmatrix} -2 \\ 1 \\ 2 \end{bmatrix}
+$$
+
+For $\operatorname{Null}(A)$: $6x_1 + 3x_2 = 0 \implies x_2 = -2x_1$, and $2x_1 + 5(-2x_1) + 4x_3 = 0 \implies x_3 = 2x_1$, normalizing to $\mathbf{v}_3 = \frac{1}{3}[1, -2, 2]^T$. Thus:
+
+$$
+U = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}, \quad \Sigma = \begin{bmatrix} 6\sqrt{2} & 0 & 0 \\ 0 & 3\sqrt{2} & 0 \end{bmatrix}, \quad V = \frac{1}{3}\begin{bmatrix} 2 & -2 & 1 \\ 2 & 1 & -2 \\ 1 & 2 & 2 \end{bmatrix}
+$$
+
+**2. Eckart-Young Best Rank-1 Approximation $A_1$**:  
+
+$$
+A_1 = \sigma_1 \mathbf{u}_1 \mathbf{v}_1^T = 6\sqrt{2}\left(\frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ 1 \end{bmatrix}\right)\left(\frac{1}{3}\begin{bmatrix} 2 & 2 & 1 \end{bmatrix}\right) = \begin{bmatrix} 4 & 4 & 2 \\ 4 & 4 & 2 \end{bmatrix}
+$$
+
+The error matrix is:
+
+$$
+A - A_1 = \sigma_2 \mathbf{u}_2 \mathbf{v}_2^T = \begin{bmatrix} -2 & 1 & 2 \\ 2 & -1 & -2 \end{bmatrix}
+$$
+
+giving:
+
+$$
+\|A - A_1\|_2 = \sigma_2 = 3\sqrt{2}, \qquad \|A - A_1\|_F = \sqrt{\sigma_2^2} = \sigma_2 = 3\sqrt{2}
+$$
+
+**3. Moore-Penrose Pseudoinverse $A^+$**:  
+
+$$
+A^+ = \frac{1}{\sigma_1}\mathbf{v}_1\mathbf{u}_1^T + \frac{1}{\sigma_2}\mathbf{v}_2\mathbf{u}_2^T = \frac{1}{36}\begin{bmatrix} 2 & 2 \\ 2 & 2 \\ 1 & 1 \end{bmatrix} + \frac{1}{18}\begin{bmatrix} -2 & 2 \\ 1 & -1 \\ 2 & -2 \end{bmatrix} = \frac{1}{36}\begin{bmatrix} -2 & 6 \\ 4 & 0 \\ 5 & -3 \end{bmatrix}
+$$
+
+Checking:
+
+$$
+A A^+ = \frac{1}{36}\begin{bmatrix} 2 & 5 & 4 \\ 6 & 3 & 0 \end{bmatrix}\begin{bmatrix} -2 & 6 \\ 4 & 0 \\ 5 & -3 \end{bmatrix} = \frac{1}{36}\begin{bmatrix} 36 & 0 \\ 0 & 36 \end{bmatrix} = I_2
+$$
+
+(exact right inverse), while $A^+ A = \mathbf{v}_1\mathbf{v}_1^T + \mathbf{v}_2\mathbf{v}_2^T = I_3 - \mathbf{v}_3\mathbf{v}_3^T = P_{\operatorname{Row}(A)} \ne I_3$.
+
+**4. Minimum-Norm Pseudoinverse Solution vs. Free-Variable Particular Solution**:  
+For $\mathbf{b} = [9, 27]^T$:
+
+$$
+\mathbf{x}^+ = A^+\mathbf{b} = \frac{1}{36}\begin{bmatrix} -2 & 6 \\ 4 & 0 \\ 5 & -3 \end{bmatrix}\begin{bmatrix} 9 \\ 27 \end{bmatrix} = \frac{1}{36}\begin{bmatrix} 144 \\ 36 \\ -36 \end{bmatrix} = \begin{bmatrix} 4 \\ 1 \\ -1 \end{bmatrix}
+$$
+
+Indeed $A\mathbf{x}^+ = [8+5-4,\; 24+3+0]^T = [9, 27]^T = \mathbf{b}$, with $\|\mathbf{x}^+\|_2^2 = 4^2 + 1^2 + (-1)^2 = 18$.  
+By contrast, setting $x_3 = 0$ gives $6x_1 + 3x_2 = 27$ and $2x_1 + 5x_2 = 9$, yielding $\mathbf{x}_0 = [4.5, 0, 0]^T$ with $\|\mathbf{x}_0\|_2^2 = 20.25 \gt 18$. Their difference is purely in the nullspace:
+
+$$
+\mathbf{x}_0 - \mathbf{x}^+ = \begin{bmatrix} 0.5 \\ -1 \\ 1 \end{bmatrix} = \frac{3}{2}\mathbf{v}_3 \in \operatorname{Null}(A)
+$$
+
+with $(\mathbf{x}^+)^T(\mathbf{x}_0 - \mathbf{x}^+) = 4(0.5) + 1(-1) + (-1)(1) = 0$, confirming $\|\mathbf{x}_0\|_2^2 = 18 + 2.25 = 20.25$ by Pythagoras.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 6 (L4): The 35-Lecture True/False Conceptual Gauntlet
+
+<ExerciseCard
+  id="l35-ex6"
+  tier="L4"
+  tierLabel="L4 · Conceptual True/False"
+  title="The 35-Lecture True/False Conceptual Gauntlet (Boundary Conditions Test)"
+>
+
+The four statements below span all four modules and probe the exact boundaries of our theorems. Inspect every hypothesis (matrix shape, symmetry, invertibility, change of basis), test your intuition on the two interactive cards below, and then give a complete proof or counterexample for all four statements!
+
+- **Statement 1**: For **any** real matrix $A \in \mathbb{R}^{m\times n}$, the product $A^T A \in \mathbb{R}^{n\times n}$ is guaranteed to be a symmetric positive definite (SPD) matrix.
+
+<TrueFalseInteractive
+  id="l35-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="$A^T A$ is always symmetric and at least positive semidefinite ($\mathbf{x}^T A^T A\mathbf{x} = \|A\mathbf{x}\|_2^2 \ge 0$), but strict positive definiteness ($\gt 0$) requires $\operatorname{Null}(A) = \{\mathbf{0}\}$, i.e., $A$ must have full column rank! If $\operatorname{rank}(A) \lt n$, $A^T A$ has zero eigenvalues."
+/>
+
+- **Statement 2**: If a square matrix $A \in \mathbb{R}^{n\times n}$ has all singular values equal to $1$ ($\sigma_1 = \dots = \sigma_n = 1$), then $A$ must be an **orthogonal matrix** ($A^T A = A A^T = I_n$).
+
+<TrueFalseInteractive
+  id="l35-tf2"
+  correct={true}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="True! In the SVD $A = U\Sigma V^T$, all singular values equal to $1$ means $\Sigma = I_n$, so $A = UV^T$ is a product of two orthogonal matrices and therefore orthogonal itself!"
+/>
+
+- **Statement 3**: If $A \in \mathbb{R}^{n\times n}$ is invertible, then $A$ and $A^{-1}$ have the exact same four fundamental subspaces.
+- **Statement 4**: Under a change to a non-standard basis, a linear operator $T: \mathbb{R}^n \to \mathbb{R}^n$ changes its matrix from $A$ to the similar matrix $B = M^{-1}AM$. Then $A$ and $B$ have the same eigenvalues, trace, determinant, and rank, while eigenvector coordinates and singular values **generally change**.
+
+Provide a rigorous proof or explicit counterexample for each of the four statements!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Statement 1: Try a $2\\times 2$ rank-1 matrix, such as one with proportional columns or a zero column.",
+    "Statement 2: Plug $\\Sigma = I_n$ directly into $A = U\\Sigma V^T$ and compute $A^T A$.",
+    "Statement 3: If $A$ is invertible, what are its four fundamental subspaces?",
+    "Statement 4: Conjugate a diagonal matrix $A$ by a non-orthogonal $M$ and compare the singular values of $M^{-1}AM$ with those of $A$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+These four statements are the ultimate graduation check:
+- **Statement 1** tests the crucial distinction between **positive definite** and **positive semidefinite** via $\operatorname{Null}(A)$;
+- **Statement 2** tests translating SVD back into geometry—if a linear map neither stretches nor shrinks in any direction ($\sigma_i = 1$ for all $i$), it maps the unit sphere onto the unit sphere and must be a rigid rotation/reflection (an orthogonal matrix)!
+- **Statement 3** highlights the maximal collapse for invertible matrices: two full spaces $\mathbb{R}^n$ and two trivial spaces $\{\mathbf{0}\}$, identical for $A$ and $A^{-1}$;
+- **Statement 4** draws the sharp boundary between **similarity invariants** (spectrum, trace, determinant, rank) and **orthogonal invariants** (singular values): a non-orthogonal change of basis $M$ preserves eigenvalues, but distorts lengths and therefore alters singular values!
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**Statement 1: False.**  
+For every $\mathbf{x} \in \mathbb{R}^n$, $\mathbf{x}^T(A^T A)\mathbf{x} = \|A\mathbf{x}\|_2^2 \ge 0$, so $A^T A$ is always **symmetric positive semidefinite**. However, strict positive definiteness requires $\operatorname{Null}(A) = \{\mathbf{0}\}$ ($A$ must have **full column rank**).  
+*Counterexample*: Take:
+
+$$
+A = \begin{bmatrix} 1 & 1 \\ 0 & 0 \end{bmatrix}, \qquad A^T A = \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix}
+$$
+
+which has eigenvalues $\{2, 0\}$, and $\mathbf{x} = [1, -1]^T \ne \mathbf{0}$ gives $\mathbf{x}^T A^T A\mathbf{x} = 0$, so $A^T A$ is not SPD.
+
+**Statement 2: True.**  
+*Proof*: Let $A = U\Sigma V^T$ be the SVD of $A \in \mathbb{R}^{n\times n}$, with orthogonal $U, V \in \mathbb{R}^{n\times n}$. Since $\sigma_1 = \dots = \sigma_n = 1$, we have $\Sigma = I_n$, so $A = U I_n V^T = U V^T$. Then:
+
+$$
+A^T A = (V U^T)(U V^T) = V(U^T U)V^T = V I_n V^T = I_n
+$$
+
+Since $A$ is square, $A^T A = I_n$ implies $A A^T = I_n$, so $A$ is orthogonal.
+
+**Statement 3: True.**  
+*Proof*: Because $A \in \mathbb{R}^{n\times n}$ is invertible, $A^{-1}$ is also invertible. By Theorem A, every invertible $n\times n$ matrix satisfies:
+
+$$
+\operatorname{Col}(A) = \operatorname{Row}(A) = \mathbb{R}^n = \operatorname{Col}(A^{-1}) = \operatorname{Row}(A^{-1})
+$$
+
+$$
+\operatorname{Null}(A) = \operatorname{Null}(A^T) = \{\mathbf{0}\} = \operatorname{Null}(A^{-1}) = \operatorname{Null}((A^{-1})^T)
+$$
+
+Hence $A$ and $A^{-1}$ share all four fundamental subspaces. (Note: for singular matrices, $\operatorname{Col}(A)$ and $\operatorname{Row}(A)$ need not match at all!)
+
+**Statement 4: True.**  
+*Proof & Counterexample*: For $B = M^{-1}AM$ (Lecture 29):
+- **Invariants**: $\det(B - \lambda I) = \det(M^{-1}(A - \lambda I)M) = \det(A - \lambda I)$, so eigenvalues, $\operatorname{tr}$, $\det$, and $\operatorname{rank}$ (multiplying by invertible matrices preserves rank) are all unchanged.
+- **Eigenvector coordinates**: $A\mathbf{x} = \lambda\mathbf{x} \iff B(M^{-1}\mathbf{x}) = \lambda(M^{-1}\mathbf{x})$, so coordinate vectors transform by $M^{-1}$.
+- **Singular values change (unless $M$ is orthogonal)**: Take:
+  $$
+  A = \begin{bmatrix} 2 & 0 \\ 0 & 1 \end{bmatrix}, \qquad M = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} \implies B = M^{-1}AM = \begin{bmatrix} 2 & -1 \\ 0 & 1 \end{bmatrix}
+  $$
+  While $\sigma(A) = \{2, 1\}$ with $\sigma_1^2 + \sigma_2^2 = 5$, for $B$ we have $\operatorname{tr}(B^T B) = 4 + 1 + 1 = 6 \ne 5$ (its singular values are $\sqrt{3 \pm \sqrt{5}}$). Thus eigenvalues are invariants of general similarity $M^{-1}AM$, whereas singular values are Euclidean-length invariants preserved only under orthogonal equivalence $U^T A V$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>

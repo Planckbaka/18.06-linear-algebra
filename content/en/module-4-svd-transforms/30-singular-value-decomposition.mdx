@@ -1,0 +1,978 @@
+---
+title: "Lecture 30: Singular Value Decomposition (SVD)"
+ocwId: "L29"
+videoEpisode: "P30"
+textbookRef: "§7.1–7.2"
+---
+
+If the entire MIT 18.06 Linear Algebra course is a climb toward the summit of matrix structure, then the **Singular Value Decomposition (SVD)** is the moment we stand at the peak and look out over the whole landscape.
+
+Let us look back at the road of matrix factorizations we have traveled from Lecture 22 to Lecture 29:
+- Eigenvalue diagonalization $A = S\Lambda S^{-1}$ for a general square matrix (Lecture 22) is remarkably powerful, yet it hits two immovable walls: first, it **only applies to square matrices** ($m = n$), leaving us helpless before the rectangular matrices $A \in \mathbb{R}^{m \times n}$ ($m \ne n$) that dominate engineering and data science; second, even for a square matrix, once it becomes defective (fewer than $n$ linearly independent eigenvectors, Lecture 29), $S$ is not invertible and diagonalization breaks down completely. Moreover, the eigenvector matrix $S$ is generally **not orthogonal**.
+- The Spectral Theorem for real symmetric matrices $A = Q\Lambda Q^T$ (Lecture 26) is perfection itself: any real symmetric matrix always possesses an **orthonormal eigenbasis** $Q$ that diagonalizes it. Yet it demands the stringent symmetry condition $A = A^T$.
+
+Now, Prof. Gilbert Strang poses the ultimate question: **For any matrix $A \in \mathbb{R}^{m \times n}$ on Earth—with no symmetry whatsoever, perhaps tall or wide, or even rank-deficient—can we still diagonalize it completely using only "orthogonal rotations/reflections" and "pure diagonal stretching"?**
+
+The answer is a resounding **YES**! The only price we pay is that we stop insisting that the input space $\mathbb{R}^n$ and the output space $\mathbb{R}^m$ share the same basis; instead, **we allow the input space to have its own orthonormal basis $V$, and the output space to have its own orthonormal basis $U$**. That is the Singular Value Decomposition, $A = U\Sigma V^T$!
+
+---
+
+## 1. Geometric Intuition: Why Does Every Matrix Map the Unit Circle to an Ellipse?
+
+The deepest entry point into $A = U\Sigma V^T$ is not memorizing a computational recipe, but staring at the geometry.
+
+Consider any linear transformation in the plane, $A \in \mathbb{R}^{2 \times 2}$, acting on the unit circle $\|\mathbf{x}\|_2 = 1$ in the input space $\mathbb{R}^2$:
+- Every point $\mathbf{x}$ on the unit circle is mapped to $A\mathbf{x}$, and all these image points together trace out an **ellipse** in the output space (degenerating to a line segment if $\operatorname{rank}(A) = 1$, or collapsing to the origin if $A = O$).
+- Ask yourself: on that output ellipse, there is a pair of perpendicular principal semi-axes (major semi-axis direction $\mathbf{u}_1$ and minor semi-axis direction $\mathbf{u}_2$, of lengths $\sigma_1 \ge \sigma_2 \ge 0$). Which two directions on the input unit circle did they come from?
+- The breathtaking geometric fact is: **their preimages $\mathbf{v}_1, \mathbf{v}_2$ on the input unit circle are also strictly perpendicular** ($\mathbf{v}_1 \perp \mathbf{v}_2$)!
+
+In other words, even though the matrix $A$ itself may combine shearing, scaling, and rotation (so it generally **does not preserve angles**), **there always exists an extraordinarily special pair of orthogonal unit directions $(\mathbf{v}_1, \mathbf{v}_2)$ in the input space whose images $(A\mathbf{v}_1, A\mathbf{v}_2) = (\sigma_1 \mathbf{u}_1, \sigma_2 \mathbf{u}_2)$ in the output space remarkably remain $90^\circ$ orthogonal**!
+
+This immediately decomposes any linear map $A$ into a geometrically pure three-step pipeline:
+1. **Right orthogonal matrix $V^T$ (input space alignment)**: Orthogonal transformations strictly preserve lengths and angles (Lecture 17). Left-multiplying by $V^T$ rotates (or reflects) the input space's natural orthogonal principal axes $\mathbf{v}_1, \mathbf{v}_2$ to align with the standard coordinate axes $\mathbf{e}_1, \mathbf{e}_2$;
+2. **Diagonal singular value matrix $\Sigma$ (pure axial scaling & dimensional embedding)**: Along the aligned coordinate axes, stretch or compress by factors $\sigma_1, \sigma_2$ (crushing any nullspace dimensions to $0$, and padding with zeros into higher dimensions if $m \gt n$), turning the unit circle into an axis-aligned ellipse;
+3. **Left orthogonal matrix $U$ (output space orientation)**: Finally, apply an orthogonal rotation (or reflection) in the output space to place the axis-aligned semi-axes $\sigma_1\mathbf{e}_1, \sigma_2\mathbf{e}_2$ into their final target directions $\sigma_1\mathbf{u}_1, \sigma_2\mathbf{u}_2$.
+
+<SvdCircleToEllipsePipelineDiagram caption="Three-step geometric pipeline of the SVD: Vᵀ aligns the orthogonal input axes to the standard axes, Σ stretches them into an axis-aligned ellipse, and U rotates the ellipse to its final output orientation." />
+
+To summarize this geometric picture in one line:
+- In standard eigendecomposition $A\mathbf{x} = \lambda \mathbf{x}$ for a square matrix, we demand that the output direction stay **parallel** to the input direction (using one single basis);
+- In the Singular Value Decomposition, we seek **a matched pair of orthonormal bases** such that each input orthogonal direction $\mathbf{v}_i$ maps precisely to a scaled output orthogonal direction $\mathbf{u}_i$:
+
+$$
+A \mathbf{v}_i = \sigma_i \mathbf{u}_i \quad (1 \le i \le r), \qquad A \mathbf{v}_i = \mathbf{0} \quad (r+1 \le i \le n)
+$$
+
+Stacking all $n$ column vector equations side by side into a matrix product immediately gives $A V = U \Sigma$. Since the square orthogonal matrix $V$ satisfies $V^{-1} = V^T$, right-multiplying by $V^T$ yields the golden formula of the Singular Value Decomposition: $A = U \Sigma V^T$!
+
+---
+
+## 2. Rigorous Definition and Existence Theorem
+
+Guided by this geometric intuition, let us now establish the exact matrix shapes, rank constraints, compact form, and constructive existence theorem for the SVD.
+
+<DefinitionCard label="Definition" title="Singular Value Decomposition (SVD) & Singular Values">
+
+Let $A \in \mathbb{R}^{m \times n}$ be any real matrix of rank $r = \operatorname{rank}(A)$ (clearly $0 \le r \le \min(m, n)$).
+
+1. **Full SVD**: Factor $A$ as the product of three matrices:
+   $$
+   A = U \Sigma V^T
+   $$
+   where:
+   - $U = [\mathbf{u}_1 \;\; \mathbf{u}_2 \;\; \cdots \;\; \mathbf{u}_m] \in \mathbb{R}^{m \times m}$ is an **orthogonal matrix** ($U^T U = U U^T = I_m$), whose columns $\mathbf{u}_i \in \mathbb{R}^m$ are called the **left singular vectors** of $A$;
+   - $V = [\mathbf{v}_1 \;\; \mathbf{v}_2 \;\; \cdots \;\; \mathbf{v}_n] \in \mathbb{R}^{n \times n}$ is an **orthogonal matrix** ($V^T V = V V^T = I_n$), whose columns $\mathbf{v}_j \in \mathbb{R}^n$ are called the **right singular vectors** of $A$;
+   - $\Sigma \in \mathbb{R}^{m \times n}$ is a rectangular diagonal matrix of the same shape as $A$, whose top-left $r \times r$ block is a strictly positive diagonal matrix $\Sigma_r = \operatorname{diag}(\sigma_1, \sigma_2, \dots, \sigma_r)$ and whose remaining entries are all $0$:
+     $$
+     \Sigma = \begin{bmatrix} \Sigma_r & O_{r \times (n-r)} \\ O_{(m-r) \times r} & O_{(m-r) \times (n-r)} \end{bmatrix}, \qquad \sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_r \gt 0
+     $$
+     Here $\sigma_1, \dots, \sigma_r$ are called the **nonzero singular values** of $A$ (by convention, if we pad out to $\min(m,n)$ singular values, then $\sigma_{r+1} = \dots = \sigma_{\min(m,n)} = 0$).
+
+2. **Thin / Economy SVD**: Because rows and columns of $\Sigma$ beyond index $r$ are all zero, dropping the corresponding zero-block vectors $\mathbf{u}_{r+1},\dots,\mathbf{u}_m$ and $\mathbf{v}_{r+1},\dots,\mathbf{v}_n$ leaves the product unchanged:
+   $$
+   A = U_r \Sigma_r V_r^T = \sum_{i=1}^r \sigma_i \mathbf{u}_i \mathbf{v}_i^T
+   $$
+   where $U_r = [\mathbf{u}_1 \;\; \cdots \;\; \mathbf{u}_r] \in \mathbb{R}^{m \times r}$ (with $U_r^T U_r = I_r$) and $V_r = [\mathbf{v}_1 \;\; \cdots \;\; \mathbf{v}_r] \in \mathbb{R}^{n \times r}$ (with $V_r^T V_r = I_r$). On the right, $\sum_{i=1}^r \sigma_i \mathbf{u}_i \mathbf{v}_i^T$ writes $A$ as a sum of $r$ mutually orthogonal **rank-one outer-product matrices**!
+
+*(Note: If $A \in \mathbb{C}^{m \times n}$ is a complex matrix, we simply replace orthogonal matrices with unitary matrices $U^H U = I_m, V^H V = I_n$, giving $A = U\Sigma V^H$, while the singular values $\sigma_i \ge 0$ remain **nonnegative real numbers**.)*
+
+</DefinitionCard>
+
+Why does such a decomposition exist for **every** real matrix $A \in \mathbb{R}^{m \times n}$—no matter how lopsided, singular, or defective? The answer lies hidden in two real symmetric matrices built directly from $A$: $A^T A$ and $A A^T$!
+
+Observe first that if $A = U\Sigma V^T$ already holds, then using orthogonality $U^T U = I_m$ and $V^T V = I_n$, we immediately obtain:
+
+$$
+A^T A = (V \Sigma^T U^T)(U \Sigma V^T) = V (\Sigma^T \Sigma) V^T
+$$
+
+$$
+A A^T = (U \Sigma V^T)(V \Sigma^T U^T) = U (\Sigma \Sigma^T) U^T
+$$
+
+This reveals a striking connection:
+- The columns of $V$ must be orthonormal eigenvectors of the real symmetric positive semidefinite matrix $A^T A \in \mathbb{R}^{n \times n}$;
+- The columns of $U$ must be orthonormal eigenvectors of the real symmetric positive semidefinite matrix $A A^T \in \mathbb{R}^{m \times m}$;
+- The squared nonzero singular values $\sigma_1^2, \dots, \sigma_r^2$ are precisely the shared nonzero eigenvalues of both $A^T A$ and $A A^T$!
+
+**Yet here is a life-or-death detail**: if you diagonalize $A^T A$ and $A A^T$ independently to assemble $V$ and $U$, you will almost certainly suffer sign mismatches (or even subspace rotation mismatches for repeated singular values)! The rigorous existence theorem tells us: **the left singular vectors $\mathbf{u}_i$ must be locked directly to the right singular vectors $\mathbf{v}_i$ via $A\mathbf{v}_i$**.
+
+<TheoremCard label="Theorem" title="Existence & Constructive Characterization of the SVD">
+
+For every real matrix $A \in \mathbb{R}^{m \times n}$ with $\operatorname{rank}(A) = r$, a Singular Value Decomposition $A = U\Sigma V^T$ always exists. Specifically:
+
+1. **Uniqueness of Singular Values**: The nonzero singular values $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_r \gt 0$ are uniquely determined by $A$; they are the positive square roots ($\sigma_i = \sqrt{\lambda_i}$) of all $r$ positive eigenvalues of the real symmetric positive semidefinite matrix $A^T A \in \mathbb{R}^{n \times n}$ (and equally of $A A^T \in \mathbb{R}^{m \times m}$).
+2. **Right Singular Vectors from an Eigenbasis of $A^T A$**: Choose an orthonormal eigenbasis $\{\mathbf{v}_1, \dots, \mathbf{v}_r, \mathbf{v}_{r+1}, \dots, \mathbf{v}_n\}$ of $A^T A$ ordered by decreasing eigenvalues, satisfying:
+   $$
+   A^T A \mathbf{v}_i = \sigma_i^2 \mathbf{v}_i \;\; (1 \le i \le r), \qquad A^T A \mathbf{v}_i = \mathbf{0} \iff A\mathbf{v}_i = \mathbf{0} \;\; (r+1 \le i \le n)
+   $$
+3. **Left Singular Vectors Strictly Locked by $A\mathbf{v}_i$**: For $1 \le i \le r$, define:
+   $$
+   \mathbf{u}_i := \frac{1}{\sigma_i} A \mathbf{v}_i
+   $$
+   Then the set $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ **automatically** forms an orthonormal basis for $\operatorname{Col}(A)$, and automatically satisfies $AA^T \mathbf{u}_i = \sigma_i^2 \mathbf{u}_i$ as well as $A\mathbf{v}_i = \sigma_i \mathbf{u}_i$.
+4. **Completing $U$ with the Left Nullspace**: Choose any orthonormal basis $\{\mathbf{u}_{r+1}, \dots, \mathbf{u}_m\}$ for $\operatorname{Null}(A^T) = \operatorname{Col}(A)^\perp \subseteq \mathbb{R}^m$ (of dimension $m - r$) to complete $U$ to an $m \times m$ orthogonal matrix. Then $A = U\Sigma V^T$ holds exactly.
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Existence of the SVD and Automatic Orthonormality">
+
+Let us verify step by step why the construction above fits together algebraically with zero hidden gaps.
+
+**Step 1: Symmetry, positive semidefiniteness, and spectral decomposition of $A^T A$**
+Consider $A^T A \in \mathbb{R}^{n \times n}$:
+- Symmetry: $(A^T A)^T = A^T (A^T)^T = A^T A$;
+- Positive semidefiniteness: for any $\mathbf{x} \in \mathbb{R}^n$, we have $\mathbf{x}^T (A^T A) \mathbf{x} = (A\mathbf{x})^T (A\mathbf{x}) = \|A\mathbf{x}\|_2^2 \ge 0$.
+
+By the Spectral Theorem for real symmetric matrices (Lecture 26), $A^T A$ possesses $n$ real eigenvalues $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n \ge 0$ and a corresponding orthonormal eigenbasis $\{\mathbf{v}_1, \dots, \mathbf{v}_n\} \subset \mathbb{R}^n$ (meaning $\mathbf{v}_i^T \mathbf{v}_j = \delta_{ij}$).
+
+**Step 2: Pinning down the number of nonzero singular values as $r = \operatorname{rank}(A)$**
+Recall the key lemma from Lecture 16: $\operatorname{Null}(A^T A) = \operatorname{Null}(A)$.
+(Proof: $A\mathbf{x} = \mathbf{0} \implies A^T A \mathbf{x} = \mathbf{0}$; conversely, $A^T A\mathbf{x} = \mathbf{0} \implies \mathbf{x}^T A^T A \mathbf{x} = \|A\mathbf{x}\|_2^2 = 0 \implies A\mathbf{x} = \mathbf{0}$.)
+
+By the Rank-Nullity Theorem, $\operatorname{rank}(A^T A) = n - \dim\operatorname{Null}(A^T A) = n - \dim\operatorname{Null}(A) = \operatorname{rank}(A) = r$.
+Since the rank of a real symmetric matrix equals the number of its nonzero eigenvalues (Lecture 26), $A^T A$ has **exactly $r$ strictly positive eigenvalues**:
+
+$$
+\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_r \gt 0, \qquad \lambda_{r+1} = \dots = \lambda_n = 0
+$$
+
+Set $\sigma_i = \sqrt{\lambda_i} \gt 0$ for $1 \le i \le r$. Meanwhile, for the last $n-r$ vectors, $A^T A \mathbf{v}_i = \mathbf{0} \implies \|A\mathbf{v}_i\|_2^2 = 0 \implies A\mathbf{v}_i = \mathbf{0}$, so $\{\mathbf{v}_{r+1}, \dots, \mathbf{v}_n\}$ is an orthonormal basis for $\operatorname{Null}(A)$, and consequently its orthogonal complement $\operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_r\} = \operatorname{Null}(A)^\perp = \operatorname{Row}(A)$.
+
+**Step 3: Proving that $\mathbf{u}_i = \frac{1}{\sigma_i} A\mathbf{v}_i$ are automatically orthonormal**
+For any $1 \le i, j \le r$, compute the inner product $\mathbf{u}_i^T \mathbf{u}_j$ directly:
+
+$$
+\mathbf{u}_i^T \mathbf{u}_j = \left(\frac{1}{\sigma_i} A\mathbf{v}_i\right)^T \left(\frac{1}{\sigma_j} A\mathbf{v}_j\right) = \frac{1}{\sigma_i \sigma_j} \mathbf{v}_i^T (A^T A \mathbf{v}_j) = \frac{1}{\sigma_i \sigma_j} \mathbf{v}_i^T (\sigma_j^2 \mathbf{v}_j) = \frac{\sigma_j}{\sigma_i} (\mathbf{v}_i^T \mathbf{v}_j) = \delta_{ij}
+$$
+
+How remarkable is that! Even though $A$ is neither orthogonal nor square, whenever $\mathbf{v}_i, \mathbf{v}_j$ are orthonormal eigenvectors of $A^T A$, their images $\mathbf{u}_i, \mathbf{u}_j$ under $A$ are **automatically unit-length and mutually orthogonal**! Moreover, checking $AA^T \mathbf{u}_i$:
+
+$$
+AA^T \mathbf{u}_i = A A^T \left(\frac{1}{\sigma_i} A\mathbf{v}_i\right) = \frac{1}{\sigma_i} A (A^T A \mathbf{v}_i) = \frac{\sigma_i^2}{\sigma_i} A \mathbf{v}_i = \sigma_i^2 \mathbf{u}_i
+$$
+
+And because $\mathbf{u}_i = A(\frac{1}{\sigma_i}\mathbf{v}_i) \in \operatorname{Col}(A)$, these $r$ orthonormal vectors span the entire column space of dimension $\dim \operatorname{Col}(A) = r$!
+
+**Step 4: Completing the basis of $\operatorname{Null}(A^T)$ and verifying $U^T A V = \Sigma$**
+Since $\operatorname{Null}(A^T) = \operatorname{Col}(A)^\perp \subseteq \mathbb{R}^m$ has dimension $m - r$, use Gram-Schmidt (Lecture 17) to choose an orthonormal basis $\{\mathbf{u}_{r+1}, \dots, \mathbf{u}_m\}$ for it. Then $U = [\mathbf{u}_1 \;\; \cdots \;\; \mathbf{u}_m] \in \mathbb{R}^{m \times m}$ is orthogonal and $V = [\mathbf{v}_1 \;\; \cdots \;\; \mathbf{v}_n] \in \mathbb{R}^{n \times n}$ is orthogonal.
+
+Finally, check the $(i, j)$ entry $\mathbf{u}_i^T A \mathbf{v}_j$ of the matrix product $U^T A V$:
+- If $j \gt r$: since $\mathbf{v}_j \in \operatorname{Null}(A)$, we have $A\mathbf{v}_j = \mathbf{0}$, so $\mathbf{u}_i^T A \mathbf{v}_j = 0$;
+- If $1 \le j \le r$: by definition $A\mathbf{v}_j = \sigma_j \mathbf{u}_j$, so $\mathbf{u}_i^T A \mathbf{v}_j = \sigma_j (\mathbf{u}_i^T \mathbf{u}_j) = \sigma_j \delta_{ij}$.
+
+Thus $U^T A V$ has $\sigma_i$ in the top-left $(i, i)$ entries ($1 \le i \le r$) and $0$ everywhere else, i.e.,
+
+$$
+U^T A V = \Sigma
+$$
+
+Left-multiplying by $U$ and right-multiplying by $V^T$ (using $U U^T = I_m, V V^T = I_n$) gives $A = U \Sigma V^T$! As for the uniqueness of $\sigma_i$, the multiset of eigenvalues of $A^T A$ is uniquely determined by the characteristic polynomial $\det(\lambda I_n - A^T A)$, so their positive square roots in decreasing order are unique.
+
+</ProofCollapse>
+
+**Dual Shortcut (when $m \lt n$, fewer rows than columns)**: If $A$ is a "short, wide" matrix (say $2 \times 100$), computing the $100 \times 100$ matrix $A^T A$ is needlessly heavy when $A A^T$ is only $2 \times 2$! In that case, we symmetrically **diagonalize the smaller matrix $A A^T$ first** to find $\sigma_1,\dots,\sigma_r$ and $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$, and then **lock in the right singular vectors in reverse** via the transpose formula:
+
+$$
+A^T \mathbf{u}_i = A^T \left(\frac{1}{\sigma_i} A \mathbf{v}_i\right) = \frac{1}{\sigma_i} (A^T A \mathbf{v}_i) = \sigma_i \mathbf{v}_i \implies \mathbf{v}_i = \frac{1}{\sigma_i} A^T \mathbf{u}_i \quad (1 \le i \le r)
+$$
+
+Then simply complete $\mathbf{v}_{r+1}, \dots, \mathbf{v}_n$ in $\operatorname{Null}(A)$! Both paths are completely symmetric mathematically: always start by diagonalizing whichever of $A^T A$ and $A A^T$ is **smaller**, and never solve both independently!
+
+---
+
+## 3. Worked Examples by Hand: Two Classic Cases
+
+### Example 1: Hand-Computing a $2 \times 2$ Invertible Matrix and Exposing the Sign Trap
+
+Compute the SVD $A = U\Sigma V^T$ of the matrix:
+
+$$
+A = \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix}
+$$
+
+*(Note: $A$ is not even symmetric.)*
+
+**Step 1: Form the symmetric matrix $A^T A$ and find its eigenvalues and right singular vectors**
+
+$$
+A^T A = \begin{bmatrix} 4 & -3 \\ 4 & 3 \end{bmatrix} \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix} = \begin{bmatrix} 25 & 7 \\ 7 & 25 \end{bmatrix}
+$$
+
+Compute the characteristic polynomial:
+
+$$
+\det(A^T A - \lambda I_2) = (25 - \lambda)^2 - 7^2 = (\lambda - 32)(\lambda - 18) = 0
+$$
+
+Order the eigenvalues in decreasing order: $\lambda_1 = 32$, $\lambda_2 = 18$. Thus the singular values are:
+
+$$
+\sigma_1 = \sqrt{32} = 4\sqrt{2}, \qquad \sigma_2 = \sqrt{18} = 3\sqrt{2}
+$$
+
+*(Quick sanity check: $\sigma_1 \sigma_2 = 4\sqrt{2} \cdot 3\sqrt{2} = 24 = |\det(A)|$; and $\sigma_1^2 + \sigma_2^2 = 32 + 18 = 50 = 4^2 + 4^2 + (-3)^2 + 3^2 = \|A\|_F^2$!)*
+
+Find the corresponding unit orthogonal eigenvectors $\mathbf{v}_1, \mathbf{v}_2$:
+- For $\lambda_1 = 32$:
+
+$$
+(A^T A - 32 I_2)\mathbf{v}_1 = \begin{bmatrix} -7 & 7 \\ 7 & -7 \end{bmatrix}\mathbf{v}_1 = \mathbf{0} \implies \mathbf{v}_1 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+$$
+
+- For $\lambda_2 = 18$:
+
+$$
+(A^T A - 18 I_2)\mathbf{v}_2 = \begin{bmatrix} 7 & 7 \\ 7 & 7 \end{bmatrix}\mathbf{v}_2 = \mathbf{0} \implies \mathbf{v}_2 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+**Step 2: Strictly lock the left singular vectors using $\mathbf{u}_i = \frac{1}{\sigma_i} A \mathbf{v}_i$**
+
+$$
+\mathbf{u}_1 = \frac{1}{\sigma_1} A \mathbf{v}_1 = \frac{1}{4\sqrt{2}} \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix} \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix} = \frac{1}{8} \begin{bmatrix} 8 \\ 0 \end{bmatrix} = \begin{bmatrix} 1 \\ 0 \end{bmatrix}
+$$
+
+$$
+\mathbf{u}_2 = \frac{1}{\sigma_2} A \mathbf{v}_2 = \frac{1}{3\sqrt{2}} \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix} \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ -1 \end{bmatrix} = \frac{1}{6} \begin{bmatrix} 0 \\ -6 \end{bmatrix} = \begin{bmatrix} 0 \\ -1 \end{bmatrix}
+$$
+
+Notice the **minus sign** in $\mathbf{u}_2 = [0, -1]^T$! It is completely locked in by our sign choice for $\mathbf{v}_2$.
+
+**Step 3: Assemble the factorization and verify by multiplying back**
+
+$$
+A = U \Sigma V^T = \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix} \begin{bmatrix} 4\sqrt{2} & 0 \\ 0 & 3\sqrt{2} \end{bmatrix} \begin{bmatrix} 1/\sqrt{2} & 1/\sqrt{2} \\ 1/\sqrt{2} & -1/\sqrt{2} \end{bmatrix}
+$$
+
+Let us check both the matrix product and the sum of rank-one outer products:
+
+$$
+U \Sigma V^T = \begin{bmatrix} 4\sqrt{2} & 0 \\ 0 & -3\sqrt{2} \end{bmatrix} \begin{bmatrix} 1/\sqrt{2} & 1/\sqrt{2} \\ 1/\sqrt{2} & -1/\sqrt{2} \end{bmatrix} = \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix} = A
+$$
+
+$$
+\sigma_1 \mathbf{u}_1 \mathbf{v}_1^T + \sigma_2 \mathbf{u}_2 \mathbf{v}_2^T = 4\sqrt{2}\begin{bmatrix} 1 \\ 0 \end{bmatrix}\frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \end{bmatrix} + 3\sqrt{2}\begin{bmatrix} 0 \\ -1 \end{bmatrix}\frac{1}{\sqrt{2}}\begin{bmatrix} 1 & -1 \end{bmatrix} = \begin{bmatrix} 4 & 4 \\ 0 & 0 \end{bmatrix} + \begin{bmatrix} 0 & 0 \\ -3 & 3 \end{bmatrix} = A
+$$
+
+Imagine what happens if someone gets lazy and computes $A A^T = \operatorname{diag}(32, 18)$ separately: seeing a diagonal matrix, they instinctively pick the standard basis $\mathbf{u}_1 = [1, 0]^T, \mathbf{u}_2 = [0, 1]^T$. Multiplying back gives rows $[4, 4]$ and $[3, -3]$, flipping the sign of the entire second row so the product is not $A$! That is why this course insists you must never solve $A^T A$ and $AA^T$ independently!
+
+---
+
+### Example 2: Thin SVD vs. Full SVD for a Rank-Deficient Rectangular Matrix
+
+Consider a $3 \times 2$ matrix of rank $1$:
+
+$$
+A = \begin{bmatrix} 3 & 4 \\ 6 & 8 \\ 6 & 8 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix} \begin{bmatrix} 3 & 4 \end{bmatrix}
+$$
+
+- Here the rank is $r = 1$. Without even forming $A^T A$, we can see by inspection that the row direction is $[3, 4]^T$ (length $\sqrt{3^2+4^2} = 5$) and the column direction is $[1, 2, 2]^T$ (length $\sqrt{1^2+2^2+2^2} = 3$)!
+- Normalizing gives the first pair of singular vectors:
+  $$
+  \mathbf{v}_1 = \frac{1}{5} \begin{bmatrix} 3 \\ 4 \end{bmatrix}, \qquad \mathbf{u}_1 = \frac{1}{3} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}
+  $$
+  Checking $A \mathbf{v}_1 = [1, 2, 2]^T (5) = 15 \mathbf{u}_1$, the sole nonzero singular value is $\sigma_1 = 15$!
+- **Thin SVD ($r = 1$)**: Keep only the active part to write a compact product immediately:
+  $$
+  A = U_1 \Sigma_1 V_1^T = \left(\frac{1}{3}\begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}\right) [15] \left(\frac{1}{5}\begin{bmatrix} 3 & 4 \end{bmatrix}\right)
+  $$
+- **Full SVD ($3 \times 3, 3 \times 2, 2 \times 2$)**: We must complete orthonormal bases for both nullspaces!
+  - In $\operatorname{Null}(A) \subseteq \mathbb{R}^2$ ($\dim = 2 - 1 = 1$), find a unit vector orthogonal to $\mathbf{v}_1$: $\mathbf{v}_2 = \frac{1}{5}[-4, 3]^T$;
+  - In $\operatorname{Null}(A^T) \subseteq \mathbb{R}^3$ ($\dim = 3 - 1 = 2$), find two mutually orthogonal unit vectors that are also orthogonal to $\mathbf{u}_1$:
+    Notice that $\mathbf{u}_2 = \frac{1}{3}[2, 1, -2]^T$ and $\mathbf{u}_3 = \frac{1}{3}[2, -2, 1]^T$ satisfy $\mathbf{u}_1^T \mathbf{u}_2 = \mathbf{u}_1^T \mathbf{u}_3 = \mathbf{u}_2^T \mathbf{u}_3 = 0$, and both have unit length!
+
+Thus we obtain a remarkably clean Full SVD with exact fractions:
+
+$$
+A = \underbrace{\frac{1}{3}\begin{bmatrix} 1 & 2 & 2 \\ 2 & 1 & -2 \\ 2 & -2 & 1 \end{bmatrix}}_{U \in \mathbb{R}^{3 \times 3}} \underbrace{\begin{bmatrix} 15 & 0 \\ 0 & 0 \\ 0 & 0 \end{bmatrix}}_{\Sigma \in \mathbb{R}^{3 \times 2}} \underbrace{\frac{1}{5}\begin{bmatrix} 3 & 4 \\ -4 & 3 \end{bmatrix}}_{V^T \in \mathbb{R}^{2 \times 2}}
+$$
+
+This factorization not only reconstructs $A$, it hands us **orthonormal bases** for all four fundamental subspaces in one single package!
+
+---
+
+## 4. The Ultimate Upgrade of the Four Fundamental Subspaces, Matrix Norms, and Polar Decomposition
+
+### 1. The Peak Form of the Fundamental Theorem of Linear Algebra
+
+In Module 1 (Lecture 10) and Module 2 (Lecture 14), we worked hard with elimination $R = \operatorname{rref}(A)$ to find bases for the four fundamental subspaces, and proved that the row space is orthogonal to the nullspace while the column space is orthogonal to the left nullspace. Yet the basis vectors produced by RREF are **not orthogonal**, and their lengths vary wildly.
+
+The SVD equips all four fundamental subspaces with their **ultimate orthonormal bases** simultaneously:
+
+| Fundamental Subspace | Ambient Space | Dimension | SVD Orthonormal Basis | Block Matrix Notation |
+| :--- | :---: | :---: | :--- | :---: |
+| **Row Space $\operatorname{Row}(A)$** | $\mathbb{R}^n$ | $r$ | $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ | $V_r$ |
+| **Nullspace $\operatorname{Null}(A)$** | $\mathbb{R}^n$ | $n - r$ | $\{\mathbf{v}_{r+1}, \dots, \mathbf{v}_n\}$ | $V_{n-r}$ |
+| **Column Space $\operatorname{Col}(A)$** | $\mathbb{R}^m$ | $r$ | $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ | $U_r$ |
+| **Left Nullspace $\operatorname{Null}(A^T)$** | $\mathbb{R}^m$ | $m - r$ | $\{\mathbf{u}_{r+1}, \dots, \mathbf{u}_m\}$ | $U_{m-r}$ |
+
+In the "diagonal coordinate system" of the SVD, the action of $A$ on the entire universe becomes completely transparent:
+- Any vector in the input space $\mathbb{R}^n = \operatorname{Row}(A) \oplus \operatorname{Null}(A)$ decomposes as $\mathbf{x} = \sum_{i=1}^n (\mathbf{v}_i^T \mathbf{x}) \mathbf{v}_i$;
+- After $A$ acts, every nullspace component ($i \gt r$) vanishes completely, while each row-space component ($i \le r$) is mapped bijectively into $\operatorname{Col}(A)$ and scaled by $\sigma_i$: $A\mathbf{x} = \sum_{i=1}^r \sigma_i (\mathbf{v}_i^T \mathbf{x}) \mathbf{u}_i$!
+
+<SvdFourSubspacesOrthonormalMapDiagram caption="The SVD orthonormalizes the Big Picture of Linear Algebra: Vᵣ and Vₙ₋ᵣ span Row(A) and Null(A) orthogonally, Uᵣ and Uₘ₋ᵣ span Col(A) and Null(Aᵀ) orthogonally, and A acts as a diagonal scaling Σᵣ between Row(A) and Col(A)." />
+
+### 2. Spectral Norm, Frobenius Norm, and Condition Number
+
+Because orthogonal matrices $U, V$ preserve the Euclidean $\ell_2$-norm of every vector, the singular values directly govern all the core metric invariants of a matrix:
+- **Spectral Norm (Induced $\ell_2$-Norm)**: The maximum stretching factor of $A$ over all unit vectors equals the largest singular value:
+  $$
+  \|A\|_2 := \max_{\|\mathbf{x}\|_2 = 1} \|A\mathbf{x}\|_2 = \sigma_1
+  $$
+  And this maximum is achieved precisely along the input direction $\mathbf{x} = \pm \mathbf{v}_1$! When $r = n \le m$, the minimum stretching factor is $\min_{\|\mathbf{x}\|_2=1}\|A\mathbf{x}\|_2 = \sigma_n$ (achieved at $\mathbf{v}_n$).
+- **Frobenius Norm**: The square root of the sum of squares of all matrix entries equals the Euclidean length of the vector of singular values:
+  $$
+  \|A\|_F := \sqrt{\sum_{i=1}^m \sum_{j=1}^n a_{ij}^2} = \sqrt{\operatorname{tr}(A^T A)} = \sqrt{\sum_{i=1}^r \sigma_i^2}
+  $$
+- **$\ell_2$ Condition Number**: Measures the anisotropy (how "flat and elongated" the ellipsoid is) when solving linear systems or optimizing:
+  $$
+  \kappa_2(A) = \frac{\sigma_1}{\sigma_r}
+  $$
+  When $A \in \mathbb{R}^{n \times n}$ is invertible, $\|A^{-1}\|_2 = \frac{1}{\sigma_n}$, so $\kappa_2(A) = \|A\|_2 \|A^{-1}\|_2 = \frac{\sigma_1}{\sigma_n}$. If $\sigma_1 / \sigma_n \gg 1$, the ellipsoid is pancake-flat and numerical solves are severely ill-conditioned.
+
+### 3. One-Line Derivation of the Polar Decomposition
+
+As a natural corollary of the SVD, for any square matrix $A \in \mathbb{R}^{n \times n}$, insert $I_n = V^T V$ cleverly into the middle of $A = U\Sigma V^T$:
+
+$$
+A = U \Sigma V^T = \underbrace{(U V^T)}_{Q} \underbrace{(V \Sigma V^T)}_{S} = Q S
+$$
+
+Look at the properties of these two factors:
+- $Q = U V^T$ is a product of two orthogonal matrices, so $Q$ is itself an **orthogonal matrix** (a pure rigid rotation/reflection);
+- $S = V \Sigma V^T$ is a real symmetric positive semidefinite matrix (in fact, $S = (A^T A)^{1/2}$, a pure stretch by $\sigma_i$ along the orthogonal principal axes $\mathbf{v}_i$); when $A$ is invertible, $S$ is strictly positive definite and both $Q$ and $S$ are unique.
+
+This is the exact higher-dimensional matrix generalization of the polar form of a complex number, $z = e^{i\theta} \cdot r$! And in Lecture 34, we will see how the SVD immediately gives the ultimate generalized inverse for any rectangular or singular matrix—the **Moore-Penrose Pseudoinverse** $A^+ = V \Sigma^+ U^T$.
+
+---
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+
+### 1. Fatal Error #1: Computing Eigenvectors of $A^T A$ and $AA^T$ Independently to Assemble $V$ and $U$!
+Many informal online notes claim: "To find the SVD, compute the eigenvectors of $A^T A$ for $V$, and compute the eigenvectors of $AA^T$ for $U$." **This is the single most dangerous mistake in the entire course!**
+- **Sign-flip mismatch**: Multiplying an eigenvector by $-1$ still gives an eigenvector. As we demonstrated in Example 1 on $A$ with rows $[4, 4]$ and $[-3, 3]$, solving $AA^T = \operatorname{diag}(32, 18)$ independently naturally picks $\mathbf{u}_2 = [0, 1]^T$, producing the wrong matrix with rows $[4, 4]$ and $[3, -3]$ instead of $A$!
+- **Repeated-singular-value catastrophe**: When a singular value is repeated (e.g., $\sigma_1 = \sigma_2 = 5$), the corresponding eigenspace has dimension $\ge 2$, so **any** orthonormal basis in that subspace is a valid eigenbasis! Solving $U$ and $V$ independently can leave them differing by an arbitrary rotation angle $\theta$ inside that 2D eigenspace, so $U\Sigma V^T$ will not equal $A$ at all!
+- **The Iron Rule**: Once you choose an orthonormal eigenbasis $\mathbf{v}_1,\dots,\mathbf{v}_r$ of $A^T A$, you **must lock in** the first $r$ left singular vectors via $\mathbf{u}_i = \frac{1}{\sigma_i} A \mathbf{v}_i$ (or, when $m \lt n$, find $\mathbf{u}_1,\dots,\mathbf{u}_r$ from $AA^T$ and lock in the first $r$ right singular vectors via $\mathbf{v}_i = \frac{1}{\sigma_i} A^T \mathbf{u}_i$). Only the zero-eigenvalue nullspaces $\operatorname{Null}(A)$ and $\operatorname{Null}(A^T)$ may be completed independently!
+
+### 2. Confusing Singular Values $\sigma_i$ with Absolute Values of Eigenvalues $|\lambda_i|$
+Many beginners mistakenly assume that the singular values of a square matrix are just the absolute values of its eigenvalues. **False!**
+Consider the simplest nilpotent shear matrix:
+
+$$
+A = \begin{bmatrix} 0 & 2 \\ 0 & 0 \end{bmatrix}
+$$
+
+Both of its eigenvalues are zero ($\lambda_1 = \lambda_2 = 0$), yet computing $A^T A = \operatorname{diag}(0, 4)$ immediately gives singular values $\sigma_1 = 2, \sigma_2 = 0$!
+- **Root cause**: Eigenvalues measure stretching along special invariant directions, whereas singular values measure the maximum geometric stretching over the entire unit sphere. Non-normal matrices ($A^T A \ne A A^T$) have non-orthogonal eigenvectors (here, only one eigenvector exists), allowing shearing to produce geometric amplification far exceeding the spectral radius.
+- **When are they equal?** Only when a square matrix is a **normal matrix** (meaning $A^T A = A A^T$, or $A^H A = A A^H$ in the complex case—which includes symmetric, skew-symmetric, and orthogonal matrices) does $\sigma_i = |\lambda_i|$ hold; and for a general symmetric matrix with negative eigenvalues, the singular values are the **absolute values** $|\lambda_i|$, while the left singular vectors absorb the sign via $\mathbf{u}_i = \operatorname{sgn}(\lambda_i)\mathbf{q}_i$ so that $\sigma_i \ge 0$.
+
+### 3. Singular Values Are Unique, but the Matrices $U$ and $V$ Are Not
+For any given matrix $A$:
+- The sequence of singular values $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_r \gt 0$ is **absolutely unique**;
+- When the singular values are distinct ($\sigma_1 \gt \sigma_2 \gt \dots \gt \sigma_r \gt 0$), the singular directions are still free up to **paired sign flips** (replacing $\mathbf{u}_i, \mathbf{v}_i$ simultaneously by $-\mathbf{u}_i, -\mathbf{v}_i$ leaves the outer product $(-\mathbf{u}_i)(-\mathbf{v}_i)^T = \mathbf{u}_i \mathbf{v}_i^T$ unchanged);
+- When there are repeated singular values or a nullspace of dimension $\ge 2$, any orthogonal transformation can be applied simultaneously within that subspace, giving infinitely many valid choices of $U$ and $V$.
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l30-svd-circle-ellipse"
+  title="Interactive SVD Canvas: Unit Circle to Ellipse & Optimal Rank-1 Truncation"
+  description="Adjust the singular values $\sigma_1, \sigma_2$ and input/output orthogonal rotation angles of a $2 \times 2$ matrix to watch $V^T \to \Sigma \to U$ map the orthogonal unit axes $(\mathbf{v}_1, \mathbf{v}_2)$ to the ellipse semi-axes $(\sigma_1 \mathbf{u}_1, \sigma_2 \mathbf{u}_2)$, and compare the rank-1 approximation $A_1 = \sigma_1 \mathbf{u}_1 \mathbf{v}_1^T$."
+/>
+
+---
+
+<KeyTakeaways title="Key Takeaways" items={[
+  "Universal power of the SVD: Every real matrix $A \\in \\mathbb{R}^{m \\times n}$ (rectangular, singular, or defective) factors as $A = U \\Sigma V^T$, where $U \\in \\mathbb{R}^{m\\times m}$ and $V \\in \\mathbb{R}^{n\\times n}$ are orthogonal and $\\Sigma \\in \\mathbb{R}^{m\\times n}$ has nonnegative decreasing singular values $\\sigma_1 \\ge \\dots \\ge \\sigma_r \\gt 0$ in its top-left block.",
+  "Three-step geometry: $A = U \\Sigma V^T$ splits any linear map into an input orthogonal rotation/reflection ($V^T$) $\\to$ pure axial stretching ($\\Sigma$) $\\to$ an output orthogonal rotation/reflection ($U$), guaranteeing an input orthonormal basis $\\{\\mathbf{v}_i\\}$ whose images remain orthogonal: $A\\mathbf{v}_i = \\sigma_i \\mathbf{u}_i$.",
+  "The Iron Rule of construction: Compute the nonzero eigenvalues $\\sigma_i^2$ and eigenbasis from $A^T A$ (or from the smaller matrix $A A^T$ when $m \\lt n$), then strictly lock the other side via $\\mathbf{u}_i = \\frac{1}{\\sigma_i} A\\mathbf{v}_i$ (or $\\mathbf{v}_i = \\frac{1}{\\sigma_i} A^T\\mathbf{u}_i$) to eliminate sign or rotation mismatches.",
+  "Ultimate unification of the four subspaces: $\\{\\mathbf{v}_1,\\dots,\\mathbf{v}_r\\}$ is an orthonormal basis for $\\operatorname{Row}(A)$ and $\\{\\mathbf{v}_{r+1},\\dots,\\mathbf{v}_n\\}$ for $\\operatorname{Null}(A)$; $\\{\\mathbf{u}_1,\\dots,\\mathbf{u}_r\\}$ is an orthonormal basis for $\\operatorname{Col}(A)$ and $\\{\\mathbf{u}_{r+1},\\dots,\\mathbf{u}_m\\}$ for $\\operatorname{Null}(A^T)$.",
+  "Thin SVD and rank-1 building blocks: $A = U_r \\Sigma_r V_r^T = \\sum_{i=1}^r \\sigma_i \\mathbf{u}_i \\mathbf{v}_i^T$ decomposes $A$ into $r$ mutually orthogonal unit rank-1 outer products, with spectral norm $\\|A\\|_2 = \\sigma_1$, Frobenius norm $\\|A\\|_F = \\sqrt{\\sum_{i=1}^r \\sigma_i^2}$, and condition number $\\kappa_2(A) = \\sigma_1/\\sigma_r$.",
+  "Do not confuse with eigenvalues: For a general square matrix, $\\sigma_i \\ne |\\lambda_i|$ (e.g., nilpotent matrices have $\\lambda_1=\\lambda_2=0$ but $\\sigma_1 \\gt 0$); equality $\\sigma_i = |\\lambda_i|$ holds only for normal matrices ($A^T A = A A^T$)."
+]} />
+
+---
+
+## 5. Intuition Problem Set
+
+<ProblemSet title="Lecture 30 Problem Set" description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs.">
+
+<ExerciseCard id="l30-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="Dual SVD and Rank-1 Expansion of a 2×3 Short-Fat Matrix">
+
+Consider the full-row-rank rectangular matrix $A \in \mathbb{R}^{2 \times 3}$:
+
+$$
+A = \begin{bmatrix} 3 & 2 & 2 \\ 2 & 3 & -2 \end{bmatrix}
+$$
+
+1. Because the number of rows $m = 2$ is smaller than the number of columns $n = 3$, orthogonally diagonalize the smaller $2 \times 2$ symmetric matrix $A A^T$ first to find the nonzero singular values $\sigma_1 \ge \sigma_2 \gt 0$ and left singular vectors $\mathbf{u}_1, \mathbf{u}_2$;
+2. **Do not solve $A^T A$ independently**; instead use the locking formula $\mathbf{v}_i = \frac{1}{\sigma_i} A^T \mathbf{u}_i$ to find the first two right singular vectors $\mathbf{v}_1, \mathbf{v}_2$, and find a unit basis vector $\mathbf{v}_3$ for $\operatorname{Null}(A)$;
+3. Write out the Thin SVD $U_2 \Sigma_2 V_2^T$, the Full SVD $U \Sigma V^T$, and the rank-1 outer-product sum $\sigma_1 \mathbf{u}_1 \mathbf{v}_1^T + \sigma_2 \mathbf{u}_2 \mathbf{v}_2^T$, and verify that multiplying them back recovers $A$.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "When computing $AA^T$, notice that each row has dot product $3^2 + 2^2 + 2^2 = 17$ with itself, and the dot product between the two rows is $6 + 6 - 4 = 8$, giving a symmetric $2\\times 2$ matrix with $17$ on the diagonal and $8$ off the diagonal.",
+  "For a symmetric $2 \\times 2$ matrix with equal diagonal entries $a$ and off-diagonal entries $b$, the eigenvalues are immediately $a + b$ and $a - b$, with unit eigenvectors $\\frac{1}{\\sqrt{2}}[1, 1]^T$ and $\\frac{1}{\\sqrt{2}}[1, -1]^T$.",
+  "To find $\\mathbf{v}_3 \\in \\operatorname{Null}(A)$, you can also take the cross product $\\mathbf{v}_1 \\times \\mathbf{v}_2$ (since it must be orthogonal to both $\\mathbf{v}_1$ and $\\mathbf{v}_2$) and normalize!"
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+
+For a $2 \times 3$ matrix, $A^T A$ is $3 \times 3$ while $A A^T$ is only $2 \times 2$, so starting from the dual side $AA^T$ cuts the workload by more than half. Because the symmetric matrix $AA^T$ has equal diagonal entries $17$ and off-diagonal entries $8$, its eigenvectors naturally point along $45^\circ$ and $-45^\circ$, and its eigenvalues turn out to be perfect squares $25$ and $9$ (giving integer singular values $\sigma_1 = 5, \sigma_2 = 3$). Once $\mathbf{v}_i = \frac{1}{\sigma_i} A^T \mathbf{u}_i$ locks in $\mathbf{v}_1, \mathbf{v}_2$, the nullspace has dimension $3 - 2 = 1$, so we only need one unit vector perpendicular to both rows (or to $\mathbf{v}_1, \mathbf{v}_2$) to complete the $3 \times 3$ orthogonal matrix $V$!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+**Step 1: Eigendecomposition of $A A^T$**
+
+$$
+A A^T = \begin{bmatrix} 3 & 2 & 2 \\ 2 & 3 & -2 \end{bmatrix} \begin{bmatrix} 3 & 2 \\ 2 & 3 \\ 2 & -2 \end{bmatrix} = \begin{bmatrix} 17 & 8 \\ 8 & 17 \end{bmatrix}
+$$
+
+The characteristic equation is $(17 - \lambda)^2 - 64 = 0$, giving decreasing eigenvalues $\lambda_1 = 25, \lambda_2 = 9$. Thus the nonzero singular values are:
+
+$$
+\sigma_1 = \sqrt{25} = 5, \qquad \sigma_2 = \sqrt{9} = 3
+$$
+
+Find the corresponding orthonormal left singular vectors:
+- $\lambda_1 = 25$:
+
+$$
+(A A^T - 25 I_2)\mathbf{u}_1 = \begin{bmatrix} -8 & 8 \\ 8 & -8 \end{bmatrix}\mathbf{u}_1 = \mathbf{0} \implies \mathbf{u}_1 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+$$
+
+- $\lambda_2 = 9$:
+
+$$
+(A A^T - 9 I_2)\mathbf{u}_2 = \begin{bmatrix} 8 & 8 \\ 8 & 8 \end{bmatrix}\mathbf{u}_2 = \mathbf{0} \implies \mathbf{u}_2 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+**Step 2: Lock in the right singular vectors and complete the nullspace basis**
+Using $\mathbf{v}_i = \frac{1}{\sigma_i} A^T \mathbf{u}_i$:
+
+$$
+\mathbf{v}_1 = \frac{1}{5} \begin{bmatrix} 3 & 2 \\ 2 & 3 \\ 2 & -2 \end{bmatrix} \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix} = \frac{1}{5\sqrt{2}} \begin{bmatrix} 5 \\ 5 \\ 0 \end{bmatrix} = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix}
+$$
+
+$$
+\mathbf{v}_2 = \frac{1}{3} \begin{bmatrix} 3 & 2 \\ 2 & 3 \\ 2 & -2 \end{bmatrix} \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ -1 \end{bmatrix} = \frac{1}{3\sqrt{2}} \begin{bmatrix} 1 \\ -1 \\ 4 \end{bmatrix}
+$$
+
+*(Check: $\|\mathbf{v}_2\|_2^2 = \frac{1+1+16}{18} = 1$, and $\mathbf{v}_1^T \mathbf{v}_2 = \frac{1-1+0}{6} = 0$ — automatically orthonormal!)*
+
+For $\mathbf{v}_3 \in \operatorname{Null}(A)$: $\mathbf{v}_3 \perp \mathbf{v}_1$ implies it has the form $[a, -a, b]^T$. Substituting into the first row gives $3a - 2a + 2b = 0 \implies a = -2b$. Choosing $b = -1$ gives $[2, -2, -1]^T$ of length $\sqrt{4+4+1} = 3$, so normalizing yields:
+
+$$
+\mathbf{v}_3 = \frac{1}{3} \begin{bmatrix} 2 \\ -2 \\ -1 \end{bmatrix}
+$$
+
+*(Check: $A\mathbf{v}_3 = \frac{1}{3}[6-4-2, \; 4-6+2]^T = \mathbf{0}$, and $\mathbf{v}_2^T \mathbf{v}_3 = \frac{2+2-4}{9\sqrt{2}} = 0$.)*
+
+**Step 3: Write Thin SVD, Full SVD, and Rank-1 Expansion**
+- **Thin SVD**:
+  $$
+  A = \underbrace{\frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}}_{U_2 \in \mathbb{R}^{2\times 2}} \underbrace{\begin{bmatrix} 5 & 0 \\ 0 & 3 \end{bmatrix}}_{\Sigma_2 \in \mathbb{R}^{2\times 2}} \underbrace{\begin{bmatrix} 1/\sqrt{2} & 1/\sqrt{2} & 0 \\ 1/(3\sqrt{2}) & -1/(3\sqrt{2}) & 4/(3\sqrt{2}) \end{bmatrix}}_{V_2^T \in \mathbb{R}^{2\times 3}}
+  $$
+- **Full SVD**:
+  $$
+  A = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} 5 & 0 & 0 \\ 0 & 3 & 0 \end{bmatrix} \begin{bmatrix} 1/\sqrt{2} & 1/\sqrt{2} & 0 \\ 1/(3\sqrt{2}) & -1/(3\sqrt{2}) & 4/(3\sqrt{2}) \\ 2/3 & -2/3 & -1/3 \end{bmatrix}
+  $$
+- **Rank-1 Expansion & Verification**:
+  $$
+  5 \mathbf{u}_1 \mathbf{v}_1^T + 3 \mathbf{u}_2 \mathbf{v}_2^T = \frac{5}{2}\begin{bmatrix} 1 & 1 & 0 \\ 1 & 1 & 0 \end{bmatrix} + \frac{1}{2}\begin{bmatrix} 1 & -1 & 4 \\ -1 & 1 & -4 \end{bmatrix} = \begin{bmatrix} 3 & 2 & 2 \\ 2 & 3 & -2 \end{bmatrix} = A
+  $$
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l30-ex2" tier="L2" tierLabel="L2 · Conceptual True/False" title="Conceptual Check: Singular Values vs. Absolute Values of Eigenvalues">
+
+Determine whether the following statement is true or false:
+
+"Let $A \in \mathbb{R}^{n \times n}$ be a real square matrix. If $\sigma_1 \ge \dots \ge \sigma_n \ge 0$ are the singular values of $A$ and $\lambda_1, \dots, \lambda_n \in \mathbb{C}$ are its eigenvalues, then $\{\sigma_i\} = \{|\lambda_i|\}$ must hold; in particular, if all eigenvalues of $A$ are $0$, then all singular values of $A$ must also be $0$ (so $A = O$)."
+
+<TrueFalseInteractive
+  id="l30-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Eigenvalues only reflect stretching along invariant directions, whereas an asymmetric shear matrix can still stretch unit vectors to nonzero length even when all eigenvalues are $0$. A classic counterexample is the nilpotent matrix $A$ with first row $[0, 2]$ and second row $[0, 0]$: $\lambda_1 = \lambda_2 = 0$, yet $\sigma_1 = 2, \sigma_2 = 0$. Equality $\sigma_i = |\lambda_i|$ holds only when $A$ is normal ($A^T A = A A^T$)."
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Test the second half of the statement: what nonzero matrices have all eigenvalues equal to $0$? (Hint: strictly upper triangular nilpotent matrices.)",
+  "For any nonzero matrix $A \\ne O$, its squared Frobenius norm is $\\|A\\|_F^2 = \\sum_{i=1}^n \\sigma_i^2 \\gt 0$, so its singular values cannot all be $0$!",
+  "Only when $A$ can be diagonalized by a single unitary (or orthogonal) matrix—that is, when $A$ is normal ($A^T A = A A^T$)—do $U$ and $V$ collapse to the same eigenbasis, giving $\\sigma_i = |\\lambda_i|$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+
+Eigenvalues measure stretching in the **same direction**, whereas singular values measure **cross-direction** semi-axis stretching (turning the unit circle into an ellipse). Picture an extreme horizontal shear/projection $A$ that crushes the $x$-axis to zero and rotates $[0,1]^T$ on the $y$-axis by $90^\circ$ while doubling its length to $[2,0]^T$. Because no line keeps its direction (except the $x$-axis, which collapses to $0$), all its eigenvalues are $0$; yet the unit circle is clearly stretched into a line segment of half-length $2$, so the largest singular value is unmistakably $\sigma_1 = 2$!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+The statement is **False**.
+
+**Counterexample**: Take the strictly upper triangular nonzero (nilpotent) matrix:
+
+$$
+A = \begin{bmatrix} 0 & 2 \\ 0 & 0 \end{bmatrix}
+$$
+
+1. Eigenvalues: $\det(A - \lambda I_2) = \lambda^2 = 0 \implies \lambda_1 = \lambda_2 = 0$.
+2. Singular values:
+   $$
+   A^T A = \begin{bmatrix} 0 & 0 \\ 2 & 0 \end{bmatrix} \begin{bmatrix} 0 & 2 \\ 0 & 0 \end{bmatrix} = \begin{bmatrix} 0 & 0 \\ 0 & 4 \end{bmatrix}
+   $$
+   Its eigenvalues are $4$ and $0$, so $\sigma_1 = 2 \ne 0 = |\lambda_1|$ and $\sigma_2 = 0$.
+
+**Deeper Algebraic Connection (Schur's Inequality & Normal Matrices)**:
+In fact, for an arbitrary square matrix $A \in \mathbb{R}^{n \times n}$, only two global relations always hold:
+1. Determinant product conservation: $\prod_{i=1}^n \sigma_i = \sqrt{\det(A^T A)} = |\det(A)| = \prod_{i=1}^n |\lambda_i|$;
+2. Energy bound (Schur's inequality): $\sum_{i=1}^n \sigma_i^2 = \|A\|_F^2 \ge \sum_{i=1}^n |\lambda_i|^2$.
+
+By Schur's triangularization theorem, equality holds above (and $\{\sigma_i\} = \{|\lambda_i|\}$) **if and only if** $A$ is a **normal matrix** ($A^T A = A A^T$, which includes real symmetric, skew-symmetric, and orthogonal matrices). For non-normal matrices, coupling between non-orthogonal eigenvectors inflates the singular values so that $\sigma_1 \ge \max_i |\lambda_i|$!
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l30-ex3" tier="L2" tierLabel="L2 · Conceptual True/False" title="Conceptual Check: Validity of Solving AᵀA and AAᵀ Independently">
+
+Determine whether the following statement is true or false:
+
+"For any matrix $A \in \mathbb{R}^{m \times n}$, if we orthogonally diagonalize $A^T A = V D_1 V^T$ (with diagonal entries in decreasing order) and **independently** orthogonally diagonalize $A A^T = U D_2 U^T$ (with diagonal entries in decreasing order), forming $\Sigma$ from the square roots of the shared nonzero diagonal entries, then regardless of which orthonormal eigenbases were chosen for $U$ and $V$, the product $U \Sigma V^T$ must equal $A$."
+
+<TrueFalseInteractive
+  id="l30-tf2"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Even when all singular values are distinct, eigenvectors still have a sign freedom (counterexample: $A = \operatorname{diag}(1, -2)$, where $A^T A = A A^T = \operatorname{diag}(1, 4)$; choosing the same $U = V$ independently yields $\operatorname{diag}(2, 1)$ or $\operatorname{diag}(1, 2) \ne A$). When singular values are repeated, $U$ and $V$ can also differ by an arbitrary rotation inside the eigenspace!"
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Try the simplest diagonal matrix $A = -I_2$ or $A = \\operatorname{diag}(1, -2)$: what are $A^T A$ and $A A^T$?",
+  "Starting solely from $A^T A$ and $A A^T$, can you distinguish $A$ from $-A$? Clearly $(-A)^T(-A) = A^T A$ and $(-A)(-A)^T = A A^T$! Those two squared matrices alone cannot uniquely determine $A$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+
+This is one of the cleanest counterexample intuitions in linear algebra: $A^T A$ and $AA^T$ act like the "square $x^2$" of a real number. If you replace $A$ by $-A$, or flip the signs of certain rows or columns, the squared matrices $A^T A$ and $AA^T$ stay **completely identical**! Solving for $V$ and $U$ from those two squared matrices separately is like knowing $x^2 = 9$ and $y^2 = 9$ without checking the original coupling equation—the resulting $U \Sigma V^T$ has no way of knowing which way the signs should point!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+The statement is **False**. Here are minimal counterexamples at two levels:
+
+**Counterexample 1 (Sign mismatch with distinct singular values):**
+Let
+
+$$
+A = \begin{bmatrix} 1 & 0 \\ 0 & -2 \end{bmatrix}
+$$
+
+Then:
+
+$$
+A^T A = A A^T = \begin{bmatrix} 1 & 0 \\ 0 & 4 \end{bmatrix}
+$$
+
+The singular values in decreasing order are $\sigma_1 = 2, \sigma_2 = 1$, so $\Sigma = \operatorname{diag}(2, 1)$.
+For $A^T A$, choose the orthonormal eigenbasis $\mathbf{v}_1 = [0, 1]^T, \mathbf{v}_2 = [1, 0]^T$, i.e.,
+
+$$
+V = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+$$
+
+If you **independently** solve $A A^T$ and pick the exact same eigenbasis $\mathbf{u}_1 = [0, 1]^T, \mathbf{u}_2 = [1, 0]^T$ (so $U = V$, which completely satisfies $AA^T = U D_2 U^T$), then:
+
+$$
+U \Sigma V^T = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} \begin{bmatrix} 2 & 0 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix} \ne \begin{bmatrix} 1 & 0 \\ 0 & -2 \end{bmatrix} = A
+$$
+
+Only by enforcing the coupling rule $\mathbf{u}_1 = \frac{1}{\sigma_1} A\mathbf{v}_1 = [0, -1]^T$ do we lock in the minus sign and recover $A$!
+
+**Counterexample 2 (Subspace rotation mismatch with repeated singular values):**
+Let $A$ be the $90^\circ$ rotation matrix
+
+$$
+A = \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix}
+$$
+
+Then $A^T A = A A^T = I_2$ (repeated singular value $\sigma_1 = \sigma_2 = 1$). Choosing $U = I_2$ and $V = I_2$ independently validly diagonalizes $I_2$, yet $U\Sigma V^T = I_2 \ne A$! We must use $U = A V \Sigma^{-1}$ to lock in the $90^\circ$ relative rotation phase.
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l30-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Zero-Calculation Proof: Spectral Norm, Frobenius Norm, and Orthogonal Invariance">
+
+Let $A \in \mathbb{R}^{m \times n}$ have SVD $A = U\Sigma V^T$ (with rank $r \ge 1$ and singular values $\sigma_1 \ge \dots \ge \sigma_r \gt 0$). Without using Lagrange multipliers, prove solely from the SVD and length-preservation of orthogonal matrices:
+
+1. The spectral norm satisfies $\|A\|_2 := \max_{\|\mathbf{x}\|_2 = 1} \|A\mathbf{x}\|_2 = \sigma_1$, and identify the unit vector $\mathbf{x}^*$ achieving the maximum; when $A$ has full column rank ($r = n \le m$), prove $\min_{\|\mathbf{x}\|_2 = 1} \|A\mathbf{x}\|_2 = \sigma_n$;
+2. The Frobenius norm satisfies $\|A\|_F := \sqrt{\sum_{i,j} a_{ij}^2} = \sqrt{\sum_{i=1}^r \sigma_i^2}$;
+3. **Orthogonal Invariance**: For any orthogonal matrices $Q_1 \in \mathbb{R}^{m \times m}$ and $Q_2 \in \mathbb{R}^{n \times n}$, prove that $B = Q_1 A Q_2$ has the exact same singular values as $A$, and hence $\|Q_1 A Q_2\|_2 = \|A\|_2$ and $\|Q_1 A Q_2\|_F = \|A\|_F$.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 1: Set $\\mathbf{y} = V^T \\mathbf{x}$. Because $V$ is orthogonal, as $\\mathbf{x}$ ranges over the unit sphere, $\\mathbf{y}$ also ranges over $\\|\\mathbf{y}\\|_2 = 1$! Then use length preservation of $U$, $\\|U \\mathbf{z}\\|_2 = \\|\\mathbf{z}\\|_2$, to simplify $\\|A\\mathbf{x}\\|_2^2$.",
+  "Part 2: Use the trace identity $\\|A\\|_F^2 = \\operatorname{tr}(A^T A)$ and cyclic invariance of the trace, $\\operatorname{tr}(XY) = \\operatorname{tr}(YX)$.",
+  "Part 3: Substitute $A = U\\Sigma V^T$ directly into $B = Q_1 A Q_2$ and check whether $(Q_1 U)$ and $(Q_2^T V)$ remain orthogonal matrices!"
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+
+The SVD acts as a "coordinate frame" in high-dimensional space. The orthogonal matrices $V^T$ and $U$ behave like rigid rotations that never alter Euclidean lengths; therefore, to see how much $A$ can stretch the unit sphere, we only need to look at the diagonal matrix $\Sigma$ in the middle! The largest stretch on the diagonal is $\sigma_1$ (achieved by putting all unit length into the $\mathbf{v}_1$ direction), and the sum of squares of all entries (Frobenius norm) is conserved under rotation, leaving just the sum of squares of $\Sigma$'s diagonal entries. Better yet, multiplying $A$ on the left or right by arbitrary orthogonal rotations $Q_1, Q_2$ merely changes the input/output coordinate axes without changing the ellipsoid semi-axes $\sigma_i$ by even a hair!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+**Part 1 Proof (Spectral norm and minimum singular value):**
+For any unit vector $\mathbf{x} \in \mathbb{R}^n$ ($\|\mathbf{x}\|_2 = 1$), let $\mathbf{y} = V^T \mathbf{x} \in \mathbb{R}^n$.
+Since $V$ is orthogonal, length preservation gives $\|\mathbf{y}\|_2 = \|V^T \mathbf{x}\|_2 = \|\mathbf{x}\|_2 = 1$ (so $\sum_{i=1}^n y_i^2 = 1$).
+Because $U$ is also orthogonal, it preserves the $\ell_2$-norm of every vector:
+
+$$
+\|A\mathbf{x}\|_2^2 = \|U (\Sigma V^T \mathbf{x})\|_2^2 = \|\Sigma \mathbf{y}\|_2^2 = \sum_{i=1}^r \sigma_i^2 y_i^2
+$$
+
+Since $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_r \gt 0$ and $y_i^2 \ge 0$:
+
+$$
+\|A\mathbf{x}\|_2^2 = \sum_{i=1}^r \sigma_i^2 y_i^2 \le \sigma_1^2 \sum_{i=1}^r y_i^2 \le \sigma_1^2 \sum_{i=1}^n y_i^2 = \sigma_1^2 \|\mathbf{y}\|_2^2 = \sigma_1^2
+$$
+
+Hence $\|A\mathbf{x}\|_2 \le \sigma_1$ for all unit vectors. Choosing $\mathbf{x}^* = \pm \mathbf{v}_1$ (so $\mathbf{y} = \pm \mathbf{e}_1$) achieves equality: $\|A\mathbf{v}_1\|_2 = \|\sigma_1 \mathbf{u}_1\|_2 = \sigma_1$. Therefore $\|A\|_2 = \sigma_1$.
+
+When $A$ has full column rank $r = n \le m$, we have $\sigma_1 \ge \dots \ge \sigma_n \gt 0$ and the sum runs over all $n$ terms:
+
+$$
+\|A\mathbf{x}\|_2^2 = \sum_{i=1}^n \sigma_i^2 y_i^2 \ge \sigma_n^2 \sum_{i=1}^n y_i^2 = \sigma_n^2
+$$
+
+Equality holds at $\mathbf{x} = \pm \mathbf{v}_n$, so $\min_{\|\mathbf{x}\|_2 = 1} \|A\mathbf{x}\|_2 = \sigma_n$.
+
+**Part 2 Proof (Frobenius norm):**
+Expanding the diagonal entries of $A^T A$, the $j$-th diagonal entry is $(A^T A)_{jj} = \sum_{i=1}^m a_{ij}^2$, so:
+
+$$
+\|A\|_F^2 = \sum_{i=1}^m \sum_{j=1}^n a_{ij}^2 = \operatorname{tr}(A^T A)
+$$
+
+Substituting $A^T A = V (\Sigma^T \Sigma) V^T$ and using cyclic invariance $\operatorname{tr}(XY) = \operatorname{tr}(YX)$ together with $V^T V = I_n$:
+
+$$
+\|A\|_F^2 = \operatorname{tr}\!\left(V (\Sigma^T \Sigma) V^T\right) = \operatorname{tr}\!\left((\Sigma^T \Sigma) V^T V\right) = \operatorname{tr}(\Sigma^T \Sigma) = \sum_{i=1}^r \sigma_i^2
+$$
+
+Taking square roots gives $\|A\|_F = \sqrt{\sum_{i=1}^r \sigma_i^2}$.
+
+**Part 3 Proof (Orthogonal invariance):**
+Substitute $A = U\Sigma V^T$ into $B = Q_1 A Q_2$:
+
+$$
+B = Q_1 (U \Sigma V^T) Q_2 = (Q_1 U) \, \Sigma \, (Q_2^T V)^T
+$$
+
+Verify orthogonality of the two new outer matrices $\tilde{U} := Q_1 U \in \mathbb{R}^{m\times m}$ and $\tilde{V} := Q_2^T V \in \mathbb{R}^{n\times n}$:
+
+$$
+\tilde{U}^T \tilde{U} = U^T Q_1^T Q_1 U = U^T I_m U = I_m
+$$
+
+$$
+\tilde{V}^T \tilde{V} = V^T Q_2 Q_2^T V = V^T I_n V = I_n
+$$
+
+Thus $B = \tilde{U} \Sigma \tilde{V}^T$ is a valid SVD of $B$! By uniqueness of singular values, $B$ and $A$ share the exact same singular value matrix $\Sigma$. Combining with Parts 1 and 2 immediately yields $\|Q_1 A Q_2\|_2 = \|A\|_2$ and $\|Q_1 A Q_2\|_F = \|A\|_F$.
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l30-ex5" tier="L4" tierLabel="L4 · MIT 18.06 Exam Synthesis" title="Synthesis Challenge: Polar Decomposition & Orthogonal Procrustes Alignment">
+
+Let $A \in \mathbb{R}^{n \times n}$ have SVD $A = U \Sigma V^T$ ($U, V \in \mathbb{R}^{n \times n}$ orthogonal, $\Sigma = \operatorname{diag}(\sigma_1, \dots, \sigma_n)$ with $\sigma_i \ge 0$).
+
+1. **Polar Decomposition Construction & Properties**: Define $Q = U V^T$ and $S = V \Sigma V^T$. Prove that $A = Q S$, where $Q$ is orthogonal and $S$ is real symmetric positive semidefinite (and strictly positive definite when $A$ is invertible).
+2. **Nearest Orthogonal Matrix Theorem**: Let $O(n) = \{W \in \mathbb{R}^{n \times n} \mid W^T W = I_n\}$ denote the set of all $n \times n$ orthogonal matrices. Prove that in the Frobenius norm, the orthogonal matrix closest to $A$ is precisely the orthogonal polar factor $Q = U V^T$:
+   $$
+   \min_{W \in O(n)} \|A - W\|_F = \|A - U V^T\|_F = \sqrt{\sum_{i=1}^n (\sigma_i - 1)^2}
+   $$
+3. **Generalization — Orthogonal Procrustes Point-Cloud Alignment**: Given two paired point-cloud matrices $X, Y \in \mathbb{R}^{N \times d}$, we wish to find an orthogonal matrix $W \in O(d)$ minimizing the alignment residual $\|X W - Y\|_F$. Prove that the closed-form global optimum is $W^* = \tilde{U} \tilde{V}^T$, where $X^T Y = \tilde{U} \tilde{\Sigma} \tilde{V}^T$ is the SVD of the $d \times d$ cross-covariance matrix!
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 2: Expand $\\|A - W\\|_F^2 = \\operatorname{tr}((A-W)^T(A-W)) = \\|A\\|_F^2 + \\|W\\|_F^2 - 2\\operatorname{tr}(A^T W)$. Since $\\|W\\|_F^2 = n$ is constant, this reduces to **maximizing** $\\operatorname{tr}(A^T W)$.",
+  "Substitute $A^T = V\\Sigma U^T$ and use cyclic invariance of the trace: $\\operatorname{tr}(V\\Sigma U^T W) = \\operatorname{tr}(\\Sigma (U^T W V))$. Notice that $Z = U^T W V$ is still an orthogonal matrix!",
+  "Part 3: Use column-norm preservation of orthogonal $W$ to get $\\|XW\\|_F^2 = \\|X\\|_F^2$, reducing the minimization of $\\|XW - Y\\|_F^2$ to maximizing $\\operatorname{tr}((X^T Y)^T W)$!"
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+
+Every complex number has a polar form $z = e^{i\theta} \cdot r$, where $r \ge 0$ is pure scaling and $e^{i\theta}$ is a pure rotation on the unit circle. The polar decomposition $A = Q S$ of a square matrix is the high-dimensional linear-algebraic version of complex polar coordinates: first $S$ stretches purely along orthogonal principal axes with no rotation, and then $Q$ performs a rigid rotation! If you want to pick the rigid rotation (orthogonal matrix) that looks most like $A$, intuition says you simply "squash all stretch factors $\sigma_i$ back to $1$" and keep only the rotation factor $Q = U V^T$—the Orthogonal Procrustes algorithm (widely used in 3D point-cloud registration ICP, cross-lingual word-embedding alignment, and structural biology protein superposition) has relied on this one-line SVD closed-form solution for half a century!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+**Part 1 Proof (Polar decomposition):**
+Multiplying directly and using $V^T V = I_n$:
+
+$$
+Q S = (U V^T)(V \Sigma V^T) = U (V^T V) \Sigma V^T = U \Sigma V^T = A
+$$
+
+- Orthogonality of $Q$: $Q^T Q = (U V^T)^T (U V^T) = V U^T U V^T = V I_n V^T = I_n$, so $Q \in O(n)$.
+- Symmetry and positive semidefiniteness of $S$: $S^T = (V \Sigma V^T)^T = V \Sigma^T V^T = V \Sigma V^T = S$; for any $\mathbf{x} \in \mathbb{R}^n$, letting $\mathbf{y} = V^T \mathbf{x}$ gives:
+  $$
+  \mathbf{x}^T S \mathbf{x} = \mathbf{y}^T \Sigma \mathbf{y} = \sum_{i=1}^n \sigma_i y_i^2 \ge 0
+  $$
+  When $A$ is invertible, every $\sigma_i \gt 0$, so the quadratic form is strictly positive for all $\mathbf{x} \ne \mathbf{0}$ (i.e., $\mathbf{y} \ne \mathbf{0}$), making $S$ strictly positive definite.
+
+**Part 2 Proof (Nearest orthogonal matrix):**
+For any $W \in O(n)$, expand the squared Frobenius norm:
+
+$$
+\|A - W\|_F^2 = \operatorname{tr}\!\left((A - W)^T(A - W)\right) = \|A\|_F^2 + \|W\|_F^2 - 2\operatorname{tr}(A^T W)
+$$
+
+Since $W$ is orthogonal, each column has squared norm $1$, so $\|W\|_F^2 = \operatorname{tr}(W^T W) = \operatorname{tr}(I_n) = n$. Thus minimizing $\|A - W\|_F$ is equivalent to **maximizing** $\operatorname{tr}(A^T W)$.
+
+Substitute $A^T = V \Sigma U^T$ and use cyclic invariance of the trace:
+
+$$
+\operatorname{tr}(A^T W) = \operatorname{tr}(V \Sigma U^T W) = \operatorname{tr}\!\left(\Sigma (U^T W V)\right)
+$$
+
+Let $Z := U^T W V$. As a product of $n \times n$ orthogonal matrices, $Z$ is itself orthogonal. Every column of an orthogonal matrix has unit $\ell_2$-norm, so each diagonal entry satisfies $|z_{ii}| \le \sqrt{\sum_{k=1}^n z_{ki}^2} = 1$. Since $\sigma_i \ge 0$:
+
+$$
+\operatorname{tr}(\Sigma Z) = \sum_{i=1}^n \sigma_i z_{ii} \le \sum_{i=1}^n \sigma_i \cdot 1 = \sum_{i=1}^n \sigma_i
+$$
+
+This upper bound $\sum_{i=1}^n \sigma_i$ is attained if and only if $z_{ii} = 1$ for all $\sigma_i \gt 0$ (in particular, taking $Z = I_n$), which gives:
+
+$$
+U^T W^* V = I_n \iff W^* = U V^T = Q
+$$
+
+The corresponding minimum squared approximation error is:
+
+$$
+\|A - U V^T\|_F^2 = \sum_{i=1}^n \sigma_i^2 + n - 2\sum_{i=1}^n \sigma_i = \sum_{i=1}^n (\sigma_i - 1)^2
+$$
+
+Taking square roots yields $\|A - U V^T\|_F = \sqrt{\sum_{i=1}^n (\sigma_i - 1)^2}$.
+
+**Part 3 Proof (Orthogonal Procrustes problem):**
+Expand the squared point-cloud alignment error:
+
+$$
+\|X W - Y\|_F^2 = \operatorname{tr}\!\left((XW - Y)^T (XW - Y)\right) = \|XW\|_F^2 + \|Y\|_F^2 - 2\operatorname{tr}(Y^T X W)
+$$
+
+Using $W^T W = I_d$ and cyclic invariance of the trace:
+
+$$
+\|XW\|_F^2 = \operatorname{tr}(W^T X^T X W) = \operatorname{tr}(X^T X W W^T) = \operatorname{tr}(X^T X) = \|X\|_F^2
+$$
+
+Thus minimizing $\|XW - Y\|_F$ is equivalent to maximizing $\operatorname{tr}(Y^T X W) = \operatorname{tr}\!\left((X^T Y)^T W\right)$. Letting $X^T Y = \tilde{U} \tilde{\Sigma} \tilde{V}^T$ be the SVD of $X^T Y \in \mathbb{R}^{d \times d}$:
+
+$$
+\operatorname{tr}\!\left((X^T Y)^T W\right) = \operatorname{tr}(\tilde{V} \tilde{\Sigma} \tilde{U}^T W) = \operatorname{tr}\!\left(\tilde{\Sigma} (\tilde{U}^T W \tilde{V})\right)
+$$
+
+This is completely isomorphic to Part 2! Choosing the orthogonal matrix satisfying $\tilde{U}^T W^* \tilde{V} = I_d$, namely:
+
+$$
+W^* = \tilde{U} \tilde{V}^T
+$$
+
+achieves the global maximum $\sum_{i=1}^d \tilde{\sigma}_i$, thereby attaining the global minimum of the alignment residual $\|XW - Y\|_F$!
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>
+
+---
+
+<FrontierAIReading
+  id="AI-13"
+  title="LLM Weight Singular Value Spectra, Eckart-Young Optimal Low-Rank Truncation, and the Bilinear Bottleneck of Attention W_Qᵀ W_K"
+  paperRef="Eckart & Young (1936) · Elhage et al. (2021) A Mathematical Framework for Transformer Circuits"
+>
+
+### 1. The Eckart-Young-Mirsky Theorem: Why SVD Truncation Is an Unbeatable Compression Limit
+
+In Sections 1 and 2, we saw that the SVD writes any weight matrix $W \in \mathbb{R}^{m \times n}$ as a sum of rank-1 building blocks ordered from highest energy to lowest:
+
+$$
+W = \sum_{i=1}^r \sigma_i \mathbf{u}_i \mathbf{v}_i^T, \qquad \sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_r \gt 0
+$$
+
+If our budget allows only a matrix $B$ of rank at most $k$ ($k \lt r$) to approximate $W$ (for example, to factor a high-dimensional weight matrix into two thin factors $B = L R$ with $L \in \mathbb{R}^{m\times k}, R \in \mathbb{R}^{k\times n}$), we simply retain the top $k$ singular components:
+
+$$
+W_k := \sum_{i=1}^k \sigma_i \mathbf{u}_i \mathbf{v}_i^T = U_k \Sigma_k V_k^T
+$$
+
+The **Eckart-Young-Mirsky Theorem (1936 / 1960)** provides a remarkable optimality guarantee: in **both the spectral norm and the Frobenius norm**, no matrix of rank $\le k$ can get closer to $W$ than $W_k$!
+
+$$
+\min_{\operatorname{rank}(B) \le k} \|W - B\|_2 = \|W - W_k\|_2 = \sigma_{k+1}
+$$
+
+$$
+\min_{\operatorname{rank}(B) \le k} \|W - B\|_F = \|W - W_k\|_F = \sqrt{\sum_{i=k+1}^r \sigma_i^2}
+$$
+
+**Five-Step Dimension-Intersection Proof of Spectral Norm Optimality (using only Lecture 10 nullspace dimensions!):**
+Let $B \in \mathbb{R}^{m \times n}$ be **any** matrix with $\operatorname{rank}(B) \le k$.
+1. By the Rank-Nullity Theorem, $\dim \operatorname{Null}(B) = n - \operatorname{rank}(B) \ge n - k$;
+2. Consider the $(k+1)$-dimensional subspace spanned by the first $k+1$ right singular vectors, $\mathcal{V}_{k+1} := \operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_{k+1}\} \subseteq \mathbb{R}^n$;
+3. Since the sum of dimensions $(n - k) + (k + 1) = n + 1 \gt n$ exceeds the ambient dimension $n$, these two subspaces **must intersect in at least a nonzero line**! Thus there exists a unit vector $\mathbf{z} \in \operatorname{Null}(B) \cap \mathcal{V}_{k+1}$ ($\|\mathbf{z}\|_2 = 1$);
+4. Expand in orthonormal coordinates $\mathbf{z} = \sum_{i=1}^{k+1} c_i \mathbf{v}_i$ ($\sum_{i=1}^{k+1} c_i^2 = 1$), with $B\mathbf{z} = \mathbf{0}$;
+5. By the definition of the spectral norm and the Pythagorean theorem:
+   $$
+   \|W - B\|_2^2 \ge \|(W - B)\mathbf{z}\|_2^2 = \|W\mathbf{z}\|_2^2 = \sum_{i=1}^{k+1} \sigma_i^2 c_i^2 \ge \sigma_{k+1}^2 \sum_{i=1}^{k+1} c_i^2 = \sigma_{k+1}^2
+   $$
+   Taking square roots gives $\|W - B\|_2 \ge \sigma_{k+1} = \|W - W_k\|_2$! Q.E.D.
+
+---
+
+### 2. The Bilinear Low-Rank Bottleneck of Transformer Multi-Head Attention $W_{QK}^h$ (Elhage et al., 2021)
+
+In Anthropic's landmark paper *A Mathematical Framework for Transformer Circuits* (Elhage et al., 2021), the authors dissected the structural bottleneck of Transformer self-attention directly through matrix rank and singular value spectra.
+
+Let the model hidden dimension be $d_{\text{model}}$ (e.g., $d_{\text{model}} = 4096$ in Llama-3 8B), with $H$ attention heads and per-head dimension $d_{\text{head}} = d_{\text{model}} / H$ (e.g., $H = 32, d_{\text{head}} = 128$).
+For head $h$, let the hidden-state column vectors at tokens $t$ and $s$ be $\mathbf{x}_t, \mathbf{x}_s \in \mathbb{R}^{d_{\text{model}}}$. Using the standard PyTorch projection convention $W_Q^h, W_K^h \in \mathbb{R}^{d_{\text{model}} \times d_{\text{head}}}$ (row-vector projections $\mathbf{q}_t^h = \mathbf{x}_t^T W_Q^h$, $\mathbf{k}_s^h = \mathbf{x}_s^T W_K^h$), the attention logit is fundamentally a **bilinear form** on the input feature space:
+
+$$
+\text{score}_h(t, s) = \frac{1}{\sqrt{d_{\text{head}}}} \mathbf{x}_t^T \underbrace{\left( W_Q^h (W_K^h)^T \right)}_{W_{QK}^h \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}} \mathbf{x}_s
+$$
+
+*(Note: Under column-vector projection conventions $\tilde{W}_Q^h, \tilde{W}_K^h \in \mathbb{R}^{d_{\text{head}} \times d_{\text{model}}}$, i.e., $\mathbf{q}_t^h = \tilde{W}_Q^h \mathbf{x}_t, \mathbf{k}_s^h = \tilde{W}_K^h \mathbf{x}_s$, the $d_{\text{model}} \times d_{\text{model}}$ bilinear scoring matrix is written $W_{QK}^h = (\tilde{W}_Q^h)^T \tilde{W}_K^h$.)*
+
+Regardless of transpose convention, examine the **rank** of this massive $d_{\text{model}} \times d_{\text{model}}$ matrix:
+
+$$
+\operatorname{rank}(W_{QK}^h) \le \min\!\left(\operatorname{rank}(W_Q^h), \, \operatorname{rank}(W_K^h)\right) \le d_{\text{head}} \ll d_{\text{model}}
+$$
+
+From the SVD viewpoint, $W_{QK}^h$ can have at most $d_{\text{head}}$ (say $128$) nonzero singular values, while at least $d_{\text{model}} - d_{\text{head}} = 3968$ singular values are strictly zero!
+This leads directly to two core insights driving modern LLM architecture design:
+1. **A single attention head is an ultra-low-rank bilinear filter**: Each head can read at most a $d_{\text{head}}$-dimensional "query subspace" (left singular vectors $\mathbf{u}_1,\dots,\mathbf{u}_{d_{\text{head}}}$) from the $d_{\text{model}}$-dimensional residual stream and match it against a $d_{\text{head}}$-dimensional "key subspace" (right singular vectors $\mathbf{v}_1,\dots,\mathbf{v}_{d_{\text{head}}}$). Even though a single full-4096-dimensional projection would cost the same FLOPs, running $H$ heads in parallel (summing $H$ low-rank bilinear kernels $\sum_{h=1}^H W_{QK}^h$) lets each head specialize independently in syntax, coreference, or induction-head patterns in distinct low-rank subspaces!
+2. **SVD inspiration behind MLA (Multi-Head Latent Attention, DeepSeek-V2/V3)**: Because KV matrices across heads exhibit substantial low-rank redundancy, MLA learns a joint low-rank compressed latent vector $c_t^{KV} \in \mathbb{R}^{d_c}$ ($d_c \ll H d_{\text{head}}$) at the attention input; at inference time, only the narrow $c_t^{KV}$ needs to be cached while the up-projection matrices are algebraically absorbed into $W_Q$ to form a joint $W_{QK}$ matrix—slashing KV Cache memory by over 90% through pure linear-algebraic low-rank factorization!
+
+---
+
+### 3. From Activation-Aware Compression (SVD-LLM) to Orthogonal Gradient Optimization (Muon)
+
+Finally, the SVD sits at the forefront of modern LLM compression and efficient training:
+- **Why does naive weight SVD fail while SVD-LLM (Wang et al., 2024) succeeds?**
+  Although pretrained LLM weight matrices often exhibit strong singular value decay, applying Eckart-Young truncation $\min \|W - W_k\|_F$ directly to $W$ hides a dangerous assumption: **that all input feature directions carry equal energy** (covariance $X X^T \propto I$). In reality, LLM activations exhibit extreme anisotropic outliers. What actually determines layer-wise distortion is the output activation error $\|(W - W_k) X\|_F$! SVD-LLM uses the Cholesky factorization from Lecture 28 to whiten the activation covariance $X X^T = S S^T$, performs SVD truncation on the whitened matrix $W S$, and multiplies back by $S^{-1}$—establishing an exact $1:1$ isometric correspondence between singular value truncation error and true activation output error!
+- **The Muon Optimizer (Jordan et al., 2024) and Polar Orthogonalization**:
+  When training 2D linear-layer weights $W \in \mathbb{R}^{m \times n}$, the gradient/momentum matrix $G = U\Sigma V^T$ is often severely ill-conditioned ($\sigma_1 \gg \sigma_r$), causing optimization steps to be dominated by a handful of top singular directions. The Muon optimizer uses fast Newton-Schulz matrix iterations to approximate the **polar orthogonal factor**:
+  $$
+  G = U\Sigma V^T \;\longmapsto\; \operatorname{Polar}(G) = U_r V_r^T
+  $$
+  This is equivalent to **flattening all nonzero singular values to $1$**, allowing the model to learn uniformly at the same speed across every orthogonal feature subspace!
+
+<CollapsibleCode language="python" title="eckart_young_and_attention_rank_svd.py">
+```python
+"""
+Verify the core theorems of Lecture 30 (AI-13):
+1. Equivalence of Full SVD vs. Thin SVD reconstruction
+2. Eckart-Young-Mirsky optimal low-rank truncation (spectral error = sigma_{k+1}, Frobenius error = sqrt(sum sigma^2))
+3. Bilinear rank bottleneck of Attention W_QK = W_Q @ W_K^T (rank <= d_head)
+4. Polar orthogonalization G = U Sigma V^T -> U V^T flattening all nonzero singular values to 1.0 (Muon idea)
+"""
+import torch
+
+def verify_svd_and_ai_connections():
+    torch.manual_seed(30)
+
+    # 1. Verify Thin SVD vs. Full SVD
+    m, n = 64, 48
+    A = torch.randn(m, n)
+    # Construct a heavy-tailed singular spectrum mimicking real neural network weights
+    U0, _, Vh0 = torch.linalg.svd(A, full_matrices=False)
+    decay_spectrum = torch.exp(-0.15 * torch.arange(min(m, n), dtype=torch.float32))
+    W = U0 @ torch.diag(decay_spectrum) @ Vh0
+
+    U_full, S_full, Vh_full = torch.linalg.svd(W, full_matrices=True)
+    U_thin, S_thin, Vh_thin = torch.linalg.svd(W, full_matrices=False)
+
+    Sigma_full = torch.zeros(m, n)
+    Sigma_full[:n, :n] = torch.diag(S_full)
+    err_full = torch.norm(W - U_full @ Sigma_full @ Vh_full).item()
+    err_thin = torch.norm(W - U_thin @ torch.diag(S_thin) @ Vh_thin).item()
+    print("=" * 68)
+    print(f"1. Full SVD reconstruction error: {err_full:.2e} | Thin SVD error: {err_thin:.2e}")
+
+    # 2. Verify Eckart-Young-Mirsky optimal low-rank truncation
+    k = 10
+    W_k = (U_thin[:, :k] * S_thin[:k]) @ Vh_thin[:k, :]
+    spec_err = torch.linalg.matrix_norm(W - W_k, ord=2).item()
+    frob_err = torch.linalg.matrix_norm(W - W_k, ord="fro").item()
+
+    theo_spec_err = S_thin[k].item()                    # sigma_{k+1} (0-indexed k)
+    theo_frob_err = torch.sqrt(torch.sum(S_thin[k:] ** 2)).item()
+
+    # Compare against a random rank-k matrix (no rank-k matrix can beat W_k)
+    B_rand = torch.randn(m, k) @ torch.randn(k, n)
+    rand_frob = torch.linalg.matrix_norm(W - B_rand, ord="fro").item()
+
+    print("\n2. Eckart-Young-Mirsky Theorem Verification (rank k = 10):")
+    print(f"   Spectral norm ||W - W_k||_2   = {spec_err:.6f}  | Theoretical sigma_{{k+1}} = {theo_spec_err:.6f}")
+    print(f"   Frobenius     ||W - W_k||_F   = {frob_err:.6f}  | Theoretical sqrt(sum)  = {theo_frob_err:.6f}")
+    print(f"   Random rank-k Frobenius error = {rand_frob:.6f} (strictly worse than Eckart-Young)")
+
+    # 3. Verify rank bottleneck of single-head Attention W_QK = W_Q @ W_K^T
+    d_model = 512
+    d_head = 64
+    W_Q = torch.randn(d_model, d_head) / (d_head ** 0.5)
+    W_K = torch.randn(d_model, d_head) / (d_head ** 0.5)
+    W_QK = W_Q @ W_K.T  # shape: (512, 512)
+
+    S_qk = torch.linalg.svdvals(W_QK)
+    effective_rank = int((S_qk > 1e-5).sum().item())
+    tail_max_sv = S_qk[d_head].item()
+    print("\n3. Transformer Attention W_QK = W_Q @ W_K^T Bilinear Bottleneck:")
+    print(f"   Matrix shape: {tuple(W_QK.shape)}, head dim d_head = {d_head}")
+    print(f"   Smallest of top d_head singular values sigma_{d_head}   = {S_qk[d_head - 1].item():.6f}")
+    print(f"   (d_head + 1)-th singular value         sigma_{d_head + 1}   = {tail_max_sv:.2e} (strictly truncated to 0!)")
+    print(f"   Numerical rank(W_QK) = {effective_rank} <= d_head ({d_head}) << d_model ({d_model})")
+
+    # 4. Verify polar orthogonalization G -> U V^T (Muon spectrum flattening)
+    G = U_thin @ torch.diag(torch.linspace(100.0, 0.1, n)) @ Vh_thin
+    U_g, _, Vh_g = torch.linalg.svd(G, full_matrices=False)
+    G_ortho = U_g @ Vh_g
+    S_ortho = torch.linalg.svdvals(G_ortho)
+    print("\n4. Polar Orthogonalization Polar(G) = U V^T (Muon idea):")
+    print(f"   Original gradient condition number kappa(G) = {100.0 / 0.1:.1f}")
+    print(f"   Singular value range after orthogonalization: [{S_ortho.min().item():.6f}, {S_ortho.max().item():.6f}] (flattened to 1.0!)")
+    print("=" * 68)
+
+if __name__ == "__main__":
+    verify_svd_and_ai_connections()
+```
+</CollapsibleCode>
+
+</FrontierAIReading>

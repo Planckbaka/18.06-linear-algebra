@@ -1,0 +1,972 @@
+---
+title: "Lecture 28: Positive Definite Matrices and Minima"
+ocwId: "L27"
+videoEpisode: "P28"
+textbookRef: "§6.5"
+---
+
+In Lecture 26, we conquered the Real Spectral Theorem: every real symmetric matrix $A = A^T \in \mathbb{R}^{n \times n}$ has all real eigenvalues and can be orthogonally diagonalized as $A = Q\Lambda Q^T$. What makes that factorization so crystal clear is that symmetry rules out complex eigenvalues and defective Jordan blocks, while giving the eigenspaces a rigid, mutually orthogonal geometry.
+
+Now Professor Gilbert Strang asks a fundamental question that runs through optimization, structural mechanics, multivariable calculus, and statistics: **among all real symmetric matrices, which ones guarantee that the associated high-dimensional energy surface always opens upward, forming a perfect bowl with a unique minimum at the origin and no saddle points?**
+
+That brings us to the star of this lecture: **Symmetric Positive Definite (SPD) matrices**. Remarkably, testing whether a symmetric matrix is positive definite does not rely solely on checking $\mathbf{x}^T A \mathbf{x} \gt 0$. Five seemingly separate threads from across linear algebra—Gaussian elimination pivots, leading principal determinants, eigenvalues, and the inner-product factorization $A = R^T R$—all converge here into **five equivalent tests**.
+
+---
+
+## 1. Starting from $2 \times 2$ Energy Bowls and Completing the Square
+
+In linear algebra, the scalar energy function $\mathbf{x}^T A \mathbf{x}$ associated with a symmetric matrix $A \in \mathbb{R}^{n \times n}$ is called a **quadratic form**. In multivariable calculus and physics, elastic potential energy of springs, exponents in Gaussian probability densities, and second-order curvature terms in Taylor expansions are all incarnations of $\mathbf{x}^T A \mathbf{x}$.
+
+Let us start with the most concrete case—a $2 \times 2$ real symmetric matrix—and feel the geometry and algebra of positive definiteness firsthand by looking at the energy surface and completing the square. Let:
+
+$$
+A = \begin{bmatrix} a & b \\ b & c \end{bmatrix}, \qquad \mathbf{x} = \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} \in \mathbb{R}^2
+$$
+
+Expanding the quadratic form component by component gives:
+
+$$
+f(x_1, x_2) = \mathbf{x}^T A \mathbf{x} = \begin{bmatrix} x_1 & x_2 \end{bmatrix} \begin{bmatrix} a & b \\ b & c \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} = a x_1^2 + 2b x_1 x_2 + c x_2^2
+$$
+
+Notice how the cross term $2b x_1 x_2$ splits evenly between the two off-diagonal entries $A_{12} = b$ and $A_{21} = b$, which preserves the symmetry $A = A^T$.
+
+### 1. Three $2 \times 2$ Examples: Changing Only the Bottom-Right Entry
+
+Consider three real symmetric matrices that differ only in their bottom-right entry $c$:
+
+1. **A Perfect Energy Bowl (Positive Definite, SPD)**: Take
+
+   $$
+   A_1 = \begin{bmatrix} 2 & 6 \\ 6 & 20 \end{bmatrix}
+   $$
+
+   Its quadratic form is $f_1(x_1, x_2) = 2x_1^2 + 12x_1x_2 + 20x_2^2$. Completing the square in $x_1$ yields:
+
+   $$
+   f_1(x_1, x_2) = 2(x_1 + 3x_2)^2 + 2x_2^2
+   $$
+
+   Whenever $\mathbf{x} \ne \mathbf{0}$, at least one of the two squared terms is strictly positive, and both outer coefficients ($2$ and $2$) are positive, so $f_1(\mathbf{x}) \gt 0$ everywhere away from the origin! Its 3D graph is an elliptic paraboloid bowl rising steeply in every direction, with $(0, 0)$ as its unique strict global minimum.
+
+2. **A Degenerate Trough (Positive Semidefinite, PSD)**: Lower the bottom-right entry from $20$ to $18$:
+
+   $$
+   A_2 = \begin{bmatrix} 2 & 6 \\ 6 & 18 \end{bmatrix}
+   $$
+
+   Completing the square gives:
+
+   $$
+   f_2(x_1, x_2) = 2(x_1 + 3x_2)^2 + 0 \cdot x_2^2
+   $$
+
+   Now $f_2(\mathbf{x}) \ge 0$ holds everywhere, but along the entire line $x_1 = -3x_2$ (the direction $[-3, 1]^T$), the energy stays flat on the floor at zero! The bowl collapses into a level cylindrical trough; the matrix is singular ($\det(A_2) = 0$, with a zero eigenvalue $\lambda_2 = 0$).
+
+3. **A Torn Saddle Surface (Indefinite)**: Lower the bottom-right entry further to $7$:
+
+   $$
+   A_3 = \begin{bmatrix} 2 & 6 \\ 6 & 7 \end{bmatrix}
+   $$
+
+   Completing the square gives:
+
+   $$
+   f_3(x_1, x_2) = 2(x_1 + 3x_2)^2 - 11x_2^2
+   $$
+
+   Outside the squares we now have one positive sign ($+2$) and one negative sign ($-11$)! Along $[1, 0]^T$, $f_3(1, 0) = 2 \gt 0$ (curving upward); along $[-3, 1]^T$, $f_3(-3, 1) = -11 \lt 0$ (curving downward). The origin $(0, 0)$ is no longer a minimum—it is a dangerous **saddle point**!
+
+### 2. A Remarkable Algebraic Identity: Square Coefficients Are Elimination Pivots!
+
+Completing the square on a general $2 \times 2$ quadratic form $a x_1^2 + 2b x_1 x_2 + c x_2^2$ (assuming $a \ne 0$) immediately reveals one of the nicest bridges between high-school algebra and linear algebra:
+
+$$
+a x_1^2 + 2b x_1 x_2 + c x_2^2 = a\left(x_1 + \frac{b}{a}x_2\right)^2 + \left(c - \frac{b^2}{a}\right)x_2^2
+$$
+
+Look closely at the two coefficients sitting outside the squares:
+- The first coefficient is $d_1 = a$;
+- The second coefficient is $d_2 = c - \frac{b^2}{a} = \frac{ac - b^2}{a} = \frac{\det(A_2)}{\det(A_1)}$!
+
+Those are **the exact two pivots produced by Gaussian elimination** on $A$! Written in symmetric elimination form $A = L D L^T$, this is:
+
+$$
+\begin{bmatrix} a & b \\ b & c \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ b/a & 1 \end{bmatrix} \begin{bmatrix} d_1 & 0 \\ 0 & d_2 \end{bmatrix} \begin{bmatrix} 1 & b/a \\ 0 & 1 \end{bmatrix}, \qquad d_1 = a, \quad d_2 = \frac{ac - b^2}{a}
+$$
+
+Moreover, expanding $\mathbf{x}^T A \mathbf{x} = \mathbf{x}^T L D L^T \mathbf{x} = (L^T \mathbf{x})^T D (L^T \mathbf{x})$ and setting $\mathbf{y} = L^T \mathbf{x}$ shows that the linear combinations inside the squares, $x_1 + \frac{b}{a}x_2$ and $x_2$, are literally the components of $L^T \mathbf{x}$!
+
+From this, everything is transparent for a $2 \times 2$ symmetric matrix: the sum of squares is strictly positive if and only if both pivots satisfy $d_1 \gt 0$ and $d_2 \gt 0$, which is equivalent to **the top-left $1 \times 1$ entry $a \gt 0$ and the full determinant $ac - b^2 \gt 0$**!
+
+<DefinitionCard label="Definition" title="Quadratic Form, SPD, and PSD Matrices">
+
+Let $A = A^T \in \mathbb{R}^{n \times n}$ be an $n \times n$ **real symmetric matrix**. Its associated scalar function $f(\mathbf{x}) = \mathbf{x}^T A \mathbf{x}$ is called a **quadratic form**. Based on the sign of $\mathbf{x}^T A \mathbf{x}$ over all nonzero real vectors $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$, we classify the definiteness of $A$ into five categories:
+
+1. **Positive Definite ($A \succ 0$, or SPD)**: Strictly positive for every nonzero vector $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$:
+   $$
+   \mathbf{x}^T A \mathbf{x} \gt 0
+   $$
+2. **Positive Semidefinite ($A \succeq 0$, or PSD)**: Nonnegative for every real vector $\mathbf{x} \in \mathbb{R}^n$:
+   $$
+   \mathbf{x}^T A \mathbf{x} \ge 0
+   $$
+3. **Negative Definite ($A \prec 0$)**: $\mathbf{x}^T A \mathbf{x} \lt 0$ for all $\mathbf{x} \ne \mathbf{0}$ (equivalent to $-A \succ 0$).
+4. **Negative Semidefinite ($A \preceq 0$)**: $\mathbf{x}^T A \mathbf{x} \le 0$ for all $\mathbf{x} \in \mathbb{R}^n$ (equivalent to $-A \succeq 0$).
+5. **Indefinite**: There exist nonzero vectors $\mathbf{x}_1, \mathbf{x}_2 \in \mathbb{R}^n$ such that $\mathbf{x}_1^T A \mathbf{x}_1 \gt 0$ and $\mathbf{x}_2^T A \mathbf{x}_2 \lt 0$.
+
+**Essential Convention**: In MIT 18.06 and across most of linear algebra and optimization, calling a matrix "positive definite" implicitly assumes **real symmetry ($A = A^T$)** as a standing hypothesis. For any non-symmetric square matrix $M$, we always have $\mathbf{x}^T M \mathbf{x} = \mathbf{x}^T \left(\frac{M + M^T}{2}\right) \mathbf{x}$, so the energy of the quadratic form is governed entirely by its symmetric part.
+
+</DefinitionCard>
+
+---
+
+## 2. The Five Equivalent Tests for Symmetric Positive Definite Matrices
+
+Moving from $2 \times 2$ to arbitrary dimension $\mathbb{R}^n$, there are five distinct yet completely equivalent ways to test whether a real symmetric matrix is positive definite. Whether we are finding minima in calculus, solving large sparse systems in numerical linear algebra, or validating covariance matrices in statistics, we are using one of these five tests.
+
+<TheoremCard label="Theorem" title="The Five Equivalent Tests for SPD Matrices">
+
+Let $A = A^T \in \mathbb{R}^{n \times n}$ be a **real symmetric matrix**. Then the following five conditions are **pairwise equivalent ($\iff$)**:
+
+1. **Quadratic Form Energy Test**: For every nonzero column vector $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$,
+   $$
+   \mathbf{x}^T A \mathbf{x} \gt 0
+   $$
+2. **Eigenvalue Test**: All $n$ (real) eigenvalues of $A$ are strictly positive:
+   $$
+   \lambda_1, \lambda_2, \dots, \lambda_n \gt 0
+   $$
+3. **Leading Principal Minors Test (Sylvester's Criterion)**: All $n$ upper-left **leading principal submatrices** $A_k = A_{1:k,\, 1:k}$ have strictly positive determinants:
+   $$
+   \det(A_1) \gt 0, \quad \det(A_2) \gt 0, \quad \dots, \quad \det(A_n) = \det(A) \gt 0
+   $$
+4. **Pivot Test**: Gaussian elimination on $A$ without row exchanges produces a symmetric factorization $A = L D L^T$ ($L$ unit lower triangular) with all $n$ **pivots** strictly positive:
+   $$
+   d_1, d_2, \dots, d_n \gt 0
+   $$
+5. **Full-Column-Rank Factorization $A = R^T R$**: There exists a matrix $R \in \mathbb{R}^{m \times n}$ with independent columns ($m \ge n$ and $\operatorname{rank}(R) = n$, equivalently $\operatorname{Null}(R) = \{\mathbf{0}\}$) such that
+   $$
+   A = R^T R
+   $$
+   In particular, when $m = n$, two classic square invertible factorizations arise:
+   - **Cholesky Factorization**: $A = L_c L_c^T$, where $L_c = L\sqrt{D}$ is lower triangular with strictly positive diagonal entries (taking $R = L_c^T$);
+   - **Symmetric Square Root**: $A = A^{1/2} A^{1/2}$, where $A^{1/2} = Q \sqrt{\Lambda} Q^T \succ 0$.
+
+</TheoremCard>
+
+The closed-loop equivalence web below shows how these five tests lock together (note the warning banner at the top: **$A = A^T$ is the foundation that holds the entire web together**):
+
+<SpdFiveTestsEquivalenceWebDiagram caption="Closed-loop equivalence web linking the five SPD tests under the standing assumption A = A^T: Chain A cycles (1) => (2) => (5) => (1), while Chain B connects (1) => (3) <=> (4) => (5)." />
+
+<ProofCollapse title="Rigorous Proof: Complete Closed-Loop Equivalence of the Five SPD Tests">
+
+To prove that all five statements are pairwise equivalent, we build two interlocking implication chains:
+- **Chain A**: $(1) \implies (2) \implies (5) \implies (1)$;
+- **Chain B**: $(1) \implies (3) \iff (4) \implies (5)$.
+
+Because both chains feed into the same closed loop, a directed logical path exists between any two statements, establishing their complete equivalence. **Pay close attention to how symmetry $A = A^T \in \mathbb{R}^{n \times n}$ powers each step.**
+
+---
+
+**Step 1: Prove $(1) \implies (2)$**
+By the Real Spectral Theorem (Lecture 26), there exists an orthogonal matrix $Q = [\mathbf{q}_1, \dots, \mathbf{q}_n]$ of orthonormal eigenvectors of $A$ such that $A\mathbf{q}_i = \lambda_i \mathbf{q}_i$ ($\lambda_i \in \mathbb{R}$ and $\|\mathbf{q}_i\|_2 = 1$).
+Since $\mathbf{q}_i \ne \mathbf{0}$, substituting $\mathbf{x} = \mathbf{q}_i$ into Condition $(1)$ gives:
+
+$$
+0 \lt \mathbf{q}_i^T A \mathbf{q}_i = \mathbf{q}_i^T (\lambda_i \mathbf{q}_i) = \lambda_i (\mathbf{q}_i^T \mathbf{q}_i) = \lambda_i \|\mathbf{q}_i\|_2^2 = \lambda_i
+$$
+
+Hence all eigenvalues satisfy $\lambda_i \gt 0$ for $i = 1, \dots, n$.
+
+---
+
+**Step 2: Prove $(2) \implies (5)$**
+From the spectral factorization $A = Q \Lambda Q^T$ with $\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n)$, Condition $(2)$ guarantees $\lambda_i \gt 0$ for every $i$, so we can take real positive square roots to form:
+
+$$
+\sqrt{\Lambda} = \operatorname{diag}\!\left(\sqrt{\lambda_1}, \sqrt{\lambda_2}, \dots, \sqrt{\lambda_n}\right)
+$$
+
+Set $R = \sqrt{\Lambda}\,Q^T \in \mathbb{R}^{n \times n}$. Since $Q^T$ is orthogonal (invertible) and $\sqrt{\Lambda}$ has nonzero diagonal entries (invertible), their product $R$ is invertible, so $\operatorname{rank}(R) = n$ (full column rank). Checking $R^T R$:
+
+$$
+R^T R = \left(\sqrt{\Lambda}\,Q^T\right)^T \left(\sqrt{\Lambda}\,Q^T\right) = Q \sqrt{\Lambda} \sqrt{\Lambda} Q^T = Q \Lambda Q^T = A
+$$
+
+This explicitly constructs $R$ satisfying Condition $(5)$ (and similarly the symmetric square root $A^{1/2} = Q\sqrt{\Lambda}Q^T$ satisfies $A = A^{1/2} A^{1/2}$).
+
+---
+
+**Step 3: Prove $(5) \implies (1)$**
+Suppose $A = R^T R$ for some $R \in \mathbb{R}^{m \times n}$ with full column rank ($\operatorname{rank}(R) = n \implies \operatorname{Null}(R) = \{\mathbf{0}\}$).
+For any nonzero $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$, $\operatorname{Null}(R) = \{\mathbf{0}\}$ guarantees $R\mathbf{x} \ne \mathbf{0}$. Therefore:
+
+$$
+\mathbf{x}^T A \mathbf{x} = \mathbf{x}^T (R^T R) \mathbf{x} = (R\mathbf{x})^T (R\mathbf{x}) = \|R\mathbf{x}\|_2^2 \gt 0
+$$
+
+This closes Chain A: $(1) \iff (2) \iff (5)$.
+
+---
+
+**Step 4: Prove $(1) \implies (3)$**
+Fix any integer $k \in \{1, 2, \dots, n\}$ and examine the upper-left $k \times k$ leading principal submatrix $A_k = A_{1:k,\, 1:k}$, which is clearly real symmetric ($A_k^T = A_k$).
+For any nonzero vector $\mathbf{y} \in \mathbb{R}^k \setminus \{\mathbf{0}\}$, pad it with $n - k$ zeros to form a nonzero vector in $\mathbb{R}^n$:
+
+$$
+\mathbf{x} = \begin{bmatrix} \mathbf{y} \\ \mathbf{0}_{n-k} \end{bmatrix} \in \mathbb{R}^n \setminus \{\mathbf{0}\}
+$$
+
+Partitioning $A$ into its first $k$ and last $n - k$ coordinates gives:
+
+$$
+\mathbf{y}^T A_k \mathbf{y} = \begin{bmatrix} \mathbf{y}^T & \mathbf{0}^T \end{bmatrix} \begin{bmatrix} A_k & B \\ B^T & C \end{bmatrix} \begin{bmatrix} \mathbf{y} \\ \mathbf{0} \end{bmatrix} = \mathbf{x}^T A \mathbf{x} \gt 0
+$$
+
+Thus **every leading principal submatrix $A_k$ of an SPD matrix is itself SPD**! By $(1) \implies (2)$ applied to $A_k$, all $k$ eigenvalues $\mu_1, \dots, \mu_k$ of $A_k$ are strictly positive, so its determinant (the product of its eigenvalues) is strictly positive:
+
+$$
+\det(A_k) = \prod_{j=1}^k \mu_j \gt 0 \qquad (\forall k = 1, 2, \dots, n)
+$$
+
+---
+
+**Step 5: Prove $(3) \iff (4)$**
+Key fact: when performing Gaussian elimination on $A$ without row exchanges, the first $k$ steps involve only the upper-left $k \times k$ block $A_k$. Whenever the first $k - 1$ pivots $d_1, \dots, d_{k-1}$ are nonzero, $A_k$ factors uniquely as $A_k = L_k D_k U_k$, where $L_k$ and $U_k$ are unit triangular matrices ($\det(L_k) = \det(U_k) = 1$) and $D_k = \operatorname{diag}(d_1, \dots, d_k)$. Taking determinants gives:
+
+$$
+\det(A_k) = \det(L_k)\det(D_k)\det(U_k) = d_1 d_2 \cdots d_k
+$$
+
+- **$(3) \implies (4)$**: Proceed by induction on $k$. For $k = 1$, $d_1 = \det(A_1) \gt 0$. Assume $d_1, \dots, d_{k-1} \gt 0$; since those pivots are nonzero, elimination reaches step $k$ without row exchanges, and $\det(A_k) = d_1 \cdots d_{k-1} d_k$ implies:
+  $$
+  d_k = \frac{\det(A_k)}{\det(A_{k-1})} \gt 0
+  $$
+  By induction, all $n$ pivots are strictly positive.
+- **$(4) \implies (3)$**: If elimination succeeds without row exchanges and $d_1, \dots, d_n \gt 0$, then $\det(A_k) = d_1 d_2 \cdots d_k \gt 0$ for every $k = 1, \dots, n$.
+
+---
+
+**Step 6: Prove $(4) \implies (5)$**
+If a symmetric matrix $A = A^T$ factors without row exchanges as $A = L D U$, uniqueness of $LDU$ together with $A = A^T = U^T D L^T$ forces $U = L^T$, so $A = L D L^T$.
+Because all pivots $d_i \gt 0$, define $\sqrt{D} = \operatorname{diag}(\sqrt{d_1}, \dots, \sqrt{d_n})$. Let $L_c = L\sqrt{D}$ (the Cholesky factor, lower triangular with diagonal entries $\sqrt{d_i} \gt 0$), and set $R = L_c^T = \sqrt{D}\,L^T \in \mathbb{R}^{n \times n}$. Since $R$ is upper triangular with strictly positive diagonal entries, $\operatorname{rank}(R) = n$, and:
+
+$$
+R^T R = (L\sqrt{D})(\sqrt{D}L^T) = L D L^T = A
+$$
+
+Both closed loops are complete, proving all five tests are pairwise equivalent.
+
+</ProofCollapse>
+
+### Applying All Five Tests to the Classic Second-Difference Matrix $K_3$
+
+In computational mechanics and partial differential equations, the tridiagonal second-difference matrix (a line of springs with fixed ends) is Professor Strang's favorite positive definite testbed:
+
+$$
+K_3 = \begin{bmatrix} 2 & -1 & 0 \\ -1 & 2 & -1 \\ 0 & -1 & 2 \end{bmatrix}
+$$
+
+Let us check $K_3$ with all five yardsticks at once—each one is an immediate sanity check without messy root-finding:
+1. **Test (1) Quadratic Form Energy**: Group $\mathbf{x}^T K_3 \mathbf{x}$ into the elastic energy of four springs:
+   $$
+   \mathbf{x}^T K_3 \mathbf{x} = 2x_1^2 + 2x_2^2 + 2x_3^2 - 2x_1x_2 - 2x_2x_3 = x_1^2 + (x_1 - x_2)^2 + (x_2 - x_3)^2 + x_3^2
+   $$
+   Whenever $\mathbf{x} \ne \mathbf{0}$, those four squares cannot all vanish simultaneously, so $\mathbf{x}^T K_3 \mathbf{x} \gt 0$ strictly!
+2. **Test (3) Leading Principal Minors**: $\det(K_1) = 2 \gt 0$, $\det(K_2) = 4 - 1 = 3 \gt 0$, and $\det(K_3) = 2(4-1) - (-1)(-2) = 4 \gt 0$.
+3. **Test (4) Pivots**: $d_1 = 2$, $d_2 = \frac{3}{2}$, and $d_3 = \frac{4}{3}$ (matching $d_k = \frac{\det(K_k)}{\det(K_{k-1})} = \frac{k+1}{k} \gt 0$).
+4. **Test (2) Eigenvalues**: Solving the tridiagonal characteristic polynomial gives $\lambda_1 = 2 - \sqrt{2} \approx 0.586 \gt 0$, $\lambda_2 = 2 \gt 0$, and $\lambda_3 = 2 + \sqrt{2} \approx 3.414 \gt 0$.
+5. **Test (5) $K_3 = R^T R$**: Even without a square factor, write down the $4 \times 3$ incidence matrix measuring the stretches of the 4 springs:
+   $$
+   R = \begin{bmatrix} 1 & 0 & 0 \\ -1 & 1 & 0 \\ 0 & -1 & 1 \\ 0 & 0 & -1 \end{bmatrix} \in \mathbb{R}^{4 \times 3}
+   $$
+   Clearly $\operatorname{Null}(R) = \{\mathbf{0}\}$ ($\operatorname{rank}(R) = 3$, full column rank), and $R^T R = K_3$, matching the four squares $\|R\mathbf{x}\|_2^2$ in Test (1)!
+
+---
+
+## 3. Positive Semidefinite (PSD) Matrices and the Subtlety of "All Principal Minors"
+
+In machine learning covariance estimation, kernel matrices, and graph Laplacians $L = A^T A$, we frequently encounter matrices whose columns may be linearly dependent. The energy remains nonnegative, but is allowed to flatten to zero along certain directions—giving a **positive semidefinite (PSD) matrix**.
+
+<DefinitionCard label="Definition" title="Characterization of Positive Semidefinite (PSD) Matrices">
+
+Let $A = A^T \in \mathbb{R}^{n \times n}$ be a real symmetric matrix. The following four conditions are pairwise equivalent ($\iff$):
+
+1. **Nonnegative Energy**: $\mathbf{x}^T A \mathbf{x} \ge 0$ for all $\mathbf{x} \in \mathbb{R}^n$;
+2. **Nonnegative Eigenvalues**: All $n$ real eigenvalues satisfy $\lambda_1, \lambda_2, \dots, \lambda_n \ge 0$;
+3. **Rank-Deficient Gram Factorization**: There exists $R \in \mathbb{R}^{m \times n}$ (without requiring full column rank; $\operatorname{rank}(R) = \operatorname{rank}(A) \le n$) such that $A = R^T R$;
+4. **All Principal Minors Nonnegative**: **All** $2^n - 1$ principal submatrices $A_{I,I}$ (not merely the upper-left leading ones! Here $I$ ranges over all nonempty subsets of $\{1, 2, \dots, n\}$, selecting the same row and column indices) have nonnegative determinants:
+   $$
+   \det(A_{I,I}) \ge 0 \qquad (\forall \varnothing \ne I \subseteq \{1, 2, \dots, n\})
+   $$
+
+</DefinitionCard>
+
+**Gram Matrices and the Link to Lecture 16**: For any rectangular matrix $M \in \mathbb{R}^{m \times n}$, the matrix $A = M^T M$ is automatically symmetric, $(M^T M)^T = M^T M$, and has nonnegative energy:
+
+$$
+\mathbf{x}^T (M^T M) \mathbf{x} = (M\mathbf{x})^T (M\mathbf{x}) = \|M\mathbf{x}\|_2^2 \ge 0
+$$
+
+So every $M^T M$ is born positive semidefinite (PSD)! Recalling the core theorem $\operatorname{Null}(M^T M) = \operatorname{Null}(M)$ from Lecture 16: equality holds only at $\mathbf{x} = \mathbf{0}$—upgrading $M^T M$ from PSD to strictly SPD—if and only if $M$ has independent columns ($\operatorname{Null}(M) = \{\mathbf{0}\}$)!
+
+**Why can't we test PSD using only "leading principal minors $\ge 0$"?**
+In the strictly positive definite case, $\det(A_k) \gt 0$ prevents division by zero, guaranteeing that elimination runs smoothly to the end without row exchanges. Once zero is allowed, a pivot like $d_1 = 0$ can mask a negative entry hiding in the bottom-right corner! Consider the simple diagonal matrix:
+
+$$
+B = \begin{bmatrix} 0 & 0 \\ 0 & -1 \end{bmatrix}
+$$
+
+Its two **leading** principal minors are $\det(B_1) = 0 \ge 0$ and $\det(B_2) = 0 \ge 0$—both satisfy "$\ge 0$"! Yet its eigenvalues are $0$ and $-1$, and taking $\mathbf{x} = [0, 1]^T$ gives $\mathbf{x}^T B \mathbf{x} = -1 \lt 0$, so $B$ is not PSD at all. The culprit is the **non-leading $1 \times 1$ principal minor** in row 2, column 2: $\det(B_{\{2\},\{2\}}) = -1 \lt 0$. That is why testing PSD requires checking **all** principal minors $\ge 0$.
+
+---
+
+## 4. Multivariable Minima and the Principal Axes of Ellipsoids
+
+### 1. The Hessian Matrix and the Second-Derivative Test for Local Minima
+
+In single-variable calculus, to test whether a stationary point $f'(x^*) = 0$ is a local minimum, we check the second derivative $f''(x^*) \gt 0$. In $n$ variables, let $f: \mathbb{R}^n \to \mathbb{R}$ be twice continuously differentiable, and expand around a stationary point where $\nabla f(\mathbf{x}^*) = \mathbf{0}$ for a small perturbation $\Delta\mathbf{x} \in \mathbb{R}^n$:
+
+$$
+f(\mathbf{x}^* + \Delta\mathbf{x}) = f(\mathbf{x}^*) + \underbrace{\nabla f(\mathbf{x}^*)^T \Delta\mathbf{x}}_{=0} + \frac{1}{2} \Delta\mathbf{x}^T H(\mathbf{x}^*) \Delta\mathbf{x} + o(\|\Delta\mathbf{x}\|_2^2)
+$$
+
+Here $H(\mathbf{x}^*)$ is the **Hessian matrix** of second partial derivatives:
+
+$$
+H(\mathbf{x}^*)_{ij} = \frac{\partial^2 f}{\partial x_i \partial x_j}(\mathbf{x}^*)
+$$
+
+Because mixed partial derivatives commute (Clairaut's theorem), $H(\mathbf{x}^*)$ is automatically a **real symmetric matrix**! Consequently, the local shape of a multivariable function reduces completely to the definiteness of its Hessian:
+- If $H(\mathbf{x}^*) \succ 0$ (**SPD**), then $\frac{1}{2}\Delta\mathbf{x}^T H \Delta\mathbf{x} \gt 0$ for every small nonzero $\Delta\mathbf{x}$, so $\mathbf{x}^*$ is a **strict local minimum**;
+- If $H(\mathbf{x}^*) \prec 0$ (negative definite), $\mathbf{x}^*$ is a **strict local maximum**;
+- If $H(\mathbf{x}^*)$ is indefinite (both positive and negative eigenvalues), the surface rises along positive-eigenvalue directions and falls along negative-eigenvalue directions, so $\mathbf{x}^*$ is a **saddle point**;
+- If $H(\mathbf{x}^*)$ is merely semidefinite (zero eigenvalue), second derivatives lose control along the null eigenvector and higher-order terms decide (for example, $x_1^2 + x_2^4$ has a minimum at the origin, whereas $x_1^2 - x_2^4$ and $x_1^2 + x_2^3$ do not).
+
+### 2. The Principal Axis Theorem: Why Larger Eigenvalues Give Shorter Semi-Axes
+
+Now slice the positive definite paraboloid bowl $f(\mathbf{x}) = \mathbf{x}^T A \mathbf{x}$ horizontally at height $1$ and examine its level surface $\mathbf{x}^T A \mathbf{x} = 1$.
+
+Using the spectral decomposition $A = Q \Lambda Q^T$ ($Q^T Q = I_n$, $\lambda_1, \dots, \lambda_n \gt 0$), make the orthogonal change of coordinates $\mathbf{y} = Q^T \mathbf{x}$ (equivalently $\mathbf{x} = Q\mathbf{y}$). Because an orthogonal matrix $Q$ preserves lengths and angles, $\mathbf{y}$ simply rotates the axes to align with the orthonormal eigenvectors $\{\mathbf{q}_1, \dots, \mathbf{q}_n\}$ of $A$! Instantly, every cross-product term $x_i x_j$ ($i \ne j$) vanishes:
+
+$$
+\mathbf{x}^T A \mathbf{x} = \mathbf{x}^T Q \Lambda Q^T \mathbf{x} = (Q^T \mathbf{x})^T \Lambda (Q^T \mathbf{x}) = \mathbf{y}^T \Lambda \mathbf{y} = \sum_{i=1}^n \lambda_i y_i^2 = 1
+$$
+
+Rewrite this in standard ellipsoid form:
+
+$$
+\sum_{i=1}^n \frac{y_i^2}{\left(1/\sqrt{\lambda_i}\right)^2} = 1
+$$
+
+This is the **Principal Axis Theorem**, one of the most vivid geometric pictures in linear algebra:
+1. The equation $\mathbf{x}^T A \mathbf{x} = 1$ defines an **$n$-dimensional ellipsoid** centered at the origin whose principal axes point along the unit eigenvectors $\mathbf{q}_1, \dots, \mathbf{q}_n$;
+2. The **semi-axis length** along the $i$-th eigenvector $\mathbf{q}_i$ is exactly:
+   $$
+   a_i = \frac{1}{\sqrt{\lambda_i}}
+   $$
+3. **Geometric intuition**: A larger eigenvalue $\lambda_i$ $\implies$ the energy bowl rises more steeply along $\mathbf{q}_i$ $\implies$ you only need to walk a short distance to reach height $1$ $\implies$ that semi-axis $1/\sqrt{\lambda_i}$ of the level ellipsoid is **shorter**! Conversely, the smallest eigenvalue $\lambda_{\min}$ marks the flattest canyon direction, giving the **longest** semi-axis $1/\sqrt{\lambda_{\min}}$.
+
+<QuadraticBowlAndEllipsoidAxesDiagram caption="Side-by-side comparison of the 3D quadratic energy bowl f(x) = x^T A x and its horizontal slice x^T A x = 1: the ellipse principal axes align with eigenvectors q_1, q_2 and have semi-axis lengths 1/sqrt(lambda_i)." />
+
+Let us solidify this with a tilted ellipse you can check in your head: take
+
+$$
+A = \begin{bmatrix} 5 & 4 \\ 4 & 5 \end{bmatrix}
+$$
+
+and consider the level curve $5x_1^2 + 8x_1x_2 + 5x_2^2 = 1$.
+- Its eigenvalues are $\lambda_1 = 9$ (unit eigenvector $\mathbf{q}_1 = \frac{1}{\sqrt{2}}[1, 1]^T$ along $45^\circ$) and $\lambda_2 = 1$ (unit eigenvector $\mathbf{q}_2 = \frac{1}{\sqrt{2}}[1, -1]^T$ along $-45^\circ$).
+- Substituting $y_1 = \frac{x_1 + x_2}{\sqrt{2}}$ and $y_2 = \frac{x_1 - x_2}{\sqrt{2}}$ simplifies the equation cleanly to:
+  $$
+  9 y_1^2 + 1 y_2^2 = \frac{y_1^2}{(1/3)^2} + \frac{y_2^2}{1^2} = 1
+  $$
+- Along $45^\circ$, the ellipse is squeezed to a short semi-axis of $1/\sqrt{9} = \frac{1}{3}$; along $-45^\circ$, it stretches to a long semi-axis of $1/\sqrt{1} = 1$! Plugging the point $\frac{1}{3}\mathbf{q}_1 = \frac{1}{3\sqrt{2}}[1, 1]^T$ back into the quadratic form indeed gives exactly $1$.
+
+---
+
+## 5. Common Pitfalls & Transcript Errata
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata: Three Fatal Traps with Positive Definite Matrices">
+
+### Trap 1 (Most Frequent Fatal Error): Forgetting Symmetry $A = A^T$ — Positive Eigenvalues Do NOT Guarantee $\mathbf{x}^T M \mathbf{x} \gt 0$!
+
+Many notes remember "all positive eigenvalues means positive definite" or "all positive pivots means positive definite," while forgetting the standing requirement **$A = A^T$**. The moment you step outside symmetric matrices, the five tests fall apart:
+
+- **Counterexample A (Eigenvalues, pivots, and leading principal minors are all $+1$, yet the quadratic form goes negative!)**:
+  Consider the non-symmetric upper triangular matrix
+  $$
+  M = \begin{bmatrix} 1 & 10 \\ 0 & 1 \end{bmatrix}
+  $$
+  Its eigenvalues are $\lambda_1 = \lambda_2 = 1 \gt 0$, and its pivots and leading principal minors are all $1 \gt 0$. Yet for $\mathbf{x} = [1, -1]^T$, we get:
+  $$
+  \mathbf{x}^T M \mathbf{x} = \begin{bmatrix} 1 & -1 \end{bmatrix} \begin{bmatrix} 1 & 10 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 1 \\ -1 \end{bmatrix} = x_1^2 + 10x_1x_2 + x_2^2 = 1 - 10 + 1 = -8 \lt 0
+  $$
+  **Algebraic root cause**: Because a scalar equals its own transpose, $\mathbf{x}^T M \mathbf{x} = \mathbf{x}^T M^T \mathbf{x}$, so:
+  $$
+  \mathbf{x}^T M \mathbf{x} = \mathbf{x}^T \left(\frac{M + M^T}{2}\right) \mathbf{x}
+  $$
+  **What controls the quadratic form is not $M$ itself, but its symmetric part $S = \frac{M + M^T}{2}$!** Here
+  $$
+  S = \begin{bmatrix} 1 & 5 \\ 5 & 1 \end{bmatrix}
+  $$
+  has eigenvalues $1 + 5 = 6$ and $1 - 5 = -4$ (indefinite!), which is why $-8$ appears.
+
+- **Counterexample B ($\mathbf{x}^T M \mathbf{x} \gt 0$ for all $\mathbf{x} \ne \mathbf{0}$, yet $M$ is neither symmetric nor has positive real eigenvalues)**:
+  Consider the rotation-plus-scaling matrix
+  $$
+  M = \begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix} = I_2 + \begin{bmatrix} 0 & 2 \\ -2 & 0 \end{bmatrix}
+  $$
+  Because the skew-symmetric part contributes zero to the quadratic form ($2x_1x_2 - 2x_2x_1 = 0$), we have $\mathbf{x}^T M \mathbf{x} = x_1^2 + x_2^2 \gt 0$ for all $\mathbf{x} \ne \mathbf{0}$. Yet $M \ne M^T$ and its eigenvalues are the complex pair $1 \pm 2i$. Under the MIT 18.06 convention, **non-symmetric matrices are not classified as SPD—always state $A = A^T$ first!**
+
+### Trap 2: Mistaking "Leading Principal Minors $\ge 0$" as Sufficient for PSD
+
+For strict positive definiteness (SPD), checking the $n$ upper-left **leading** principal minors $\det(A_k) \gt 0$ is necessary and sufficient. For positive semidefiniteness (PSD), relaxing $\gt 0$ to $\ge 0$ **breaks the theorem immediately**!
+As shown earlier,
+$$
+B = \begin{bmatrix} 0 & 0 \\ 0 & -1 \end{bmatrix}
+$$
+has leading principal minors $\det(B_1) = 0 \ge 0$ and $\det(B_2) = 0 \ge 0$, yet its eigenvalues are $0$ and $-1$. A PSD matrix must have **all** $2^n - 1$ principal minors $\ge 0$.
+
+### Trap 3: Confusing Ellipsoid Semi-Axis Lengths with $\lambda_i$ or $\sqrt{\lambda_i}$
+
+From $\sum \lambda_i y_i^2 = 1$, rewriting in standard ellipsoid form $\sum \frac{y_i^2}{(1/\sqrt{\lambda_i})^2} = 1$ shows that the semi-axis length is **$1/\sqrt{\lambda_i}$** (under a square root and in the denominator!). Larger eigenvalues correspond to shorter semi-axes.
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l28-spd-ellipsoid-explorer"
+  title="2×2 Quadratic Surface & Level Ellipsoid Explorer"
+  description="Adjust the entries of the symmetric matrix $A = [a, b; b, c]$ to watch the 3D energy surface switch in real time between a positive definite paraboloid bowl, a semidefinite trough, and an indefinite saddle, while tracking the level ellipse $\mathbf{x}^T A \mathbf{x} = 1$, its semi-axis lengths $1/\sqrt{\lambda_i}$ along $\mathbf{q}_1, \mathbf{q}_2$, and the signs of $\lambda_i, d_i, \det(A_k)$."
+/>
+
+---
+
+<KeyTakeaways title="Key Takeaways" items={[
+  "Symmetry is the bedrock: $A = A^T \\in \\mathbb{R}^{n\\times n}$ is the essential hypothesis behind all five SPD tests; for any non-symmetric square matrix $M$, the quadratic form $\\mathbf{x}^T M \\mathbf{x}$ is governed solely by its symmetric part $S = (M+M^T)/2$.",
+  "Five equivalent SPD tests (under $A = A^T$): (1) $\\mathbf{x}^T A \\mathbf{x} \\gt 0$ for all $\\mathbf{x} \\ne \\mathbf{0}$, (2) all eigenvalues $\\lambda_i \\gt 0$, (3) all leading principal minors $\\det(A_k) \\gt 0$, (4) all elimination pivots $d_i \\gt 0$, and (5) $A = R^T R$ with $R$ having full column rank (including Cholesky $L_c L_c^T$ and symmetric square root $A^{1/2}$).",
+  "Completing the square is Gaussian elimination: the outer coefficients $d_1 = a$ and $d_2 = (ac - b^2)/a$ in $2 \\times 2$ completing the square are precisely the pivots of $A = LDL^T$, and in general $\\det(A_k) = d_1 d_2 \\cdots d_k$.",
+  "The PSD boundary: $\\mathbf{x}^T A \\mathbf{x} \\ge 0 \\iff \\lambda_i \\ge 0 \\iff A = R^T R$ (allowing rank-deficient $R$); however, leading principal minors $\\ge 0$ is NOT enough for PSD (counterexample $\\operatorname{diag}(0, -1)$)—all $2^n - 1$ principal minors must be $\\ge 0$.",
+  "Multivariable minima: at a stationary point $\\nabla f(\\mathbf{x}^*) = \\mathbf{0}$, a positive definite Hessian $H(\\mathbf{x}^*) \\succ 0$ guarantees a strict local minimum, while mixed-sign eigenvalues produce a saddle point.",
+  "Principal Axis Theorem: the level surface $\\mathbf{x}^T A \\mathbf{x} = 1$ of an SPD matrix is an ellipsoid aligned with orthonormal eigenvectors $\\mathbf{q}_i$ with semi-axis lengths $1/\\sqrt{\\lambda_i}$—larger eigenvalues mean steeper curvature and shorter semi-axes."
+]} />
+
+---
+
+## 6. Intuition Problem Set
+
+<ProblemSet title="Intuition Problem Set" description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs.">
+
+<ExerciseCard id="l28-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="SPD Parameter Range, LDLᵀ Elimination, and Cholesky Factorization of a 3×3 Matrix">
+
+Consider the $3 \times 3$ real symmetric matrix depending on a real parameter $t \in \mathbb{R}$:
+
+$$
+A(t) = \begin{bmatrix} 1 & 2 & 0 \\ 2 & 5 & 2 \\ 0 & 2 & t \end{bmatrix}
+$$
+
+1. Using the **leading principal minors test** $\det(A_k) \gt 0$, determine the values of $t$ for which $A(t)$ is positive definite (SPD), and the values for which it is positive semidefinite (PSD).
+2. Set $t = 6$ and find the $L D L^T$ factorization and the lower-triangular Cholesky factorization $A(6) = L_c L_c^T$ (where $L_c = L\sqrt{D}$).
+3. Write the quadratic form $\mathbf{x}^T A(6) \mathbf{x}$ as a sum of three independent squares (completing the square).
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 1: Compute the upper-left $1\\times 1$, $2\\times 2$, and $3\\times 3$ determinants $\\det(A_1), \\det(A_2), \\det(A_3)$ in order; at the PSD boundary $t=4$, verify directly that $\\mathbf{x}^T A(4) \\mathbf{x} \\ge 0$.",
+  "Part 2: Perform Gaussian elimination—step 1 subtracts $2\\times$ row 1 from row 2, and step 2 subtracts $2\\times$ the new row 2 from row 3. Store the multipliers in $L$ and the pivots in $D$.",
+  "Part 3: From $A = LDL^T$, use $\\mathbf{x}^T A \\mathbf{x} = (L^T\\mathbf{x})^T D (L^T\\mathbf{x}) = \\sum_{i=1}^3 d_i (L^T\\mathbf{x})_i^2$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Look at the upper-left $2 \times 2$ block $[1, 2; 2, 5]$: its determinant is $5 - 4 = 1 \gt 0$, so the first two pivots are both $1$. Whether the whole matrix stays positive definite depends entirely on how much is left in the third diagonal slot after elimination: subtracting $2 \times [0, 1, 2]$ from $[0, 2, t]$ subtracts $2 \times 2 = 4$, leaving $t - 4$ as the third pivot! Thus $t \gt 4$ is SPD, $t = 4$ sits right on the PSD boundary, and $t \lt 4$ is indefinite.
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1 (Leading principal minors and SPD/PSD ranges):**
+Compute the leading principal minors sequentially:
+- $\det(A_1) = 1 \gt 0$;
+- $\det(A_2) = 1 \cdot 5 - 2 \cdot 2 = 1 \gt 0$;
+- Expanding $\det(A_3)$ down the first column:
+  $$
+  \det(A_3) = 1 \cdot (5t - 4) - 2 \cdot (2t - 0) = t - 4
+  $$
+
+By Sylvester's leading principal minors criterion, $A(t)$ is SPD if and only if all three leading principal minors are strictly positive:
+
+$$
+t - 4 \gt 0 \iff t \gt 4
+$$
+
+At $t = 4$, completing the square directly gives:
+
+$$
+\mathbf{x}^T A(4)\mathbf{x} = x_1^2 + 4x_1x_2 + 5x_2^2 + 4x_2x_3 + 4x_3^2 = (x_1 + 2x_2)^2 + (x_2 + 2x_3)^2 \ge 0
+$$
+
+Since this sum of squares is always nonnegative, $A(4)$ is PSD. For $t \lt 4$, $\det(A(t)) \lt 0$, which forces a negative eigenvalue. Thus $A(t)$ is SPD $\iff t \gt 4$, and PSD $\iff t \ge 4$.
+
+---
+
+**Part 2 ($LDL^T$ and Cholesky factorizations at $t = 6$):**
+Eliminate $A(6)$ without row exchanges:
+1. Subtract $2 \times$ row 1 from row 2 ($l_{21} = 2$), noting row 3 already has $0$ in column 1 ($l_{31} = 0$):
+   $$
+   \begin{bmatrix} 1 & 2 & 0 \\ 0 & 1 & 2 \\ 0 & 2 & 6 \end{bmatrix}
+   $$
+2. Subtract $2 \times$ the new row 2 from row 3 ($l_{32} = 2$):
+   $$
+   U = \begin{bmatrix} 1 & 2 & 0 \\ 0 & 1 & 2 \\ 0 & 0 & 2 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & 2 & 0 \\ 0 & 1 & 2 \\ 0 & 0 & 1 \end{bmatrix} = D L^T
+   $$
+
+This gives $A(6) = L D L^T$:
+
+$$
+A(6) = \begin{bmatrix} 1 & 0 & 0 \\ 2 & 1 & 0 \\ 0 & 2 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & 2 & 0 \\ 0 & 1 & 2 \\ 0 & 0 & 1 \end{bmatrix}
+$$
+
+Absorbing $\sqrt{D} = \operatorname{diag}(1, 1, \sqrt{2})$ into $L$ yields the Cholesky factor $L_c = L\sqrt{D}$:
+
+$$
+L_c = \begin{bmatrix} 1 & 0 & 0 \\ 2 & 1 & 0 \\ 0 & 2 & \sqrt{2} \end{bmatrix}, \qquad A(6) = L_c L_c^T
+$$
+
+---
+
+**Part 3 (Sum of three squares via completing the square):**
+With $\mathbf{y} = L^T \mathbf{x}$, namely
+
+$$
+\mathbf{y} = \begin{bmatrix} x_1 + 2x_2 \\ x_2 + 2x_3 \\ x_3 \end{bmatrix}
+$$
+
+and pivots $d_1 = 1, d_2 = 1, d_3 = 2$, we immediately obtain:
+
+$$
+\mathbf{x}^T A(6) \mathbf{x} = d_1 y_1^2 + d_2 y_2^2 + d_3 y_3^2 = (x_1 + 2x_2)^2 + (x_2 + 2x_3)^2 + 2x_3^2
+$$
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l28-ex2" tier="L2" tierLabel="L2 · Conceptual True/False" title="True or False: Do Positive Eigenvalues and Positive Leading Minors Guarantee Positivity for Any Square Matrix?">
+
+Determine whether the following statement is true or false:
+
+"If a real square matrix $M \in \mathbb{R}^{n \times n}$ has all eigenvalues strictly positive and all leading principal minors strictly positive, then for every nonzero vector $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$, its quadratic form is strictly positive: $\mathbf{x}^T M \mathbf{x} \gt 0$."
+
+<TrueFalseInteractive
+  id="l28-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! The statement omits the essential hypothesis that $M = M^T$ is symmetric. For the non-symmetric matrix $M = [1, 10; 0, 1]$, all eigenvalues and leading principal minors equal $+1 \gt 0$, yet $\mathbf{x} = [1, -1]^T$ gives $\mathbf{x}^T M \mathbf{x} = -8 \lt 0$! Quadratic forms are governed by the symmetric part $S = (M+M^T)/2$, not by the eigenvalues of $M$."
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Check whether the hypothesis $M = M^T$ (real symmetry) was actually given in the statement.",
+  "Try constructing a non-symmetric upper triangular matrix $M = [1, k; 0, 1]$ whose eigenvalues are all $1$, and choose $k$ large enough that the cross term $k x_1 x_2$ overwhelms $x_1^2 + x_2^2$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Eigenvalues only measure stretching along eigenvector directions. For a non-symmetric matrix, non-orthogonal eigenvectors (or a defective shear with only one eigenvector line) can create huge off-axis shearing. When you test a vector between the coordinate axes, averaging the off-diagonal shear with its transpose produces a symmetric part $S = (M + M^T)/2$ that can have a large negative eigenvalue, dragging the energy well below zero!
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **false** because it omits the **symmetry hypothesis $M = M^T$**.
+
+**Explicit Counterexample**: Take the $2 \times 2$ non-symmetric upper triangular matrix
+
+$$
+M = \begin{bmatrix} 1 & 10 \\ 0 & 1 \end{bmatrix} \ne M^T
+$$
+
+1. **Check the hypotheses**:
+   - Eigenvalues: Since $M$ is upper triangular, its diagonal entries are its eigenvalues, so $\lambda_1 = \lambda_2 = 1 \gt 0$.
+   - Leading principal minors: $\det(M_1) = 1 \gt 0$ and $\det(M_2) = \det(M) = 1 \gt 0$.
+2. **Check the conclusion**: Take the nonzero vector
+
+   $$
+   \mathbf{x} = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+   $$
+
+   and compute the quadratic form:
+
+   $$
+   \mathbf{x}^T M \mathbf{x} = \begin{bmatrix} 1 & -1 \end{bmatrix} \begin{bmatrix} 1 & 10 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 1 \\ -1 \end{bmatrix} = 1^2 + 10(1)(-1) + (-1)^2 = -8 \lt 0
+   $$
+
+**General Mechanism**: Because a scalar equals its own transpose, $(\mathbf{x}^T M \mathbf{x})^T = \mathbf{x}^T M^T \mathbf{x}$, we always have:
+
+$$
+\mathbf{x}^T M \mathbf{x} = \mathbf{x}^T \left(\frac{M + M^T}{2}\right) \mathbf{x}
+$$
+
+The matrix that actually controls the sign of the quadratic form is the symmetric part
+
+$$
+S = \frac{M + M^T}{2} = \begin{bmatrix} 1 & 5 \\ 5 & 1 \end{bmatrix}
+$$
+
+whose eigenvalues are $\mu_1 = 6$ and $\mu_2 = -4 \lt 0$. Without symmetry, neither eigenvalues nor leading principal minors of $M$ control the sign of $\mathbf{x}^T M \mathbf{x}$.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l28-ex3" tier="L2" tierLabel="L2 · Conceptual True/False" title="True or False: Closure of SPD Matrices Under Inversion A⁻¹ and Congruence Bᵀ A B">
+
+Determine whether the following statement is true or false:
+
+"If $A \in \mathbb{R}^{n \times n}$ is symmetric positive definite ($A \succ 0$), then $A$ is invertible and its inverse $A^{-1}$ is also symmetric positive definite. Furthermore, for any invertible square matrix $B \in \mathbb{R}^{n \times n}$, the congruent matrix $C = B^T A B$ is also symmetric positive definite."
+
+<TrueFalseInteractive
+  id="l28-tf2"
+  correct={true}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="True! Since all eigenvalues $\lambda_i \gt 0$ are nonzero, $A$ is invertible with $(A^{-1})^T = A^{-1}$ and eigenvalues $1/\lambda_i \gt 0$, so $A^{-1} \succ 0$. For any invertible $B$, $C^T = C$ and $\mathbf{x} \ne \mathbf{0} \implies B\mathbf{x} \ne \mathbf{0}$, so $\mathbf{x}^T (B^T A B)\mathbf{x} = (B\mathbf{x})^T A (B\mathbf{x}) \gt 0$."
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "First use $\\lambda_i \\gt 0$ to see $\\det(A) = \\prod \\lambda_i \\gt 0$ (so $A$ is invertible), check symmetry via $(A^{-1})^T = (A^T)^{-1}$, and verify positivity via eigenvalues or $\\mathbf{x}^T A^{-1} \\mathbf{x}$.",
+  "For $C = B^T A B$, rewrite the quadratic form as $(B\\mathbf{x})^T A (B\\mathbf{x})$ and recall why invertibility of $B$ guarantees $\\mathbf{x} \\ne \\mathbf{0} \\implies B\\mathbf{x} \\ne \\mathbf{0}$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Geometrically, taking $A^{-1}$ swaps the long and short axes of the ellipsoid (changing semi-axes from $1/\sqrt{\lambda_i}$ to $\sqrt{\lambda_i}$); the energy bowl still opens upward in every direction, just with steep and flat axes reversed. Meanwhile, a congruence $B^T A B$ is simply an invertible linear change of coordinates $\mathbf{y} = B\mathbf{x}$: skewing or stretching the floor grid cannot turn an upward-opening bowl upside down, as long as $B$ does not collapse any direction to zero!
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **completely true**. We prove both parts rigorously:
+
+**Part 1: $A$ is invertible and $A^{-1} \succ 0$**
+1. **Invertibility**: Since $A \succ 0$, all eigenvalues satisfy $\lambda_i \gt 0$, so $\det(A) = \prod_{i=1}^n \lambda_i \gt 0$, meaning $A$ is invertible.
+2. **Symmetry**: Using $A = A^T$ and the fact that transpose commutes with inverse:
+   $$
+   (A^{-1})^T = (A^T)^{-1} = A^{-1}
+   $$
+   so $A^{-1}$ is real symmetric.
+3. **Positive definiteness (two ways)**:
+   - *Via eigenvalues*: If $A = Q\Lambda Q^T$, then $A^{-1} = Q \Lambda^{-1} Q^T$ has eigenvalues $1/\lambda_i \gt 0$, hence $A^{-1} \succ 0$.
+   - *Via quadratic forms*: For any $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$, let $\mathbf{y} = A^{-1}\mathbf{x} \ne \mathbf{0}$. Then:
+     $$
+     \mathbf{x}^T A^{-1} \mathbf{x} = (A\mathbf{y})^T \mathbf{y} = \mathbf{y}^T A^T \mathbf{y} = \mathbf{y}^T A \mathbf{y} \gt 0
+     $$
+
+**Part 2: $C = B^T A B \succ 0$**
+1. **Symmetry**: Using $(MN)^T = N^T M^T$ and $A^T = A$:
+   $$
+   C^T = (B^T A B)^T = B^T A^T (B^T)^T = B^T A B = C
+   $$
+2. **Positive definiteness**: Take any nonzero $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$. Because $B \in \mathbb{R}^{n \times n}$ is invertible, $\operatorname{Null}(B) = \{\mathbf{0}\}$, so $\mathbf{y} = B\mathbf{x} \ne \mathbf{0}$. Since $A \succ 0$:
+   $$
+   \mathbf{x}^T C \mathbf{x} = \mathbf{x}^T (B^T A B) \mathbf{x} = (B\mathbf{x})^T A (B\mathbf{x}) = \mathbf{y}^T A \mathbf{y} \gt 0
+   $$
+
+Therefore, both $A^{-1}$ and $B^T A B$ are symmetric positive definite.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l28-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Zero-Calculation Reasoning: The SPD Convex Cone, Matrix Products, and Diagonal Dominance of the Largest Entry">
+
+Let $A, B \in \mathbb{R}^{n \times n}$ be symmetric positive definite matrices ($A \succ 0$ and $B \succ 0$). Without computing any eigenvalues, prove the following:
+
+1. Prove that $A + B$ is always SPD. Is the matrix product $AB$ always SPD? (If not, construct a concrete $2 \times 2$ counterexample, and state the exact necessary and sufficient condition for $AB$ to be SPD.)
+2. Prove that every SPD matrix $A = [a_{ij}]$ satisfies $a_{ii} \gt 0$ for all $i$, and $a_{ii} a_{jj} \gt a_{ij}^2$ for all $i \ne j$. Deduce that **the entry of largest absolute value in an SPD matrix must lie on the main diagonal**!
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 1: What happens when you add two upward-opening bowls, $\\mathbf{x}^T(A+B)\\mathbf{x} = \\mathbf{x}^T A\\mathbf{x} + \\mathbf{x}^T B\\mathbf{x}$? For $AB$, check symmetry first: $(AB)^T = B^T A^T = BA$!",
+  "Part 2: Plug standard basis vectors $\\mathbf{e}_i$ and two-coordinate vectors $u\\mathbf{e}_i + v\\mathbf{e}_j$ into $\\mathbf{x}^T A \\mathbf{x} \\gt 0$ to examine the $2\\times 2$ principal submatrices."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+In Part 1, adding two upward-opening bowls gives an even steeper upward-opening bowl, so SPD matrices are closed under addition and positive scalar multiplication (they form an open convex cone). Multiplying two symmetric matrices, however, usually destroys symmetry unless they commute—so $AB$ doesn't even get past the door!
+In Part 2, restricting $\mathbf{x}$ to the $i$-th coordinate axis reads off $a_{ii} \gt 0$. Restricting $\mathbf{x}$ to the 2D plane spanned by axes $i$ and $j$ slices out a $2 \times 2$ sub-bowl whose determinant $a_{ii}a_{jj} - a_{ij}^2$ must be positive. That forces $|a_{ij}|$ to be strictly smaller than the geometric mean $\sqrt{a_{ii}a_{jj}}$, so it can never beat the larger of the two diagonal entries!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1 (Analysis of $A + B$ and $AB$):**
+- **Proof that $A + B \succ 0$**:
+  1. Symmetry: $(A + B)^T = A^T + B^T = A + B$.
+  2. Positivity: For any $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$, $A \succ 0$ and $B \succ 0$ give $\mathbf{x}^T A \mathbf{x} \gt 0$ and $\mathbf{x}^T B \mathbf{x} \gt 0$, so:
+     $$
+     \mathbf{x}^T (A + B) \mathbf{x} = \mathbf{x}^T A \mathbf{x} + \mathbf{x}^T B \mathbf{x} \gt 0
+     $$
+     Hence $A + B$ is SPD (in fact, the set of $n \times n$ SPD matrices forms an open convex cone).
+
+- **Why $AB$ is not necessarily SPD (counterexample and exact condition)**:
+  First check symmetry: $(AB)^T = B^T A^T = BA$. In general $AB \ne BA$, so $AB$ is not even symmetric!
+  **Concrete $2 \times 2$ counterexample**: Take two clearly SPD matrices:
+  $$
+  A = \begin{bmatrix} 2 & 1 \\ 1 & 1 \end{bmatrix} \quad (\det = 1, \operatorname{tr} = 3), \qquad B = \begin{bmatrix} 1 & 0 \\ 0 & 4 \end{bmatrix}
+  $$
+  Their product is:
+  $$
+  AB = \begin{bmatrix} 2 & 4 \\ 1 & 4 \end{bmatrix} \ne (AB)^T
+  $$
+  Even though $AB$ is similar to $A^{1/2} B A^{1/2}$ and thus has positive real eigenvalues, it is not symmetric and therefore not SPD (and with a larger off-diagonal imbalance, $\mathbf{x}^T (AB) \mathbf{x}$ can even become negative).
+  **Necessary and sufficient condition**: $AB$ is SPD if and only if **$A$ and $B$ commute ($AB = BA$)**. (Indeed, by Lecture 26, commuting symmetric matrices can be simultaneously orthogonally diagonalized as $A = Q\Lambda_A Q^T$ and $B = Q\Lambda_B Q^T$, making $AB = Q(\Lambda_A\Lambda_B)Q^T$ symmetric with positive eigenvalues $\lambda_i(A)\lambda_i(B) \gt 0$.)
+
+---
+
+**Part 2 (Positive diagonals and largest entry on the main diagonal):**
+1. For any index $i \in \{1, \dots, n\}$, plugging the standard basis vector $\mathbf{x} = \mathbf{e}_i \ne \mathbf{0}$ into $\mathbf{x}^T A \mathbf{x} \gt 0$ gives:
+   $$
+   a_{ii} = \mathbf{e}_i^T A \mathbf{e}_i \gt 0
+   $$
+2. For any distinct pair $i \ne j$, take any nonzero vector $\mathbf{x} = u\,\mathbf{e}_i + v\,\mathbf{e}_j \in \operatorname{span}\{\mathbf{e}_i, \mathbf{e}_j\}$ (with $[u, v]^T \ne \mathbf{0}$). Substituting into $\mathbf{x}^T A \mathbf{x} \gt 0$ yields:
+   $$
+   \begin{bmatrix} u & v \end{bmatrix} \begin{bmatrix} a_{ii} & a_{ij} \\ a_{ij} & a_{jj} \end{bmatrix} \begin{bmatrix} u \\ v \end{bmatrix} = \mathbf{x}^T A \mathbf{x} \gt 0
+   $$
+   Thus every $2 \times 2$ principal submatrix is itself SPD! By the determinant test for SPD matrices, its determinant must be strictly positive:
+   $$
+   a_{ii} a_{jj} - a_{ij}^2 \gt 0 \implies |a_{ij}| \lt \sqrt{a_{ii} a_{jj}}
+   $$
+3. Since $a_{ii}, a_{jj} \gt 0$, we have $\sqrt{a_{ii} a_{jj}} \le \max(a_{ii}, a_{jj})$, so for every off-diagonal entry ($i \ne j$):
+   $$
+   |a_{ij}| \lt \max(a_{ii}, a_{jj}) \le \max_{1 \le k \le n} a_{kk}
+   $$
+   Every off-diagonal entry is strictly smaller in magnitude than at least one diagonal entry, proving that the entry of largest absolute value must lie on the main diagonal!
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l28-ex5" tier="L4" tierLabel="L4 · MIT 18.06 Exam Synthesis" title="MIT 18.06 Synthesis: Minimum Energy Principle, Weighted Least Squares, and Ellipsoid Volume">
+
+This problem unifies SPD matrices with solving linear systems, weighted least squares, and $n$-dimensional volume:
+
+1. **Minimum Potential Energy Principle (Linear Systems = Quadratic Minimization)**: Let $A \in \mathbb{R}^{n \times n}$ be symmetric positive definite ($A \succ 0$) and $\mathbf{b} \in \mathbb{R}^n$. Define the quadratic energy function
+   $$
+   P(\mathbf{x}) = \frac{1}{2}\mathbf{x}^T A \mathbf{x} - \mathbf{b}^T \mathbf{x}
+   $$
+   Let $\mathbf{x}^* = A^{-1}\mathbf{b}$ be the unique solution to $A\mathbf{x} = \mathbf{b}$. **Without using calculus or derivatives, purely by algebraic completing the square**, prove the identity:
+   $$
+   P(\mathbf{x}) - P(\mathbf{x}^*) = \frac{1}{2}(\mathbf{x} - \mathbf{x}^*)^T A (\mathbf{x} - \mathbf{x}^*)
+   $$
+   and explain why this immediately proves that $\mathbf{x}^*$ is the unique global minimum of $P(\mathbf{x})$ over all of $\mathbb{R}^n$.
+2. **Weighted Least Squares and 3D Ellipsoid Volume**:
+   - (a) In generalized least squares, let $M \in \mathbb{R}^{m \times n}$ have full column rank ($\operatorname{rank}(M) = n$) and let $W \succ 0$ be an SPD weight matrix (such as an inverse covariance matrix $\Sigma^{-1}$). To minimize $J(\mathbf{x}) = (M\mathbf{x} - \mathbf{y})^T W (M\mathbf{x} - \mathbf{y})$, prove that the coefficient matrix $M^T W M$ in the weighted normal equations $(M^T W M)\hat{\mathbf{x}} = M^T W \mathbf{y}$ is SPD, guaranteeing a unique optimal solution $\hat{\mathbf{x}}$.
+   - (b) Given that the unit sphere in $\mathbb{R}^3$ has volume $\frac{4}{3}\pi$, derive the volume of the solid 3D ellipsoid $\{\mathbf{x} \in \mathbb{R}^3 \mid \mathbf{x}^T A \mathbf{x} \le 1\}$ for a $3 \times 3$ SPD matrix $A$ in terms of $\det(A)$.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 1: First use $A\\mathbf{x}^* = \\mathbf{b}$ to evaluate $P(\\mathbf{x}^*) = -\\frac{1}{2}(\\mathbf{x}^*)^T A \\mathbf{x}^*$, then expand $\\frac{1}{2}(\\mathbf{x} - \\mathbf{x}^*)^T A (\\mathbf{x} - \\mathbf{x}^*)$ and compare.",
+  "Part 2(a): Verify $(M^T W M)^T = M^T W M$ and evaluate $\\mathbf{x}^T (M^T W M)\\mathbf{x} = (M\\mathbf{x})^T W (M\\mathbf{x})$ for $\\mathbf{x} \\ne \\mathbf{0}$, using full column rank of $M$ to get $M\\mathbf{x} \\ne \\mathbf{0}$.",
+  "Part 2(b): The ellipsoid semi-axes along the orthogonal eigenvectors are $a_i = 1/\\sqrt{\\lambda_i}$, and the ellipsoid volume is $\\frac{4}{3}\\pi a_1 a_2 a_3$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Part 1 is the soul of finite elements, spring equilibrium, and the Conjugate Gradient method: solving $A\mathbf{x} = \mathbf{b}$ (for $A \succ 0$) and finding the bottom of the paraboloid bowl $\min P(\mathbf{x})$ are the exact same problem! Completing the square shifts the bowl's bottom to $\mathbf{x}^*$, and any nonzero error $\mathbf{e} = \mathbf{x} - \mathbf{x}^*$ adds a strictly positive energy penalty $\frac{1}{2}\mathbf{e}^T A \mathbf{e}$.
+Part 2(b) connects Lecture 20's determinant-as-volume-scaling rule directly to our semi-axes $1/\sqrt{\lambda_i}$: stretching the unit ball by $1/\sqrt{\lambda_1}, 1/\sqrt{\lambda_2}, 1/\sqrt{\lambda_3}$ along three orthogonal axes scales its volume by $\frac{1}{\sqrt{\lambda_1\lambda_2\lambda_3}} = \frac{1}{\sqrt{\det(A)}}$!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1 (Purely algebraic proof of the Minimum Energy Principle):**
+First evaluate $P(\mathbf{x}^*)$ using $A\mathbf{x}^* = \mathbf{b}$:
+
+$$
+P(\mathbf{x}^*) = \frac{1}{2}(\mathbf{x}^*)^T A \mathbf{x}^* - \mathbf{b}^T \mathbf{x}^* = \frac{1}{2}(\mathbf{x}^*)^T \mathbf{b} - \mathbf{b}^T \mathbf{x}^* = -\frac{1}{2}\mathbf{b}^T \mathbf{x}^* = -\frac{1}{2}(\mathbf{x}^*)^T A \mathbf{x}^*
+$$
+
+Now expand the right-hand side. Using $A = A^T$, note that $(\mathbf{x}^*)^T A \mathbf{x} = \mathbf{x}^T A^T \mathbf{x}^* = \mathbf{x}^T A \mathbf{x}^* = \mathbf{x}^T \mathbf{b} = \mathbf{b}^T \mathbf{x}$:
+
+$$
+\begin{aligned}
+\frac{1}{2}(\mathbf{x} - \mathbf{x}^*)^T A (\mathbf{x} - \mathbf{x}^*)
+&= \frac{1}{2}\mathbf{x}^T A \mathbf{x} - \frac{1}{2}\mathbf{x}^T A \mathbf{x}^* - \frac{1}{2}(\mathbf{x}^*)^T A \mathbf{x} + \frac{1}{2}(\mathbf{x}^*)^T A \mathbf{x}^* \\
+&= \frac{1}{2}\mathbf{x}^T A \mathbf{x} - \mathbf{b}^T \mathbf{x} + \frac{1}{2}(\mathbf{x}^*)^T A \mathbf{x}^* \\
+&= P(\mathbf{x}) - P(\mathbf{x}^*)
+\end{aligned}
+$$
+
+Because $A \succ 0$, we have $\frac{1}{2}(\mathbf{x} - \mathbf{x}^*)^T A (\mathbf{x} - \mathbf{x}^*) \ge 0$ for all $\mathbf{x} \in \mathbb{R}^n$, with equality **if and only if** $\mathbf{x} - \mathbf{x}^* = \mathbf{0}$, i.e., $\mathbf{x} = \mathbf{x}^*$! Thus:
+
+$$
+P(\mathbf{x}) \gt P(\mathbf{x}^*) \qquad (\forall \mathbf{x} \ne \mathbf{x}^*)
+$$
+
+proving without calculus that $\mathbf{x}^* = A^{-1}\mathbf{b}$ is the unique global minimum on $\mathbb{R}^n$.
+
+---
+
+**Part 2 (Weighted least squares and ellipsoid volume):**
+**(a) Proof that $M^T W M \succ 0$**:
+1. Symmetry: From $W^T = W$, $(M^T W M)^T = M^T W^T (M^T)^T = M^T W M$.
+2. Positivity: For any nonzero $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$, full column rank of $M$ ($\operatorname{Null}(M) = \{\mathbf{0}\}$) implies $M\mathbf{x} \ne \mathbf{0}$. Since $W \succ 0$:
+   $$
+   \mathbf{x}^T (M^T W M) \mathbf{x} = (M\mathbf{x})^T W (M\mathbf{x}) \gt 0
+   $$
+   (Alternatively, factor $W = W^{1/2} W^{1/2}$ so $M^T W M = (W^{1/2}M)^T (W^{1/2}M)$, where $W^{1/2}M$ still has full column rank.)
+   Hence $M^T W M$ is SPD (and therefore invertible!), and by Part 1 applied to $J(\mathbf{x})$, $\hat{\mathbf{x}} = (M^T W M)^{-1} M^T W \mathbf{y}$ is the unique global minimizer.
+
+**(b) 3D ellipsoid volume**:
+By the Principal Axis Theorem, the orthogonal change of coordinates $\mathbf{y} = Q^T \mathbf{x}$ (with $|\det(Q)| = 1$, preserving volume) maps the ellipsoid $\mathbf{x}^T A \mathbf{x} \le 1$ to:
+
+$$
+\frac{y_1^2}{(1/\sqrt{\lambda_1})^2} + \frac{y_2^2}{(1/\sqrt{\lambda_2})^2} + \frac{y_3^2}{(1/\sqrt{\lambda_3})^2} \le 1
+$$
+
+Its three semi-axes are $a_1 = 1/\sqrt{\lambda_1}$, $a_2 = 1/\sqrt{\lambda_2}$, and $a_3 = 1/\sqrt{\lambda_3}$. Scaling the unit ball by $a_1, a_2, a_3$ along three mutually orthogonal axes gives volume:
+
+$$
+V = \frac{4}{3}\pi a_1 a_2 a_3 = \frac{4}{3}\pi \frac{1}{\sqrt{\lambda_1 \lambda_2 \lambda_3}} = \frac{4\pi}{3\sqrt{\det(A)}}
+$$
+
+(Equivalently, from Lecture 20's determinant volume rule: $\mathbf{x} = A^{-1/2}\mathbf{u}$ maps the unit ball $\|\mathbf{u}\|_2 \le 1$ onto the ellipsoid, scaling volume by $|\det(A^{-1/2})| = \det(A)^{-1/2}$!)
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>
+
+---
+
+<FrontierAIReading
+  id="AI-12"
+  title="Multivariate Gaussian Covariance Ellipsoids (Score Diffusion), Loss-Landscape Hessians, and Fisher Natural Gradients"
+  paperRef="Song et al. (ICLR 2021) Score-Based Generative Modeling · Martens (2020) Natural Gradient Insights"
+>
+
+Once you master SPD quadratic forms, level ellipsoids, and Hessian minima from this lecture, you will recognize that almost the entire geometric foundation of modern generative AI and deep learning optimization rests on SPD ellipsoids and curvature matrices.
+
+### 1. Mahalanobis Ellipsoids of a Multivariate Gaussian and the Score Field in Diffusion Models
+
+Suppose high-dimensional data follows a $d$-dimensional multivariate Gaussian $\mathcal{N}(\boldsymbol{\mu}, \Sigma)$, where the **covariance matrix** $\Sigma \in \mathbb{R}^{d \times d}$ is symmetric positive definite ($\Sigma \succ 0$). Its probability density is:
+
+$$
+p(\mathbf{x}) = \frac{1}{(2\pi)^{d/2}\sqrt{\det(\Sigma)}} \exp\!\left(-\frac{1}{2}(\mathbf{x} - \boldsymbol{\mu})^T \Sigma^{-1} (\mathbf{x} - \boldsymbol{\mu})\right)
+$$
+
+Notice that the matrix inside the quadratic form is not $\Sigma$, but its inverse—the **precision matrix** $A = \Sigma^{-1} = Q \Lambda^{-1} Q^T \succ 0$! Applying our Principal Axis Theorem:
+- Constant-density surfaces—**Mahalanobis ellipsoids** $(\mathbf{x} - \boldsymbol{\mu})^T \Sigma^{-1} (\mathbf{x} - \boldsymbol{\mu}) = c^2$—align with the eigenvectors $\mathbf{q}_i$ of $\Sigma$;
+- Since the eigenvalues of $\Sigma^{-1}$ are $1/\lambda_i(\Sigma)$, the semi-axis lengths are $c / \sqrt{1/\lambda_i(\Sigma)} = c\sqrt{\lambda_i(\Sigma)}$: directions of larger data variance stretch the constant-density ellipsoid longer!
+
+In continuous-time diffusion and **score-based generative models** (Song et al., ICLR 2021), the central object is the **score function** $\mathbf{s}(\mathbf{x}) = \nabla_{\mathbf{x}} \log p(\mathbf{x})$. Taking the gradient of the log Gaussian density gives immediately:
+
+$$
+\nabla_{\mathbf{x}} \log \mathcal{N}(\mathbf{x}; \boldsymbol{\mu}, \Sigma) = -\Sigma^{-1}(\mathbf{x} - \boldsymbol{\mu})
+$$
+
+**Key geometric insight**: Why doesn't the denoising score vector $-\Sigma^{-1}(\mathbf{x} - \boldsymbol{\mu})$ point straight along the Euclidean radial line $-(\mathbf{x} - \boldsymbol{\mu})$ toward $\boldsymbol{\mu}$?
+Because multiplying by $\Sigma^{-1} = \sum_{i=1}^d \frac{1}{\lambda_i}\mathbf{q}_i \mathbf{q}_i^T$ applies only a gentle pull along high-variance flat directions (large $\lambda_i$), while exerting a massive restoring force along tightly constrained, low-variance directions (small $\lambda_i$, huge $\lambda_i^{-1}$)! When a noisy sample sits off the thin data manifold, the large-eigenvalue components of $\Sigma^{-1}$ snap it rapidly back onto the manifold surface before it drifts smoothly along the tangent directions.
+
+### 2. Ill-Conditioned Loss-Landscape Hessians and Natural Gradient (Fisher Information Matrix)
+
+In deep learning optimization, expand the loss $\mathcal{L}(\boldsymbol{\theta})$ around a local minimum $\boldsymbol{\theta}^* \in \mathbb{R}^P$:
+
+$$
+\mathcal{L}(\boldsymbol{\theta}) \approx \mathcal{L}(\boldsymbol{\theta}^*) + \frac{1}{2}(\boldsymbol{\theta} - \boldsymbol{\theta}^*)^T H (\boldsymbol{\theta} - \boldsymbol{\theta}^*), \qquad H = \nabla^2 \mathcal{L}(\boldsymbol{\theta}^*) \succ 0
+$$
+
+When curvature varies wildly across parameter directions, the Hessian's **condition number** $\kappa(H) = \frac{\lambda_{\max}(H)}{\lambda_{\min}(H)} \gg 1$ is huge. Level sets become severely elongated "canyon ellipsoids":
+- Across the steep canyon walls ($\lambda_{\max}$ direction, short semi-axis $1/\sqrt{\lambda_{\max}}$), the gradient is enormous;
+- Along the canyon floor ($\lambda_{\min}$ direction, long semi-axis $1/\sqrt{\lambda_{\min}}$), the gradient is tiny.
+
+This puts vanilla **gradient descent** $\boldsymbol{\theta}_{k+1} = \boldsymbol{\theta}_k - \eta \nabla\mathcal{L}(\boldsymbol{\theta}_k)$ in a bind: if $\eta$ exceeds $2/\lambda_{\max}$, iterates bounce violently off the steep walls and diverge; keeping $\eta \lt 2/\lambda_{\max}$ slows progress along the canyon floor by a factor of $\kappa(H)$!
+
+**Second-order preconditioning and Natural Gradient**:
+How do we "whiten" an ill-conditioned canyon into a round, isotropic bowl?
+- **Newton's method** preconditions by $H^{-1}$: $\Delta\boldsymbol{\theta} = -H^{-1}\nabla\mathcal{L}(\boldsymbol{\theta})$. In non-convex neural networks with billions of parameters, however, the raw Hessian $H$ is often **indefinite** (negative eigenvalues can send Newton steps toward saddle points or maxima!).
+- **Fisher Information Matrix (FIM) and Natural Gradient**: Martens (2020) highlights curvature matrices built from expected outer products:
+  $$
+  F(\boldsymbol{\theta}) = \mathbb{E}_{\mathbf{x} \sim p_{\boldsymbol{\theta}}}\!\left[ \nabla_{\boldsymbol{\theta}} \log p_{\boldsymbol{\theta}}(\mathbf{x})\, \nabla_{\boldsymbol{\theta}} \log p_{\boldsymbol{\theta}}(\mathbf{x})^T \right]
+  $$
+  Recall Section 3: **any expected outer product $\mathbf{g}\mathbf{g}^T$ automatically satisfies $\mathbf{v}^T F \mathbf{v} = \mathbb{E}[(\mathbf{v}^T \nabla\log p)^2] \ge 0$**! Thus the Fisher matrix $F$ is **guaranteed to be symmetric positive semidefinite ($F \succeq 0$)**, and adding tiny damping $F + \epsilon I$ makes it strictly SPD! Modern adaptive and second-order optimizers—from diagonal Adam, to Kronecker-factored K-FAC and Shampoo ($G_L^{-1/4} G G_R^{-1/4}$), to orthogonalized matrix-gradient methods like Muon—all tame ill-conditioned curvature ellipsoids through efficient SPD or orthogonal preconditioning.
+
+<CollapsibleCode language="python" title="gaussian_ellipsoid_score_and_hessian.py">
+```python
+"""
+Multivariate Gaussian covariance ellipsoid (Score Diffusion field) and
+ill-conditioned Hessian canyon preconditioning verification.
+
+Verifies:
+1. SPD eigenvalues, Cholesky factorization, and Mahalanobis semi-axes 1/sqrt(lambda)
+2. Anisotropy of the Gaussian score vector -Sigma^{-1}(x - mu) vs radial -(x - mu)
+3. Ill-conditioned quadratic canyon (kappa = 100): zigzagging GD vs 1-step SPD preconditioning
+"""
+import torch
+
+
+def verify_spd_ellipsoid_and_optimization():
+    torch.set_default_dtype(torch.float64)
+
+    # 1. Construct a rotated 2x2 SPD covariance matrix Sigma
+    theta = torch.tensor(torch.pi / 6)  # 30-degree rotation
+    c, s = torch.cos(theta), torch.sin(theta)
+    Q = torch.tensor([[c, -s], [s, c]])
+    # Covariance eigenvalues: small variance along q1 (0.25), large along q2 (4.0)
+    lam_sigma = torch.tensor([0.25, 4.0])
+    Sigma = Q @ torch.diag(lam_sigma) @ Q.T
+    Sigma = 0.5 * (Sigma + Sigma.T)  # remove tiny floating-point asymmetry
+
+    # Precision matrix A = Sigma^{-1} governs the quadratic form x^T A x = 1
+    A = torch.linalg.inv(Sigma)
+    eigvals_A, eigvecs_A = torch.linalg.eigh(A)
+    L_chol = torch.linalg.cholesky(A)
+
+    print("=" * 64)
+    print("1. SPD checks for covariance Sigma and precision A = Sigma^{-1}:")
+    print(f"   Eigenvalues of A (ascending): {eigvals_A.tolist()} (expected: [0.25, 4.0])")
+    print(f"   Cholesky residual ||A - L L^T||_F: {torch.norm(A - L_chol @ L_chol.T):.2e}")
+    semi_axes = 1.0 / torch.sqrt(eigvals_A)
+    print(f"   Mahalanobis ellipse x^T A x = 1 semi-axes 1/sqrt(lambda_A): {semi_axes.tolist()}")
+    print(f"   (Equals sqrt(lambda_Sigma) = {torch.sqrt(lam_sigma).tolist()}: larger variance -> longer axis!)")
+
+    # 2. Score Diffusion vector field: s(x) = -Sigma^{-1}(x - mu)
+    mu = torch.zeros(2)
+    # Pick a sample equally offset along short axis q1 and long axis q2
+    x_sample = 1.0 * Q[:, 0] + 1.0 * Q[:, 1]
+    radial_dir = -(x_sample - mu)
+    score_vec = -A @ (x_sample - mu)
+
+    # Project the score vector onto the orthonormal eigenbasis Q
+    score_in_modal = Q.T @ score_vec
+    print("\n" + "=" * 64)
+    print("2. Anisotropic pull of the Score Diffusion vector -Sigma^{-1}(x - mu):")
+    print(f"   Sample offset in eigenbasis (Q^T x): [{(Q.T @ x_sample)[0]:.2f}, {(Q.T @ x_sample)[1]:.2f}]")
+    print(f"   Radial direction -(x - mu) in eigenbasis: [{(Q.T @ radial_dir)[0]:.2f}, {(Q.T @ radial_dir)[1]:.2f}]")
+    print(f"   True score -Sigma^{{-1}}(x - mu) in eigenbasis: [{score_in_modal[0]:.2f}, {score_in_modal[1]:.2f}]")
+    print("   => Narrow-variance axis q1 (lambda_Sigma=0.25) gets 16x stronger restoring pull (precision 4.0 vs 0.25)!")
+
+    # 3. Ill-conditioned loss canyon: GD vs SPD preconditioning at kappa = 100
+    H = Q @ torch.diag(torch.tensor([100.0, 1.0])) @ Q.T
+    b = torch.tensor([3.0, -2.0])
+    x_star = torch.linalg.solve(H, b)
+
+    def loss(x):
+        return 0.5 * (x @ H @ x) - (b @ x)
+
+    # Start diagonally to excite both the steep wall and flat valley modes
+    x0 = x_star + 2.0 * Q[:, 0] + 2.0 * Q[:, 1]
+
+    # Vanilla first-order GD (safe step size limited by 2 / lambda_max = 0.02)
+    x_gd = x0.clone()
+    lr_gd = 0.018
+    for _ in range(50):
+        grad = H @ x_gd - b
+        x_gd = x_gd - lr_gd * grad
+
+    # Second-order Newton / SPD curvature preconditioning (step 1.0 along -H^{-1} grad)
+    x_newton = x0.clone()
+    grad0 = H @ x_newton - b
+    x_newton = x_newton - torch.linalg.solve(H, grad0)
+
+    print("\n" + "=" * 64)
+    print("3. Ill-conditioned Hessian canyon (kappa = 100) optimization:")
+    print(f"   Initial error ||x0 - x*||_2:          {torch.norm(x0 - x_star):.6f}")
+    print(f"   Error after 50 vanilla GD steps:      {torch.norm(x_gd - x_star):.6f} (crawling along flat valley)")
+    print(f"   Error after 1 SPD Newton step:        {torch.norm(x_newton - x_star):.2e} (inverse curvature whitens the bowl!)")
+    print("=" * 64)
+
+
+if __name__ == "__main__":
+    verify_spd_ellipsoid_and_optimization()
+```
+</CollapsibleCode>
+
+</FrontierAIReading>

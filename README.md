@@ -36,56 +36,56 @@ This project bridges both worlds with four strict design pillars:
 
 > **Note on Video Numbering**: MIT OCW labels Quiz 2 Review as `Lecture 24b` (35 videos numbered `1–34`), whereas popular video mirrors number it sequentially as Episode `25` (`P01–P35`). Every session below displays **both** identifiers to eliminate cross-referencing confusion.
 
-### Module I: $Ax = b$ and the Four Fundamental Subspaces (13 / 13 `zh` Complete ✅)
+### Module I: $Ax = b$ and the Four Fundamental Subspaces (13 / 13 `zh` & `en` Complete ✅)
 | Session | OCW # | Video P# | Topic | `zh` Status | `en` Status | Isolated Frontier AI Reading |
 | :---: | :---: | :---: | :--- | :---: | :---: | :--- |
 | **01** | L01 | P01 | The Geometry of Linear Equations (Row vs. Column Picture) | ✅ Live | ✅ Live | — |
-| **02** | L02 | P02 | Elimination with Matrices ($E_{ij}$ & Pivots) | ✅ Live | 🗓️ Planned | — |
-| **03** | L03 | P03 | Multiplication (5 Views) and Inverse Matrices | ✅ Live | 🗓️ Planned | **[AI-01]** Transformer Attention $QK^TV$, Block FlashAttention & KV Cache |
-| **04** | L04 | P04 | Factorization into $A = LU$ | ✅ Live | 🗓️ Planned | — |
-| **05** | L05 | P05 | Transposes, Permutations, Spaces $\mathbb{R}^n$ | ✅ Live | 🗓️ Planned | — |
-| **06** | L06 | P06 | Column Space and Nullspace | ✅ Live | 🗓️ Planned | **[AI-02]** Overparameterized Layers, Activation Manifolds & Linear Probing |
-| **07** | L07 | P07 | Solving $Ax = \mathbf{0}$: Pivot Variables, Special Solutions ($R$) | ✅ Live | 🗓️ Planned | — |
-| **08** | L08 | P08 | Solving $Ax = \mathbf{b}$: Row Reduced Form $R$ ($x_p + x_n$) | ✅ Live | 🗓️ Planned | **[AI-03]** Nullspace Knowledge Editing in LLMs (AlphaEdit) |
-| **09** | L09 | P09 | Independence, Basis, and Dimension | ✅ Live | 🗓️ Planned | — |
-| **10** | L10 | P10 | The Four Fundamental Subspaces | ✅ Live | 🗓️ Planned | — |
-| **11** | L11 | P11 | Matrix Spaces; Rank 1 ($\mathbf{u}\mathbf{v}^T$); Small World Graphs | ✅ Live | 🗓️ Planned | **[AI-04]** LoRA ($\Delta W = BA = \sum \mathbf{b}_i\mathbf{a}_i^T$) Low-Rank Subspace Adaptation |
-| **12** | L12 | P12 | Graphs, Networks, Incidence Matrices | ✅ Live | 🗓️ Planned | **[AI-05]** Graph Neural Networks (GNNs) & Incidence/Laplacian Operators |
-| **13** | L13 | P13 | Quiz 1 Review (Module I Synthesis) | ✅ Live | 🗓️ Planned | — |
+| **02** | L02 | P02 | Elimination with Matrices ($E_{ij}$ & Pivots) | ✅ Live | ✅ Live | — |
+| **03** | L03 | P03 | Multiplication (5 Views) and Inverse Matrices | ✅ Live | ✅ Live | **[AI-01]** Transformer Attention $QK^TV$, Block FlashAttention & KV Cache |
+| **04** | L04 | P04 | Factorization into $A = LU$ | ✅ Live | ✅ Live | — |
+| **05** | L05 | P05 | Transposes, Permutations, Spaces $\mathbb{R}^n$ | ✅ Live | ✅ Live | — |
+| **06** | L06 | P06 | Column Space and Nullspace | ✅ Live | ✅ Live | **[AI-02]** Overparameterized Layers, Activation Manifolds & Linear Probing |
+| **07** | L07 | P07 | Solving $Ax = \mathbf{0}$: Pivot Variables, Special Solutions ($R$) | ✅ Live | ✅ Live | — |
+| **08** | L08 | P08 | Solving $Ax = \mathbf{b}$: Row Reduced Form $R$ ($x_p + x_n$) | ✅ Live | ✅ Live | **[AI-03]** Nullspace Knowledge Editing in LLMs (AlphaEdit) |
+| **09** | L09 | P09 | Independence, Basis, and Dimension | ✅ Live | ✅ Live | — |
+| **10** | L10 | P10 | The Four Fundamental Subspaces | ✅ Live | ✅ Live | — |
+| **11** | L11 | P11 | Matrix Spaces; Rank 1 ($\mathbf{u}\mathbf{v}^T$); Small World Graphs | ✅ Live | ✅ Live | **[AI-04]** LoRA ($\Delta W = BA = \sum \mathbf{b}_i\mathbf{a}_i^T$) Low-Rank Subspace Adaptation |
+| **12** | L12 | P12 | Graphs, Networks, Incidence Matrices | ✅ Live | ✅ Live | **[AI-05]** Graph Neural Networks (GNNs) & Incidence/Laplacian Operators |
+| **13** | L13 | P13 | Quiz 1 Review (Module I Synthesis) | ✅ Live | ✅ Live | — |
 
-### Module II: Orthogonality, Projections & Least Squares (4 / 4 `zh` Complete ✅)
+### Module II: Orthogonality, Projections & Least Squares (4 / 4 `zh` & `en` Complete ✅)
 | Session | OCW # | Video P# | Topic | `zh` Status | `en` Status | Isolated Frontier AI Reading |
 | :---: | :---: | :---: | :--- | :---: | :---: | :--- |
-| **14** | L14 | P14 | Orthogonal Vectors and Subspaces ($\operatorname{Row}(A) \perp \operatorname{Null}(A)$) | ✅ Live | 🗓️ Planned | — |
-| **15** | L15 | P15 | Projections onto Subspaces ($P = A(A^TA)^{-1}A^T$) | ✅ Live | 🗓️ Planned | **[AI-06]** Representation Engineering & Concept Erasure via $I - P$ |
-| **16** | L16 | P16 | Projection Matrices and Least Squares ($A^TA\hat{\mathbf{x}} = A^T\mathbf{b}$) | ✅ Live | 🗓️ Planned | — |
-| **17** | L17 | P17 | Orthogonal Matrices and Gram-Schmidt ($A = QR$) | ✅ Live | 🗓️ Planned | **[AI-07]** RoPE (Rotary Position Embedding) & Norm-Preserving Orthogonal Init |
+| **14** | L14 | P14 | Orthogonal Vectors and Subspaces ($\operatorname{Row}(A) \perp \operatorname{Null}(A)$) | ✅ Live | ✅ Live | — |
+| **15** | L15 | P15 | Projections onto Subspaces ($P = A(A^TA)^{-1}A^T$) | ✅ Live | ✅ Live | **[AI-06]** Representation Engineering & Concept Erasure via $I - P$ |
+| **16** | L16 | P16 | Projection Matrices and Least Squares ($A^TA\hat{\mathbf{x}} = A^T\mathbf{b}$) | ✅ Live | ✅ Live | — |
+| **17** | L17 | P17 | Orthogonal Matrices and Gram-Schmidt ($A = QR$) | ✅ Live | ✅ Live | **[AI-07]** RoPE (Rotary Position Embedding) & Norm-Preserving Orthogonal Init |
 
-### Module III: Determinants, Eigenvalues & Dynamical Systems (8 / 8 `zh` Complete ✅)
+### Module III: Determinants, Eigenvalues & Dynamical Systems (8 / 8 `zh` & `en` Complete ✅)
 | Session | OCW # | Video P# | Topic | `zh` Status | `en` Status | Isolated Frontier AI Reading |
 | :---: | :---: | :---: | :--- | :---: | :---: | :--- |
-| **18** | L18 | P18 | Properties of Determinants | ✅ Live | 🗓️ Planned | — |
-| **19** | L19 | P19 | Determinant Formulas and Cofactors | ✅ Live | 🗓️ Planned | — |
-| **20** | L20 | P20 | Cramer's Rule, Inverse Matrix, and Oriented Volume | ✅ Live | 🗓️ Planned | **[AI-08]** Normalizing Flows & Flow Matching: Jacobian Volume $\lvert\det J\rvert$ |
-| **21** | L21 | P21 | Eigenvalues and Eigenvectors ($\operatorname{tr}(A)$ & $\det(A)$) | ✅ Live | 🗓️ Planned | — |
-| **22** | L22 | P22 | Diagonalization and Powers of $A$ ($A = S\Lambda S^{-1}$) | ✅ Live | 🗓️ Planned | **[AI-09]** Spectral Radius $\lvert\lambda_{\max}\rvert$, Gradient Stability & Spectral Norm |
-| **23** | L23 | P23 | Differential Equations and $\exp(At)$ | ✅ Live | 🗓️ Planned | **[AI-10]** Structured State Space Models (SSM / HiPPO / Mamba) & $\bar{A} = e^{\Delta A}$ |
-| **24** | L24 | P24 | Markov Matrices; Fourier Series | ✅ Live | 🗓️ Planned | **[AI-11]** Diffusion Forward Markov Chains (DDPM / D3PM) & Stationary Noise |
-| **25** | L24b | P25 | Quiz 2 Review (Modules II & III Synthesis) | ✅ Live | 🗓️ Planned | — |
+| **18** | L18 | P18 | Properties of Determinants | ✅ Live | ✅ Live | — |
+| **19** | L19 | P19 | Determinant Formulas and Cofactors | ✅ Live | ✅ Live | — |
+| **20** | L20 | P20 | Cramer's Rule, Inverse Matrix, and Oriented Volume | ✅ Live | ✅ Live | **[AI-08]** Normalizing Flows & Flow Matching: Jacobian Volume $\lvert\det J\rvert$ |
+| **21** | L21 | P21 | Eigenvalues and Eigenvectors ($\operatorname{tr}(A)$ & $\det(A)$) | ✅ Live | ✅ Live | — |
+| **22** | L22 | P22 | Diagonalization and Powers of $A$ ($A = S\Lambda S^{-1}$) | ✅ Live | ✅ Live | **[AI-09]** Spectral Radius $\lvert\lambda_{\max}\rvert$, Gradient Stability & Spectral Norm |
+| **23** | L23 | P23 | Differential Equations and $\exp(At)$ | ✅ Live | ✅ Live | **[AI-10]** Structured State Space Models (SSM / HiPPO / Mamba) & $\bar{A} = e^{\Delta A}$ |
+| **24** | L24 | P24 | Markov Matrices; Fourier Series | ✅ Live | ✅ Live | **[AI-11]** Diffusion Forward Markov Chains (DDPM / D3PM) & Stationary Noise |
+| **25** | L24b | P25 | Quiz 2 Review (Modules II & III Synthesis) | ✅ Live | ✅ Live | — |
 
-### Module IV: Positive Definite Matrices, SVD & Linear Transformations (10 / 10 `zh` Complete ✅)
+### Module IV: Positive Definite Matrices, SVD & Linear Transformations (10 / 10 `zh` & `en` Complete ✅)
 | Session | OCW # | Video P# | Topic | `zh` Status | `en` Status | Isolated Frontier AI Reading |
 | :---: | :---: | :---: | :--- | :---: | :---: | :--- |
-| **26** | L25 | P26 | Symmetric Matrices and Positive Definiteness ($A = Q\Lambda Q^T$) | ✅ Live | 🗓️ Planned | — |
-| **27** | L26 | P27 | Complex Matrices; Fast Fourier Transform (FFT) | ✅ Live | 🗓️ Planned | — |
-| **28** | L27 | P28 | Positive Definite Matrices and Minima ($\mathbf{x}^TA\mathbf{x} > 0$) | ✅ Live | 🗓️ Planned | **[AI-12]** Diffusion Gaussian Noise Covariance Ellipsoids, Hessian & Fisher Info |
-| **29** | L28 | P29 | Similar Matrices and Jordan Form | ✅ Live | 🗓️ Planned | — |
-| **30** | L29 | P30 | Singular Value Decomposition ($A = U\Sigma V^T$) | ✅ Live | 🗓️ Planned | **[AI-13]** Weight Spectrum, Eckart-Young Low-Rank Approx & $W_Q^TW_K$ Bottleneck |
-| **31** | L30 | P31 | Linear Transformations and Their Matrices | ✅ Live | 🗓️ Planned | — |
-| **32** | L31 | P32 | Change of Basis; Image Compression | ✅ Live | 🗓️ Planned | **[AI-14]** Latent Space Basis Transforms: From Wavelets/DCT to Latent Diffusion |
-| **33** | L32 | P33 | Quiz 3 Review (Module IV Synthesis) | ✅ Live | 🗓️ Planned | — |
-| **34** | L33 | P34 | Left and Right Inverses; Pseudoinverse ($A^+$) | ✅ Live | 🗓️ Planned | **[AI-15]** Implicit Bias of Gradient Descent & Minimum-Norm Solution $A^+\mathbf{b}$ |
-| **35** | L34 | P35 | Final Course Review (The Grand Picture of Linear Algebra) | ✅ Live | 🗓️ Planned | — |
+| **26** | L25 | P26 | Symmetric Matrices and Positive Definiteness ($A = Q\Lambda Q^T$) | ✅ Live | ✅ Live | — |
+| **27** | L26 | P27 | Complex Matrices; Fast Fourier Transform (FFT) | ✅ Live | ✅ Live | — |
+| **28** | L27 | P28 | Positive Definite Matrices and Minima ($\mathbf{x}^TA\mathbf{x} > 0$) | ✅ Live | ✅ Live | **[AI-12]** Diffusion Gaussian Noise Covariance Ellipsoids, Hessian & Fisher Info |
+| **29** | L28 | P29 | Similar Matrices and Jordan Form | ✅ Live | ✅ Live | — |
+| **30** | L29 | P30 | Singular Value Decomposition ($A = U\Sigma V^T$) | ✅ Live | ✅ Live | **[AI-13]** Weight Spectrum, Eckart-Young Low-Rank Approx & $W_Q^TW_K$ Bottleneck |
+| **31** | L30 | P31 | Linear Transformations and Their Matrices | ✅ Live | ✅ Live | — |
+| **32** | L31 | P32 | Change of Basis; Image Compression | ✅ Live | ✅ Live | **[AI-14]** Latent Space Basis Transforms: From Wavelets/DCT to Latent Diffusion |
+| **33** | L32 | P33 | Quiz 3 Review (Module IV Synthesis) | ✅ Live | ✅ Live | — |
+| **34** | L33 | P34 | Left and Right Inverses; Pseudoinverse ($A^+$) | ✅ Live | ✅ Live | **[AI-15]** Implicit Bias of Gradient Descent & Minimum-Norm Solution $A^+\mathbf{b}$ |
+| **35** | L34 | P35 | Final Course Review (The Grand Picture of Linear Algebra) | ✅ Live | ✅ Live | — |
 
 ---
 

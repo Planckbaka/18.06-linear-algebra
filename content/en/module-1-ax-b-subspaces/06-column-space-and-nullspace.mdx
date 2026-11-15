@@ -1,0 +1,504 @@
+---
+title: "Lecture 06: Column Space and Nullspace"
+ocwId: "L06"
+videoEpisode: "P06"
+textbookRef: "§3.1–3.2"
+---
+
+At the close of Lecture 05, we established the golden test for any subspace: **it must contain the origin $\mathbf{0}$ and be closed under all linear combinations**. Entering MIT 18.06 Lecture 06, Professor Gilbert Strang begins with a deceptively simple geometric warm-up that shatters a common illusion about the union of subspaces, and then introduces the first two stars among the Four Fundamental Subspaces of linear algebra: the **Column Space ($\operatorname{Col}(A)$)** and the **Nullspace ($\operatorname{Null}(A)$)**.
+
+From today onward, whenever you look at a matrix equation $A\mathbf{x} = \mathbf{b}$, you will automatically view it through a dual-universe lens: **in the output universe $\mathbb{R}^m$, the column space tells you whether a solution exists; in the input universe $\mathbb{R}^n$, the nullspace tells you whether that solution is unique!**
+
+---
+
+## 1. Set Operations on Subspaces: Why the Union $S \cup T$ Fails while the Intersection $S \cap T$ Always Succeeds
+
+Suppose that inside three-dimensional space $\mathbb{R}^3$, you hold two genuine subspaces: a two-dimensional plane $P$ passing through the origin, and a line $L$ also passing through the origin that does not lie inside $P$. Let us ask two natural set-theoretic questions:
+
+1. **Is the union $P \cup L$ (the set containing all vectors in the plane together with all vectors on the line) a subspace of $\mathbb{R}^3$?**
+   **Emphatically no!** Even though the plane and the line each pass through the origin and are each closed on their own, the moment you pick a nonzero vector $\mathbf{p} \in P$ with $\mathbf{p} \notin L$ and a nonzero vector $\mathbf{l} \in L$ with $\mathbf{l} \notin P$, their sum $\mathbf{p} + \mathbf{l}$ forms the diagonal of a parallelogram that flies right out of the plane $P$ and veers off the line $L$, landing in the empty air between them ($\mathbf{p} + \mathbf{l} \notin P \cup L$)! (Note: the union $S \cup T$ of two subspaces is a subspace if and only if one is completely contained in the other, i.e., $S \subseteq T$ or $T \subseteq S$. If you want the smallest genuine subspace containing both $S$ and $T$, you must take their **sum of subspaces** $S + T := \{\mathbf{s} + \mathbf{t} : \mathbf{s} \in S,\; \mathbf{t} \in T\}$!)
+
+2. **Is the intersection $S \cap T$ (the set of vectors belonging simultaneously to both subspaces $S$ and $T$) a subspace of $\mathbb{R}^n$?**
+   **100% yes—always!** And this holds without exception for the intersection of any collection of subspaces:
+   - First, $\mathbf{0} \in S$ and $\mathbf{0} \in T \implies \mathbf{0} \in S \cap T$ (the intersection is never empty; in our 3D example, $P \cap L = \{\mathbf{0}\}$, which is the valid zero-dimensional subspace!).
+   - Second, take any two common vectors $\mathbf{v}, \mathbf{w} \in S \cap T$ and any scalars $c, d \in \mathbb{R}$. Because $\mathbf{v}, \mathbf{w}$ lie in $S$ and $S$ is closed under linear combinations, we have $c\mathbf{v} + d\mathbf{w} \in S$. By the exact same reasoning in $T$, we also have $c\mathbf{v} + d\mathbf{w} \in T$. Since $c\mathbf{v} + d\mathbf{w}$ lies in both $S$ and $T$, it necessarily lies in $S \cap T$!
+
+---
+
+## 2. The Star of the Output Space $\mathbb{R}^m$: The Column Space $\operatorname{Col}(A)$
+
+Let us examine a concrete $4\times 3$ tall-and-thin matrix $A \in \mathbb{R}^{4\times 3}$:
+
+$$
+A = \begin{bmatrix}
+1 & 1 & 2 \\
+2 & 1 & 3 \\
+3 & 1 & 4 \\
+4 & 1 & 5
+\end{bmatrix}
+$$
+
+First, let us answer the most fundamental ambient-space question: **Which space does the column space $\operatorname{Col}(A)$ (also denoted $C(A)$ by Strang) live in?**
+Count how many components each column has: every column is a $4\times 1$ vector, so **$\operatorname{Col}(A)$ is a subspace of four-dimensional space $\mathbb{R}^4$** ($\operatorname{Col}(A) \subseteq \mathbb{R}^4$)!
+
+Next, we ask: do all linear combinations of these $3$ columns fill up the entire space $\mathbb{R}^4$?
+- First barrier: we only have $3$ column vectors. Even if they were completely independent, $3$ vectors could never span a $4$-dimensional space $\mathbb{R}^4$.
+- Second revelation: look closely at column 3, $\mathbf{a}_3 = (2, 3, 4, 5)^T$—it is the exact sum of the first two columns, **$\mathbf{a}_3 = \mathbf{a}_1 + \mathbf{a}_2$**!
+
+This means column 3 is a pure "free-rider" (a redundant, dependent column): any linear combination that uses $\mathbf{a}_3$, namely $x_1\mathbf{a}_1 + x_2\mathbf{a}_2 + x_3(\mathbf{a}_1 + \mathbf{a}_2) = (x_1+x_3)\mathbf{a}_1 + (x_2+x_3)\mathbf{a}_2$, could already be built using only the first two columns $\mathbf{a}_1$ and $\mathbf{a}_2$! If we throw column 3 away, $\operatorname{Col}(A)$ does not shrink by a single point—inside the four-dimensional ambient universe $\mathbb{R}^4$, $\operatorname{Col}(A)$ is merely a **two-dimensional flat plane** through the origin!
+
+This also completely settles when the system $A\mathbf{x} = \mathbf{b}$ is solvable:
+- When $\mathbf{b} = (1, 2, 3, 4)^T$, $\mathbf{b}$ is literally column 1 itself, so $\mathbf{b} \in \operatorname{Col}(A)$ and a solution exists (in fact, more than one: $\mathbf{x} = (1, 0, 0)^T$ works, and so does $(0, -1, 1)^T$!).
+- When $\mathbf{b} = (1, 0, 0, 0)^T$, no linear combination of the first two columns (whose entries always form an arithmetic progression) can ever produce $(1,0,0,0)^T$; thus $\mathbf{b} \notin \operatorname{Col}(A)$, and no solution exists!
+
+---
+
+## 3. The Star of the Input Space $\mathbb{R}^n$: The Nullspace $\operatorname{Null}(A)$
+
+When we noticed the dependency relation $\mathbf{a}_1 + \mathbf{a}_2 - \mathbf{a}_3 = \mathbf{0}$ a moment ago, we bumped straight into the second fundamental subspace of a matrix: the **Nullspace** (also called the **Kernel** in pure mathematics), denoted $\operatorname{Null}(A)$ or $N(A)$.
+
+Continuing with the exact same $4\times 3$ matrix $A$ above:
+- **Which ambient space does $\operatorname{Null}(A)$ live in?** We are looking for all unknown input vectors $\mathbf{x} = (x_1, x_2, x_3)^T$ that satisfy $A\mathbf{x} = \mathbf{0}$! Since there are $n = 3$ unknowns, **$\operatorname{Null}(A)$ is a subspace of the three-dimensional input space $\mathbb{R}^3$** ($\operatorname{Null}(A) \subseteq \mathbb{R}^3$)—never confuse its home with the column space living in $\mathbb{R}^4$!
+- **Finding the complete nullspace for this example**: Because $\mathbf{a}_1 + \mathbf{a}_2 - \mathbf{a}_3 = \mathbf{0}$, the vector $\mathbf{s} = (1, 1, -1)^T$ clearly satisfies $A\mathbf{s} = \mathbf{0}$. Multiplying $\mathbf{s}$ by any real scalar $c \in \mathbb{R}$ gives $c(1, 1, -1)^T$, which still sends the combination to zero (and since the first two columns are not collinear, there are no other independent nullspace directions). Therefore, the nullspace of $A$ is precisely a **one-dimensional line** in $\mathbb{R}^3$ passing through the origin $(0,0,0)^T$ and $(1,1,-1)^T$:
+
+$$
+\operatorname{Null}(A) = \left\{ c \begin{bmatrix} 1 \\ 1 \\ -1 \end{bmatrix} : c \in \mathbb{R} \right\} \subseteq \mathbb{R}^3
+$$
+
+<ColSpaceVsNullspaceAmbientDiagram caption="Dual-space perspective for a 4x3 matrix A: the nullspace Null(A) is a 1D line inside the 3D input space R^3 that gets crushed to 0, whereas the column space Col(A) is a 2D plane inside the 4D output space R^4." />
+
+<InteractiveCanvasSlot
+  id="l06-col-null-dual-spaces"
+  title="Dual-Space Synchronized Workbench: Input Null(A) in R^n vs. Output Col(A) in R^m"
+  description="Interactive dual viewport: drag the input vector $\mathbf{x} \in \mathbb{R}^n$ on the left to observe the real-time landing point of its output image $A\mathbf{x} \in \operatorname{Col}(A)$ on the right; whenever $\mathbf{x}$ slides onto the green nullspace line $\operatorname{Null}(A)$, the output arrow on the right collapses instantaneously to the origin $\mathbf{0}$."
+/>
+
+Below we formalize the rigorous definitions of both fundamental subspaces, the proof of subspace closure, and the crucial contrast with non-homogeneous solution sets:
+
+<DefinitionCard
+  label="Definition 6.1"
+  title="Column Space Col(A) and Nullspace Null(A) of a Matrix"
+>
+Let $A \in \mathbb{R}^{m\times n}$ be a real matrix with $m$ rows and $n$ columns:
+
+1. The **Column Space** $\operatorname{Col}(A)$ is a subset of the **output space $\mathbb{R}^m$**, consisting of all real linear combinations of the $n$ columns of $A$:
+
+$$
+\operatorname{Col}(A) := \left\{ A\mathbf{x} \in \mathbb{R}^m : \mathbf{x} \in \mathbb{R}^n \right\} \subseteq \mathbb{R}^m
+$$
+
+2. The **Nullspace (Kernel)** $\operatorname{Null}(A)$ is a subset of the **input space $\mathbb{R}^n$**, consisting of all solution vectors to the homogeneous linear system $A\mathbf{x} = \mathbf{0}$:
+
+$$
+\operatorname{Null}(A) := \left\{ \mathbf{x} \in \mathbb{R}^n : A\mathbf{x} = \mathbf{0} \right\} \subseteq \mathbb{R}^n
+$$
+</DefinitionCard>
+
+<TheoremCard
+  label="Theorem 6.1"
+  title="Intersection of Subspaces, Subspace Property of Null(A), and Non-Homogeneous Failure"
+>
+1. **Arbitrary Intersections Are Subspaces**: If $S, T \subseteq \mathbb{R}^n$ are subspaces of $\mathbb{R}^n$, then their intersection $S \cap T$ is always a subspace of $\mathbb{R}^n$; whereas their union $S \cup T$ is a subspace **if and only if** $S \subseteq T$ or $T \subseteq S$.
+2. **Column Space and Nullspace Are Genuine Subspaces**: For any $A \in \mathbb{R}^{m\times n}$, $\operatorname{Col}(A)$ is always a subspace of $\mathbb{R}^m$, and $\operatorname{Null}(A)$ is always a subspace of $\mathbb{R}^n$.
+3. **Non-Homogeneous Solution Sets Are Never Subspaces**: Whenever the right-hand side vector $\mathbf{b} \neq \mathbf{0}$, the solution set $K_{\mathbf{b}} := \{\mathbf{x} \in \mathbb{R}^n : A\mathbf{x} = \mathbf{b}\}$ of $A\mathbf{x} = \mathbf{b}$ is **never** a subspace of $\mathbb{R}^n$ (if no solution exists, $K_{\mathbf{b}} = \varnothing$; if a solution exists, $\mathbf{0} \notin K_{\mathbf{b}}$ because $A\mathbf{0} = \mathbf{0} \neq \mathbf{b}$).
+4. **Trivial Nullspace and Linear Independence of Columns**: $\operatorname{Null}(A) = \{\mathbf{0}\} \iff$ the $n$ columns of $A$ are linearly independent $\iff$ for every solvable $\mathbf{b} \in \operatorname{Col}(A)$, the solution to $A\mathbf{x} = \mathbf{b}$ is **unique**.
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Two-Line Closure Proof for Null(A) & Necessary/Sufficient Condition for S ∪ T">
+1. **Two-line proof that $\operatorname{Null}(A)$ is a subspace of $\mathbb{R}^n$**:
+   - Non-emptiness: $A\mathbf{0} = \mathbf{0} \implies \mathbf{0} \in \operatorname{Null}(A)$.
+   - Closure under linear combinations: Take any $\mathbf{v}, \mathbf{w} \in \operatorname{Null}(A)$ (meaning $A\mathbf{v} = \mathbf{0}$ and $A\mathbf{w} = \mathbf{0}$) and any scalars $c, d \in \mathbb{R}$. By the linearity (distributive law) of matrix multiplication:
+
+$$
+A(c\mathbf{v} + d\mathbf{w}) = c(A\mathbf{v}) + d(A\mathbf{w}) = c\mathbf{0} + d\mathbf{0} = \mathbf{0}
+$$
+
+     Hence $c\mathbf{v} + d\mathbf{w} \in \operatorname{Null}(A)$! Notice that this proof never writes down a single matrix entry or elimination step—it follows purely and effortlessly from operator linearity!
+
+2. **Proof that "$S \cup T$ is a subspace $\iff S \subseteq T$ or $T \subseteq S$"**:
+   - $(\impliedby)$ If $S \subseteq T$, then $S \cup T = T$, which is already a subspace; the case $T \subseteq S$ is identical.
+   - $(\implies)$ By contradiction: suppose $S \cup T$ is a subspace, yet neither $S \subseteq T$ nor $T \subseteq S$ holds. Then there exist $\mathbf{s} \in S \setminus T$ and $\mathbf{t} \in T \setminus S$. Since $\mathbf{s}, \mathbf{t} \in S \cup T$ and $S \cup T$ is closed under addition, their sum $\mathbf{u} := \mathbf{s} + \mathbf{t}$ must lie in $S \cup T$.
+     - If $\mathbf{u} \in S$, then because $\mathbf{s} \in S$ and $S$ is a subspace, $\mathbf{t} = \mathbf{u} - \mathbf{s} \in S$, contradicting $\mathbf{t} \notin S$!
+     - If $\mathbf{u} \in T$, then because $\mathbf{t} \in T$ and $T$ is a subspace, $\mathbf{s} = \mathbf{u} - \mathbf{t} \in T$, contradicting $\mathbf{s} \notin T$!
+     Thus the assumption fails, and we must have $S \subseteq T$ or $T \subseteq S$.
+</ProofCollapse>
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+1. **Pitfall 1: Drawing $\operatorname{Col}(A)$ and $\operatorname{Null}(A)$ inside the same coordinate axes! (Dimensional mismatch hazard)**
+   For an $m\times n$ rectangular matrix (such as a $4\times 3$ matrix), vectors in $\operatorname{Col}(A)$ have $4$ components (living in $\mathbb{R}^4$), whereas vectors in $\operatorname{Null}(A)$ have $3$ components (living in $\mathbb{R}^3$)! They don't even have the same number of entries, so you can never intersect them or plot them in the same ambient space! (Even when $m=n$ so $A$ is square, the input space and output space should still be kept conceptually distinct.)
+2. **Pitfall 2: Writing $\operatorname{Null}(A) = \varnothing$ or $\operatorname{Null}(A) = 0$ when the nullspace contains only the zero vector**
+   When the columns of $A$ are linearly independent (no nonzero solutions), the homogeneous system $A\mathbf{x}=\mathbf{0}$ still has the unique trivial solution $\mathbf{x}=\mathbf{0}$! Proper set notation requires **$\operatorname{Null}(A) = \{\mathbf{0}\}$** (a zero-dimensional subspace containing one vector, the zero vector), never the empty set $\varnothing$!
+3. **Pitfall 3: Assuming that the solutions to $A\mathbf{x} = \mathbf{b}$ form a subspace**
+   Whenever $\mathbf{b} \neq \mathbf{0}$, adding two solutions $\mathbf{x}_1, \mathbf{x}_2$ gives $A(\mathbf{x}_1 + \mathbf{x}_2) = \mathbf{b} + \mathbf{b} = 2\mathbf{b} \neq \mathbf{b}$! The sum of two solutions is no longer a solution to the original equation (whereas their **difference** $\mathbf{x}_1 - \mathbf{x}_2$ really does land back inside the nullspace $\operatorname{Null}(A)$, since $A(\mathbf{x}_1 - \mathbf{x}_2) = \mathbf{b} - \mathbf{b} = \mathbf{0}$!).
+</PitfallAlert>
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "For an $m\\times n$ matrix $A$, always check the ambient space first: **Column space $\\operatorname{Col}(A) \\subseteq \\mathbb{R}^m$** (count the rows $m$), **Nullspace $\\operatorname{Null}(A) \\subseteq \\mathbb{R}^n$** (count the columns $n$).",
+    "The **intersection $S \\cap T$** of two subspaces is always a subspace; the **union $S \\cup T$** is never a subspace unless one contains the other; the smallest subspace containing both is their **sum $S + T$**.",
+    "The homogeneous solution set $\\operatorname{Null}(A)$ is always a subspace; the non-homogeneous solution set to $A\\mathbf{x} = \\mathbf{b}$ ($\\mathbf{b} \\neq \\mathbf{0}$) is **never** a subspace (it misses $\\mathbf{0}$).",
+    "**Existence** of solutions to $A\\mathbf{x} = \\mathbf{b}$ is governed by $\\operatorname{Col}(A)$ ($\\mathbf{b} \\in \\operatorname{Col}(A)$); **uniqueness** of solutions is governed by $\\operatorname{Null}(A)$ ($\\operatorname{Null}(A) = \\{\\mathbf{0}\\}$)."
+  ]}
+/>
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+<ExerciseCard
+  id="l06-ex1"
+  tier="L1"
+  tierLabel="L1 · Quick Geometric Check"
+  title="Dual-Space Localization: Reading the Column Space and Nullspace of a 2×4 Matrix at a Glance"
+>
+Consider the $2\times 4$ short-and-wide matrix $A \in \mathbb{R}^{2\times 4}$:
+
+$$
+A = \begin{bmatrix}
+1 & 0 & 2 & -1 \\
+0 & 1 & -3 & 4
+\end{bmatrix}
+$$
+
+1. State explicitly: $\operatorname{Col}(A)$ is a subspace of $\mathbb{R}^?$, and $\operatorname{Null}(A)$ is a subspace of $\mathbb{R}^?$.
+2. What special vectors appear in the first two columns of $A$? From this alone, state what space $\operatorname{Col}(A)$ equals, and whether $A\mathbf{x} = \mathbf{b}$ is guaranteed to have a solution for every $\mathbf{b} \in \mathbb{R}^2$.
+3. Find two non-collinear nonzero vectors $\mathbf{s}_1, \mathbf{s}_2 \in \operatorname{Null}(A)$ (Hint: set the last two components to $(1, 0)$ and $(0, 1)$ respectively!).
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "The matrix has $2$ rows and $4$ columns: each column vector has length $2$ (so $\\operatorname{Col}(A) \\subseteq \\mathbb{R}^2$), while the unknown vector $\\mathbf{x}$ multiplying on the right has length $4$ (so $\\operatorname{Null}(A) \\subseteq \\mathbb{R}^4$)! ",
+    "The first two columns are the standard basis vectors $\\mathbf{e}_1 = (1,0)^T, \\mathbf{e}_2 = (0,1)^T$ of $\\mathbb{R}^2$, which already span all of $\\mathbb{R}^2$! To make $A\\mathbf{x}=\\mathbf{0}$, column 3 is $(2,-3)^T$, which is canceled by taking $(-2, +3)$ of the first two columns!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. Instant ambient-space check: $\operatorname{Col}(A) \subseteq \mathbb{R}^2$ and $\operatorname{Null}(A) \subseteq \mathbb{R}^4$!
+2. The first two columns are the 2D unit coordinate vectors $(1,0)^T$ and $(0,1)^T$. Using just those two, we can reach every point in the 2D plane, so **$\operatorname{Col}(A) = \mathbb{R}^2$**, and $A\mathbf{x} = \mathbf{b}$ is 100% solvable for every $\mathbf{b} \in \mathbb{R}^2$!
+3. Column 3 is $(2, -3)^T$, so we cancel it with $-2$ times column 1 plus $3$ times column 2, giving $\mathbf{s}_1 = (-2, 3, 1, 0)^T$. Column 4 is $(-1, 4)^T$, so we cancel it with $+1$ times column 1 minus $4$ times column 2, giving $\mathbf{s}_2 = (1, -4, 0, 1)^T$! (This previews the systematic "special solution" construction we will master in Lecture 07!)
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. Since $A \in \mathbb{R}^{2\times 4}$, we have $\operatorname{Col}(A) \subseteq \mathbb{R}^2$ and $\operatorname{Null}(A) \subseteq \mathbb{R}^4$.
+2. For any $\mathbf{b} = (b_1, b_2)^T \in \mathbb{R}^2$, choosing $\mathbf{x} = (b_1, b_2, 0, 0)^T \in \mathbb{R}^4$ immediately gives $A\mathbf{x} = b_1\mathbf{e}_1 + b_2\mathbf{e}_2 = \mathbf{b}$. Hence $\operatorname{Col}(A) = \mathbb{R}^2$, and a solution exists for every $\mathbf{b} \in \mathbb{R}^2$.
+3. Solving the homogeneous system $A\mathbf{x} = \mathbf{0}$:
+
+$$
+\begin{cases}
+x_1 + 2x_3 - x_4 = 0 \\
+x_2 - 3x_3 + 4x_4 = 0
+\end{cases}
+\iff
+\begin{bmatrix} x_1 \\ x_2 \\ x_3 \\ x_4 \end{bmatrix}
+= x_3 \underbrace{\begin{bmatrix} -2 \\ 3 \\ 1 \\ 0 \end{bmatrix}}_{\mathbf{s}_1}
++ x_4 \underbrace{\begin{bmatrix} 1 \\ -4 \\ 0 \\ 1 \end{bmatrix}}_{\mathbf{s}_2}
+$$
+
+   Because components 3 and 4 of $\mathbf{s}_1, \mathbf{s}_2$ are $(1,0)$ and $(0,1)$ respectively, the two vectors are strictly non-collinear and span the 2D nullspace plane $\operatorname{Null}(A) = \operatorname{span}\{\mathbf{s}_1, \mathbf{s}_2\} \subseteq \mathbb{R}^4$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l06-ex2"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Conceptual Check: Intersection vs. Union of Two Planes Through the Origin"
+>
+Determine whether the following statement is true or false:
+
+> **Statement**: In three-dimensional space $\mathbb{R}^3$, let $P_1$ and $P_2$ be two distinct planes that both pass through the origin $\mathbf{0}$. Then their **intersection $P_1 \cap P_2$** is a line through the origin (a subspace), and since their **union $P_1 \cup P_2$** also contains the origin and is closed under scalar multiplication, $P_1 \cup P_2$ is also a subspace of $\mathbb{R}^3$.
+
+<TrueFalseInteractive
+  id="l06-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! The first half is true ($P_1 \cap P_2$ is a line through the origin and hence a subspace), but the second half falls into a classic trap: because the two planes are distinct, neither $P_1 \subseteq P_2$ nor $P_2 \subseteq P_1$ holds. Taking one vector from each plane outside their line of intersection and adding them produces a vector that flies right out of $P_1 \cup P_2$!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Pick the two simplest coordinate planes: let $P_1$ be the $xy$-plane ($z=0$) and $P_2$ be the $yz$-plane ($x=0$). Try adding $(1, 0, 0)^T \\in P_1$ and $(0, 0, 1)^T \\in P_2$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Picture two planes through the origin like two intersecting glass panels of a revolving door: their intersection is the vertical central axle (a line through the origin, perfectly closed). Their union, however, is just the two thin glass panels themselves—if you grab one arrow from the left panel and one arrow from the front panel, the parallelogram diagonal points straight into the open air between the glass panels, breaking closure under addition!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+We construct an explicit counterexample. Let
+
+$$
+P_1 = \{(x, y, 0)^T : x, y \in \mathbb{R}\}, \qquad
+P_2 = \{(0, y, z)^T : y, z \in \mathbb{R}\}
+$$
+
+Both are 2D subspaces of $\mathbb{R}^3$ passing through the origin, and neither contains the other (their intersection $P_1 \cap P_2 = \{(0, y, 0)^T : y \in \mathbb{R}\}$ is the $y$-axis subspace). Choose $\mathbf{u} = (1, 0, 0)^T \in P_1 \subseteq P_1 \cup P_2$ and $\mathbf{v} = (0, 0, 1)^T \in P_2 \subseteq P_1 \cup P_2$. Their sum $\mathbf{u} + \mathbf{v} = (1, 0, 1)^T$ satisfies neither $z=0$ nor $x=0$, so $\mathbf{u} + \mathbf{v} \notin P_1 \cup P_2$. Thus the union is not closed under addition and is not a subspace.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l06-ex3"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Conceptual Check: Appending an Extra Column to a Matrix"
+>
+Determine whether the following statement is true or false:
+
+> **Statement**: Let $A \in \mathbb{R}^{m\times n}$, and append a new column vector $\mathbf{b} \in \mathbb{R}^m$ on its right to form the augmented matrix $B = \begin{bmatrix} A & \mathbf{b} \end{bmatrix} \in \mathbb{R}^{m\times(n+1)}$. If $\operatorname{Col}(B) = \operatorname{Col}(A)$ (i.e., the new column does not enlarge the column space), then the equation $A\mathbf{x} = \mathbf{b}$ must have a solution, and the nullspace of $B$ must contain a nonzero vector!
+
+<TrueFalseInteractive
+  id="l06-tf2"
+  correct={true}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="True! This is a foundational equivalence bridging the column space and the nullspace: $\operatorname{Col}([A\;\mathbf{b}]) = \operatorname{Col}(A) \iff \mathbf{b}$ already lies in $\operatorname{Col}(A) \iff \exists \mathbf{x}_0$ such that $A\mathbf{x}_0 = \mathbf{b} \iff B \begin{bmatrix} \mathbf{x}_0 \\ -1 \end{bmatrix} = A\mathbf{x}_0 - \mathbf{b} = \mathbf{0}$ with a nonzero input vector!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "If you toss a new building block $\\mathbf{b}$ into your box of columns, when does the span $\\operatorname{Col}([A\\;\\mathbf{b}])$ fail to grow at all? Precisely when $\\mathbf{b}$ can already be built from the old columns of $A$ (i.e., $\\mathbf{b} = A\\mathbf{x}_0$)! ",
+    "Once $\\mathbf{b} = A\\mathbf{x}_0$, what happens when you feed the length-$(n+1)$ nonzero vector $(\\mathbf{x}_0^T, -1)^T$ into $B = [A\\;\\mathbf{b}]$?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+This question is an all-time classic on MIT 18.06 exams! The only way the new column $\mathbf{b}$ fails to expand the column space by even an inch is if $\mathbf{b}$ was already living inside $\operatorname{Col}(A)$ all along! Since $\mathbf{b}$ is a combination of the old columns, $A\mathbf{x}_0 = \mathbf{b}$, we can rearrange this as $A\mathbf{x}_0 - 1\cdot\mathbf{b} = \mathbf{0}$. Look at that: the tall vector $(\mathbf{x}_0, -1)$ has $-1$ in its last entry, so it is guaranteed to be nonzero, and it lands squarely inside the nullspace of the augmented matrix $B$!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. Since $\mathbf{b} = B\mathbf{e}_{n+1} \in \operatorname{Col}(B)$, the equality $\operatorname{Col}(B) = \operatorname{Col}(A)$ implies $\mathbf{b} \in \operatorname{Col}(A)$.
+2. By definition of the column space, there exists $\mathbf{x}_0 \in \mathbb{R}^n$ such that $A\mathbf{x}_0 = \mathbf{b}$ (so $A\mathbf{x} = \mathbf{b}$ is solvable).
+3. Construct the vector $\mathbf{z} = \begin{bmatrix} \mathbf{x}_0 \\ -1 \end{bmatrix} \in \mathbb{R}^{n+1}$. Because its last component is $-1 \neq 0$, we have $\mathbf{z} \neq \mathbf{0}$. Using block matrix multiplication:
+
+$$
+B \mathbf{z} = \begin{bmatrix} A & \mathbf{b} \end{bmatrix} \begin{bmatrix} \mathbf{x}_0 \\ -1 \end{bmatrix} = A\mathbf{x}_0 - \mathbf{b} = \mathbf{0}
+$$
+
+   Hence $\mathbf{z} \in \operatorname{Null}(B) \setminus \{\mathbf{0}\}$, so the nullspace of $B$ necessarily contains a nonzero vector. The statement holds rigorously.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l06-ex4"
+  tier="L3"
+  tierLabel="L3 · Zero-Calculation Subspace Reasoning"
+  title="Reverse Engineering: Constructing a Matrix A with Prescribed Column Space and Nullspace Vectors"
+>
+(One of Gilbert Strang's favorite "inverse problem" intuition checks—if you only know how to crunch forward elimination, this stops you cold; if you understand subspace structure, you can write the answer down in ten seconds!)
+1. Construct a $3\times 3$ matrix $A$ whose **column space $\operatorname{Col}(A)$** contains the vectors $(1, 1, 0)^T$ and $(0, 1, 1)^T$, while its **nullspace $\operatorname{Null}(A)$** contains the nonzero vector $(1, 0, 1)^T$! Can $\operatorname{Col}(A)$ still be all of $\mathbb{R}^3$ in this case?
+2. Determine: **Does there exist** a $3\times 3$ matrix $M$ whose column space is $\operatorname{Col}(M) = \mathbb{R}^3$ and whose nullspace $\operatorname{Null}(M)$ contains the nonzero vector $(1, 1, 1)^T$? Give an airtight one-sentence justification!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1: To put $(1, 1, 0)^T$ and $(0, 1, 1)^T$ inside $\\operatorname{Col}(A)$, the easiest move is to make them column 1 and column 2 of $A$! Then use $(1, 0, 1)^T \\in \\operatorname{Null}(A)$ (which says $1\\cdot\\mathbf{a}_1 + 0\\cdot\\mathbf{a}_2 + 1\\cdot\\mathbf{a}_3 = \\mathbf{0}$) to solve for column 3, $\\mathbf{a}_3$!",
+    "Part 2: Invoke Theorem 1.1 from Lecture 01 (or Theorem 6.1 above)—for a $3\\times 3$ **square matrix**, how does 'columns span $\\mathbb{R}^3$' relate to '$M\\mathbf{x}=\\mathbf{0}$ has only the zero solution'?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. Building a matrix is like snapping Lego bricks together:
+   - Put $(1, 1, 0)^T$ directly into column 1 and $(0, 1, 1)^T$ into column 2, guaranteeing that both belong to $\operatorname{Col}(A)$.
+   - Requiring $(1, 0, 1)^T$ to be crushed to zero by $A$ simply means "column 1 + column 3 = $\mathbf{0}$," so we fill column 3 with the negative of column 1, namely $(-1, -1, 0)^T$, and we are done! Because there are only two independent columns left, $\operatorname{Col}(A)$ is only a 2D plane and cannot possibly be all of $\mathbb{R}^3$!
+2. **Impossible!** For a $3\times 3$ square matrix, having the nonzero vector $(1, 1, 1)^T$ in the nullspace means the three columns sum to zero (they are coplanar and redundant)—and two independent columns can never span three-dimensional space $\mathbb{R}^3$!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. Let $\mathbf{a}_1 = (1, 1, 0)^T$ and $\mathbf{a}_2 = (0, 1, 1)^T$. To enforce $A(1, 0, 1)^T = \mathbf{a}_1 + \mathbf{a}_3 = \mathbf{0}$, set $\mathbf{a}_3 = -\mathbf{a}_1 = (-1, -1, 0)^T$, yielding the desired matrix:
+
+$$
+A = \begin{bmatrix}
+1 & 0 & -1 \\
+1 & 1 & -1 \\
+0 & 1 & 0
+\end{bmatrix}
+$$
+
+   Verification: $A\mathbf{e}_1 = (1,1,0)^T \in \operatorname{Col}(A)$, $A\mathbf{e}_2 = (0,1,1)^T \in \operatorname{Col}(A)$, and $A(1,0,1)^T = \mathbf{0}$. Since $\operatorname{Col}(A) = \operatorname{span}\{\mathbf{a}_1, \mathbf{a}_2\}$ (for instance, $(1, 0, 0)^T \notin \operatorname{Col}(A)$), we have $\operatorname{Col}(A) \neq \mathbb{R}^3$.
+
+2. **Rigorous impossibility proof**: Suppose there existed a square matrix $M \in \mathbb{R}^{3\times 3}$ with $(1, 1, 1)^T \in \operatorname{Null}(M)$. By Theorem 3.2 (Part 2), $M$ is singular (non-invertible). By Lecture 01 Theorem 1.1 (a square matrix is invertible $\iff \operatorname{Col}(M) = \mathbb{R}^3$), we must have $\operatorname{Col}(M) \subsetneq \mathbb{R}^3$, a contradiction! Thus no such $3\times 3$ matrix exists. (Note: if a $3\times 4$ rectangular matrix were allowed, such as $\begin{bmatrix} I_3 & -I_3\mathbf{1} \end{bmatrix}$, both properties could hold simultaneously!)
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l06-ex5"
+  tier="L4"
+  tierLabel="L4 · MIT 18.06 Exam Synthesis"
+  title="MIT 18.06 Exam Challenge: Subspace Interlocking for AB = 0 and Idempotent Splitting"
+>
+Let $A \in \mathbb{R}^{m\times n}$ and $B \in \mathbb{R}^{n\times p}$ be nonzero matrices:
+1. **Core Subspace Characterization**: Prove that the matrix product is the zero matrix ($AB = 0 \in \mathbb{R}^{m\times p}$) **if and only if** the entire column space of the right matrix $B$ lies inside the nullspace of the left matrix $A$:
+
+$$
+AB = 0 \quad \Longleftrightarrow \quad \operatorname{Col}(B) \subseteq \operatorname{Null}(A)
+$$
+
+2. **Preview of Projection Operators**: Let a square matrix $P \in \mathbb{R}^{n\times n}$ satisfy the idempotent law **$P^2 = P$** (such as a projection onto a plane). Define $Q := I_n - P$:
+   - Use Part 1 to show that $\operatorname{Col}(Q) \subseteq \operatorname{Null}(P)$, and then prove the stronger equality **$\operatorname{Col}(I_n - P) = \operatorname{Null}(P)$**!
+   - Prove that every vector $\mathbf{x} \in \mathbb{R}^n$ decomposes uniquely as $\mathbf{x} = \mathbf{u} + \mathbf{v}$ with $\mathbf{u} \in \operatorname{Col}(P)$ and $\mathbf{v} \in \operatorname{Null}(P)$, and that the intersection of the two subspaces is trivial: $\operatorname{Col}(P) \cap \operatorname{Null}(P) = \{\mathbf{0}\}$!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1: View $AB = [A\\mathbf{b}_1, \\dots, A\\mathbf{b}_p] = 0$ column by column! What does $A\\mathbf{b}_j = \\mathbf{0}$ for every column $\\mathbf{b}_j$ mean, and what does that imply for any linear combination $B\\mathbf{x}$?",
+    "Part 2: Because $P(I_n - P) = P - P^2 = 0$, Part 1 immediately gives $\\operatorname{Col}(I_n - P) \\subseteq \\operatorname{Null}(P)$! Conversely, take any $\\mathbf{z} \\in \\operatorname{Null}(P)$ (so $P\\mathbf{z}=\\mathbf{0}$) and compute $(I_n - P)\\mathbf{z}$—it equals $\\mathbf{z}$ itself!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. How can two nonzero matrices multiply to produce the all-zero matrix $0$? Think of $B$ as a launcher whose outgoing projectiles all land inside the target zone $\operatorname{Col}(B)$, while $\operatorname{Null}(A)$ is the black hole of $A$ that annihilates everything inside it. As long as the entire landing zone $\operatorname{Col}(B)$ of $B$ sits 100% inside the black hole $\operatorname{Null}(A)$ of $A$, any input $\mathbf{x}$ first gets mapped to $B\mathbf{x} \in \operatorname{Null}(A)$ and is then annihilated by $A$ into $\mathbf{0}$!
+2. For an idempotent matrix $P^2 = P$, the identity decomposition $\mathbf{x} = P\mathbf{x} + (I_n - P)\mathbf{x}$ works like magic: the first piece $P\mathbf{x}$ automatically lives in $\operatorname{Col}(P)$, while multiplying the second piece $(I_n - P)\mathbf{x}$ on the left by $P$ gives $(P - P^2)\mathbf{x} = \mathbf{0}$, so it automatically lives in $\operatorname{Null}(P)$! And if a vector $\mathbf{w}$ lies in both $\operatorname{Col}(P)$ (where $P$ leaves it untouched: $P\mathbf{w} = \mathbf{w}$) and $\operatorname{Null}(P)$ (where $P$ kills it: $P\mathbf{w} = \mathbf{0}$), then $\mathbf{w}$ has no choice but to be the zero vector $\mathbf{w} = \mathbf{0}$!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **Proof that $AB = 0 \iff \operatorname{Col}(B) \subseteq \operatorname{Null}(A)$**:
+   - $(\implies)$ Suppose $AB = 0$. For any $\mathbf{y} \in \operatorname{Col}(B)$, there exists $\mathbf{x} \in \mathbb{R}^p$ such that $\mathbf{y} = B\mathbf{x}$. Then $A\mathbf{y} = A(B\mathbf{x}) = (AB)\mathbf{x} = 0\mathbf{x} = \mathbf{0} \implies \mathbf{y} \in \operatorname{Null}(A)$. Hence $\operatorname{Col}(B) \subseteq \operatorname{Null}(A)$.
+   - $(\impliedby)$ Suppose $\operatorname{Col}(B) \subseteq \operatorname{Null}(A)$. For each column $\mathbf{b}_j = B\mathbf{e}_j \in \operatorname{Col}(B)$ ($j = 1, \dots, p$), we have $\mathbf{b}_j \in \operatorname{Null}(A) \implies A\mathbf{b}_j = \mathbf{0}$. Thus $AB = \begin{bmatrix} A\mathbf{b}_1 & \cdots & A\mathbf{b}_p \end{bmatrix} = 0$.
+
+2. **Proof of the direct-sum subspace decomposition for an idempotent matrix**:
+   - Since $P(I_n - P) = P - P^2 = 0$, Part 1 yields $\operatorname{Col}(I_n - P) \subseteq \operatorname{Null}(P)$. Conversely, for any $\mathbf{z} \in \operatorname{Null}(P)$, we have $P\mathbf{z} = \mathbf{0}$, so $\mathbf{z} = \mathbf{z} - P\mathbf{z} = (I_n - P)\mathbf{z} \in \operatorname{Col}(I_n - P)$, which proves $\operatorname{Null}(P) \subseteq \operatorname{Col}(I_n - P)$. By mutual inclusion, **$\operatorname{Col}(I_n - P) = \operatorname{Null}(P)$**.
+   - **Trivial intersection**: Take any $\mathbf{w} \in \operatorname{Col}(P) \cap \operatorname{Null}(P)$. Since $\mathbf{w} \in \operatorname{Col}(P)$, there exists $\mathbf{y}$ such that $\mathbf{w} = P\mathbf{y}$, whence $P\mathbf{w} = P^2\mathbf{y} = P\mathbf{y} = \mathbf{w}$. Since $\mathbf{w} \in \operatorname{Null}(P)$, we also have $P\mathbf{w} = \mathbf{0}$. Combining the two gives $\mathbf{w} = \mathbf{0}$, so $\operatorname{Col}(P) \cap \operatorname{Null}(P) = \{\mathbf{0}\}$.
+   - **Existence and uniqueness of decomposition**: For any $\mathbf{x} \in \mathbb{R}^n$, set $\mathbf{u} = P\mathbf{x} \in \operatorname{Col}(P)$ and $\mathbf{v} = (I_n - P)\mathbf{x} \in \operatorname{Null}(P)$; clearly $\mathbf{x} = \mathbf{u} + \mathbf{v}$. If $\mathbf{x} = \mathbf{u}' + \mathbf{v}'$ is another such decomposition, subtracting gives $\mathbf{u} - \mathbf{u}' = \mathbf{v}' - \mathbf{v} \in \operatorname{Col}(P) \cap \operatorname{Null}(P) = \{\mathbf{0}\}$ (by subspace closure), whence $\mathbf{u}' = \mathbf{u}$ and $\mathbf{v}' = \mathbf{v}$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>
+
+<FrontierAIReading
+  id="AI-02"
+  title="High-Dimensional Representation Subspaces & Linear Probing: What Column Space Do Neural Hidden Layers Span?"
+  paperRef="Alain & Bengio (ICLR 2017 Workshop) Understanding Intermediate Layers Using Linear Classifier Probes · Elhage et al. (2022) Toy Models of Superposition"
+>
+
+In modern deep learning and large language model interpretability (**Mechanistic Interpretability**), a central theoretical pillar is the **Linear Representation Hypothesis**: neural networks encode high-level semantic concepts (such as part of speech, truthfulness, geographic coordinates, or syntactic code roles) as **1D linear directions or low-dimensional linear subspaces** inside their high-dimensional hidden space $\mathbb{R}^d$. The standard experimental tool for testing this hypothesis—**Linear Probing**—is mathematically 100% equivalent to our Lecture 06 analysis of **column space inclusion $\mathbf{y} \in \operatorname{Col}(H)$** and **silent nullspace directions $\operatorname{Null}(W)$**!
+
+### 1. The Column Space of the Activation Matrix $H$: When Can a Linear Probe Decode a Target Attribute?
+
+Suppose we feed $N$ examples (say, $N = 10{,}000$ natural language sentences) into a frozen pre-trained Transformer and extract the hidden state vectors $\mathbf{h}_1, \dots, \mathbf{h}_N \in \mathbb{R}^d$ at layer $\ell$ (say, $d = 4096$), stacking them row by row into the **sample-by-feature activation matrix**:
+
+$$
+H = \begin{bmatrix}
+\mathbf{h}_1^T \\
+\mathbf{h}_2^T \\
+\vdots \\
+\mathbf{h}_N^T
+\end{bmatrix} \in \mathbb{R}^{N \times d}
+$$
+
+Training a bias-free **linear probe** to predict a target scalar attribute $\mathbf{y} = (y_1, \dots, y_N)^T \in \mathbb{R}^N$ (such as sentiment polarity or world coordinates) means keeping $H$ frozen and searching for a probe weight vector $\mathbf{w} \in \mathbb{R}^d$ that solves the linear system:
+
+$$
+H \mathbf{w} = \mathbf{y}
+$$
+
+Applying **Definition 6.1** and our solvability criterion from this lecture reveals two immediate geometric truths in high dimensions:
+
+1. **Perfect linear decodability holds if and only if $\mathbf{y} \in \operatorname{Col}(H) \subseteq \mathbb{R}^N$**:
+   Inside the massive $N$-dimensional sample-outcome space $\mathbb{R}^N$ (typically $N \gg d$, so $H$ is a tall-and-thin matrix!), $H$ has only $d$ feature columns, so its column space $\operatorname{Col}(H)$ is at most a razor-thin $d$-dimensional subspace slice inside $\mathbb{R}^N$!
+   - In shallow layers, before nonlinearly tangled features have been "unfolded and flattened," the target vector $\mathbf{y}$ sits far outside $\operatorname{Col}(H)$, and no linear probe can succeed.
+   - As depth increases, Transformer attention and MLP blocks iteratively fold and rearrange the space, pulling the target semantic vector $\mathbf{y}$ cleanly toward the column space $\operatorname{Col}(H^{(L)})$ of the deep activation matrix, causing linear probe accuracy to surge!
+
+2. **The Overparameterized Probe Trap (when $d \gt N$)**:
+   Conversely, if you train a linear probe in a few-shot regime (say, sampling only $N = 512$ probing sentences while the hidden dimension is $d = 4096 \gt N$), then $H \in \mathbb{R}^{512 \times 4096}$ becomes a **short-and-wide matrix** (just like Exercise `l06-ex1` above)! Barring extreme degeneracy among the activations, its $4096$ columns will almost surely span the entire space $\mathbb{R}^{512}$ ($\operatorname{Col}(H) = \mathbb{R}^{512}$)—which means that **even if $\mathbf{y}$ consists of pure random coin-flip noise labels, the equation $H\mathbf{w} = \mathbf{y}$ is 100% guaranteed to have an exact solution (in fact, infinitely many solutions, with the nullspace $\operatorname{Null}(H) \subseteq \mathbb{R}^{4096}$ having at least $4096 - 512 = 3584$ dimensions of freedom)**! Pure linear algebra thus delivers a stern warning to AI researchers: whenever feature dimension $d \ge N$, achieving 100% probe fit on the training set is completely vacuous; regularization and held-out test evaluation are mandatory!
+
+---
+
+### 2. The Nullspace $\operatorname{Null}(W)$ of a Linear Layer Weight Matrix $W$: "Silent Perturbations" and Superposition
+
+Now consider any linear projection layer $\mathbf{z} = W \mathbf{h}$ inside a neural network, with weight matrix $W \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}$ (for example, the down-projection layer $W_{\text{down}} \in \mathbb{R}^{d \times 4d}$ in a Transformer FFN that compresses dimension $4d$ back down to $d$):
+
+- Here the number of columns $4d$ vastly exceeds the number of rows $d$. By the definition of the nullspace, the input space $\mathbb{R}^{4d}$ must contain a massive **nullspace $\operatorname{Null}(W_{\text{down}}) \subseteq \mathbb{R}^{4d}$** (of dimension at least $3d$!).
+- **Physical meaning of the nullspace—a "silent subspace" invisible to downstream layers**: For any nonzero perturbation vector $\boldsymbol{\delta} \in \operatorname{Null}(W)$, no matter how large its magnitude, passing through the layer yields:
+
+$$
+W(\mathbf{h} + \boldsymbol{\delta}) = W\mathbf{h} + W\boldsymbol{\delta} = W\mathbf{h} + \mathbf{0} = W\mathbf{h}
+$$
+
+  In other words, the linear layer $W$ is **completely blind** to every activation component lying inside $\operatorname{Null}(W)$! In **Superposition** and **Activation Steering** experiments, if a steering vector injected into a large language model happens to align with the nullspace of a downstream linear projection, the final output logits will remain completely unchanged even if intermediate activation norms shift dramatically!
+
+<CollapsibleCode title="PyTorch Tensor Dimension Verification (Confirming d > N Probes Overfit Pure Noise & Null(W) Perturbations Are 100% Silent)">
+
+```python
+import torch
+
+torch.manual_seed(0)
+
+# 1. Verify the overparameterized linear probe trap: when N=64 samples < d=256 hidden dim, Col(H) = R^N fits pure random noise!
+N, d = 64, 256
+H = torch.randn(N, d)                  # (64, 256) short-and-wide activation matrix
+y_random_noise = torch.randn(N, 1)     # Completely random meaningless labels y in R^64
+
+# Solve H w = y: since y in Col(H) = R^64, the residual is strictly 0!
+w_probe = torch.linalg.lstsq(H, y_random_noise).solution
+residual = torch.norm(H @ w_probe - y_random_noise).item()
+assert residual < 1e-5, f"Expected zero residual, got {residual}"
+
+# 2. Verify silent nullspace perturbations in FFN down-projection W_down in R^(64 x 256): W(h + delta) == W h
+W_down = torch.randn(64, 256)
+# Use SVD to extract orthonormal directions in Null(W_down) (right singular vectors in rows 64..255 satisfy W v = 0)
+_, _, Vh = torch.linalg.svd(W_down, full_matrices=True)
+null_basis = Vh[64:, :].T              # (256, 192), spanning the 192-dimensional Null(W_down)
+
+h = torch.randn(256, 1)
+delta_in_null = null_basis @ torch.randn(192, 1) * 100.0  # Huge perturbation scaled by 100x!
+
+out_clean = W_down @ h
+out_perturbed = W_down @ (h + delta_in_null)
+assert torch.allclose(out_clean, out_perturbed, atol=1e-4)
+print("Verified: Col(H)=R^N fits arbitrary noise & Null(W_down) perturbations are 100% silent!")
+```
+
+</CollapsibleCode>
+
+</FrontierAIReading>

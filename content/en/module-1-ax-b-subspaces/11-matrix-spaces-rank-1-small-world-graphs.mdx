@@ -1,0 +1,550 @@
+## Beyond Euclidean Column Vectors: Matrices Are "Vectors" Too!
+
+Across our first ten lectures, every vector we met looked like a vertical column of numbers $\mathbf{v} \in \mathbb{R}^n$. Yet back in Lecture 05, when we defined a vector space, we planted a seed of tremendous abstract power: **as long as a collection of objects can be added to one another, multiplied by real scalars, and obeys the eight fundamental arithmetic axioms, it is a genuine Real Vector Space**—whether its elements are column arrays, matrices, or smooth functions!
+
+Gilbert Strang opens Lecture 11 by taking this decisive leap: consider the **Matrix Space** of all $3 \times 3$ real matrices, denoted $M = \mathbb{R}^{3\times 3}$. Even though two $3 \times 3$ matrices can be multiplied together, when we study $M$ as a vector space we **completely ignore matrix multiplication for now** and care only about matrix addition $A + B$ and scalar multiplication $cA$!
+
+<DefinitionCard id="def-11-1" title="Matrix Space M = ℝ³ˣ³ and Its Three Classic Subspaces">
+Let $M = \mathbb{R}^{3\times 3}$ be the vector space of all $3 \times 3$ real matrices under matrix addition and real scalar multiplication. Using the matrices $E_{ij}$ (which have a $1$ in the $(i,j)$ entry and $0$ in the other $8$ positions) as the standard basis—analogous to the standard coordinate vectors of $\mathbb{R}^9$—we clearly have $\dim(M) = 9$. Inside $M$, the three most important subspaces are:
+1. **Subspace of Symmetric Matrices** $S = \{ A \in M : A^T = A \}$:
+   Sums and scalar multiples of symmetric matrices remain symmetric. The $3$ main diagonal entries can be chosen freely, and once the $3$ entries above the diagonal are chosen, the $3$ entries below the diagonal are locked by mirror symmetry. Hence **$\dim(S) = 6$**! Its standard basis consists of the $3$ diagonal matrices $E_{11}, E_{22}, E_{33}$ together with the $3$ symmetric pair matrices $E_{12}+E_{21},\; E_{13}+E_{31},\; E_{23}+E_{32}$.
+2. **Subspace of Upper-Triangular Matrices** $U = \{ A \in M : a_{ij} = 0 \; (\forall i \gt j) \}$:
+   Every entry strictly below the main diagonal is $0$, leaving $3 + 2 + 1 = 6$ free entries on and above the main diagonal. Thus **$\dim(U) = 6$**! Its standard basis is $\{ E_{ij} : 1 \le i \le j \le 3 \}$.
+3. **Subspace of Diagonal Matrices** $D = S \cap U$:
+   Being both symmetric (upper-right equals lower-left) and upper-triangular (lower-left is all $0$) forces the upper-right entries to be all $0$ as well! Only the $3$ main diagonal entries remain free, so the intersection $D = S \cap U$ is also a subspace with **$\dim(S \cap U) = 3$**, and its basis is $\{E_{11}, E_{22}, E_{33}\}$.
+</DefinitionCard>
+
+### Intersection and Sum of Subspaces: Grassmann's Dimension Formula
+
+Since the **intersection** $S \cap U = D$ is a $3$-dimensional subspace, what about their **union** $S \cup U$? As Lecture 06 warned us, the union of two subspaces is **not** a subspace (add a non-diagonal symmetric matrix to a non-diagonal upper-triangular matrix, and the result is neither symmetric nor upper-triangular!). The natural construction closed under linear combinations is the **sum of subspaces** $S + U$:
+
+$$
+S + U \triangleq \{ A_1 + A_2 \mid A_1 \in S,\; A_2 \in U \}
+$$
+
+How large is $S + U$ inside $M = \mathbb{R}^{3\times 3}$? Given any arbitrary $3 \times 3$ matrix $A$, you can always copy its strictly lower-triangular part across the diagonal into the upper-right to form a symmetric matrix $A_1 \in S$, and then add an upper-triangular adjustment matrix $A_2 = A - A_1 \in U$ to restore the main diagonal and upper-right entries back to those of $A$! Therefore, **every $3 \times 3$ matrix can be written as a symmetric matrix plus an upper-triangular matrix**, which means $S + U = M$ and $\dim(S + U) = 9$!
+
+Look closely at those four striking numbers: $\dim(S) = 6$, $\dim(U) = 6$, $\dim(S \cap U) = 3$, and $\dim(S + U) = 9$. They satisfy $6 + 6 = 3 + 9$! This is no coincidence—it is **Grassmann's Dimension Formula**, which holds in every finite-dimensional vector space.
+
+<MatrixSubspacesAndRank1BlocksDiagram caption="Subspaces of M = ℝ³ˣ³ (Grassmann's formula 6 + 6 = 3 + 9 for S, U, S ∩ U, and S + U) alongside the rank-1 outer product building blocks A = ∑ u_k v_k^T." />
+
+<TheoremCard id="thm-11-1" title="Grassmann's Dimension Formula for Intersection and Sum of Subspaces">
+Let $V$ be a finite-dimensional vector space over $\mathbb{R}$, and let $S$ and $U$ be any two subspaces of $V$. Then both the intersection $S \cap U$ and the sum space $S + U = \{ \mathbf{s} + \mathbf{u} : \mathbf{s} \in S, \mathbf{u} \in U \}$ are subspaces of $V$, and their dimensions always satisfy:
+
+$$
+\dim(S) + \dim(U) = \dim(S \cap U) + \dim(S + U)
+$$
+
+In particular, $\dim(S + U) = \dim(S) + \dim(U)$ if and only if $S \cap U = \{\mathbf{0}\}$ (zero intersection). In that case, the sum space is called a **Direct Sum**, written $S \oplus U$, and every vector in $S \oplus U$ decomposes **uniquely** as $\mathbf{s} + \mathbf{u}$.
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof via Basis Extension: Why Is the Intersection Dimension Counted Twice?">
+Let $\dim(S \cap U) = k$, $\dim(S) = p$, and $\dim(U) = q$. Choose a basis $\{\mathbf{w}_1, \dots, \mathbf{w}_k\}$ for the intersection $S \cap U$:
+1. Because $\{\mathbf{w}_1, \dots, \mathbf{w}_k\} \subseteq S$ is linearly independent, we can extend it to a basis of $S$: $\{\mathbf{w}_1, \dots, \mathbf{w}_k, \mathbf{s}_1, \dots, \mathbf{s}_{p-k}\}$. Similarly, we can extend it to a basis of $U$: $\{\mathbf{w}_1, \dots, \mathbf{w}_k, \mathbf{u}_1, \dots, \mathbf{u}_{q-k}\}$.
+2. Consider the combined collection $\mathcal{B} = \{\mathbf{w}_1, \dots, \mathbf{w}_k, \mathbf{s}_1, \dots, \mathbf{s}_{p-k}, \mathbf{u}_1, \dots, \mathbf{u}_{q-k}\}$, which contains $k + (p-k) + (q-k) = p + q - k$ vectors:
+   - **Spanning**: For any $\mathbf{x} = \mathbf{s} + \mathbf{u} \in S + U$, expanding $\mathbf{s}$ in the basis of $S$ and $\mathbf{u}$ in the basis of $U$ immediately shows that $\mathcal{B}$ spans $S + U$.
+   - **Linear Independence**: Suppose $\sum_{i=1}^k \alpha_i \mathbf{w}_i + \sum_{j=1}^{p-k} \beta_j \mathbf{s}_j + \sum_{\ell=1}^{q-k} \gamma_\ell \mathbf{u}_\ell = \mathbf{0}$. Move the $\mathbf{u}_\ell$ terms to the right-hand side:
+
+     $$
+     \mathbf{z} \triangleq \sum_{i=1}^k \alpha_i \mathbf{w}_i + \sum_{j=1}^{p-k} \beta_j \mathbf{s}_j = -\sum_{\ell=1}^{q-k} \gamma_\ell \mathbf{u}_\ell
+     $$
+
+     The left-hand side shows $\mathbf{z} \in S$, while the right-hand side shows $\mathbf{z} \in U$, so $\mathbf{z} \in S \cap U$! Therefore, the right-hand vector $-\sum \gamma_\ell \mathbf{u}_\ell$ can be written as a linear combination of the intersection basis $\{\mathbf{w}_1,\dots,\mathbf{w}_k\}$: there exist scalars $\delta_i$ such that $\sum_{i=1}^k \delta_i \mathbf{w}_i + \sum_{\ell=1}^{q-k} \gamma_\ell \mathbf{u}_\ell = \mathbf{0}$. Since $\{\mathbf{w}_i, \mathbf{u}_\ell\}$ is a basis for $U$ (and hence linearly independent), every $\gamma_\ell = 0$! Substituting $\gamma_\ell = 0$ back into the original equation gives $\sum_{i=1}^k \alpha_i \mathbf{w}_i + \sum_{j=1}^{p-k} \beta_j \mathbf{s}_j = \mathbf{0}$, and linear independence of the basis of $S$ forces all $\alpha_i = 0$ and $\beta_j = 0$!
+3. Thus $\mathcal{B}$ is a basis for $S + U$, giving $\dim(S + U) = p + q - k = \dim(S) + \dim(U) - \dim(S \cap U)$. Q.E.D.
+</ProofCollapse>
+
+### Crossing the Boundary: The "Nullspace" of a Differential Equation Has a Basis and Dimension Too!
+
+The reach of linear algebra goes far beyond matrices. Consider the second-order homogeneous linear ordinary differential equation (ODE):
+
+$$
+\frac{d^2 y}{dx^2} + y = 0
+$$
+
+Treat smooth functions $y(x)$ as vectors. The linear differential operator $\mathcal{L}(y) = y'' + y$ satisfies $\mathcal{L}(c_1 y_1 + c_2 y_2) = c_1 \mathcal{L}(y_1) + c_2 \mathcal{L}(y_2)$. Consequently, **the set of all solutions to this ODE is literally the Nullspace of the linear operator $\mathcal{L}$**! What is a basis for this solution space? None other than your familiar functions $\cos x$ and $\sin x$ (or $e^{ix}$ and $e^{-ix}$ over the complex numbers)! The general solution is written as:
+
+$$
+y(x) = c_1 \cos x + c_2 \sin x
+$$
+
+Translated into the language of 18.06, that calculus formula says just one thing: **the solution space of a second-order homogeneous linear ODE is a $2$-dimensional vector subspace (where dimension $2$ matches the $2$ initial degrees of freedom $y(0), y'(0)$ required by a second derivative), and $\{\cos x, \sin x\}$ is a basis for it!**
+
+---
+
+## Rank-1 Matrices: The "Atomic Building Blocks" of All Linear Transformations
+
+Returning to the world of $m \times n$ matrices, what is the simplest possible nonzero matrix? The answer is a **Rank-1 Matrix**—a matrix with a single pivot $r = 1$. For instance, examine this $2 \times 3$ matrix:
+
+$$
+A_1 = \begin{bmatrix} 1 & 4 & 5 \\ 2 & 8 & 10 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \end{bmatrix} \begin{bmatrix} 1 & 4 & 5 \end{bmatrix} = \mathbf{u}\mathbf{v}^T
+$$
+
+Look closely at $A_1$: Row 2 is $2$ times Row 1, so its row space is the $1$-dimensional line $\operatorname{span}\{(1,4,5)^T\}$; every column is a multiple of $(1,2)^T$, so its column space is also the $1$-dimensional line $\operatorname{span}\{(1,2)^T\}$! Even better, $A_1$ factors cleanly as **one column times one row (an outer product $\mathbf{u}\mathbf{v}^T$)**! This is not a special coincidence—it is the exact algebraic signature of every rank-1 matrix, and the atomic building block from which every rank-$r$ matrix is constructed!
+
+<InteractiveCanvasSlot
+  id="l11-rank1-builder"
+  title="Interactive Lab: Rank-1 Outer Product Slice Builder (A = ∑ uᵢvᵢᵀ)"
+  description="Drag column vectors u_i and row vectors v_i^T to generate rank-1 outer product slices in real time, and watch the matrix rank climb step by step from 1 to r to experience the geometry of low-rank approximation."
+/>
+
+<TheoremCard id="thm-11-2" title="Rank-1 Outer Product Characterization, Rank-r Atomic Decomposition & Subadditivity of Rank">
+Let $A \in \mathbb{R}^{m\times n}$.
+1. **Outer Product Characterization of Rank-1 Matrices**: $\operatorname{rank}(A) = 1$ **if and only if** there exist nonzero column vectors $\mathbf{u} \in \mathbb{R}^m \setminus \{\mathbf{0}\}$ and $\mathbf{v} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$ such that $A = \mathbf{u}\mathbf{v}^T$. In this case, $\operatorname{Col}(A) = \operatorname{span}\{\mathbf{u}\}$, $\operatorname{Row}(A) = \operatorname{span}\{\mathbf{v}\}$, and $\operatorname{Null}(A) = \{\mathbf{x} \in \mathbb{R}^n : \mathbf{v}^T\mathbf{x} = 0\}$ (the $(n-1)$-dimensional hyperplane perpendicular to $\mathbf{v}$).
+2. **Atomic Rank-$r$ Decomposition**: For any nonzero matrix $A \in \mathbb{R}^{m\times n}$, $\operatorname{rank}(A) = r$ **if and only if** $r$ is the **smallest positive integer** such that $A$ can be expressed as a sum of $r$ rank-1 matrices; that is, there exist a full-column-rank matrix $C \in \mathbb{R}^{m\times r}$ and a full-row-rank matrix $F \in \mathbb{R}^{r\times n}$ such that:
+
+   $$
+   A = C F = \sum_{k=1}^{r} \mathbf{u}_k \mathbf{v}_k^T \qquad (\text{where } \mathbf{u}_k \text{ is the } k\text{-th column of } C \text{ and } \mathbf{v}_k^T \text{ is the } k\text{-th row of } F)
+   $$
+
+3. **Subadditivity of Matrix Rank**: For any two matrices $A, B \in \mathbb{R}^{m\times n}$ of the same size:
+
+   $$
+   |\operatorname{rank}(A) - \operatorname{rank}(B)| \le \operatorname{rank}(A + B) \le \operatorname{rank}(A) + \operatorname{rank}(B)
+   $$
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: From Pivot Column Factorization A = CR₀ to Rank Subadditivity">
+1. **Rank-1 Characterization**: If $A = \mathbf{u}\mathbf{v}^T$ with $\mathbf{u},\mathbf{v}\neq\mathbf{0}$, then since $\mathbf{v}$ has at least one nonzero entry $v_j \neq 0$, the $j$-th column $v_j \mathbf{u} \neq \mathbf{0}$, while every $k$-th column is $v_k \mathbf{u} \in \operatorname{span}\{\mathbf{u}\}$. Thus $\operatorname{Col}(A) = \operatorname{span}\{\mathbf{u}\}$ and $\operatorname{rank}(A) = 1$. Conversely, if $\operatorname{rank}(A) = 1$, pick a nonzero basis vector $\mathbf{u}$ of $\operatorname{Col}(A)$. Then each column $\mathbf{a}_k$ of $A$ is a scalar multiple $\mathbf{a}_k = v_k \mathbf{u}$ (not all zero); setting $\mathbf{v} = (v_1,\dots,v_n)^T \neq \mathbf{0}$ yields $A = \mathbf{u}\mathbf{v}^T$.
+2. **Rank-$r$ Atomic Decomposition and Minimality**:
+   - **Constructing the $r$-term decomposition (the classic $A = CR_0$ factorization)**: Suppose $\operatorname{rank}(A) = r \ge 1$, and let $C \in \mathbb{R}^{m\times r}$ consist of the $r$ linearly independent pivot columns of $A$. Since every column $\mathbf{a}_j$ of $A$ is a unique linear combination of the pivot columns, collecting those combination coefficients forms a matrix $F \in \mathbb{R}^{r\times n}$ (in fact, $F$ is precisely $R_0$, the first $r$ nonzero rows of $\operatorname{rref}(A)$ after dropping the bottom zero rows!). This gives $A = C F = \sum_{k=1}^r \mathbf{u}_k \mathbf{v}_k^T$ via the column-times-row outer product perspective from Lecture 03.
+   - **Proving Part 3 first (Subadditivity of Rank)**: For any $\mathbf{y} \in \operatorname{Col}(A + B)$, there exists $\mathbf{x}$ such that $\mathbf{y} = (A+B)\mathbf{x} = A\mathbf{x} + B\mathbf{x} \in \operatorname{Col}(A) + \operatorname{Col}(B)$. Hence $\operatorname{Col}(A + B) \subseteq \operatorname{Col}(A) + \operatorname{Col}(B)$! Taking dimensions on both sides and applying Theorem 11.1 (Grassmann's formula) gives:
+
+     $$
+     \operatorname{rank}(A + B) = \dim\operatorname{Col}(A + B) \le \dim(\operatorname{Col}(A) + \operatorname{Col}(B)) \le \dim\operatorname{Col}(A) + \dim\operatorname{Col}(B) = \operatorname{rank}(A) + \operatorname{rank}(B)
+     $$
+
+     Substituting $A = (A+B) + (-B)$ into this inequality yields $\operatorname{rank}(A) \le \operatorname{rank}(A+B) + \operatorname{rank}(B)$; rearranging and using symmetry establishes the lower bound $|\operatorname{rank}(A) - \operatorname{rank}(B)| \le \operatorname{rank}(A + B)$.
+   - **Proving the minimality of $r$**: If $A = \sum_{k=1}^s \mathbf{p}_k \mathbf{q}_k^T$ is a sum of $s$ rank-1 matrices, repeated application of rank subadditivity gives $r = \operatorname{rank}(A) \le \sum_{k=1}^s 1 = s$. Therefore, no matrix of rank $r$ can be built from fewer than $r$ rank-1 pieces!
+</ProofCollapse>
+
+### Zero-Sum Hyperplanes in $\mathbb{R}^4$ and a Preview of Small-World Graphs
+
+Before wrapping up Lecture 11, Strang presents two delightful miniatures:
+
+1. **The Subspace of Zero-Sum Vectors in $\mathbb{R}^4$**: Consider the set $S = \{ \mathbf{v} = (v_1, v_2, v_3, v_4)^T \in \mathbb{R}^4 : v_1 + v_2 + v_3 + v_4 = 0 \}$. Is $S$ a subspace? Of course! The single scalar equation $v_1 + v_2 + v_3 + v_4 = 0$ is literally the nullspace equation $A\mathbf{v} = 0$ for the $1 \times 4$ row matrix $A = \begin{bmatrix} 1 & 1 & 1 & 1 \end{bmatrix}$! Since $A$ has rank $r = 1$, we can read off all four fundamental subspaces of $A$ without a single step of elimination:
+   - **Nullspace $S = \operatorname{Null}(A) \subseteq \mathbb{R}^4$**: Dimension $4 - 1 = 3$ (a $3$-dimensional hyperplane in $\mathbb{R}^4$), with special-solution basis $(-1,1,0,0)^T,\; (-1,0,1,0)^T,\; (-1,0,0,1)^T$;
+   - **Row Space $\operatorname{Row}(A) \subseteq \mathbb{R}^4$**: Dimension $r = 1$, with basis $(1,1,1,1)^T$;
+   - **Column Space $\operatorname{Col}(A) = \mathbb{R}^1$**: Dimension $r = 1$, with basis $(1)$;
+   - **Left Nullspace $\operatorname{Null}(A^T) \subseteq \mathbb{R}^1$**: Dimension $m - r = 1 - 1 = 0$, containing only the zero scalar $\{0\}$ (**remember: the basis of a zero-dimensional subspace is the empty set $\varnothing$, never the number $0$!**).
+
+2. **Small-World Graphs and the Bridge to Lecture 12**: If we represent every person in the world as a **Node** and place an **Edge** between any two people who know each other, the famous "Six Degrees of Separation" conjecture states that any two people are connected by a path of at most $6$ edges—because adding even a tiny handful of random long-range **shortcuts** to a regular lattice causes the average shortest path length across the entire network to collapse dramatically! How can we use a matrix to encode all nodes, edges, and loops of a network graph with complete precision? That is the marvel waiting for us in Lecture 12: *Graphs, Networks, Incidence Matrices*.
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+1. **Pitfall 1: Believing that "all rank-4 matrices (or all rank-1 matrices)" form a subspace of $M$!**
+   **Never a subspace (a classic exam trap)!** First, the zero matrix has rank $0$, so it doesn't even belong to the set of rank-$k$ matrices ($k \ge 1$). Second, the set fails closure under addition completely: adding two rank-1 matrices can either increase the rank to $2$ (such as $E_{11} + E_{22} = \operatorname{diag}(1,1)$) or cancel out to rank $0$ (such as $E_{11} + (-E_{11}) = 0$)! Memorize this iron rule: **sets of matrices of fixed positive rank, invertible matrices, or matrices with $\det(A) = 1$ are NEVER subspaces!**
+2. **Pitfall 2: Thinking the zero subspace $\{\mathbf{0}\}$ has dimension $1$, or writing its basis as $\{\mathbf{0}\}$**
+   By the strict definition of linear independence, the zero vector $\mathbf{0}$ by itself is linearly dependent ($1\cdot\mathbf{0} = \mathbf{0}$ has a nonzero coefficient), so **no basis may ever contain the zero vector $\mathbf{0}$**! The trivial zero subspace $\{\mathbf{0}\}$ (such as $\operatorname{Null}(A^T)$ above) has **dimension $0$**, and its basis is the **empty set $\varnothing$** (containing $0$ vectors).
+3. **Pitfall 3: Assuming $\operatorname{rank}(A + B) = \operatorname{rank}(A) + \operatorname{rank}(B)$ holds in general**
+   Rank satisfies only the inequality $\operatorname{rank}(A+B) \le \operatorname{rank}(A) + \operatorname{rank}(B)$, never equality in general! Equality holds if and only if $\operatorname{Col}(A) \cap \operatorname{Col}(B) = \{\mathbf{0}\}$ and $\operatorname{Row}(A) \cap \operatorname{Row}(B) = \{\mathbf{0}\}$ (both the column spaces and the row spaces of the two matrices have zero intersection).
+</PitfallAlert>
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "Inside the matrix space $M = \\mathbb{R}^{m\\times n}$ ($\\dim = mn$), symmetric, upper-triangular, diagonal, and trace-zero matrices each form subspaces, whereas **matrices of fixed rank and invertible matrices never form subspaces**.",
+    "**Grassmann's Dimension Formula**: For any two subspaces $S, U$ of the same vector space, $\\dim(S) + \\dim(U) = \\dim(S \\cap U) + \\dim(S + U)$ (for $3\\times 3$ symmetric and upper-triangular matrices: $6 + 6 = 3 + 9$).",
+    "**Rank-1 Atomic Decomposition Theorem**: Every rank-1 matrix has the outer product form $\\mathbf{u}\\mathbf{v}^T$, and every rank-$r$ matrix can be written as a sum of at minimum $r$ rank-1 outer products: $A = \\sum_{k=1}^r \\mathbf{u}_k\\mathbf{v}_k^T$.",
+    "**Subadditivity of Matrix Rank**: $|\\operatorname{rank}(A) - \\operatorname{rank}(B)| \\le \\operatorname{rank}(A+B) \\le \\operatorname{rank}(A) + \\operatorname{rank}(B)$."
+  ]}
+/>
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+  <ExerciseCard
+    id="l11-ex1"
+    tier="L1"
+    tierLabel="L1 · Quick Geometric Check"
+    title="Subspaces of Matrix Space: Bases and Dimensions of Skew-Symmetric and Trace-Zero Matrices"
+  >
+    In the $3 \times 3$ real matrix space $M = \mathbb{R}^{3\times 3}$ ($\dim(M) = 9$), consider two important subsets:
+    - **Skew-Symmetric Matrices** $K = \{ A \in M : A^T = -A \}$;
+    - **Trace-Zero Matrices** $Z = \{ A \in M : \operatorname{tr}(A) \triangleq a_{11} + a_{22} + a_{33} = 0 \}$.
+
+    1. Prove that both $K$ and $Z$ are subspaces of $M$, find $\dim(K)$ and $\dim(Z)$, and write down a standard basis for $K$;
+    2. Using Grassmann's Dimension Formula, find $\dim(S \cap K)$ and $\dim(S + K)$ for the symmetric subspace $S$ and skew-symmetric subspace $K$. What famous theorem about decomposing an arbitrary square matrix follows immediately?
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "For a skew-symmetric matrix $A^T = -A$, check the main diagonal first: what does $a_{ii} = -a_{ii}$ over the real numbers force $a_{11}, a_{22}, a_{33}$ to be? How many free entries remain above the diagonal?",
+        "Flatten a $3\\times 3$ matrix into a column vector in $\\mathbb{R}^9$: the single linear equation $a_{11} + a_{22} + a_{33} = 0$ ($1$ pivot) carves out a nullspace of dimension $9 - 1 = ?$",
+        "If $A \\in S \\cap K$, then $A = A^T = -A \\implies 2A = 0$! Since the intersection has dimension $0$, Grassmann's formula gives $6 + 3 - 0 = 9$!"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        Counting the dimension of a matrix subspace is simply counting "how many grid slots can be filled freely":
+        - For a skew-symmetric matrix $A^T = -A$, each diagonal entry equals its own negative, so the diagonal is forced to be all $0$! Only the $3$ upper-right slots can be chosen freely (the lower-left slots automatically mirror them with a minus sign), so $\dim(K) = 3$.
+        - The trace-zero condition $a_{11} + a_{22} + a_{33} = 0$ imposes just $1$ linear constraint on the $9$ entries, leaving $9 - 1 = 8$ degrees of freedom!
+        - Symmetric matrices ($6$-D) and skew-symmetric matrices ($3$-D) share only the zero matrix ($S \cap K = \{0\}$), and together their dimensions add up to $6 + 3 = 9$, spanning all of $M$—meaning every square matrix in the universe splits uniquely into a "symmetric part + skew-symmetric part"!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        1. **Subspace Verification and Dimensions**:
+           - For any $A, B \in K$ and $\alpha, \beta \in \mathbb{R}$, $(\alpha A + \beta B)^T = \alpha A^T + \beta B^T = -\alpha A - \beta B = -(\alpha A + \beta B)$, so $K$ is a subspace. From $a_{ji} = -a_{ij}$, setting $i=j$ gives $a_{11}=a_{22}=a_{33}=0$, leaving only the three free parameters $a_{12}, a_{13}, a_{23}$. Thus **$\dim(K) = 3$**, with standard basis:
+
+             $$
+             \mathcal{B}_K = \left\{ E_{12} - E_{21},\; E_{13} - E_{31},\; E_{23} - E_{32} \right\}
+             $$
+
+           - The trace operator $\operatorname{tr}: M \to \mathbb{R}$ is linear: $\operatorname{tr}(\alpha A + \beta B) = \alpha\operatorname{tr}(A) + \beta\operatorname{tr}(B)$. Thus $Z = \ker(\operatorname{tr})$ is the nullspace of a rank-1 linear functional, and the rank-nullity theorem yields **$\dim(Z) = 9 - 1 = 8$**.
+
+        2. **Grassmann's Formula and Direct Sum Decomposition**:
+           Suppose $A \in S \cap K$. Then $A = A^T = -A \implies 2A = 0 \implies A = 0$, so $S \cap K = \{0\}$ and $\dim(S \cap K) = 0$. By Theorem 11.1 (Grassmann's Dimension Formula):
+
+           $$
+           \dim(S + K) = \dim(S) + \dim(K) - \dim(S \cap K) = 6 + 3 - 0 = 9 = \dim(M)
+           $$
+
+           Hence $M = S \oplus K$! Indeed, every square matrix $A \in \mathbb{R}^{n\times n}$ decomposes **uniquely** as the sum of a symmetric matrix and a skew-symmetric matrix:
+
+           $$
+           A = \underbrace{\frac{A + A^T}{2}}_{\in S} + \underbrace{\frac{A - A^T}{2}}_{\in K}
+           $$
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l11-ex2"
+    tier="L2"
+    tierLabel="L2 · Conceptual True/False"
+    title="Conceptual Trap: Matrices of Rank at Most k vs. Matrices of Rank Exactly k"
+  >
+    Determine whether the following statement is true or false:
+
+    > **Statement**: In the $4 \times 4$ matrix space $M = \mathbb{R}^{4\times 4}$, although the set of matrices of rank *exactly* $1$ fails to be a subspace because it lacks the zero matrix, adjoining the zero matrix—that is, considering the set of all matrices of rank *at most* $1$, $\{ A \in M : \operatorname{rank}(A) \le 1 \}$—produces a valid vector subspace of $M$.
+
+    <TrueFalseInteractive
+      id="l11-tf1"
+      correct={false}
+      trueLabel="True"
+      falseLabel="False (Counterexample Exists)"
+      quickFeedback="Adding the zero matrix rescues closure under scalar multiplication ($\operatorname{rank}(cA) \le 1$), but it cannot rescue **closure under addition**! The sum of two rank-1 matrices can easily jump to rank 2 (for instance, $E_{11} + E_{22}$ has rank $2 \gt 1$), bursting right out of the set!"
+    />
+
+    Use two explicit $4 \times 4$ rank-1 matrices to prove that $\mathcal{R}_{\le 1} = \{ A \in \mathbb{R}^{4\times 4} : \operatorname{rank}(A) \le 1 \}$ is not closed under addition; then determine the minimum number of matrices from $\mathcal{R}_{\le 1}$ needed in a linear combination to build the $4 \times 4$ identity matrix $I_4$.
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "Take the simplest single-entry diagonal matrices $A = E_{11}$ ($1$ in the top-left corner) and $B = E_{22}$ ($1$ in the $(2,2)$ position). Each has rank $1$; how many pivots does $A + B$ have?",
+        "The identity matrix $I_4$ has rank $4$. By Theorem 11.2 (rank-$r$ atomic decomposition and minimality), what is the minimum number of rank-1 matrices required to sum to a rank-4 matrix?"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        Including the zero matrix makes the set pass through the origin, and any single ray $c A_1$ through the origin stays inside the set (like a bundle of needles pointing in various directions). However, adding two needles pointing in different directions spans a $2$-D plane that leaps right off the cone! In algebraic geometry, $\mathcal{R}_{\le k}$ is called a **Determinantal Variety**—it is a curved nonlinear cone, never a flat linear subspace (unless $k = 0$ or $k = \min(m,n)$).
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        **The statement is False.**
+
+        1. **Explicit Counterexample to Closure Under Addition**:
+           Take $A = E_{11} = \mathbf{e}_1 \mathbf{e}_1^T \in \mathcal{R}_{\le 1}$ and $B = E_{22} = \mathbf{e}_2 \mathbf{e}_2^T \in \mathcal{R}_{\le 1}$. Clearly $\operatorname{rank}(A) = \operatorname{rank}(B) = 1$. Yet their sum
+
+           $$
+           A + B = \operatorname{diag}(1, 1, 0, 0)
+           $$
+
+           has $2$ nonzero pivots, so $\operatorname{rank}(A + B) = 2 \gt 1$. Thus $A + B \notin \mathcal{R}_{\le 1}$, violating closure under addition!
+
+        2. **Minimum Number of Rank-1 Terms to Build $I_4$**:
+           Since $\operatorname{rank}(I_4) = 4$, rank subadditivity (Theorem 11.2) implies that if $I_4 = \sum_{i=1}^s M_i$ with $M_i \in \mathcal{R}_{\le 1}$, then $4 = \operatorname{rank}(I_4) \le \sum_{i=1}^s \operatorname{rank}(M_i) \le s$. Conversely, the explicit decomposition
+
+           $$
+           I_4 = \mathbf{e}_1\mathbf{e}_1^T + \mathbf{e}_2\mathbf{e}_2^T + \mathbf{e}_3\mathbf{e}_3^T + \mathbf{e}_4\mathbf{e}_4^T = E_{11} + E_{22} + E_{33} + E_{44}
+           $$
+
+           constructs $I_4$ using $4$ rank-1 matrices. Therefore, the minimum number required is **$4$**!
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l11-ex3"
+    tier="L3"
+    tierLabel="L3 · Zero-Calculation Subspace Reasoning"
+    title="High-Dimensional Euclidean Intuition: Minimum Intersection Dimension of Two 3D Subspaces in ℝ⁵"
+  >
+    In $3$-dimensional physical space $\mathbb{R}^3$, two distinct planes through the origin (two $2$-dimensional subspaces) can never intersect at just the origin $\{\mathbf{0}\}$—they must intersect in at least a $1$-dimensional line through the origin!
+    Now extend this geometric intuition to $5$-dimensional space $\mathbb{R}^5$: let $S$ and $U$ be two **$3$-dimensional subspaces** of $\mathbb{R}^5$ ($\dim(S) = 3,\; \dim(U) = 3$).
+    1. Without writing a single coordinate equation, use Grassmann's Dimension Formula to prove that $S$ and $U$ **cannot** intersect solely at the zero vector (i.e., $S \cap U \neq \{\mathbf{0}\}$), and find the set of all possible values of $\dim(S \cap U)$!
+    2. If we instead take a $6$-dimensional subspace $S$ and a $5$-dimensional subspace $W$ inside $\mathbb{R}^9$ (or inside the $3\times 3$ matrix space $M$), what is the minimum possible dimension of their intersection $\dim(S \cap W)$?
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "Use the ceiling constraint: since both $S$ and $U$ are subspaces of $\\mathbb{R}^5$, their sum space $S + U$ is also a subspace of $\\mathbb{R}^5$. Can $\\dim(S + U)$ ever exceed $5$?",
+        "Substitute $\\dim(S + U) \\le 5$ into Grassmann's formula $\\dim(S \\cap U) = \\dim(S) + \\dim(U) - \\dim(S + U)$ to get the lower bound immediately!",
+        "Now check the upper bound: since $S \\cap U \\subseteq S$, we have $\\dim(S \\cap U) \\le \\dim(S) = 3$. Can every integer between the lower and upper bounds be achieved?"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        This is the Pigeonhole Principle incarnated in the world of vector space dimensions! Five-dimensional space $\mathbb{R}^5$ has a total "room capacity" of only $5$ independent directions. If you pack a $3$-D subspace $S$ and another $3$-D subspace $U$ into $\mathbb{R}^5$, their combined dimension count $3 + 3 = 6$ exceeds the room capacity of $5$ by at least $1$! That surplus of at least $1$ dimension has nowhere to hide—it is forced to overlap as the intersection $S \cap U$!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        1. **Possible Intersection Dimensions of Two $3$-D Subspaces in $\mathbb{R}^5$**:
+           - **Lower Bound**: Since $S + U \subseteq \mathbb{R}^5$, we must have $\dim(S + U) \le \dim(\mathbb{R}^5) = 5$. Applying Grassmann's Dimension Formula (Theorem 11.1):
+
+             $$
+             \dim(S \cap U) = \dim(S) + \dim(U) - \dim(S + U) \ge 3 + 3 - 5 = 1
+             $$
+
+             Because $\dim(S \cap U) \ge 1 \gt 0$, $S \cap U$ contains at least a $1$-dimensional line through the origin and can never be $\{\mathbf{0}\}$!
+           - **Upper Bound and Achievability**: Since $S \cap U \subseteq S$, we have $\dim(S \cap U) \le \dim(S) = 3$. Let $\mathbf{e}_1,\dots,\mathbf{e}_5$ be the standard basis and fix $S = \operatorname{span}\{\mathbf{e}_1, \mathbf{e}_2, \mathbf{e}_3\}$:
+             - Choosing $U = \operatorname{span}\{\mathbf{e}_3, \mathbf{e}_4, \mathbf{e}_5\} \implies \dim(S \cap U) = 1$;
+             - Choosing $U = \operatorname{span}\{\mathbf{e}_2, \mathbf{e}_3, \mathbf{e}_4\} \implies \dim(S \cap U) = 2$;
+             - Choosing $U = S \implies \dim(S \cap U) = 3$.
+             Thus the set of all possible values for $\dim(S \cap U)$ is **$\{1, 2, 3\}$**.
+
+        2. **Minimum Intersection Dimension of a $6$-D and a $5$-D Subspace in $\mathbb{R}^9$**:
+           By the exact same reasoning, $\dim(S + W) \le 9$ implies
+
+           $$
+           \dim(S \cap W) = 6 + 5 - \dim(S + W) \ge 11 - 9 = 2
+           $$
+
+           Equality holds when $S + W = \mathbb{R}^9$, so the minimum possible value of $\dim(S \cap W)$ is **$2$**.
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l11-ex4"
+    tier="L3"
+    tierLabel="L3 · Zero-Calculation Subspace Reasoning"
+    title="Algebraic Magic of Rank-1 Matrices: Why Does A² = cA Always Hold, and When Is I + uvᵀ Invertible?"
+  >
+    Let $\mathbf{u}, \mathbf{v} \in \mathbb{R}^n$ be two nonzero column vectors, and form the $n \times n$ rank-1 square matrix $A = \mathbf{u}\mathbf{v}^T$.
+    1. **Computing Any Power in One Line**: Using the associativity of matrix multiplication, prove that $A^2 = c A$, and identify the exact algebraic expression for the scalar $c$ and its relationship to the trace $\operatorname{tr}(A)$! In particular, when is a nonzero rank-1 matrix nilpotent ($A^2 = 0$), and when is it an idempotent projection matrix ($A^2 = A$)?
+    2. **The Sherman-Morrison Rank-1 Update Formula**: Using Part 1, find and verify the explicit inverse of the rank-1 perturbation of the identity matrix $I_n + \mathbf{u}\mathbf{v}^T$ (assuming $1 + \mathbf{v}^T\mathbf{u} \neq 0$)! (*Hint*: Guess an inverse of the same form $I_n - \alpha \mathbf{u}\mathbf{v}^T$, multiply them together, and solve for the scalar $\alpha$!)
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "In $A^2 = (\\mathbf{u}\\mathbf{v}^T)(\\mathbf{u}\\mathbf{v}^T)$, group the middle two factors using associativity: $\\mathbf{u}(\\mathbf{v}^T\\mathbf{u})\\mathbf{v}^T$! Notice that the inner product $\\mathbf{v}^T\\mathbf{u} = \\sum_{i=1}^n u_i v_i$ is just a scalar real number and can be pulled right to the front!",
+        "Look at the $(i,i)$ diagonal entry of $A = \\mathbf{u}\\mathbf{v}^T$: it is $u_i v_i$, so the sum of the diagonal entries $\\operatorname{tr}(A)$ is literally $\\mathbf{v}^T\\mathbf{u}$!",
+        "Expand $(I_n + \\mathbf{u}\\mathbf{v}^T)(I_n - \\alpha \\mathbf{u}\\mathbf{v}^T) = I_n + (1 - \\alpha - \\alpha \\mathbf{v}^T\\mathbf{u})\\mathbf{u}\\mathbf{v}^T$ and set the bracketed coefficient to $0$ to solve for $\\alpha$!"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        An outer product $\mathbf{u}\mathbf{v}^T$ is "column times row," whereas an inner product $\mathbf{v}^T\mathbf{u}$ is "row times column" (a single number)! When you multiply two outer products $(\mathbf{u}\mathbf{v}^T)(\mathbf{u}\mathbf{v}^T)$, the middle pair meets head-on to form the inner-product scalar $c = \mathbf{v}^T\mathbf{u}$! That collapses every power of a rank-1 matrix into elementary scalar multiplication. Better still, if you patch the identity matrix with a rank-1 update $I + \mathbf{u}\mathbf{v}^T$, its inverse needs only a rank-1 counter-patch along the exact same direction $\mathbf{u}\mathbf{v}^T$!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        1. **Square and Trace of a Rank-1 Square Matrix**:
+           By the associativity of matrix multiplication:
+
+           $$
+           A^2 = (\mathbf{u}\mathbf{v}^T)(\mathbf{u}\mathbf{v}^T) = \mathbf{u} \underbrace{(\mathbf{v}^T\mathbf{u})}_{\text{scalar } c \in \mathbb{R}} \mathbf{v}^T = (\mathbf{v}^T\mathbf{u})\, \mathbf{u}\mathbf{v}^T = c A
+           $$
+
+           where the scalar is $c = \mathbf{v}^T\mathbf{u} = \sum_{i=1}^n u_i v_i$. Since the $(i,j)$ entry of $A$ is $a_{ij} = u_i v_j$, the sum of its main diagonal entries is $\operatorname{tr}(A) = \sum_{i=1}^n a_{ii} = \sum_{i=1}^n u_i v_i = \mathbf{v}^T\mathbf{u} = c$. Therefore, **$A^2 = \operatorname{tr}(A)\,A$**!
+           - **Nilpotent criterion**: $A^2 = 0 \iff c = \mathbf{v}^T\mathbf{u} = 0$ (meaning $\mathbf{u}$ and $\mathbf{v}$ are orthogonal, or equivalently $\operatorname{Col}(A) \subseteq \operatorname{Null}(A)$);
+           - **Idempotent criterion**: $A^2 = A \iff c = \mathbf{v}^T\mathbf{u} = 1$.
+
+        2. **Sherman-Morrison Rank-1 Inverse Formula**:
+           Postulate an inverse of the form $B = I_n - \alpha \mathbf{u}\mathbf{v}^T$. Multiplying $I_n + \mathbf{u}\mathbf{v}^T$ by $B$ and using $(\mathbf{u}\mathbf{v}^T)^2 = (\mathbf{v}^T\mathbf{u})\mathbf{u}\mathbf{v}^T$ gives:
+
+           $$
+           (I_n + \mathbf{u}\mathbf{v}^T)(I_n - \alpha \mathbf{u}\mathbf{v}^T) = I_n + \mathbf{u}\mathbf{v}^T - \alpha \mathbf{u}\mathbf{v}^T - \alpha (\mathbf{v}^T\mathbf{u}) \mathbf{u}\mathbf{v}^T = I_n + \bigl[1 - \alpha(1 + \mathbf{v}^T\mathbf{u})\bigr] \mathbf{u}\mathbf{v}^T
+           $$
+
+           When $1 + \mathbf{v}^T\mathbf{u} \neq 0$, setting $\alpha = \dfrac{1}{1 + \mathbf{v}^T\mathbf{u}}$ makes the second term vanish, proving that $I_n + \mathbf{u}\mathbf{v}^T$ is invertible with:
+
+           $$
+           (I_n + \mathbf{u}\mathbf{v}^T)^{-1} = I_n - \frac{\mathbf{u}\mathbf{v}^T}{1 + \mathbf{v}^T\mathbf{u}}
+           $$
+
+           (Conversely, if $1 + \mathbf{v}^T\mathbf{u} = 0$, then $(I_n + \mathbf{u}\mathbf{v}^T)\mathbf{u} = \mathbf{u} + (\mathbf{v}^T\mathbf{u})\mathbf{u} = (1 - 1)\mathbf{u} = \mathbf{0}$, so the nonzero vector $\mathbf{u}$ lies in the nullspace and the matrix is singular! Hence $1 + \mathbf{v}^T\mathbf{u} \neq 0$ is both necessary and sufficient for invertibility.)
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l11-ex5"
+    tier="L4"
+    tierLabel="L4 · MIT 18.06 Exam Synthesis"
+    title="MIT 18.06 Quiz 1 Capstone: Rank-1 Decomposition by Inspection & Necessary Conditions for Rank Additivity"
+  >
+    1. **Finding Rank and Atomic Decomposition by Inspection**: Without performing Gaussian elimination, find $\operatorname{rank}(A)$ for the patterned $3 \times 3$ matrix below and write $A$ explicitly as a sum of the minimum number of rank-1 outer product matrices $A = \sum_{k=1}^r \mathbf{u}_k \mathbf{v}_k^T$:
+
+       $$
+       A = \begin{bmatrix} 2 & 3 & 4 \\ 3 & 4 & 5 \\ 4 & 5 & 6 \end{bmatrix}
+       $$
+
+    2. **Criterion for Rank Additivity**: Let $A, B \in \mathbb{R}^{m\times n}$. Prove that if $\operatorname{rank}(A + B) = \operatorname{rank}(A) + \operatorname{rank}(B)$ holds, then it **necessarily forces** both $\operatorname{Col}(A) \cap \operatorname{Col}(B) = \{\mathbf{0}\}$ and $\operatorname{Row}(A) \cap \operatorname{Row}(B) = \{\mathbf{0}\}$!
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "Part 1: Write the formula for the $(i,j)$ entry of $A$: $a_{ij} = i + j$! Splitting the sum as $a_{ij} = i \\cdot 1 + 1 \\cdot j$ expresses $A$ directly as the sum of two rank-1 outer products $(1,2,3)^T(1,1,1)$ and $(1,1,1)^T(1,2,3)$. Are those vectors linearly independent?",
+        "Part 2: Recall the inequality chain from the proof of Theorem 11.2: $\\operatorname{rank}(A+B) \\le \\dim(\\operatorname{Col}(A) + \\operatorname{Col}(B)) = \\operatorname{rank}(A) + \\operatorname{rank}(B) - \\dim(\\operatorname{Col}(A) \\cap \\operatorname{Col}(B))$!",
+        "If the far left equals $\\operatorname{rank}(A) + \\operatorname{rank}(B)$ on the far right, every inequality in the chain must be an equality—forcing $\\dim(\\operatorname{Col}(A) \\cap \\operatorname{Col}(B)) = 0$! Then apply the exact same argument to the transposes $(A+B)^T = A^T + B^T$ to prove zero intersection of the row spaces!"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        Part 1 is a classic Strang "dimensionality strike": instead of grinding through row operations, notice that each entry is simply the row index plus the column index, $a_{ij} = i + j$! A matrix whose entries depend only on the row index $i$ is a rank-1 vertical-stripe matrix, and a matrix whose entries depend only on the column index $j$ is a rank-1 horizontal-stripe matrix; stacking two non-parallel rank-1 slices locks the rank at $2$! Part 2 combines the squeeze theorem with Grassmann's formula: for the ranks to add up without losing a single dimension, neither the column spaces nor the row spaces can afford any overlap whatsoever!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        1. **Rank and Minimal Rank-1 Decomposition via Entry Formula**:
+           Observe that the $(i,j)$ entry of $A$ satisfies $a_{ij} = i + j$ for $1 \le i,j \le 3$. Setting $\mathbf{w} = (1, 2, 3)^T$ and $\mathbf{e} = (1, 1, 1)^T$, we have $a_{ij} = w_i e_j + e_i w_j$, which writes $A$ directly as the sum of two rank-1 outer products:
+
+           $$
+           A = \mathbf{w}\mathbf{e}^T + \mathbf{e}\mathbf{w}^T = \begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix}\begin{bmatrix} 1 & 1 & 1 \end{bmatrix} + \begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix}\begin{bmatrix} 1 & 2 & 3 \end{bmatrix}
+           $$
+
+           By rank subadditivity, $\operatorname{rank}(A) \le 1 + 1 = 2$. On the other hand, the first two columns of $A$, $(2,3,4)^T$ and $(3,4,5)^T$, are not scalar multiples of each other (hence linearly independent), so $\operatorname{rank}(A) \ge 2$. Squeezing gives **$\operatorname{rank}(A) = 2$**, and the two-term outer product sum above is a minimal atomic decomposition!
+
+        2. **Proof That Rank Additivity Forces Disjoint Column and Row Spaces**:
+           Suppose $\operatorname{rank}(A + B) = \operatorname{rank}(A) + \operatorname{rank}(B)$. From $\operatorname{Col}(A + B) \subseteq \operatorname{Col}(A) + \operatorname{Col}(B)$ and Grassmann's Dimension Formula (Theorem 11.1):
+
+           $$
+           \operatorname{rank}(A) + \operatorname{rank}(B) = \operatorname{rank}(A + B) \le \dim\bigl(\operatorname{Col}(A) + \operatorname{Col}(B)\bigr) = \operatorname{rank}(A) + \operatorname{rank}(B) - \dim\bigl(\operatorname{Col}(A) \cap \operatorname{Col}(B)\bigr)
+           $$
+
+           Rearranging gives $\dim\bigl(\operatorname{Col}(A) \cap \operatorname{Col}(B)\bigr) \le 0$. Since dimension is non-negative, $\dim\bigl(\operatorname{Col}(A) \cap \operatorname{Col}(B)\bigr) = 0$, which means **$\operatorname{Col}(A) \cap \operatorname{Col}(B) = \{\mathbf{0}\}$**!
+           Next, apply the hypothesis to the transposed matrices: since $\operatorname{rank}(M^T) = \operatorname{rank}(M)$, we have
+
+           $$
+           \operatorname{rank}(A^T + B^T) = \operatorname{rank}\bigl((A+B)^T\bigr) = \operatorname{rank}(A+B) = \operatorname{rank}(A) + \operatorname{rank}(B) = \operatorname{rank}(A^T) + \operatorname{rank}(B^T)
+           $$
+
+           Applying the column-space result just proved to $A^T$ and $B^T$ yields $\operatorname{Col}(A^T) \cap \operatorname{Col}(B^T) = \{\mathbf{0}\}$, which is **$\operatorname{Row}(A) \cap \operatorname{Row}(B) = \{\mathbf{0}\}$**! Q.E.D.
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+</ProblemSet>
+
+<FrontierAIReading
+  id="AI-04"
+  title="The Core Mathematics of LoRA (Low-Rank Adaptation): How a Sum of r Rank-1 Matrices Steers Multi-Billion-Parameter LLMs"
+  paperRef="Hu et al. (ICLR 2022) LoRA: Low-Rank Adaptation of Large Language Models · Aghajanyan et al. (ACL 2021) Intrinsic Dimensionality Explains the Effectiveness of Language Model Fine-Tuning"
+>
+
+When fine-tuning a large language model with tens or hundreds of billions of parameters (such as Llama 3 or DeepSeek), a single attention projection weight matrix $W_0 \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}$ (for example, $d_{\text{out}} = d_{\text{in}} = 4096$) contains $4096 \times 4096 \approx 16.78$ million floating-point numbers. Computing full-matrix gradient updates $\Delta W \in \mathbb{R}^{4096 \times 4096}$ and storing a separate copy for every downstream task would instantly blow up both GPU memory and disk storage!
+
+In 2022, **LoRA (Low-Rank Adaptation)** swept the LLM industry with an answer carved directly out of **Theorem 11.2 (the Rank-$r$ Atomic Outer Product Decomposition)** of this lecture: **while a pretrained foundation model is a high-rank repository of knowledge, the weight update $\Delta W$ needed to adapt it to a specific downstream task has an extremely low "Intrinsic Rank"!**
+
+---
+
+### 1. Theorem 11.2 in Production: $\Delta W = B A = \sum_{k=1}^{r} \mathbf{b}_k \mathbf{a}_k^T$
+
+Freezing the pretrained base matrix $W_0 \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}$ so it receives no gradients, LoRA constrains the fine-tuning update matrix $\Delta W$ to have rank at most $r \ll \min(d_{\text{out}}, d_{\text{in}})$ (in practice, typically $r = 8$ or $16$!). By **Part 2 of Theorem 11.2**, any matrix of rank at most $r$ can be parameterized **if and only if** it is written as the product of a tall-skinny matrix $B \in \mathbb{R}^{d_{\text{out}} \times r}$ and a short-wide matrix $A \in \mathbb{R}^{r \times d_{\text{in}}}$—that is, a sum of **$r$ rank-1 outer product building blocks**:
+
+$$
+W' = W_0 + \Delta W = W_0 + B A = W_0 + \sum_{k=1}^{r} \mathbf{b}_k \mathbf{a}_k^T
+$$
+
+where $\mathbf{b}_k \in \mathbb{R}^{d_{\text{out}}}$ is the $k$-th column of $B$ and $\mathbf{a}_k^T \in \mathbb{R}^{1 \times d_{\text{in}}}$ is the $k$-th row of $A$. This decomposition delivers three pure linear-algebraic miracles:
+
+1. **Over $250\times$ Parameter Compression (Drastic Reduction in Matrix Space Dimension)**:
+   Full fine-tuning searches over the entire matrix space of dimension $\dim(\mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}) = d_{\text{out}} d_{\text{in}}$. With the rank-$r$ factorization, the number of trainable parameters drops to $r(d_{\text{out}} + d_{\text{in}})$! For $d_{\text{out}} = d_{\text{in}} = 4096$ and $r = 8$:
+
+   $$
+   \frac{\text{Params}(B, A)}{\text{Params}(\Delta W_{\text{full}})} = \frac{8 \times (4096 + 4096)}{4096 \times 4096} = \frac{65{,}536}{16{,}777{,}216} = \frac{1}{256} \approx 0.39\%
+   $$
+
+   Less than $0.4\%$ of the parameters suffice to capture the core feature-space rotations required by the downstream task!
+
+2. **Geometric Interpretation via the Four Fundamental Subspaces**:
+   When an input feature vector $\mathbf{x} \in \mathbb{R}^{d_{\text{in}}}$ flows through the layer, the forward pass becomes:
+
+   $$
+   \mathbf{h} = W_0 \mathbf{x} + B(A\mathbf{x}) = W_0 \mathbf{x} + \sum_{k=1}^{r} (\mathbf{a}_k^T \mathbf{x})\, \mathbf{b}_k
+   $$
+
+   - **Input-Side Nullspace Silence (the $(d_{\text{in}} - r)$-Dimensional "Do-Not-Disturb" Zone)**: Because $\dim\operatorname{Null}(A) \ge d_{\text{in}} - r = 4088$, any general-purpose feature $\mathbf{x}_{\text{gen}} \in \operatorname{Null}(A)$ satisfies $A\mathbf{x}_{\text{gen}} = \mathbf{0}$. The adapter branch stays completely silent, preserving the pretrained base capabilities intact! Only task-relevant features that have a nonzero inner product $\mathbf{a}_k^T \mathbf{x} \neq 0$ with the $r$ detector rows $\mathbf{a}_k$ (i.e., components in $\operatorname{Row}(A)$) activate the fine-tuning pathway!
+   - **Output-Side Column Space Steering (the $r$-Dimensional Correction Plane)**: Since $\operatorname{Col}(\Delta W) \subseteq \operatorname{Col}(B) = \operatorname{span}\{\mathbf{b}_1, \dots, \mathbf{b}_r\}$, all fine-tuning corrections are strictly confined to an $r$-dimensional subspace of the output space $\mathbb{R}^{d_{\text{out}}}$.
+
+3. **Asymmetric Zero Initialization and Zero-Latency Matrix Space Merging**:
+   - **Why initialize $A \sim \mathcal{N}(0, \sigma^2)$ randomly while setting $B = 0$?** At training step $0$, $B = 0 \implies \Delta W = B A = 0$, guaranteeing that the fine-tuned model starts out **pointwise identical** to the pretrained model $W_0$. Meanwhile, because $A \neq 0$, the gradient with respect to $B$ during the very first backward pass is $\nabla_B \mathcal{L} = (\nabla_{\mathbf{h}}\mathcal{L})\mathbf{x}^T A^T \neq 0$, breaking symmetry immediately! (If both $A$ and $B$ were initialized to $0$, each gradient would multiply the other's zero matrix and stay deadlocked at $0$!)
+   - **Zero Inference Latency via Matrix Addition**: At deployment time, because the ambient matrix space $\mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}$ is **closed under matrix addition** (even though fixed-rank sets are not: adding rank-$r$ $BA$ to full-rank $W_0$ produces a matrix $W' = W_0 + BA \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}$ of the exact same shape!), distributivity $(W_0 + BA)\mathbf{x} = W_0\mathbf{x} + B(A\mathbf{x})$ lets us precompute $W' \leftarrow W_0 + BA$ once offline—achieving **$0.00\text{ ms}$ of extra inference latency** in production!
+
+<CollapsibleCode title="PyTorch Tensor Verification: Rank-1 Outer Product Sum Identity, Nullspace Silence & Zero-Latency Merging">
+
+```python
+import torch
+
+torch.manual_seed(1806)
+
+d_out, d_in, r = 4096, 4096, 8
+W_0 = torch.randn(d_out, d_in)
+
+# Standard LoRA init: Gaussian random A, zero B (ensuring Delta_W == 0 at step 0)
+A = torch.randn(r, d_in) * 0.02
+B = torch.zeros(d_out, r)
+assert torch.all(B @ A == 0), "Step 0 initialization must preserve W_0 exactly!"
+
+# Simulate trained low-rank adapter weights B, A after fine-tuning
+B_trained = torch.randn(d_out, r) * 0.05
+Delta_W = B_trained @ A  # (4096, 4096), but with intrinsic rank <= 8!
+
+# 1. Verify Theorem 11.2: BA equals the exact sum of r=8 rank-1 outer products b_k @ a_k^T!
+rank1_sum = sum(B_trained[:, k : k + 1] @ A[k : k + 1, :] for k in range(r))
+assert torch.allclose(Delta_W, rank1_sum, atol=1e-6)
+assert torch.linalg.matrix_rank(Delta_W).item() == r
+
+# 2. Verify parameter compression ratio (1 / 256) and zero-latency merge identity (W_0 + BA)x == W_0 x + B(Ax)
+compression = (B_trained.numel() + A.numel()) / W_0.numel()
+x = torch.randn(d_in, 16)  # Batch of 16 input token vectors
+W_merged = W_0 + Delta_W
+out_branch = W_0 @ x + B_trained @ (A @ x)
+out_merged = W_merged @ x
+assert torch.allclose(out_branch, out_merged, atol=1e-4)
+print(f"Rank(Delta_W) = {r} | Param ratio = {compression:.4%} | Merge max diff = {(out_branch - out_merged).abs().max():.2e}")
+```
+
+</CollapsibleCode>
+
+</FrontierAIReading>

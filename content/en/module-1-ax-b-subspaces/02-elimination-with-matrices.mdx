@@ -1,0 +1,675 @@
+---
+title: "Lecture 02: Elimination with Matrices (Elementary Matrices & Pivots)"
+ocwId: "L02"
+videoEpisode: "P02"
+textbookRef: "§2.2–2.3"
+---
+
+In Lecture 01, we learned how to understand the full geometric picture of $A\mathbf{x} = \mathbf{b}$ through linear combinations of column vectors. Yet in real-world scientific computing, how does a computer systematically solve for thousands or millions of unknowns? The answer remains the classic algorithm established by Gauss two centuries ago: **Gaussian Elimination**.
+
+However, Lecture 02 of MIT 18.06 is far more than a review of high-school elimination arithmetic. Here, Professor Gilbert Strang carries out one of the most pivotal conceptual upgrades in modern linear algebra: **translating the verbal instruction "subtract a multiple of one row from another" into a clean, compact left-multiplication by an elementary matrix $E_{ij} A$**. This not only opens the door to inverse matrices and matrix factorizations, but also reveals for the first time the fundamental duality law: **left-multiplication acts on rows, while right-multiplication acts on columns**.
+
+---
+
+## 1. Gaussian Elimination and the Pivot Mechanism on a Concrete 3×3 System
+
+Let us directly trace the $3\times 3$ linear system $A\mathbf{x} = \mathbf{b}$ that Professor Strang works out on the chalkboard in lecture:
+
+$$
+\begin{cases}
+x + 2y + z = 2 \\
+3x + 8y + z = 12 \\
+\phantom{3x + {}} 4y + z = 2
+\end{cases}
+\quad \Longleftrightarrow \quad
+\underbrace{\begin{bmatrix}
+1 & 2 & 1 \\
+3 & 8 & 1 \\
+0 & 4 & 1
+\end{bmatrix}}_{A}
+\begin{bmatrix} x \\ y \\ z \end{bmatrix}
+=
+\underbrace{\begin{bmatrix}
+2 \\ 12 \\ 2
+\end{bmatrix}}_{\mathbf{b}}
+$$
+
+To update the right-hand side vector $\mathbf{b}$ simultaneously in the same table, we append $\mathbf{b}$ to the right of $A$ to form the $3\times 4$ **Augmented Matrix** $\begin{bmatrix} A \mid \mathbf{b} \end{bmatrix}$. The goal of elimination is crystal clear: annihilate the entries below the main diagonal column by column, reducing $A$ to an **Upper Triangular Matrix** $U$.
+
+### 1.1 Two-Step Forward Elimination and Back Substitution
+
+1. **Lock in the First Pivot**: The entry in the top-left $(1,1)$ position is $\boxed{1} \neq 0$; this is our first **Pivot**.
+   - We want to eliminate the entry $3$ directly below it in the $(2,1)$ position. What multiple of Row 1 must we subtract from Row 2? This factor is called the **Multiplier**:
+
+$$
+\ell_{21} = \frac{a_{21}}{\text{pivot}_1} = \frac{3}{1} = 3
+$$
+
+   - Executing the row operation $R_2 \leftarrow R_2 - 3R_1$, Row 2 becomes $[3-3,\; 8-6,\; 1-3 \mid 12-6] = [0,\; 2,\; -2 \mid 6]$.
+   - As for the $(3,1)$ position, it is already $0$ (corresponding to a multiplier $\ell_{31} = 0$), so we skip right past it!
+
+2. **Lock in the Second Pivot**: Moving our eyes to the center $(2,2)$ position, after the update we just performed, we find the nonzero number $\boxed{2} \neq 0$, which becomes our second pivot!
+   - To eliminate the entry $4$ directly below it at $(3,2)$, we compute the multiplier:
+
+$$
+\ell_{32} = \frac{4}{2} = 2
+$$
+
+   - Executing the row operation $R_3 \leftarrow R_3 - 2R_2$, Row 3 becomes $[0,\; 4-4,\; 1-(-4) \mid 2-12] = [0,\; 0,\; 5 \mid -10]$.
+
+With that, forward elimination is complete! On the left, $A$ has been transformed into the staircase-shaped upper triangular matrix $U$, while on the right, $\mathbf{b}$ has been simultaneously transformed into a new vector $\mathbf{c}$:
+
+$$
+\left[\begin{array}{ccc|c}
+\mathbf{1} & 2 & 1 & 2 \\
+3 & 8 & 1 & 12 \\
+0 & 4 & 1 & 2
+\end{array}\right]
+\xrightarrow{R_2 - 3R_1}
+\left[\begin{array}{ccc|c}
+\mathbf{1} & 2 & 1 & 2 \\
+0 & \mathbf{2} & -2 & 6 \\
+0 & 4 & 1 & 2
+\end{array}\right]
+\xrightarrow{R_3 - 2R_2}
+\underbrace{\left[\begin{array}{ccc|c}
+\mathbf{1} & 2 & 1 & 2 \\
+0 & \mathbf{2} & -2 & 6 \\
+0 & 0 & \mathbf{5} & -10
+\end{array}\right]}_{[U \;\mid\; \mathbf{c}]}
+$$
+
+The three prominent nonzero numbers **$1, 2, 5$** along the main diagonal are all three pivots of matrix $A$. What makes the upper triangular system $U\mathbf{x} = \mathbf{c}$ so wonderfully friendly is that we can read off the unique solution immediately from bottom to top via **Back Substitution**:
+
+$$
+5z = -10 \implies z = -2 \;\longrightarrow\; 2y - 2(-2) = 6 \implies y = 1 \;\longrightarrow\; x + 2(1) + (-2) = 2 \implies x = 2
+$$
+
+### 1.2 When Does Elimination Break Down? (Temporary vs. Complete Failure)
+
+The entire elimination process is governed by one ironclad rule: **Pivots can never be equal to $0$!** (Otherwise, the multiplier $\ell_{ij}$ would have a zero denominator, making it impossible to eliminate nonzero entries below.) If we hit a $0$ in the $k$-th pivot position, we must carefully distinguish between two radically different fates:
+
+- **Temporary Failure (Rescued by a Row Exchange)**: A $0$ appears in the pivot position, **but there is still a nonzero entry somewhere below it in the same column**. For instance, if we swapped Row 1 and Row 3 in the original system above, the $(1,1)$ entry would be $0$, but the $(2,1)$ entry below it has $3 \neq 0$. A single **Row Exchange** brings that nonzero entry up into the pivot slot, and the system remains nonsingular and uniquely solvable!
+- **Complete Failure (Singular, Non-Invertible Matrix)**: A $0$ appears in the pivot position, **and every entry below it in that column is also $0$**! For example, if we changed the bottom-right $(3,3)$ entry of our original matrix from $1$ to $-3$, the final elimination step would yield $0z = -10$, and the third pivot would vanish completely. This signals the dimensional collapse of an $n\times n$ square matrix discussed in Lecture 01: **An $n\times n$ square matrix is nonsingular (invertible) if and only if elimination (allowing row exchanges) produces a full set of $n$ nonzero pivots.**
+
+---
+
+## 2. Rewriting Elimination in Matrix Language: Left-Multiplying by Elementary Matrices $E_{ij}$
+
+Now we arrive at the centerpiece of this lecture: instead of writing verbal arrows like $\xrightarrow{R_2 - 3R_1}$, how do we construct a $3\times 3$ matrix $E_{21}$ so that multiplying $A$ by $E_{21}$ automatically executes "subtract $3$ times Row 1 from Row 2, while leaving the other rows unchanged"?
+
+Here lies one of the most important keys to the entire course—the **Golden Duality Law of Row vs. Column Perspectives**:
+
+- Lecture 01 taught us that **multiplying a matrix on the right by a column vector**, $A\mathbf{x}$, computes a **linear combination of the columns of $A$**;
+- Completely symmetrically, **multiplying a matrix on the left by a row vector**, $\mathbf{r}^T A$, computes a **linear combination of the rows of $A$**!
+
+Let us test this explicitly. Suppose we left-multiply a $3\times 3$ matrix $A$ by a row vector $\begin{bmatrix} c_1 & c_2 & c_3 \end{bmatrix}$:
+
+$$
+\begin{bmatrix} c_1 & c_2 & c_3 \end{bmatrix}
+\begin{bmatrix}
+\text{— row } 1 \text{ of } A \text{ —} \\
+\text{— row } 2 \text{ of } A \text{ —} \\
+\text{— row } 3 \text{ of } A \text{ —}
+\end{bmatrix}
+= c_1 (\text{row } 1) + c_2 (\text{row } 2) + c_3 (\text{row } 3)
+$$
+
+Everything falls into place! To construct the left-multiplication operator $E_{21}$, we simply specify row by row how each row of the new matrix is formed as a weighted combination of the rows of the original matrix:
+
+- $\text{New Row } 1 = 1\cdot(\text{row } 1) + 0\cdot(\text{row } 2) + 0\cdot(\text{row } 3) \implies$ Row 1 of $E_{21}$ is $\begin{bmatrix} 1 & 0 & 0 \end{bmatrix}$;
+- $\text{New Row } 2 = -3\cdot(\text{row } 1) + 1\cdot(\text{row } 2) + 0\cdot(\text{row } 3) \implies$ Row 2 of $E_{21}$ is $\begin{bmatrix} -3 & 1 & 0 \end{bmatrix}$;
+- $\text{New Row } 3 = 0\cdot(\text{row } 1) + 0\cdot(\text{row } 2) + 1\cdot(\text{row } 3) \implies$ Row 3 of $E_{21}$ is $\begin{bmatrix} 0 & 0 & 1 \end{bmatrix}$!
+
+In other words, **to find the elementary matrix for any row operation, simply perform that exact same row operation on the identity matrix $I$**! By the exact same logic, the second step—"subtract $2$ times Row 2 from Row 3"—corresponds to the elementary matrix $E_{32}$ with $-2$ in the $(3,2)$ entry:
+
+$$
+E_{21} = \begin{bmatrix}
+1 & 0 & 0 \\
+-3 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}, \qquad
+E_{32} = \begin{bmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & -2 & 1
+\end{bmatrix}
+$$
+
+<EliminationPipelineDiagram caption="Two-step forward elimination pipeline: left-multiplying A successively by elementary matrices E_{21} and E_{32} produces the upper triangular matrix U = E_{32} E_{21} A." />
+
+<InteractiveCanvasSlot
+  id="l02-elimination-stepper"
+  title="Elementary Elimination Matrix E_ij & Row vs. Column Action Sandbox"
+  description="Interactive sandbox: click lower-triangular target entries of a 3×3 matrix to generate elementary matrices $E_{ij}$ automatically, and toggle between left-multiplication $EA$ (row combinations) and right-multiplication $AE$ (column combinations) to compare how the column space and nullspace behave."
+/>
+
+<DefinitionCard
+  label="Definition 2.1"
+  title="Elementary Elimination Matrix & Permutation Matrix"
+>
+Let $I_n \in \mathbb{R}^{n\times n}$ be the $n\times n$ identity matrix, and let $\mathbf{e}_i \in \mathbb{R}^n$ be the $i$-th standard basis column vector (with $1$ in the $i$-th component and $0$ elsewhere):
+
+1. **Elementary Elimination Matrix**: For indices $i \neq j$ and a real scalar multiplier $\ell_{ij} \in \mathbb{R}$, the square matrix obtained by replacing the $(i, j)$ zero entry of $I_n$ with $-\ell_{ij}$ is denoted by $E_{ij}$:
+
+$$
+E_{ij} := I_n - \ell_{ij} \mathbf{e}_i \mathbf{e}_j^T \in \mathbb{R}^{n\times n}
+$$
+
+   Left-multiplying any matrix $A \in \mathbb{R}^{n\times m}$ by $E_{ij}$ is strictly equivalent to replacing Row $i$ of $A$ with $(\text{row } i) - \ell_{ij}(\text{row } j)$ while leaving the other $n-1$ rows unchanged.
+
+2. **Row-Exchange Permutation Matrix**: The square matrix obtained by exchanging Row $i$ and Row $j$ ($i \neq j$) of the identity matrix $I_n$ is denoted by $P_{ij} \in \mathbb{R}^{n\times n}$. Left-multiplying $A \in \mathbb{R}^{n\times m}$ by $P_{ij}$ exchanges Row $i$ and Row $j$ of $A$.
+</DefinitionCard>
+
+---
+
+## 3. Associative Compression, Non-Commutativity, and Instant Inversion of Elementary Matrices
+
+In our two-step elimination above, we first computed $E_{21} A$ and then left-multiplied by $E_{32}$, arriving at $E_{32}(E_{21} A) = U$. This showcases one of the most fascinating tensions in matrix algebra: **Matrix multiplication is NOT commutative ($AB \neq BA$), but it is unconditionally associative ($A(BC) = (AB)C$)!**
+
+Because the associative law holds, we are free to shift the parentheses and multiply the individual elimination matrices together ahead of time, compressing the entire pipeline into a single combined elimination matrix $E$:
+
+$$
+E_{32} (E_{21} A) = (E_{32} E_{21}) A = U
+\quad \Longrightarrow \quad
+E = E_{32} E_{21} =
+\begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & -2 & 1 \end{bmatrix}
+\begin{bmatrix} 1 & 0 & 0 \\ -3 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}
+=
+\begin{bmatrix}
+1 & 0 & 0 \\
+-3 & 1 & 0 \\
+\mathbf{6} & -2 & 1
+\end{bmatrix}
+$$
+
+Look closely at the **$+6$** that pops up in the bottom-left $(3,1)$ corner of the product $E$! If we reversed the multiplication order to $E_{21} E_{32}$, that bottom-left entry would be $0$ (reversing the order of operations changes the outcome completely, proving $E_{32}E_{21} \neq E_{21}E_{32}$). Why does this annoying cross-term $+6$ appear here, and how does **inverting the elimination matrices** make this $+6$ vanish like magic? That is the central cliffhanger leading into the $A = LU$ factorization in Lecture 04!
+
+Before we get there, let us see how to invert a single elementary elimination matrix $E_{21}$ at a glance: since the physical action of $E_{21}$ is "subtract $3$ times Row 1 from Row 2"—while Row 1 itself remains completely untouched—to undo this step and recover the original matrix, we simply "**add back** $3$ times Row 1 to Row 2"!
+
+$$
+\underbrace{\begin{bmatrix}
+1 & 0 & 0 \\
+\mathbf{+3} & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}}_{E_{21}^{-1}}
+\underbrace{\begin{bmatrix}
+1 & 0 & 0 \\
+\mathbf{-3} & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}}_{E_{21}}
+=
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+= I_3
+$$
+
+We now distill the left/right multiplication duality, solution-set invariance, and elementary inverse formulas into a rigorous theorem:
+
+<TheoremCard
+  label="Theorem 2.1"
+  title="Row vs. Column Action Duality & Inverse of Elementary Matrices"
+>
+Let $A \in \mathbb{R}^{m\times n}$, let $E_{ij} = I_m - \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T \in \mathbb{R}^{m\times m}$ ($i \neq j$) be an elementary elimination matrix, and let $P_{pq} \in \mathbb{R}^{m\times m}$ be an elementary row-exchange matrix:
+
+1. **Left-Multiplication Controls Rows vs. Right-Multiplication Controls Columns (Core Duality)**:
+   - Placing an $m\times m$ elementary matrix on the **left** of $A$ ($E_{ij}A$ or $P_{pq}A$) performs an **elementary row operation** on $A$;
+   - Placing an $n\times n$ elementary matrix on the **right** of $A$ ($A \tilde{E}_{rs}$ or $A \tilde{P}_{rs}$) performs an **elementary column operation** on $A$ (for instance, right-multiplying by $\tilde{P}_{12}$ swaps Column 1 and Column 2 of $A$).
+2. **Exact Inverses of Single-Step Elimination and Permutation Matrices**: For any $i \neq j$ and any real scalar $\ell_{ij} \in \mathbb{R}$, both $E_{ij}$ and $P_{pq}$ are always invertible, with:
+
+$$
+E_{ij}^{-1} = \left(I_m - \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T\right)^{-1} = I_m + \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T, \qquad P_{pq}^{-1} = P_{pq}
+$$
+
+3. **Invariance of the Linear System Solution Set**: If $E \in \mathbb{R}^{m\times m}$ is the product of any finite sequence of elementary elimination and row-exchange matrices, then $E$ is invertible, and for any $\mathbf{b} \in \mathbb{R}^m$, the original system and the eliminated system share the **exact same solution set**:
+
+$$
+A\mathbf{x} = \mathbf{b} \quad \Longleftrightarrow \quad (EA)\mathbf{x} = E\mathbf{b}
+$$
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Rank-One Outer Product Orthogonality & Equivalence of Solution Sets">
+1. **Proof that $E_{ij}^{-1} = I_m + \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T$**: Using the distributive and associative laws of matrix multiplication, we expand the product directly:
+
+$$
+(I_m + \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T)(I_m - \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T)
+= I_m + \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T - \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T - \ell_{ij}^2 \mathbf{e}_i (\underbrace{\mathbf{e}_j^T \mathbf{e}_i}_{= 0}) \mathbf{e}_j^T = I_m
+$$
+
+   Notice how the crucial assumption **$i \neq j$** guarantees that the inner product $\mathbf{e}_j^T \mathbf{e}_i = 0$, causing the quadratic term to vanish identically! Multiplying in the reverse order yields $I_m$ by the exact same calculation. As for the row-exchange matrix $P_{pq}$, swapping the same pair of rows twice clearly restores the identity matrix, so $P_{pq}^2 = I_m \implies P_{pq}^{-1} = P_{pq}$.
+2. **Proof of Solution Set Equivalence $(\iff)$**:
+   - $(\implies)$ If $A\mathbf{x} = \mathbf{b}$, left-multiplying both sides by $E$ immediately gives $E(A\mathbf{x}) = (EA)\mathbf{x} = E\mathbf{b}$;
+   - $(\impliedby)$ Since each elementary factor is invertible, $E$ is invertible (its inverse is the reverse-order product of the inverses of its factors). Left-multiplying both sides of $(EA)\mathbf{x} = E\mathbf{b}$ by $E^{-1}$ recovers $A\mathbf{x} = \mathbf{b}$. Because this implication is strictly bidirectional ($\iff$), no extraneous solutions are ever introduced and no solutions are ever lost!
+</ProofCollapse>
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+1. **Misconception 1: "Gaussian elimination (elementary row operations) preserves the column space $\operatorname{Col}(A)$" (Public Enemy #1!)**
+   Because elimination preserves the solution set of $A\mathbf{x} = \mathbf{b}$, many beginners jump to the false conclusion that $\operatorname{Col}(A) = \operatorname{Col}(U)$. **Dead wrong!** Look at the simplest counterexample: $A = \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix} \xrightarrow{R_2 - R_1} U = \begin{bmatrix} 1 & 1 \\ 0 & 0 \end{bmatrix}$. The column space of $A$, $\operatorname{Col}(A)$, is the diagonal line $\operatorname{span}\{(1,1)^T\}$ of slope $1$, whereas after elimination $\operatorname{Col}(U)$ becomes the horizontal $x$-axis $\operatorname{span}\{(1,0)^T\}$! Row operations preserve the solution set (in particular, the nullspace $\operatorname{Null}(A) = \operatorname{Null}(U)$ when $\mathbf{b}=\mathbf{0}$) and the row space. The reason the solution $\mathbf{x}$ does not change is that the right-hand side vector $\mathbf{b}$ is simultaneously sheared/rotated into $E\mathbf{b}$!
+2. **Misconception 2: Writing multi-step left-multiplications in reverse order as $E_{21} E_{32} A = U$**
+   Left-multiplication takes effect **from right to left**, starting closest to $A$! Performing Step 1 ($E_{21}$) first and Step 2 ($E_{32}$) second must be written as $E_{32} E_{21} A$ (the closer a matrix sits to $A$, the earlier it acts). Reversing the order produces a completely wrong product.
+3. **Misconception 3: Declaring a matrix "singular and non-invertible" the instant a $0$ appears on the main diagonal**
+   Consider the permutation matrix $P_{12} = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$: its main diagonal consists entirely of $0$s, yet it is perfectly invertible ($P_{12}^{-1} = P_{12}$)! A square matrix is truly singular only when a pivot slot is $0$ **and there are no nonzero candidate entries below it in that same column available for a row exchange**.
+</PitfallAlert>
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "**Left-multiplication controls rows; right-multiplication controls columns**: To perform row operations on $A$, place the elementary matrix on the **left** ($EA$); to perform column operations on $A$, place the elementary matrix on the **right** ($AE$).",
+    "Constructing elementary matrices requires zero memorization: **Whatever row (or column) operation you want to apply to $A$, simply apply that exact same operation to the identity matrix $I$ first** to obtain the required elementary matrix.",
+    "To invert a single-step elementary elimination matrix $E_{ij} = I - \\ell_{ij}\\mathbf{e}_i\\mathbf{e}_j^T$ ($i \\neq j$), simply flip the sign of the off-diagonal multiplier from $-\\ell_{ij}$ to $+\\ell_{ij}$; a single row-exchange matrix is its own inverse, $P_{ij}^{-1} = P_{ij}$.",
+    "Elementary row operations strictly preserve the solution set ($A\\mathbf{x}=\\mathbf{b} \\iff EA\\mathbf{x}=E\\mathbf{b}$) and the number of pivots, but they **change the column space $\\operatorname{Col}(A)$**."
+  ]}
+/>
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+<ExerciseCard
+  id="l02-ex1"
+  tier="L1"
+  tierLabel="L1 · Quick Geometric Check"
+  title="Left vs. Right Multiplication Experiment: The Dramatic Contrast of Placing the Same Elementary Matrix on Either Side"
+>
+Let the $3\times 3$ matrix $A$ and the elementary matrix $E_{21}$ be given by:
+
+$$
+A = \begin{bmatrix}
+1 & 2 & 3 \\
+4 & 5 & 6 \\
+7 & 8 & 9
+\end{bmatrix}, \qquad
+E_{21} = \begin{bmatrix}
+1 & 0 & 0 \\
+-4 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+$$
+
+1. **Without grinding through entry-by-entry dot products**, use the geometric rule "left-multiplication combines rows, right-multiplication combines columns" to write down the left product $E_{21} A$ and the right product $A E_{21}$ by inspection;
+2. Continue eliminating the nonzero entries in Row 3 of $E_{21} A$. What happens to the 3rd pivot position? Use this to determine directly whether $A$ is singular!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Left product $E_{21} A$: What **row** operation on $I_3$ produced $E_{21}$? (Subtract 4 times Row 1 from Row 2!) Simply apply that exact row operation to $A$.",
+    "Right product $A E_{21}$: Read $E_{21}$ by **columns** instead! Column 1 of $E_{21}$ is $\\mathbf{e}_1 - 4\\mathbf{e}_2$, while Columns 2 and 3 are just $\\mathbf{e}_2$ and $\\mathbf{e}_3$. Thus, Column 1 of $A E_{21}$ becomes 'Column 1 minus 4 times Column 2', while the last two columns stay completely unchanged!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. **Left-multiply by reading rows**: Row 2 of $E_{21}$ is $[-4, 1, 0]$, so $E_{21}A$ simply replaces Row 2 of $A$ with $(\text{row } 2) - 4(\text{row } 1) = [0, -3, -6]$, leaving Rows 1 and 3 completely untouched!
+   **Right-multiply by reading columns**: Column 1 of $E_{21}$ is $(1, -4, 0)^T$, so $AE_{21}$ simply replaces Column 1 of $A$ with $(\text{col } 1) - 4(\text{col } 2) = (-7, -16, -25)^T$, leaving Columns 2 and 3 completely untouched! The left and right products could not be more different!
+2. Notice that the three rows of $A$ form an arithmetic progression: $R_1 + R_3 = 2R_2$. Once we eliminate down Column 1 and then Column 2, Row 3 inevitably collapses into $[0, 0, 0]$. The 3rd pivot vanishes completely, confirming that $A$ is a classic singular matrix!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. By Part 1 of Theorem 2.1, we write down the left and right products directly:
+
+$$
+E_{21} A = \begin{bmatrix}
+1 & 2 & 3 \\
+0 & -3 & -6 \\
+7 & 8 & 9
+\end{bmatrix}, \qquad
+A E_{21} = \begin{bmatrix}
+1 - 4(2) & 2 & 3 \\
+4 - 4(5) & 5 & 6 \\
+7 - 4(8) & 8 & 9
+\end{bmatrix} = \begin{bmatrix}
+-7 & 2 & 3 \\
+-16 & 5 & 6 \\
+-25 & 8 & 9
+\end{bmatrix}
+$$
+
+2. Continuing elimination on $E_{21} A$: first left-multiply by $E_{31}$ ($R_3 \leftarrow R_3 - 7R_1$) so Row 3 becomes $[0, -6, -12]$; then left-multiply by $E_{32}$ ($R_3 \leftarrow R_3 - 2R_2$) to obtain:
+
+$$
+U = \begin{bmatrix}
+1 & 2 & 3 \\
+0 & -3 & -6 \\
+0 & 0 & 0
+\end{bmatrix}
+$$
+
+Because the $(3,3)$ pivot slot is $0$ and there are no rows below it to exchange, elimination produces only $2 \lt 3$ pivots. Therefore, $A$ is strictly singular (indeed, $A(1, -2, 1)^T = \mathbf{0}$).
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l02-ex2"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Conceptual Check: Does Gaussian Elimination Preserve the Column Space Col(A)?"
+>
+Determine whether the following statement is true or false, and construct the simplest possible $2\times 2$ counterexample in your head:
+
+> **Statement**: For any matrix $A \in \mathbb{R}^{m\times n}$, if we apply elementary row operations to reduce it to an upper triangular matrix $U = EA$ (where $E$ is invertible), then because $A\mathbf{x} = \mathbf{b}$ and $U\mathbf{x} = E\mathbf{b}$ have the exact same solutions, $A$ and $U$ must share the exact same column space: $\operatorname{Col}(A) = \operatorname{Col}(U)$.
+
+<TrueFalseInteractive
+  id="l02-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! An upper triangular matrix $U$ has $0$s filling its lower-left corner, so the bottom components of its columns are often forced to be $0$, whereas the columns of $A$ need not have $0$s at the bottom. Elementary row operations preserve the solution set and the row space, but almost always change the column space $\operatorname{Col}(A)$!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Think of the $2\\times 2$ rank-1 matrix $A = \\begin{bmatrix} 1 & 2 \\\\ 3 & 6 \\end{bmatrix}$: its column space is the line of slope $3$. After one step of elimination, what line is the column space of $U = \\begin{bmatrix} 1 & 2 \\\\ 0 & 0 \\end{bmatrix}$?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Picture two collinear column vectors $(1, 3)^T$ and $(2, 6)^T$ lying along the line $y = 3x$ in $\mathbb{R}^2$. The elimination operation $R_2 \leftarrow R_2 - 3R_1$ crushes the second component of every column down to zero, turning them into $(1, 0)^T$ and $(2, 0)^T$ lying flat along the horizontal axis $y = 0$! The entire column-space line has been flattened onto the $x$-axis—how could it possibly be the same column space? The only reason the linear system retains the same solutions is that the target vector $\mathbf{b}$ undergoes the exact same shear transformation into $E\mathbf{b}$!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+We construct a minimal $2\times 2$ counterexample. Let:
+
+$$
+A = \begin{bmatrix} 1 & 2 \\ 3 & 6 \end{bmatrix}, \quad
+E = \begin{bmatrix} 1 & 0 \\ -3 & 1 \end{bmatrix}
+\quad \Longrightarrow \quad
+U = EA = \begin{bmatrix} 1 & 2 \\ 0 & 0 \end{bmatrix}
+$$
+
+Then:
+- $\operatorname{Col}(A) = \operatorname{span}\{(1, 3)^T\} = \{(t, 3t)^T : t \in \mathbb{R}\}$;
+- $\operatorname{Col}(U) = \operatorname{span}\{(1, 0)^T\} = \{(t, 0)^T : t \in \mathbb{R}\}$.
+
+Clearly $(1, 3)^T \in \operatorname{Col}(A)$ but $(1, 3)^T \notin \operatorname{Col}(U)$, so $\operatorname{Col}(A) \neq \operatorname{Col}(U)$. (Note: Only when $\operatorname{Col}(A) = \mathbb{R}^m$ spans the entire ambient space does the bijectivity of invertible matrices yield $\operatorname{Col}(EA) = \mathbb{R}^m = \operatorname{Col}(A)$.)
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l02-ex3"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Conceptual Check: If the Top-Left Entry a₁₁ = 0, Must the Matrix Be Singular?"
+>
+Determine whether the following statement is true or false:
+
+> **Statement**: If the top-left entry of a $3\times 3$ matrix $A$ is $a_{11} = 0$, then because the first pivot cannot be $0$, the matrix $A$ must be singular (non-invertible).
+
+<TrueFalseInteractive
+  id="l02-tf2"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Having $a_{11} = 0$ merely triggers a 'temporary failure' of elimination. As long as $a_{21}$ or $a_{31}$ below it in Column 1 is nonzero, left-multiplying by a row-exchange permutation matrix $P_{12}$ or $P_{13}$ immediately produces a valid nonzero first pivot!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "The simplest $2\\times 2$ row-exchange matrix $P = \\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix}$ has $0$ in its top-left corner. Does the system $P\\mathbf{x} = \\mathbf{b}$ (namely $x_2 = b_1, x_1 = b_2$) have a unique solution for every $\\mathbf{b}$?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+The order in which we write down a system of equations is purely a human convention! Swapping the first equation with the second equation changes nothing about the three planes in space (or the solvability of the column combinations). Hitting a $0$ in the top-left corner is just a polite reminder to swap in a new leading row—never a death sentence for invertibility.
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+We construct a $3\times 3$ counterexample using the permutation matrix:
+
+$$
+A = \begin{bmatrix}
+0 & 1 & 0 \\
+1 & 0 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+$$
+
+Although $a_{11} = 0$, left-multiplying by the row-exchange elementary matrix $P_{12} = A$ immediately reduces $A$ to the identity matrix $U = P_{12} A = I_3$, which possesses a full set of $3$ nonzero pivots $1, 1, 1$. For any $\mathbf{b} = (b_1, b_2, b_3)^T \in \mathbb{R}^3$, there is a unique solution $\mathbf{x} = (b_2, b_1, b_3)^T$, so $A$ is completely invertible.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l02-ex4"
+  tier="L3"
+  tierLabel="L3 · Zero-Calculation Subspace Reasoning"
+  title="Parameter Sensitivity Reasoning: When Do Pivots Vanish, and When Can Row Exchanges Save the Day?"
+>
+(Adapted from a classic MIT 18.06 lecture parameter problem) Consider two $3\times 3$ matrices depending on real parameters $a, b \in \mathbb{R}$:
+
+$$
+M_1(a) = \begin{bmatrix}
+a & 2 & 3 \\
+a & a & 4 \\
+a & a & a
+\end{bmatrix}, \qquad
+M_2(b) = \begin{bmatrix}
+1 & b & 0 \\
+b & 1 & b \\
+0 & b & 1
+\end{bmatrix}
+$$
+
+1. Perform two steps of downward elimination on $M_1(a)$, express its three pivots as factored expressions in $a$, and find all real values of $a$ for which $M_1(a)$ is **singular (complete failure)**;
+2. For the symmetric tridiagonal matrix $M_2(b)$, find the condition on $b$ under which elimination (allowing row exchanges) produces a full set of $3$ nonzero pivots (nonsingular), and identify whether there is any value of $b$ that triggers a **temporary failure** where the 2nd pivot slot becomes $0$ **but can be rescued by exchanging with Row 3**!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "For $M_1(a)$: Apply $R_2 - R_1$ and $R_3 - R_2$ (or in standard order $R_2 - R_1, R_3 - R_1$ followed by $R_3 - R_2$) to reduce it immediately to a clean upper triangular matrix where all three diagonal entries are visible at a glance!",
+    "For $M_2(b)$: After Step 1 ($R_2 \\leftarrow R_2 - b R_1$), the $(2,2)$ pivot slot becomes $1 - b^2$! If $1 - b^2 = 0$ (i.e., $b = \\pm 1$), check what number is sitting in the $(3,2)$ slot of Row 3 and whether swapping rows rescues the pivot!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. In $M_1(a)$, every row starts with $a$! Subtracting Row 1 from Row 2 reveals the second pivot $a - 2$; subtracting the original Row 2 from the original Row 3 directly reveals the third pivot $a - 4$! The three pivots are $a,\; a-2,\; a-4$. Whenever $a \in \{0, 2, 4\}$, every entry below the zero pivot slot in that column is also $0$, leaving no row available to swap—an immediate complete failure!
+2. $M_2(b)$ is even more dramatic: after the first elimination step, the $(2,2)$ slot becomes $1 - b^2$. When $b = \pm 1$, the 2nd pivot slot drops to $0$, but Row 3 is $[0,\; \pm 1,\; 1]$, whose $(3,2)$ entry is nonzero! Swapping Rows 2 and 3 brings it back from the brink and secures all three nonzero pivots! What actually kills $M_2(b)$ permanently is $1 - 2b^2 = 0$, namely $b = \pm \frac{1}{\sqrt{2}}$!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **Analysis of $M_1(a)$**: Assuming $a \neq 0$, we execute $R_2 \leftarrow R_2 - R_1$ and $R_3 \leftarrow R_3 - R_1$, followed by $R_3 \leftarrow R_3 - R_2$:
+
+$$
+\begin{bmatrix}
+a & 2 & 3 \\
+a & a & 4 \\
+a & a & a
+\end{bmatrix}
+\longrightarrow
+\begin{bmatrix}
+a & 2 & 3 \\
+0 & a - 2 & 1 \\
+0 & a - 2 & a - 3
+\end{bmatrix}
+\longrightarrow
+\begin{bmatrix}
+a & 2 & 3 \\
+0 & a - 2 & 1 \\
+0 & 0 & a - 4
+\end{bmatrix}
+$$
+
+   - If $a \notin \{0, 2, 4\}$, the three pivots are $a,\; a-2,\; a-4$ (all nonzero);
+   - If $a = 0$ (Column 1 is all zeros), $a = 2$ (the first two columns of Rows 1 and 2 are identical, making the columns linearly dependent), or $a = 4$ (Rows 2 and 3 after step 1 are proportional), complete failure occurs. Thus $M_1(a)$ is singular $\iff a \in \{0, 2, 4\}$.
+
+2. **Analysis of $M_2(b)$**: The 1st pivot is $1$. Executing $R_2 \leftarrow R_2 - bR_1$ gives:
+
+$$
+\begin{bmatrix}
+1 & b & 0 \\
+0 & 1 - b^2 & b \\
+0 & b & 1
+\end{bmatrix}
+$$
+
+   - **Case A ($b = \pm 1$, temporary failure rescued by row exchange!)**: Here $1 - b^2 = 0$, so the intermediate matrix is $\begin{bmatrix} 1 & \pm 1 & 0 \\ 0 & 0 & \pm 1 \\ 0 & \pm 1 & 1 \end{bmatrix}$. Exchanging Rows 2 and 3 immediately yields the upper triangular matrix $\begin{bmatrix} 1 & \pm 1 & 0 \\ 0 & \pm 1 & 1 \\ 0 & 0 & \pm 1 \end{bmatrix}$ with three nonzero pivots $1, \pm 1, \pm 1$. Hence the matrix is **nonsingular**!
+   - **Case B ($b \neq \pm 1$, continuing elimination without row exchange)**: Using the multiplier $\ell_{32} = \frac{b}{1-b^2}$, we execute $R_3 \leftarrow R_3 - \frac{b}{1-b^2} R_2$, and the bottom-right 3rd pivot slot becomes:
+
+$$
+d_3 = 1 - \frac{b^2}{1 - b^2} = \frac{1 - 2b^2}{1 - b^2}
+$$
+
+   Complete failure ($d_3 = 0$) occurs if and only if $1 - 2b^2 = 0 \iff b = \pm \frac{\sqrt{2}}{2}$. For all $b \neq \pm \frac{\sqrt{2}}{2}$, $M_2(b)$ is nonsingular!
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l02-ex5"
+  tier="L4"
+  tierLabel="L4 · MIT 18.06 Exam Synthesis"
+  title="MIT 18.06 Synthesis Challenge: One-Shot Construction and Reverse-Order Inversion of a Multi-Step Elimination Operator"
+>
+Suppose we want to find a single $3\times 3$ matrix $E$ such that left-multiplying **any** matrix $A \in \mathbb{R}^{3\times n}$ by $E$ executes the following three row operations in strict sequential order:
+1. First, exchange Row 1 and Row 2;
+2. Next, subtract $5$ times the (new) Row 1 from the (new) Row 3;
+3. Finally, add $2$ times the (new) Row 3 to Row 2.
+
+Complete the following two parts:
+1. Write down the elementary matrices $M_1, M_2, M_3$ corresponding to each individual step, assemble the combined matrix $E$ in the proper left-to-right order, and verify that $E$ is strictly equal to the matrix obtained by applying those three row operations sequentially to the identity matrix $I_3$;
+2. **Without performing augmented-matrix elimination**, use only the single-step elementary inverse formulas and the "shoes-and-socks reverse-order law" for inverses to write $E^{-1}$ as a product of elementary matrices and compute the explicit numerical matrix $E^{-1}$!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Step 1 acts on $A$ first, so $M_1$ must sit immediately to the left of $A$: $E A = M_3 M_2 M_1 A$! Here $M_1 = P_{12}$, $M_2$ has $-5$ in the $(3,1)$ entry, and $M_3$ has $+2$ in the $(2,3)$ entry.",
+    "Notice that $E = E I_3 = M_3(M_2(M_1 I_3))$, which algebraically proves in one line that applying the three operations sequentially to $I_3$ must produce the exact same matrix $E$!",
+    "When taking the inverse, remember to reverse the order: $E^{-1} = (M_3 M_2 M_1)^{-1} = M_1^{-1} M_2^{-1} M_3^{-1}$! This means you can undo the operations on $I_3$ in reverse order (first subtract 2 times Row 3 from Row 2, then add 5 times Row 1 to Row 3, and finally swap Rows 1 and 2)!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+This problem fuses the core ideas of Lectures 02 and 03 into one cohesive picture!
+- To construct $E$ in the forward direction, you don't actually need to multiply three matrices together: by associativity, $E = (M_3 M_2 M_1) I_3 = M_3(M_2(M_1 I_3))$. Just take the identity matrix $I_3$ and perform the three mental steps in order (swap Rows 1 & 2 $\to$ Row 3 minus 5 times Row 1 $\to$ Row 2 plus 2 times Row 3) to write down $E$ in ten seconds flat!
+- Finding $E^{-1}$ in the reverse direction also takes ten seconds: inverting a sequence of operations is simply **playing the videotape backward**! Starting from $I_3$, first undo Step 3 (Row 2 minus 2 times Row 3), then undo Step 2 (Row 3 plus 5 times Row 1), and finally undo Step 1 (swap Rows 1 & 2 back)—saving yourself every last matrix multiplication!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **Constructing the Single-Step Elementary Matrices and the Combined Operator $E$**:
+
+$$
+M_1 = P_{12} = \begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}, \quad
+M_2 = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ -5 & 0 & 1 \end{bmatrix}, \quad
+M_3 = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 2 \\ 0 & 0 & 1 \end{bmatrix}
+$$
+
+Multiplying from right to left in the order of execution gives $E = M_3 M_2 M_1$. Using $E = M_3(M_2(M_1 I_3))$ to act step by step on $I_3$:
+
+$$
+I_3 \xrightarrow{M_1}
+\begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}
+\xrightarrow{M_2}
+\begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & -5 & 1 \end{bmatrix}
+\xrightarrow{M_3}
+E = \begin{bmatrix}
+0 & 1 & 0 \\
+1 & -10 & 2 \\
+0 & -5 & 1
+\end{bmatrix}
+$$
+
+2. **Reverse-Order Inversion $E^{-1} = M_1^{-1} M_2^{-1} M_3^{-1}$**:
+By Part 2 of Theorem 2.1, $M_1^{-1} = P_{12}$, $M_2^{-1}$ flips $-5$ to $+5$, and $M_3^{-1}$ flips $+2$ to $-2$:
+
+$$
+E^{-1} =
+\underbrace{\begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}}_{M_1^{-1}}
+\underbrace{\begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 5 & 0 & 1 \end{bmatrix}}_{M_2^{-1}}
+\underbrace{\begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & -2 \\ 0 & 0 & 1 \end{bmatrix}}_{M_3^{-1}}
+=
+\begin{bmatrix}
+0 & 1 & -2 \\
+1 & 0 & 0 \\
+5 & 0 & 1
+\end{bmatrix}
+$$
+
+We can also verify this by applying the inverse steps sequentially to $I_3$:
+
+$$
+I_3 \xrightarrow{M_3^{-1}}
+\begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & -2 \\ 0 & 0 & 1 \end{bmatrix}
+\xrightarrow{M_2^{-1}}
+\begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & -2 \\ 5 & 0 & 1 \end{bmatrix}
+\xrightarrow{M_1^{-1}}
+E^{-1} = \begin{bmatrix}
+0 & 1 & -2 \\
+1 & 0 & 0 \\
+5 & 0 & 1
+\end{bmatrix}
+$$
+
+Direct verification of $E E^{-1}$:
+
+$$
+\begin{bmatrix}
+0 & 1 & 0 \\
+1 & -10 & 2 \\
+0 & -5 & 1
+\end{bmatrix}
+\begin{bmatrix}
+0 & 1 & -2 \\
+1 & 0 & 0 \\
+5 & 0 & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 - 10 + 10 & 1 & -2 + 0 + 2 \\
+-5 + 5 & 0 & 1
+\end{bmatrix}
+= I_3
+$$
+
+Everything matches!
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>

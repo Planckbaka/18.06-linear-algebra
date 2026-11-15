@@ -1,0 +1,723 @@
+---
+title: "Lecture 03: Matrix Multiplication (Five Ways) and Inverse Matrices"
+ocwId: "L03"
+videoEpisode: "P03"
+textbookRef: "§2.4–2.5"
+---
+
+If you memorize matrix multiplication $C = AB$ merely as the mechanical chant "row times column, sum the products," you miss more than half the insight in linear algebra. In MIT 18.06 Lecture 03, Professor Gilbert Strang reveals **five equivalent geometric and algebraic views of the exact same matrix product $AB$**—among which "combinations of columns," "combinations of rows," and "sums of rank-one outer products" immediately expose which subspaces the product matrix lives in. From there, using the nullspace and block elimination, we build the rigorous theory of the inverse matrix $A^{-1}$ for square matrices.
+
+---
+
+## 1. Five Golden Structural Views of Matrix Multiplication $C = AB$
+
+First, lock down the shape requirement: let $A \in \mathbb{R}^{m\times n}$ and $B \in \mathbb{R}^{n\times p}$. **If and only if the number of columns of $A$ equals the number of rows of $B$ (both equal to $n$)** is the product $C = AB$ defined, and the resulting matrix has dimensions $C \in \mathbb{R}^{m\times p}$.
+
+<MatrixMultFiveViewsDiagram caption="Five structural views of C = AB: (1) row-column dot product for single entries, (2) column combinations in Col(A), (3) row combinations in Row(B), (4) sum of n rank-1 outer product slices, and (5) block matrix multiplication." />
+
+Below we unpack these five views layer by layer along with their structural corollaries:
+
+### View ①: The Entrywise View (Inner Product of a Row and a Column)
+
+If you only want to compute a single scalar entry $c_{ij}$ in row $i$ and column $j$ of $C$, simply take row $i$ of $A$ and column $j$ of $B$ and form their dot product (inner product):
+
+$$
+c_{ij} = (\text{row } i \text{ of } A) \cdot (\text{column } j \text{ of } B) = \sum_{k=1}^{n} a_{ik} b_{kj}
+$$
+
+This view is fine for computing isolated numbers by hand, but it obscures the overall subspace structure of the matrix product.
+
+### View ②: The Column View (Columns of $C$ Are Linear Combinations of Columns of $A$)
+
+Slice the right-hand matrix into its individual columns $B = \begin{bmatrix} \mathbf{b}_1 & \mathbf{b}_2 & \cdots & \mathbf{b}_p \end{bmatrix}$, where each column $\mathbf{b}_j \in \mathbb{R}^n$. Matrix multiplication acts by letting $A$ multiply each column of $B$ independently:
+
+$$
+AB = A \begin{bmatrix} \mathbf{b}_1 & \mathbf{b}_2 & \cdots & \mathbf{b}_p \end{bmatrix}
+= \begin{bmatrix} A\mathbf{b}_1 & A\mathbf{b}_2 & \cdots & A\mathbf{b}_p \end{bmatrix}
+$$
+
+Returning to the core definition from Lecture 01: $A\mathbf{b}_j$ is a linear combination of **the columns of $A$**, weighted by the entries of $\mathbf{b}_j$! This means **every single column of $C = AB$ lies without exception inside the column space $\operatorname{Col}(A)$ of $A$**.
+
+### View ③: The Row View (Rows of $C$ Are Linear Combinations of Rows of $B$)
+
+Symmetrically, slice the left-hand matrix into its rows $\mathbf{a}_1^T, \dots, \mathbf{a}_m^T \in \mathbb{R}^{1\times n}$:
+
+$$
+AB = \begin{bmatrix} \mathbf{a}_1^T \\ \mathbf{a}_2^T \\ \vdots \\ \mathbf{a}_m^T \end{bmatrix} B
+= \begin{bmatrix} \mathbf{a}_1^T B \\ \mathbf{a}_2^T B \\ \vdots \\ \mathbf{a}_m^T B \end{bmatrix}
+$$
+
+Every row $\mathbf{a}_i^T B = a_{i1}(\text{row } 1 \text{ of } B) + \cdots + a_{in}(\text{row } n \text{ of } B)$ is a **linear combination of the rows of $B$**!
+
+### View ④: The Column-Times-Row Outer Product View (Sum of $n$ Rank-One Matrices!)
+
+This is the view least familiar to beginners, yet the most powerful in advanced matrix factorizations ($LU$, spectral decomposition, and Singular Value Decomposition SVD)!
+
+- "Row ($1\times n$) times column ($n\times 1$)" collapses into a single scalar (inner product);
+- Conversely, **"column ($m\times 1$) times row ($1\times p$)" expands into a full-sized $m\times p$ matrix (outer product)!**
+
+Denoting column $k$ of $A$ by $\mathbf{c}_k \in \mathbb{R}^{m\times 1}$ and row $k$ of $B$ by $\mathbf{r}_k^T \in \mathbb{R}^{1\times p}$, the matrix product is the exact **entrywise sum of $n$ outer-product slice matrices**:
+
+$$
+AB = \begin{bmatrix} \mathbf{c}_1 & \mathbf{c}_2 & \cdots & \mathbf{c}_n \end{bmatrix}
+\begin{bmatrix} \mathbf{r}_1^T \\ \mathbf{r}_2^T \\ \vdots \\ \mathbf{r}_n^T \end{bmatrix}
+= \sum_{k=1}^{n} \mathbf{c}_k \mathbf{r}_k^T
+$$
+
+See the magic in action with a concrete numerical example:
+
+$$
+\begin{bmatrix} 2 & 7 \\ 3 & 8 \\ 4 & 9 \end{bmatrix}
+\begin{bmatrix} 1 & 6 \\ 0 & 0 \end{bmatrix}
+=
+\underbrace{\begin{bmatrix} 2 \\ 3 \\ 4 \end{bmatrix} \begin{bmatrix} 1 & 6 \end{bmatrix}}_{\text{1st rank-1 slice}}
++
+\underbrace{\begin{bmatrix} 7 \\ 8 \\ 9 \end{bmatrix} \begin{bmatrix} 0 & 0 \end{bmatrix}}_{\text{2nd all-zero slice}}
+=
+\begin{bmatrix} 2 & 12 \\ 3 & 18 \\ 4 & 24 \end{bmatrix}
+$$
+
+Look closely at the resulting matrix $\begin{bmatrix} 2 & 12 \\ 3 & 18 \\ 4 & 24 \end{bmatrix}$: all of its columns are scalar multiples of $(2, 3, 4)^T$ (its column space is a single line), and all of its rows are scalar multiples of $[1 \;\; 6]$ (its row space is also a single line). Any matrix of the form $\mathbf{c}\mathbf{r}^T$ (a nonzero column times a nonzero row) is called a **rank-one matrix**.
+
+### View ⑤: Block Matrix Multiplication
+
+As long as the column partitioning of $A$ matches the row partitioning of $B$ (so that all inner block dimensions align), submatrix blocks can be multiplied and added just like scalars following the row-times-column rule:
+
+$$
+\begin{bmatrix} A_{11} & A_{12} \\ A_{21} & A_{22} \end{bmatrix}
+\begin{bmatrix} B_{11} & B_{12} \\ B_{21} & B_{22} \end{bmatrix}
+=
+\begin{bmatrix}
+A_{11}B_{11} + A_{12}B_{21} & A_{11}B_{12} + A_{12}B_{22} \\
+A_{21}B_{11} + A_{22}B_{21} & A_{21}B_{12} + A_{22}B_{22}
+\end{bmatrix}
+$$
+
+**Crucial detail**: Because matrix multiplication is not commutative, when writing $A_{11}B_{11} + A_{12}B_{21}$, **the blocks of $A$ must stay strictly on the left and the blocks of $B$ strictly on the right**—never reverse the order!
+
+<TheoremCard
+  label="Theorem 3.1"
+  title="Subspace Inclusion Theorem for Matrix Products"
+>
+For any conformable real matrices $A \in \mathbb{R}^{m\times n}$ and $B \in \mathbb{R}^{n\times p}$, the product $AB \in \mathbb{R}^{m\times p}$ always satisfies three fundamental subspace inclusions:
+
+1. **Column space shrinks inside the left factor**: $\operatorname{Col}(AB) \subseteq \operatorname{Col}(A) \subseteq \mathbb{R}^m$;
+2. **Row space shrinks inside the right factor** (writing $\operatorname{Row}(M) := \operatorname{Col}(M^T)$): $\operatorname{Row}(AB) \subseteq \operatorname{Row}(B) \subseteq \mathbb{R}^p$;
+3. **Nullspace is inherited from the right factor**: $\operatorname{Null}(B) \subseteq \operatorname{Null}(AB)$, meaning if $B\mathbf{x} = \mathbf{0}$, then necessarily $(AB)\mathbf{x} = \mathbf{0}$.
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Three-Line Subspace Inclusion Derivation">
+1. Take any $\mathbf{y} \in \operatorname{Col}(AB)$. By the definition of column space, there exists $\mathbf{x} \in \mathbb{R}^p$ such that $\mathbf{y} = (AB)\mathbf{x}$. By associativity of matrix multiplication, $\mathbf{y} = A(B\mathbf{x})$. Setting $\mathbf{w} = B\mathbf{x} \in \mathbb{R}^n$ gives $\mathbf{y} = A\mathbf{w} \in \operatorname{Col}(A)$, so $\operatorname{Col}(AB) \subseteq \operatorname{Col}(A)$.
+2. Using the transpose reversal rule $(AB)^T = B^T A^T$, apply Part 1 directly to $B^T$ and $A^T$:
+
+$$
+\operatorname{Row}(AB) = \operatorname{Col}((AB)^T) = \operatorname{Col}(B^T A^T) \subseteq \operatorname{Col}(B^T) = \operatorname{Row}(B)
+$$
+
+3. If $\mathbf{x} \in \mathbb{R}^p$ satisfies $B\mathbf{x} = \mathbf{0}$, then $(AB)\mathbf{x} = A(B\mathbf{x}) = A\mathbf{0} = \mathbf{0}$.
+</ProofCollapse>
+
+<InteractiveCanvasSlot
+  id="l03-rank1-outer-slicer"
+  title="Rank-1 Outer Product Slice Accumulator (AB = ∑ c_k r_kᵀ)"
+  description="Interactive exploration: toggle each rank-1 outer product slice $\mathbf{c}_k \mathbf{r}_k^T$ for $k = 1, \dots, n$ to see how simple rank-1 grids stack entrywise to reconstruct any matrix product $AB$."
+/>
+
+---
+
+## 2. Invertibility of Square Matrices and the Inverse Matrix
+
+Now we focus our attention on **square matrices** $A \in \mathbb{R}^{n\times n}$. If the matrix $A$ represents a linear operation (such as the elementary matrix $E_{21}$ in Lecture 02 that subtracts $3$ times row $1$ from row $2$), what kind of matrix can completely "undo" and reverse that operation?
+
+<DefinitionCard
+  label="Definition 3.1"
+  title="Inverse of a Square Matrix"
+>
+Let $A \in \mathbb{R}^{n\times n}$ be a **square matrix**. If there exists a square matrix $X \in \mathbb{R}^{n\times n}$ of the same size satisfying both the left-inverse and right-inverse equations:
+
+$$
+XA = I_n \quad \text{and} \quad AX = I_n
+$$
+
+then $A$ is called an **invertible (or nonsingular) matrix**; the matrix $X$ satisfying this condition is **unique** (if $X_1 A = I_n$ and $AX_2 = I_n$, then $X_1 = X_1(AX_2) = (X_1 A)X_2 = X_2$) and is denoted by $A^{-1}$. If no such matrix exists, $A$ is called a **singular matrix**.
+</DefinitionCard>
+
+Why do some square matrices stubbornly refuse to have an inverse? Using **the column view and the nullspace**, you can see the essence in one second! Suppose there is a **nonzero vector** $\mathbf{x} \neq \mathbf{0}$ that $A$ crushes into the zero vector: $A\mathbf{x} = \mathbf{0}$. If an inverse matrix $A^{-1}$ actually existed, multiplying both sides on the left by $A^{-1}$ would yield:
+
+$$
+A^{-1}(A\mathbf{x}) = A^{-1}\mathbf{0} \quad \Longrightarrow \quad (A^{-1}A)\mathbf{x} = \mathbf{0} \quad \Longrightarrow \quad \mathbf{x} = \mathbf{0}
+$$
+
+which directly contradicts $\mathbf{x} \neq \mathbf{0}$! Intuitively: **if $A$ flattens some nonzero vector $\mathbf{x}$ into $\mathbf{0}$, that information is permanently lost—no linear matrix in the universe can map the single vector $\mathbf{0}$ back to $\mathbf{0}$ and simultaneously back to the nonzero vector $\mathbf{x}$!**
+
+<TheoremCard
+  label="Theorem 3.2"
+  title="One-Sided Inverse Equivalence & Inverse Rules for Square Matrices"
+>
+Let $A, B \in \mathbb{R}^{n\times n}$ be $n\times n$ **square matrices**:
+
+1. **A one-sided inverse automatically upgrades to a two-sided inverse**: If there exists $X \in \mathbb{R}^{n\times n}$ such that $XA = I_n$ (left inverse), then necessarily $AX = I_n$, so $X = A^{-1}$; similarly, if $AY = I_n$ (right inverse), then necessarily $YA = I_n$.
+2. **Nullspace criterion**: A square matrix $A$ is invertible $\iff$ the homogeneous equation $A\mathbf{x} = \mathbf{0}$ has only the trivial solution $\mathbf{x} = \mathbf{0}$ $\iff$ Gaussian elimination (with row exchanges allowed) produces a full set of $n$ nonzero pivots.
+3. **Reverse order law for the inverse of a product**: If $A$ and $B$ are both invertible, then $AB$ is also invertible, and
+
+$$
+(AB)^{-1} = B^{-1} A^{-1}
+$$
+
+4. **Commutativity of transpose and inverse**: If $A$ is invertible, then $A^T$ is also invertible, and $(A^T)^{-1} = (A^{-1})^T$ (often written simply as $A^{-T}$).
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Why a Left Inverse XA = I Automatically Satisfies AX = I for Square Matrices">
+Suppose $X \in \mathbb{R}^{n\times n}$ satisfies $XA = I_n$:
+1. Consider $A\mathbf{x} = \mathbf{0}$: multiplying on the left by $X$ gives $\mathbf{x} = I_n\mathbf{x} = X(A\mathbf{x}) = \mathbf{0}$, so the $n$ columns of $A$ are linearly independent.
+2. By Theorem 1.1, the columns of $A$ span all of $\mathbb{R}^n$. Thus for each standard basis vector $\mathbf{e}_j \in \mathbb{R}^n$ (column $j$ of $I_n$), the equation $A\mathbf{y}_j = \mathbf{e}_j$ has a solution $\mathbf{y}_j \in \mathbb{R}^n$.
+3. Assemble these $n$ solution vectors as columns of a square matrix $Y = \begin{bmatrix} \mathbf{y}_1 & \cdots & \mathbf{y}_n \end{bmatrix} \in \mathbb{R}^{n\times n}$. By **View ② (the column view)** of matrix multiplication, we immediately obtain $AY = \begin{bmatrix} A\mathbf{y}_1 & \cdots & A\mathbf{y}_n \end{bmatrix} = \begin{bmatrix} \mathbf{e}_1 & \cdots & \mathbf{e}_n \end{bmatrix} = I_n$!
+4. Finally, link the left and right inverses via associativity: $X = X I_n = X(AY) = (XA)Y = I_n Y = Y$. Since $X = Y$, we automatically have $AX = AY = I_n$!
+
+(We also verify the reverse order law: $(AB)(B^{-1}A^{-1}) = A(BB^{-1})A^{-1} = A I_n A^{-1} = I_n$, and left multiplication similarly yields $I_n$.)
+</ProofCollapse>
+
+---
+
+## 3. Gauss-Jordan Elimination for Finding $A^{-1}$: $[A \mid I_n] \longrightarrow [I_n \mid A^{-1}]$
+
+How do we systematically compute $A^{-1}$? Write the unknown inverse matrix column by column as $A^{-1} = \begin{bmatrix} \mathbf{x}_1 & \mathbf{x}_2 & \cdots & \mathbf{x}_n \end{bmatrix}$. By **View ② (column-by-column multiplication)**, the matrix equation $AA^{-1} = I_n$ simply packs **$n$ linear systems that all share the exact same coefficient matrix $A$** side by side:
+
+$$
+A \begin{bmatrix} \mathbf{x}_1 & \mathbf{x}_2 & \cdots & \mathbf{x}_n \end{bmatrix}
+= \begin{bmatrix} \mathbf{e}_1 & \mathbf{e}_2 & \cdots & \mathbf{e}_n \end{bmatrix} = I_n
+\quad \Longleftrightarrow \quad
+A\mathbf{x}_j = \mathbf{e}_j \;\; (j = 1, \dots, n)
+$$
+
+Rather than repeating the same elimination steps $n$ separate times, Gauss and Jordan devised an extraordinarily elegant all-in-one procedure: form the $n\times 2n$ block-augmented matrix $\begin{bmatrix} A \mid I_n \end{bmatrix}$ and apply elementary row operations (first eliminating downward to upper triangular $U$, then **eliminating upward** to clear all nonzero entries above the pivots, and finally dividing each row by its pivot to reach $I_n$).
+
+Using View ⑤ (block multiplication), you can see at a glance why $A^{-1}$ magically emerges on the right-hand side: let $E \in \mathbb{R}^{n\times n}$ be the combined product of all elementary row-operation matrices, and multiply the block-augmented matrix on the left by $E$:
+
+$$
+E \begin{bmatrix} A & \big| & I_n \end{bmatrix} = \begin{bmatrix} EA & \big| & E I_n \end{bmatrix} = \begin{bmatrix} EA & \big| & E \end{bmatrix}
+$$
+
+Once we reduce the left half to the identity matrix $EA = I_n$, Part 1 of Theorem 3.2 immediately forces **$E = A^{-1}$**! Thus the matrix $E$ sitting in the right half automatically becomes the desired inverse $A^{-1}$:
+
+$$
+\left[\begin{array}{cc|cc}
+1 & 3 & 1 & 0 \\
+2 & 7 & 0 & 1
+\end{array}\right]
+\xrightarrow{R_2 \leftarrow R_2 - 2R_1}
+\left[\begin{array}{cc|cc}
+1 & 3 & 1 & 0 \\
+0 & 1 & -2 & 1
+\end{array}\right]
+\xrightarrow{R_1 \leftarrow R_1 - 3R_2}
+\left[\begin{array}{cc|cc}
+1 & 0 & 7 & -3 \\
+0 & 1 & -2 & 1
+\end{array}\right]
+$$
+
+We read off $A^{-1} = \begin{bmatrix} 7 & -3 \\ -2 & 1 \end{bmatrix}$, and a quick mental check confirms $\begin{bmatrix} 1 & 3 \\ 2 & 7 \end{bmatrix}\begin{bmatrix} 7 & -3 \\ -2 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$!
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+1. **Pitfall 1: Falsely applying "$XA = I \implies AX = I$" to rectangular matrices! (Extremely common trap)**
+   The automatic symmetry between one-sided inverses in Theorem 3.2 **holds only for square matrices**! For rectangular matrices, take $X = \begin{bmatrix} 1 & 0 \end{bmatrix} \in \mathbb{R}^{1\times 2}$ and $A = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \in \mathbb{R}^{2\times 1}$. Even though $XA = [1] = I_1$, reversing the order gives $AX = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix} \neq I_2$ (which has rank $1$ and is certainly not invertible)! Left and right one-sided inverses for rectangular matrices will be thoroughly dissected in Lecture 34.
+2. **Pitfall 2: Blindly extrapolating "$AB = 0 \implies A = 0$ or $B = 0$" from scalar arithmetic**
+   In the world of matrices, two nonzero matrices can easily multiply to the zero matrix—as long as every column of $B$ falls inside the nullspace of $A$! For instance, $\begin{bmatrix} 1 & -1 \\ 1 & -1 \end{bmatrix}\begin{bmatrix} 1 & 2 \\ 1 & 2 \end{bmatrix} = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}$. Likewise, from $AB = AC$ with $A \neq 0$, **you can never cancel $A$** unless you know for sure that $A$ is **invertible**!
+3. **Pitfall 3: Writing $(AB)^{-1} = A^{-1}B^{-1}$ in the wrong order, or inventing $(A+B)^{-1} = A^{-1} + B^{-1}$**
+   Remember Professor Strang's "shoes and socks rule": in the morning you put on your socks first (multiply by $B$) and then put on your shoes (multiply by $A$); at night, to undo this, you must **take off your shoes first (multiply by $A^{-1}$) and then take off your socks (multiply by $B^{-1}$)**, so $(AB)^{-1} = B^{-1}A^{-1}$. As for matrix addition, $(I + I)^{-1} = \frac{1}{2}I \neq I + I$—there is no simple formula splitting the inverse of a sum.
+</PitfallAlert>
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "Each of the five views of matrix multiplication serves a distinct purpose: use **row-column inner products** for single entries, **column combinations** for $\\operatorname{Col}(AB)\\subseteq\\operatorname{Col}(A)$, **row combinations** for $\\operatorname{Row}(AB)\\subseteq\\operatorname{Row}(B)$, and **column-times-row rank-1 outer product sums $\\sum \\mathbf{c}_k \\mathbf{r}_k^T$** for low-rank decompositions.",
+    "A square matrix $A \\in \\mathbb{R}^{n\\times n}$ is invertible $\\iff A\\mathbf{x}=\\mathbf{0}$ has only the zero solution $\\iff$ a left (or right) inverse exists; rectangular matrices never possess a two-sided inverse.",
+    "Always reverse the order when inverting a product, $(AB)^{-1} = B^{-1}A^{-1}$, whereas transposition and inversion commute freely: $(A^T)^{-1} = (A^{-1})^T$.",
+    "Gauss-Jordan elimination $\\begin{bmatrix} A \\mid I_n \\end{bmatrix} \\to \\begin{bmatrix} I_n \\mid A^{-1} \\end{bmatrix}$ works by block-multiplying on the left by the total elimination matrix $E = A^{-1}$."
+  ]}
+/>
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+<ExerciseCard
+  id="l03-ex1"
+  tier="L1"
+  tierLabel="L1 · Quick Geometric Check"
+  title="Decomposing a Matrix Product via View ④ (Sum of Rank-1 Outer Products)"
+>
+Given the matrices $A \in \mathbb{R}^{3\times 2}$ and $B \in \mathbb{R}^{2\times 3}$:
+
+$$
+A = \begin{bmatrix}
+1 & 0 \\
+2 & 1 \\
+-1 & 3
+\end{bmatrix}, \quad
+B = \begin{bmatrix}
+2 & 0 & -2 \\
+1 & 3 & 0
+\end{bmatrix}
+$$
+
+Write out explicitly the two $3\times 3$ rank-1 outer product slices in $AB = \mathbf{c}_1\mathbf{r}_1^T + \mathbf{c}_2\mathbf{r}_2^T$ and sum them; then, **without performing any elimination**, use Theorem 3.1 alone to determine whether the resulting $3\times 3$ matrix $C = AB$ is invertible!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "The first slice is column 1 of $A$, $(1, 2, -1)^T$, times row 1 of $B$, $[2, 0, -2]$; the second slice is $(0, 1, 3)^T$ times $[1, 3, 0]$.",
+    "To decide whether $C = AB$ is invertible, look at $\\operatorname{Col}(AB) \\subseteq \\operatorname{Col}(A)$! Since $A$ has only $2$ columns, what is the maximum dimension of its column space? Can it fill all of $\\mathbb{R}^3$?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Each of the two slices is an ultra-simple grid whose columns are multiples of a single vector and whose rows are multiples of a single vector. As for whether the $3\times 3$ matrix $C = AB$ is invertible, we don't need determinants or elimination at all—because all three columns of $C$ are linear combinations of **the mere two columns** of $A$ ($\operatorname{Col}(AB) \subseteq \operatorname{Col}(A)$). In 3D space, the subspace spanned by two vectors is at most a 2D plane, so the $3\times 3$ matrix $C$ **must be singular (non-invertible)**!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+Expanding the column-times-row outer products via View ④:
+
+$$
+\mathbf{c}_1 \mathbf{r}_1^T =
+\begin{bmatrix} 1 \\ 2 \\ -1 \end{bmatrix} \begin{bmatrix} 2 & 0 & -2 \end{bmatrix}
+= \begin{bmatrix}
+2 & 0 & -2 \\
+4 & 0 & -4 \\
+-2 & 0 & 2
+\end{bmatrix}, \quad
+\mathbf{c}_2 \mathbf{r}_2^T =
+\begin{bmatrix} 0 \\ 1 \\ 3 \end{bmatrix} \begin{bmatrix} 1 & 3 & 0 \end{bmatrix}
+= \begin{bmatrix}
+0 & 0 & 0 \\
+1 & 3 & 0 \\
+3 & 9 & 0
+\end{bmatrix}
+$$
+
+Adding them entrywise gives:
+
+$$
+C = AB = \mathbf{c}_1 \mathbf{r}_1^T + \mathbf{c}_2 \mathbf{r}_2^T =
+\begin{bmatrix}
+2 & 0 & -2 \\
+5 & 3 & -4 \\
+1 & 9 & 2
+\end{bmatrix}
+$$
+
+**Rigorous proof of non-invertibility**: For the right factor $B \in \mathbb{R}^{2\times 3}$, take the nonzero vector $\mathbf{x}_0 = (3, -1, 3)^T \neq \mathbf{0}$; one readily checks that $B\mathbf{x}_0 = (6 - 6,\; 3 - 3)^T = \mathbf{0}$. By Part 3 of Theorem 3.1, $C\mathbf{x}_0 = A(B\mathbf{x}_0) = \mathbf{0}$, and by Part 2 of Theorem 3.2 the square matrix $C$ is not invertible.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l03-ex2"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Conceptual Check: Is the Sum of Two Singular Matrices Always Singular?"
+>
+Determine whether the following statement is true or false:
+
+> **Statement**: If two $n\times n$ square matrices $A, B \in \mathbb{R}^{n\times n}$ ($n \ge 2$) are both singular (non-invertible), then their sum $A + B$ must also be a singular matrix.
+
+<TrueFalseInteractive
+  id="l03-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Neither the set of invertible matrices nor the set of singular matrices is closed under matrix addition—adding two rank-1 singular projection matrices along complementary directions directly reconstructs the full-rank invertible identity matrix $I_2$!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Try splitting the identity matrix $I_2 = \\begin{bmatrix} 1 & 0 \\\\ 0 & 1 \\end{bmatrix}$ into the sum of two $2\\times 2$ matrices, each containing an all-zero row!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Matrix $A$ flattens every vector onto the $x$-axis (losing the $y$-direction, hence singular), while matrix $B$ flattens every vector onto the $y$-axis (losing the $x$-direction, hence singular). Yet when we add them together as $A + B$, their missing dimensions complement each other perfectly, restoring the fully invertible identity transformation $I$! (Conversely, adding two invertible matrices $I + (-I) = 0$ immediately produces a singular matrix.)
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+For any $n \ge 2$, construct the diagonal matrices:
+
+$$
+A = \operatorname{diag}(1, 0, \dots, 0) \in \mathbb{R}^{n\times n}, \quad
+B = \operatorname{diag}(0, 1, \dots, 1) \in \mathbb{R}^{n\times n}
+$$
+
+Since $A\mathbf{e}_2 = \mathbf{0}$ and $B\mathbf{e}_1 = \mathbf{0}$, both $A$ and $B$ have nonzero vectors in their nullspaces and are therefore singular; however, $A + B = I_n$ is clearly invertible (its inverse is $I_n$ itself).
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l03-ex3"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Dimension & One-Sided Inverse Trap: Does BA = I₂ Imply AB Is Invertible?"
+>
+Determine whether the following statement is true or false:
+
+> **Statement**: Suppose rectangular matrices $A \in \mathbb{R}^{3\times 2}$ and $B \in \mathbb{R}^{2\times 3}$ satisfy $BA = I_2$ (the $2\times 2$ identity matrix). Then the $3\times 3$ square matrix $AB \in \mathbb{R}^{3\times 3}$ obtained by reversing the order is also an invertible matrix.
+
+<TrueFalseInteractive
+  id="l03-tf2"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Even though $BA = I_2$ is invertible, the column space of $AB \in \mathbb{R}^{3\times 3}$ is trapped inside $\operatorname{Col}(AB) \subseteq \operatorname{Col}(A)$, and since $A$ has only $2$ columns, it can never span all of $\mathbb{R}^3$—so $AB$ is 100% singular!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Recall Theorem 3.1: $\\operatorname{Col}(AB) \\subseteq \\operatorname{Col}(A)$. In $\\mathbb{R}^3$, the matrix $A \\in \\mathbb{R}^{3\\times 2}$ has only two columns—can its column space fill all of $\\mathbb{R}^3$?",
+    "Alternatively, observe that $(AB)^2 = A(BA)B = A I_2 B = AB$: if $AB$ were invertible, multiplying on the left by $(AB)^{-1}$ would force $AB = I_3$. Could that be possible?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Think of $B: \mathbb{R}^3 \to \mathbb{R}^2$ as taking a 2D photograph of a 3D object: one direction of depth information is inevitably crushed to zero (there is a nonzero vector $\mathbf{z} \in \mathbb{R}^3$ with $B\mathbf{z} = \mathbf{0}$). Even if we follow it with $A: \mathbb{R}^2 \to \mathbb{R}^3$ to lift the 2D photograph back into 3D space, the lost depth can never be recovered—$(AB)\mathbf{z} = A\mathbf{0} = \mathbf{0}$, so $AB$ is forever non-invertible!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+We give a universal proof by contradiction holding for **all** $A \in \mathbb{R}^{3\times 2}$ and $B \in \mathbb{R}^{2\times 3}$:
+Suppose $AB \in \mathbb{R}^{3\times 3}$ were invertible. By Theorem 1.1, we would have $\operatorname{Col}(AB) = \mathbb{R}^3$. However, Theorem 3.1 gives:
+
+$$
+\mathbb{R}^3 = \operatorname{Col}(AB) \subseteq \operatorname{Col}(A) = \operatorname{span}\{\mathbf{a}_1, \mathbf{a}_2\}
+$$
+
+This would mean just two 3D vectors $\mathbf{a}_1, \mathbf{a}_2$ could span all of $\mathbb{R}^3$—a contradiction (as shown in Lecture 01 Exercise `l01-ex3`, elimination on a $3\times 2$ matrix always leaves at least one zero row and a compatibility constraint, failing to cover $\mathbb{R}^3$). Hence $AB$ must be singular!
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l03-ex4"
+  tier="L3"
+  tierLabel="L3 · Zero-Calculation Subspace Reasoning"
+  title="Zero-Elimination Algebraic Reasoning: Nilpotent Matrices and the Exact Expansion of (I − N)⁻¹"
+>
+Let $N \in \mathbb{R}^{3\times 3}$ be a strictly upper triangular matrix of the form:
+
+$$
+N = \begin{bmatrix}
+0 & a & b \\
+0 & 0 & c \\
+0 & 0 & 0
+\end{bmatrix} \quad (a, b, c \in \mathbb{R})
+$$
+
+1. Using the row/column views of matrix multiplication, explain why $N^2$ has only a single nonzero entry $ac$ in the top-right corner, and why $N^3 = 0$ (the all-zero matrix).
+2. By analogy with the high-school geometric series identity $(1 - x)(1 + x + x^2) = 1 - x^3$, **without doing any Gauss-Jordan elimination**, derive in a single line the exact inverse $A^{-1}$ of the unit upper triangular matrix:
+
+$$
+A = I_3 - N = \begin{bmatrix}
+1 & -a & -b \\
+0 & 1 & -c \\
+0 & 0 & 1
+\end{bmatrix}
+$$
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Because the identity matrix $I_3$ commutes with $N$ ($I_3 N = N I_3$), expand the product $(I_3 - N)(I_3 + N + N^2)$ directly and watch the middle terms telescope!",
+    "Since $N^3 = 0$, what does $(I_3 - N)(I_3 + N + N^2)$ equal? Then invoke Part 1 of Theorem 3.2 (a right inverse of a square matrix is its two-sided inverse)!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Every multiplication by the strictly upper triangular matrix $N$ pushes the nonzero diagonal one step further toward the top-right corner: the first power sits on the superdiagonal, the second power is pushed to the $(1, 3)$ corner (with value $ac$), and the third power is pushed right off the edge of the matrix into the all-zero matrix $0$! Consequently, the infinite geometric series $(1-x)^{-1} = 1 + x + x^2 + x^3 + \cdots$ applied to $N$ **truncates naturally and exactly** after the quadratic term—without needing any infinite limits at all!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. Computing the matrix powers step by step:
+
+$$
+N^2 = \begin{bmatrix} 0 & a & b \\ 0 & 0 & c \\ 0 & 0 & 0 \end{bmatrix}
+\begin{bmatrix} 0 & a & b \\ 0 & 0 & c \\ 0 & 0 & 0 \end{bmatrix}
+= \begin{bmatrix} 0 & 0 & ac \\ 0 & 0 & 0 \\ 0 & 0 & 0 \end{bmatrix}, \quad
+N^3 = N^2 N = \begin{bmatrix} 0 & 0 & 0 \\ 0 & 0 & 0 \\ 0 & 0 & 0 \end{bmatrix}
+$$
+
+2. By the distributive law of matrix multiplication and $I_3 N = N I_3$:
+
+$$
+(I_3 - N)(I_3 + N + N^2) = I_3 + N + N^2 - N - N^2 - N^3 = I_3 - N^3 = I_3
+$$
+
+By Part 1 of Theorem 3.2 (a right inverse of a square matrix is its unique two-sided inverse), we immediately obtain the exact closed-form expression:
+
+$$
+(I_3 - N)^{-1} = I_3 + N + N^2 =
+\begin{bmatrix}
+1 & a & b + ac \\
+0 & 1 & c \\
+0 & 0 & 1
+\end{bmatrix}
+$$
+
+(Notice why the top-right entry is $b + ac$ rather than $+b$: the $ac$ term is the exact back-substitution compensation from the two-step indirect path $1 \to 2 \to 3$ superimposed on the direct path $1 \to 3$!)
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l03-ex5"
+  tier="L4"
+  tierLabel="L4 · MIT 18.06 Exam Synthesis"
+  title="MIT 18.06 Exam Challenge: Inverse Formula for a Block Upper Triangular Matrix"
+>
+(Classic MIT 18.06 Midterm Problem) Let $M \in \mathbb{R}^{(m+n)\times(m+n)}$ be a square matrix with the following $2\times 2$ block upper triangular structure, where $A \in \mathbb{R}^{m\times m}$ and $D \in \mathbb{R}^{n\times n}$ are **invertible square matrices**, $B \in \mathbb{R}^{m\times n}$ is an arbitrary rectangular matrix, and $0$ is the $n\times m$ zero block:
+
+$$
+M = \begin{bmatrix}
+A & B \\
+0 & D
+\end{bmatrix}
+$$
+
+1. Many beginners intuitively guess the top-right block of $M^{-1}$ to be $-B$ or $-B^{-1}$ (note that $B$ isn't even square, so $B^{-1}$ doesn't exist!). Write the unknown block inverse as $M^{-1} = \begin{bmatrix} X & Y \\ Z & W \end{bmatrix}$ and use block matrix multiplication to solve directly for the exact expressions of $X, Y, Z, W$, paying strict attention to the left-to-right order of multiplication!
+2. When $m = n = 1$ with $A = [1]$ and $D = [1]$, verify that your formula reduces to the scalar elimination matrix inverse $\begin{bmatrix} 1 & b \\ 0 & 1 \end{bmatrix}^{-1} = \begin{bmatrix} 1 & -b \\ 0 & 1 \end{bmatrix}$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Write out the block equation $\\begin{bmatrix} A & B \\\\ 0 & D \\end{bmatrix} \\begin{bmatrix} X & Y \\\\ Z & W \\end{bmatrix} = \\begin{bmatrix} I_m & 0 \\\\ 0 & I_n \\end{bmatrix}$ and look first at the two block equations from the second row: $DZ = 0$ and $DW = I_n$!",
+    "After solving $Z = 0$ and $W = D^{-1}$, substitute $W$ into the top-right equation $AY + BW = 0$. When multiplying on the left by $A^{-1}$, watch carefully the left-to-right order of $A^{-1}$, $B$, and $D^{-1}$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+In block Gauss-Jordan elimination on $\begin{bmatrix} A & B & \mid & I_m & 0 \\ 0 & D & \mid & 0 & I_n \end{bmatrix}$:
+- First normalize the bottom-right block $D$ to $I_n$ by **multiplying the second block row on the left by $D^{-1}$**;
+- Next eliminate the top-right block $B$ upward using the second block row, subtracting $B$ times the new second row from the first row (which produces $-BD^{-1}$);
+- Finally normalize the top-left block $A$ to $I_m$ by **multiplying the entire first block row on the left by $A^{-1}$**—so the top-right block is naturally sandwiched in the middle as **$-A^{-1} B D^{-1}$**! Not only do the dimensions $(m\times m)(m\times n)(n\times n) = m\times n$ fit together seamlessly, but $B$ never needs to be square!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. Let $X \in \mathbb{R}^{m\times m}, Y \in \mathbb{R}^{m\times n}, Z \in \mathbb{R}^{n\times m}, W \in \mathbb{R}^{n\times n}$, and expand $M \begin{bmatrix} X & Y \\ Z & W \end{bmatrix} = I_{m+n}$ via View ⑤:
+
+$$
+\begin{bmatrix}
+AX + BZ & AY + BW \\
+DZ & DW
+\end{bmatrix}
+=
+\begin{bmatrix}
+I_m & 0 \\
+0 & I_n
+\end{bmatrix}
+$$
+
+Solve the four block matrix equations one by one (given that $A$ and $D$ are invertible):
+- From $DZ = 0$, multiplying on the left by $D^{-1}$ gives $Z = 0$;
+- From $DW = I_n$, multiplying on the left by $D^{-1}$ gives $W = D^{-1}$;
+- Substituting $Z = 0$ into $AX + BZ = I_m$ gives $AX = I_m \implies X = A^{-1}$;
+- Substituting $W = D^{-1}$ into $AY + BW = 0$ gives $AY = -B D^{-1}$, and **multiplying on the left** by $A^{-1}$ yields $Y = -A^{-1} B D^{-1}$.
+
+By Part 1 of Theorem 3.2 (a right inverse of a square matrix is its unique two-sided inverse), the complete block inverse formula is:
+
+$$
+\begin{bmatrix}
+A & B \\
+0 & D
+\end{bmatrix}^{-1}
+=
+\begin{bmatrix}
+A^{-1} & -A^{-1} B D^{-1} \\
+0 & D^{-1}
+\end{bmatrix}
+$$
+
+2. When $A = [1], D = [1], B = [b]$, we get $-A^{-1}BD^{-1} = -1 \cdot b \cdot 1 = -b$, recovering $\begin{bmatrix} 1 & -b \\ 0 & 1 \end{bmatrix}$ exactly.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>
+
+<FrontierAIReading
+  id="AI-01"
+  title="Four Matrix-Geometric Views of Transformer Self-Attention QKᵀV, the Incremental Essence of KV Cache, and Block-Tiled FlashAttention"
+  paperRef="Vaswani et al. (NeurIPS 2017) Attention Is All You Need · Dao et al. (NeurIPS 2022) FlashAttention"
+>
+
+In modern Large Language Models (LLMs) and multimodal Transformer architectures, the single most important operator is **Scaled Dot-Product Self-Attention**. Remarkably, from the semantic aggregation of vanilla attention to **KV Cache** acceleration during autoregressive inference, all the way to the hardware-aware memory revolution of **FlashAttention**, there is no arcane black magic underneath—**every single piece is a direct tensor application of the five views of matrix multiplication from Lecture 03!**
+
+### 1. Dissecting $O = \operatorname{softmax}\!\left(\frac{QK^T}{\sqrt{d_k}}\right) V$ via Lecture 03 Views ① and ③
+
+Suppose an input sequence contains $L$ tokens, with single-head query/key feature dimension $d_k$ and value feature dimension $d_v$. Stack the $L$ token vectors as **rows** into three matrices:
+
+$$
+Q = \begin{bmatrix} \mathbf{q}_1^T \\ \vdots \\ \mathbf{q}_L^T \end{bmatrix} \in \mathbb{R}^{L\times d_k}, \quad
+K = \begin{bmatrix} \mathbf{k}_1^T \\ \vdots \\ \mathbf{k}_L^T \end{bmatrix} \in \mathbb{R}^{L\times d_k}, \quad
+V = \begin{bmatrix} \mathbf{v}_1^T \\ \vdots \\ \mathbf{v}_L^T \end{bmatrix} \in \mathbb{R}^{L\times d_v}
+$$
+
+The attention computation proceeds via two matrix multiplications:
+
+1. **Step 1: Score Matrix $S = \frac{1}{\sqrt{d_k}} Q K^T \in \mathbb{R}^{L\times L}$ — View ① (Row-Column Inner Product)**:
+   Notice that **column** $j$ of $K^T \in \mathbb{R}^{d_k \times L}$ is precisely the key vector $\mathbf{k}_j$ of token $j$! Therefore, by View ①, the $(i, j)$ entry of $S$ is the scaled dot product between query vector $i$ and key vector $j$:
+
+$$
+s_{ij} = \frac{\mathbf{q}_i^T \mathbf{k}_j}{\sqrt{d_k}}
+$$
+
+   Next, applying row-wise softmax independently to each row of $S$ yields the attention probability matrix $P \in \mathbb{R}^{L\times L}$ (satisfying $p_{ij} \ge 0$ and $\sum_{j=1}^L p_{ij} = 1$ for every row).
+
+2. **Step 2: Context Aggregation $O = P V \in \mathbb{R}^{L\times d_v}$ — View ③ (Linear Combinations of Rows) & View ④ (Sum of Rank-1 Outer Products)**:
+   Do not look at $PV$ entry by entry! Invoke **View ③ (the row-combination view)** directly: row $i$ of the output matrix $O$ is a **convex combination of the rows of $V$** weighted by row $i$ of $P$:
+
+$$
+\mathbf{o}_i^T = \mathbf{p}_i^T V = \sum_{j=1}^{L} p_{ij} \mathbf{v}_j^T \in \operatorname{Row}(V)
+$$
+
+   By **Part 2 of Theorem 3.1**, we immediately deduce a profound geometric fact: $\operatorname{Row}(PV) \subseteq \operatorname{Row}(V)$—the self-attention mechanism itself never creates new feature dimensions outside the row space of $V$; instead, it dynamically remixes token representations within the convex hull spanned by $\operatorname{Row}(V)$!
+   Meanwhile, if we rewrite $PV = \sum_{j=1}^{L} \mathbf{p}_{:, j} \mathbf{v}_j^T$ using **View ④ (the column-times-row outer product view)**, we see that the value row vector $\mathbf{v}_j^T$ of token $j$ is broadcast across the entire sequence as a rank-1 outer product slice, weighted by the column vector $\mathbf{p}_{:, j} \in \mathbb{R}^{L\times 1}$ of attention paid to token $j$ by all tokens!
+
+---
+
+### 2. Understanding Why LLM Inference Needs a KV Cache at a Glance via View ⑤ (Block Matrix Multiplication)
+
+In GPT-style causal autoregressive generation, suppose the first $t$ tokens have already been generated, and we now feed in the $(t+1)$-st token to predict the next token. Each matrix naturally acquires one new row at the bottom, forming a **$2\times 1$ block structure**:
+
+$$
+Q_{t+1} = \begin{bmatrix} Q_t \\ \mathbf{q}_{t+1}^T \end{bmatrix}, \quad
+K_{t+1} = \begin{bmatrix} K_t \\ \mathbf{k}_{t+1}^T \end{bmatrix} \implies K_{t+1}^T = \begin{bmatrix} K_t^T & \mathbf{k}_{t+1} \end{bmatrix}, \quad
+V_{t+1} = \begin{bmatrix} V_t \\ \mathbf{v}_{t+1}^T \end{bmatrix}
+$$
+
+Substitute **View ⑤ (block multiplication)** directly into $Q_{t+1} K_{t+1}^T$ and apply the causal mask (setting future positions to $-\infty$ so their softmax probabilities become strictly $0$):
+
+$$
+Q_{t+1} K_{t+1}^T =
+\begin{bmatrix} Q_t \\ \mathbf{q}_{t+1}^T \end{bmatrix}
+\begin{bmatrix} K_t^T & \mathbf{k}_{t+1} \end{bmatrix}
+=
+\begin{bmatrix}
+Q_t K_t^T & Q_t \mathbf{k}_{t+1} \;\text{(zeroed by causal mask!)} \\
+\mathbf{q}_{t+1}^T K_t^T & \mathbf{q}_{t+1}^T \mathbf{k}_{t+1}
+\end{bmatrix}
+\xrightarrow{\text{Causal Softmax}}
+P_{t+1} =
+\begin{bmatrix}
+P_t & \mathbf{0} \\
+\tilde{\mathbf{p}}_{t+1, 1:t}^T & p_{t+1, t+1}
+\end{bmatrix}
+$$
+
+Now multiply by the block-partitioned $V_{t+1}$ (the lower-triangular dual of our block upper-triangular matrix in Exercise `l03-ex5`!):
+
+$$
+O_{t+1} = P_{t+1} V_{t+1} =
+\begin{bmatrix}
+P_t & \mathbf{0} \\
+\tilde{\mathbf{p}}_{t+1, 1:t}^T & p_{t+1, t+1}
+\end{bmatrix}
+\begin{bmatrix} V_t \\ \mathbf{v}_{t+1}^T \end{bmatrix}
+=
+\begin{bmatrix}
+P_t V_t \\
+\tilde{\mathbf{p}}_{t+1, 1:t}^T V_t + p_{t+1, t+1} \mathbf{v}_{t+1}^T
+\end{bmatrix}
+=
+\begin{bmatrix}
+O_t \\
+\mathbf{o}_{t+1}^T
+\end{bmatrix}
+$$
+
+The block result makes everything crystal clear:
+1. The upper block of historical outputs $O_t = P_t V_t$ **remains completely unchanged** and never needs to be recomputed;
+2. The only output row needed for the new token, $\mathbf{o}_{t+1}^T$, involves multiplying **a single row vector** $\mathbf{q}_{t+1}^T$ against the cached historical matrices $K_t$ and $V_t$! This is the entire linear-algebraic truth behind how the **KV Cache** slashes per-step decoding complexity from $O(t^2 d)$ down to $O(t d)$.
+
+---
+
+### 3. Using View ⑤ (Block Tiling) Again to Understand FlashAttention's Zero-Memory-Explosion Trick
+
+When the context length reaches $L = 128\text{K}$, the intermediate matrix $S = QK^T \in \mathbb{R}^{L\times L}$ contains tens of billions of floating-point numbers; materializing it in GPU High Bandwidth Memory (HBM) immediately saturates memory bandwidth. The core insight of **FlashAttention** is a direct marriage of **Views ④ and ⑤** from this lecture:
+
+Partition $K$ and $V$ along the sequence dimension into small blocks $K^{(b)}, V^{(b)} \in \mathbb{R}^{B_c \times d}$. Without the softmax, the block outer-product sum $\sum_b (Q_i K^{(b)T}) V^{(b)}$ could be accumulated tile-by-tile directly inside fast on-chip SRAM without ever storing the full $L\times L$ matrix. The only obstacle to block associativity is the normalizer denominator $\ell_i = \sum_j e^{s_{ij}}$; by tracking a running block maximum $m_i$ and dynamic rescaling factor $e^{m_i^{\text{old}} - m_i^{\text{new}}}$ (Online Softmax), block matrix multiplication streams out the exact $O = PV$ **with zero mathematical approximation error** while never materializing the full matrix $P$ in HBM!
+
+<CollapsibleCode title="Expand PyTorch Tensor Verification (Confirming Exact Equivalence of Row View, Rank-1 Outer-Product Sum, and Incremental KV Cache)">
+
+```python
+import torch
+import torch.nn.functional as F
+
+torch.manual_seed(42)
+L, d_k, d_v = 6, 4, 5
+Q = torch.randn(L, d_k)
+K = torch.randn(L, d_k)
+V = torch.randn(L, d_v)
+
+# 1. Standard causal self-attention O = P @ V
+mask = torch.tril(torch.ones(L, L, dtype=torch.bool))
+scores = (Q @ K.T) / (d_k ** 0.5)
+P = F.softmax(scores.masked_fill(~mask, float('-inf')), dim=-1)  # (L, L)
+O_standard = P @ V                                               # (L, d_v)
+
+# 2. Lecture 03 View 4 check: sum of column-times-row rank-1 outer product slices ∑ p_{:, j} v_j^T
+O_rank1_sum = sum(P[:, j:j+1] @ V[j:j+1, :] for j in range(L))
+
+# 3. Lecture 03 View 5 check: KV Cache using only the last row q_L^T and cached [K_{1:L}, V_{1:L}] to compute o_L^T
+q_last = Q[-1:, :]                                               # (1, d_k)
+p_last = F.softmax((q_last @ K.T) / (d_k ** 0.5), dim=-1)        # (1, L)
+o_last_cached = p_last @ V                                       # (1, d_v)
+
+assert torch.allclose(O_standard, O_rank1_sum, atol=1e-6)
+assert torch.allclose(O_standard[-1:, :], o_last_cached, atol=1e-6)
+print("All matrix multiplication views match within 1e-6!")
+```
+
+</CollapsibleCode>
+
+</FrontierAIReading>

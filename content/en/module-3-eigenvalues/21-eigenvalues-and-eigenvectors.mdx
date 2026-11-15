@@ -1,0 +1,728 @@
+---
+title: "Lecture 21: Eigenvalues and Eigenvectors"
+ocwId: "L21"
+videoEpisode: "P21"
+textbookRef: "§6.1"
+---
+
+# Lecture 21: Eigenvalues and Eigenvectors
+
+## Introduction: The Leap from Static Equations to Dynamical Systems
+
+Throughout the first two modules of this course, our attention has been fixed on **static linear systems**: solving $A\mathbf{x} = \mathbf{b}$, Gaussian elimination $A = LU$, least-squares projection $A^T A \hat{\mathbf{x}} = A^T \mathbf{b}$, and orthogonal factorization $A = QR$. In all of those problems, the input vector $\mathbf{x}$ and the output vector $\mathbf{b}$ often live in different spaces, or we simply care about solving once and for all for a static equilibrium state that satisfies the constraints.
+
+Yet the essence of natural science and modern engineering is **dynamics**—how a system evolves. As we turn to Module 3, the central questions become:
+
+1. **Discrete Dynamical Systems**: A matrix acts repeatedly, step after step, and we study the asymptotic behavior of the state sequence $\mathbf{u}_k = A^k \mathbf{u}_0$ as $k \to \infty$ (for example, Markov chain transitions, population growth models, and Fibonacci numbers).
+2. **Continuous Dynamical Systems**: A first-order system of linear ordinary differential equations $\frac{d\mathbf{u}}{dt} = A\mathbf{u}(t)$, where the state evolves continuously in time (such as mechanical vibrations, electrical circuits, heat conduction, and wave equations).
+
+Confronted with these evolutionary problems, Gaussian elimination—our trusty workhorse from the first two modules—fails completely! Elementary row operations $E_{ij}A$ alter the way the matrix acts on vectors: elimination preserves the nullspace $\operatorname{Null}(A)$ and scales the determinant predictably, but it **completely destroys the intrinsic dynamics of the matrix**.
+
+To uncover the purest internal "DNA" of a square matrix $A \in \mathbb{R}^{n \times n}$, we must search for those special vectors whose **direction remains completely unchanged** under the matrix transformation—these are the **eigenvectors**. The scalar factors by which they are stretched or compressed are the **eigenvalues**.
+
+---
+
+## Geometric and Algebraic Foundations: Eigenvalues and Eigenvectors
+
+When an $n \times n$ matrix $A$ multiplies an ordinary vector $\mathbf{v}$, the output $A\mathbf{v}$ usually changes both length and direction. But for certain very special nonzero vectors $\mathbf{x}$, matrix multiplication acts just like **pure scalar multiplication**!
+
+<DefinitionCard label="Definition 21.1" title="Eigenvalues, Eigenvectors, and Eigenspaces">
+
+Let $A \in \mathbb{C}^{n \times n}$ be an $n \times n$ square matrix. If there exists a scalar $\lambda \in \mathbb{C}$ and a **nonzero vector** $\mathbf{x} \in \mathbb{C}^n$ ($\mathbf{x} \neq \mathbf{0}$) such that
+
+$$
+A\mathbf{x} = \lambda \mathbf{x}
+$$
+
+then $\lambda$ is called an **eigenvalue** of $A$, and the nonzero vector $\mathbf{x}$ is called an **eigenvector** of $A$ corresponding to $\lambda$.
+
+**Important Note on Number Fields**: Even when a real square matrix $A \in \mathbb{R}^{n \times n}$ has entirely real entries, its eigenvalues $\lambda$ and eigenvectors $\mathbf{x}$ can still belong to the complex field $\mathbb{C}$.
+
+The set of all eigenvectors corresponding to an eigenvalue $\lambda$, together with the zero vector $\mathbf{0}$, forms a subspace of $\mathbb{C}^n$ called the **eigenspace**, denoted $E_\lambda$:
+
+$$
+E_\lambda = \operatorname{Null}(A - \lambda I_n) = \{\mathbf{x} \in \mathbb{C}^n : (A - \lambda I_n)\mathbf{x} = \mathbf{0}\}
+$$
+
+The dimension of this subspace is the **geometric multiplicity** of $\lambda$:
+
+$$
+\operatorname{geom\_mult}(\lambda) = \dim(E_\lambda) = n - \operatorname{rank}(A - \lambda I_n) \ge 1
+$$
+
+</DefinitionCard>
+
+<EigenvalueInvariantDirectionsDiagram caption="Most vectors v rotate and stretch to Av, whereas eigenvectors x remain strictly collinear with Ax = λx." />
+
+### The Algebraic Core: Why Must the Determinant Be Zero?
+
+We can move everything to one side of $A\mathbf{x} = \lambda \mathbf{x}$ to rewrite it as a homogeneous linear system:
+
+$$
+(A - \lambda I_n)\mathbf{x} = \mathbf{0}
+$$
+
+Here $I_n$ is the $n \times n$ identity matrix. This step is the critical bridge to the algebra of eigenvalues:
+- If the matrix $(A - \lambda I_n)$ were **invertible**, multiplying both sides on the left by its inverse would force the unique solution $\mathbf{x} = (A - \lambda I_n)^{-1}\mathbf{0} = \mathbf{0}$.
+- By definition, however, an eigenvector must be **nonzero** ($\mathbf{x} \neq \mathbf{0}$)!
+- Therefore, for the homogeneous system to admit a nonzero solution, the matrix $(A - \lambda I_n)$ **must be singular** (non-invertible)!
+
+A square matrix is singular if and only if its determinant is zero. That gives us the fundamental algebraic equation for eigenvalues:
+
+$$
+\det(A - \lambda I_n) = 0
+$$
+
+This degree-$n$ polynomial equation in $\lambda$ is called the **characteristic equation**, and the polynomial on the left, $p(\lambda) = \det(A - \lambda I_n)$, is the **characteristic polynomial** of $A$.
+
+---
+
+## Mental Eigenvalues by Geometry: Five Classic Operators Without Polynomials
+
+In MIT 18.06, Prof. Gilbert Strang emphasizes a vital habit: before rushing to expand a messy determinant, strong geometric intuition should let you "see right through" a linear transformation and read off its eigenvalues immediately.
+
+<GeometricEigenSpectraDiagram caption="Eigenvalue spectra of classic geometric operators: projections (1, 0), reflections (1, -1), 90° rotations (±i), and the shift A + cI." />
+
+### 1. Orthogonal Projection Matrix $P$
+
+Consider an orthogonal projection matrix $P = P^T = P^2$ onto a plane or a line in 3D space:
+- Suppose a vector $\mathbf{x}$ already lies in that subspace ($\mathbf{x} \in \operatorname{Col}(P)$). Its projection is itself: $P\mathbf{x} = 1 \cdot \mathbf{x}$. Thus **$\lambda_1 = 1$ is an eigenvalue**, and every nonzero vector in the subspace is an eigenvector!
+- Suppose a vector $\mathbf{x}$ is perpendicular to that subspace ($\mathbf{x} \in \operatorname{Null}(P) = \operatorname{Col}(P)^\perp$). Projection collapses it to the origin: $P\mathbf{x} = \mathbf{0} = 0 \cdot \mathbf{x}$. Thus **$\lambda_2 = 0$ is an eigenvalue**, and every nonzero vector orthogonal to the subspace is an eigenvector for $\lambda = 0$!
+- **Algebraic consistency**: Because $P^2 = P$, if $P\mathbf{x} = \lambda \mathbf{x}$, then $P^2\mathbf{x} = \lambda^2 \mathbf{x} = \lambda \mathbf{x}$, so $\lambda^2 - \lambda = 0 \implies \lambda \in \{0, 1\}$. A projection matrix can only have eigenvalues $1$ or $0$.
+
+### 2. Mirror Reflection Matrix $R = 2P - I$
+
+Consider a reflection across a mirror plane:
+- Any vector $\mathbf{x}$ lying inside the mirror plane is untouched: $R\mathbf{x} = 1 \cdot \mathbf{x} \implies \lambda_1 = 1$.
+- Any vector $\mathbf{x}$ perpendicular to the mirror plane is reversed completely: $R\mathbf{x} = -1 \cdot \mathbf{x} \implies \lambda_2 = -1$.
+- **Algebraic consistency**: Reflecting twice returns every vector to its starting point, so $R^2 = I \implies \lambda^2 = 1 \implies \lambda \in \{1, -1\}$.
+
+### 3. Permutation Matrix $P_{12}$
+
+Consider the $2 \times 2$ permutation matrix that swaps the two components of a vector in $\mathbb{R}^2$:
+
+$$
+P_{12} = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}, \qquad P_{12} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} = \begin{bmatrix} x_2 \\ x_1 \end{bmatrix}
+$$
+
+- When the two components are equal, swapping leaves the vector unchanged, giving $\lambda_1 = 1$:
+
+$$
+\mathbf{x}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}, \qquad P_{12}\mathbf{x}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix} = 1 \cdot \mathbf{x}_1
+$$
+
+- When the two components are opposites, swapping negates the vector, giving $\lambda_2 = -1$:
+
+$$
+\mathbf{x}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}, \qquad P_{12}\mathbf{x}_2 = \begin{bmatrix} -1 \\ 1 \end{bmatrix} = -1 \cdot \mathbf{x}_2
+$$
+
+### 4. $90^\circ$ Pure Rotation Matrix $Q$
+
+Consider the $2 \times 2$ matrix that rotates every vector in $\mathbb{R}^2$ counterclockwise by $90^\circ$:
+
+$$
+Q = \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix}
+$$
+
+- Geometrically, no real line in the plane can stay collinear with itself after a $90^\circ$ rotation! Therefore, **no real eigenvectors exist**.
+- Algebraically, we solve the characteristic equation:
+
+$$
+\det(Q - \lambda I) = \det\begin{bmatrix} -\lambda & -1 \\ 1 & -\lambda \end{bmatrix} = \lambda^2 + 1 = 0 \implies \lambda = \pm i
+$$
+
+- The eigenvalues are purely imaginary: $\pm i$! Substituting $\lambda_1 = i$ into $(Q - iI)\mathbf{x} = \mathbf{0}$ yields the complex eigenvector
+
+$$
+\mathbf{x}_1 = \begin{bmatrix} 1 \\ -i \end{bmatrix}
+$$
+
+The eigenvectors have moved into the complex vector space $\mathbb{C}^2$.
+
+### 5. The Shift Theorem: $A + cI$
+
+Suppose we know that $A$ has eigenvalue $\lambda$ and eigenvector $\mathbf{x}$. What happens if we add a constant $c$ to every diagonal entry to form $A + cI$?
+
+$$
+(A + cI)\mathbf{x} = A\mathbf{x} + c\mathbf{x} = \lambda \mathbf{x} + c\mathbf{x} = (\lambda + c)\mathbf{x}
+$$
+
+**Conclusion**: The eigenvector $\mathbf{x}$ stays completely unchanged, while every eigenvalue shifts uniformly by $c$: $\lambda \mapsto \lambda + c$!
+
+---
+
+## Two Fundamental Invariants: Trace and Determinant
+
+Expanding the characteristic polynomial reveals the two most important algebraic invariants of any square matrix.
+
+<TheoremCard label="Theorem 21.1" title="Trace and Determinant Invariants">
+
+Let $A \in \mathbb{C}^{n \times n}$ be an $n \times n$ matrix with complex eigenvalues $\lambda_1, \lambda_2, \dots, \lambda_n$ (counted with algebraic multiplicity). Then:
+
+1. **The trace equals the sum of the eigenvalues**:
+   $$
+   \operatorname{tr}(A) = \sum_{i=1}^n a_{ii} = \sum_{i=1}^n \lambda_i
+   $$
+2. **The determinant equals the product of the eigenvalues**:
+   $$
+   \det(A) = \prod_{i=1}^n \lambda_i
+   $$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Relating Roots and Coefficients of the Characteristic Polynomial">
+
+By the Fundamental Theorem of Algebra, the degree-$n$ characteristic polynomial $p(\lambda) = \det(A - \lambda I_n)$ has exactly $n$ roots $\lambda_1, \dots, \lambda_n$ in $\mathbb{C}$, so it factors completely as
+
+$$
+p(\lambda) = \det(A - \lambda I_n) = (-1)^n \prod_{i=1}^n (\lambda - \lambda_i) = \prod_{i=1}^n (\lambda_i - \lambda)
+$$
+
+Expanding this factored product in powers of $-\lambda$ gives
+
+$$
+\prod_{i=1}^n (\lambda_i - \lambda) = (-\lambda)^n + (-\lambda)^{n-1} \left( \sum_{i=1}^n \lambda_i \right) + \dots + \prod_{i=1}^n \lambda_i
+$$
+
+On the other hand, we can expand $\det(A - \lambda I_n)$ directly using the Leibniz permutation formula $\sum_{\sigma} \operatorname{sgn}(\sigma) \prod_{j=1}^n (A - \lambda I_n)_{\sigma(j), j}$. Only the main-diagonal term ($\sigma = \text{id}$) contains all $n$ factors of $(a_{ii} - \lambda)$:
+
+$$
+\prod_{i=1}^n (a_{ii} - \lambda) = (-\lambda)^n + (-\lambda)^{n-1} \left( \sum_{i=1}^n a_{ii} \right) + \dots
+$$
+
+Every other permutation $\sigma \neq \text{id}$ must pick at least two off-diagonal entries (which contain no $\lambda$), so its degree in $\lambda$ is at most $n - 2$ and it contributes nothing to the $\lambda^n$ or $\lambda^{n-1}$ terms.
+
+Comparing the coefficients of $(-\lambda)^{n-1}$ in both expressions immediately gives
+
+$$
+\sum_{i=1}^n \lambda_i = \sum_{i=1}^n a_{ii} = \operatorname{tr}(A)
+$$
+
+For the constant term, simply evaluate $p(\lambda)$ at $\lambda = 0$:
+
+$$
+p(0) = \det(A - 0 \cdot I_n) = \det(A)
+$$
+
+Substituting $\lambda = 0$ into the factored form gives
+
+$$
+p(0) = \prod_{i=1}^n (\lambda_i - 0) = \prod_{i=1}^n \lambda_i
+$$
+
+Equating the two proves $\det(A) = \prod_{i=1}^n \lambda_i$. $\blacksquare$
+
+</ProofCollapse>
+
+### Fast Quadratic Formula for $2 \times 2$ Matrices
+
+For any $2 \times 2$ matrix
+
+$$
+A = \begin{bmatrix} a & b \\ c & d \end{bmatrix}
+$$
+
+we can write the characteristic polynomial directly in terms of its trace and determinant:
+
+$$
+\det\begin{bmatrix} a - \lambda & b \\ c & d - \lambda \end{bmatrix} = \lambda^2 - (a+d)\lambda + (ad-bc) = \lambda^2 - \operatorname{tr}(A)\lambda + \det(A) = 0
+$$
+
+By the quadratic formula:
+
+$$
+\lambda_{1, 2} = \frac{\operatorname{tr}(A) \pm \sqrt{(\operatorname{tr}(A))^2 - 4\det(A)}}{2}
+$$
+
+**Worked Example 1**: Consider the symmetric matrix
+
+$$
+A = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}
+$$
+
+- $\operatorname{tr}(A) = 2 + 2 = 4$
+- $\det(A) = 2 \times 2 - 1 \times 1 = 3$
+- Characteristic equation: $\lambda^2 - 4\lambda + 3 = (\lambda - 3)(\lambda - 1) = 0 \implies \lambda_1 = 3,\; \lambda_2 = 1$.
+- Quick check: $3 + 1 = 4 = \operatorname{tr}(A)$, and $3 \times 1 = 3 = \det(A)$!
+- Finding the eigenvectors:
+  - For $\lambda_1 = 3$:
+
+$$
+(A - 3I)\mathbf{x} = \begin{bmatrix} -1 & 1 \\ 1 & -1 \end{bmatrix}\mathbf{x} = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+$$
+
+  - For $\lambda_2 = 1$:
+
+$$
+(A - I)\mathbf{x} = \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix}\mathbf{x} = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+  - Notice that $\mathbf{x}_1^T \mathbf{x}_2 = 1(1) + 1(-1) = 0$: the two eigenvectors are perpendicular! (Every real symmetric matrix has orthogonal eigenvectors, as we will prove in Lecture 25.)
+
+**Worked Example 2 (The Crucial Rank-1 Outer Product Matrix)**: Let $\mathbf{u}, \mathbf{v} \in \mathbb{R}^n$ be nonzero vectors, and consider the rank-1 matrix $A = \mathbf{u}\mathbf{v}^T$:
+1. Since $\operatorname{rank}(A) = 1$, the Rank-Nullity Theorem gives $\dim(\operatorname{Null}(A)) = n - 1$.
+2. Every vector $\mathbf{x} \in \operatorname{Null}(A)$ satisfies $A\mathbf{x} = \mathbf{0} = 0 \cdot \mathbf{x}$. Hence **$\lambda = 0$ is an eigenvalue with geometric multiplicity at least $n - 1$**!
+3. What is the remaining nonzero eigenvalue $\lambda_1$? Test the vector $\mathbf{u}$ directly:
+   $$
+   A\mathbf{u} = (\mathbf{u}\mathbf{v}^T)\mathbf{u} = \mathbf{u}(\mathbf{v}^T \mathbf{u}) = (\mathbf{v}^T \mathbf{u})\mathbf{u}
+   $$
+   Pulling the scalar $\mathbf{v}^T \mathbf{u}$ out front shows immediately that **$\mathbf{u}$ is an eigenvector with eigenvalue $\lambda_1 = \mathbf{v}^T \mathbf{u}$**!
+4. Check with the trace formula:
+   $$
+   \operatorname{tr}(\mathbf{u}\mathbf{v}^T) = \sum_{i=1}^n u_i v_i = \mathbf{v}^T \mathbf{u} = \lambda_1 + 0 + \dots + 0
+   $$
+   Everything matches! For any high-dimensional rank-1 matrix, you never need to expand an $n \times n$ determinant—you can read off all $n$ eigenvalues in one second.
+
+---
+
+## Classic Conceptual Traps and Clarifications
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+
+### 1. Fatal Error: Thinking Row Elimination Preserves Eigenvalues
+Gaussian row elimination is our primary tool for solving $A\mathbf{x} = \mathbf{b}$; multiplying on the left by elementary matrices $E$ preserves the nullspace $\operatorname{Null}(A)$ and the rank. However, **elementary row operations completely destroy eigenvalues and eigenvectors!**
+
+$$
+A = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} \xrightarrow{R_1 \leftrightarrow R_2} U = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}
+$$
+
+The original matrix $A$ has eigenvalues $\lambda = \pm 1$ and trace $0$. After a single row swap, the echelon matrix $U$ has eigenvalues $1, 1$ and trace $2$!
+- The diagonal entries of a triangular matrix are indeed its own eigenvalues;
+- But the **pivots** produced by eliminating a general matrix $A$ are **almost never** the eigenvalues of $A$ (the product of the pivots equals $\det(A)$, yet the individual pivots have nothing to do with $\lambda$).
+
+### 2. The Scalar $0$ Can Be an Eigenvalue, but the Zero Vector $\mathbf{0}$ Can Never Be an Eigenvector
+- $\lambda = 0$ is a valid eigenvalue $\iff A\mathbf{x} = 0\mathbf{x} = \mathbf{0}$ has a nonzero solution $\mathbf{x} \neq \mathbf{0} \iff A$ is singular (non-invertible) $\iff \det(A) = 0$.
+- By contrast, the zero vector $\mathbf{0}$ can **never** be an eigenvector! Because $A\mathbf{0} = \lambda \mathbf{0}$ holds trivially for every scalar $\lambda$, allowing $\mathbf{x} = \mathbf{0}$ would make every number an eigenvalue of every matrix, emptying the definition of all meaning.
+
+### 3. Eigenvalues of Sums and Products: $\lambda(A+B) \neq \lambda(A) + \lambda(B)$
+Intuition often tempts students into thinking that adding or multiplying two matrices adds or multiplies their eigenvalues. That is dead wrong!
+Take two strictly triangular matrices:
+
+$$
+A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}, \quad B = \begin{bmatrix} 0 & 0 \\ 1 & 0 \end{bmatrix}
+$$
+
+Both $A$ and $B$ have eigenvalues $\{0, 0\}$. Yet their sum is
+
+$$
+A + B = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+$$
+
+whose eigenvalues are $\{1, -1\}$! Clearly $0 + 0 \neq 1$ and $0 + 0 \neq -1$. Likewise, their product is
+
+$$
+AB = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}
+$$
+
+which has eigenvalues $\{1, 0\}$, even though $0 \times 0 \neq 1$!
+**Takeaway**: Eigenvalues add or multiply pairwise only when $A$ and $B$ share a **common set of eigenvectors** (which occurs when they commute, $AB = BA$).
+
+### 4. Real Matrices Need Not Have Real Eigenvalues or Eigenvectors
+A real matrix is not guaranteed to have invariant directions inside the real plane $\mathbb{R}^2$—the $90^\circ$ rotation $Q$ is the classic example. We must extend our field to $\mathbb{C}$, where the Fundamental Theorem of Algebra guarantees $n$ roots of the characteristic polynomial. Whenever a real matrix has complex eigenvalues, they must appear in **complex conjugate pairs** $a \pm bi$.
+
+</PitfallAlert>
+
+---
+
+## Interactive Exploration Sandbox
+
+<InteractiveCanvasSlot
+  id="l21-eigen-directions-sandbox"
+  title="Eigendirections & Matrix Transformation Sandbox"
+  description="Drag the input vector x in the 2D plane and watch how A rotates and stretches the output Ax. Hunt for the two special eigenlines where Ax becomes strictly collinear with x."
+/>
+
+---
+
+## Core Summary & Learning Checklist
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "Core definition of eigenvalues and eigenvectors: $A\\mathbf{x} = \\lambda\\mathbf{x}$ ($\\mathbf{x} \\neq \\mathbf{0}$), geometrically representing special lines whose direction is preserved by the transformation.",
+    "Algebraic criterion: $(A - \\lambda I_n)\\mathbf{x} = \\mathbf{0}$ has a nonzero solution if and only if $A - \\lambda I_n$ is singular, yielding the characteristic equation $\\det(A - \\lambda I_n) = 0$.",
+    "Trace and determinant invariants: $\\operatorname{tr}(A) = \\sum_{i=1}^n a_{ii} = \\sum_{i=1}^n \\lambda_i$ and $\\det(A) = \\prod_{i=1}^n \\lambda_i$.",
+    "Geometric intuition before algebra: projection matrices $P$ have eigenvalues $1$ and $0$; reflection matrices $R = 2P - I$ have eigenvalues $1$ and $-1$; shifted matrices $A + cI$ have eigenvalues $\\lambda + c$ with unchanged eigenvectors.",
+    "Elimination destroys eigenvalues: elementary row operations do not preserve the characteristic polynomial or eigenvalues; pivots are not eigenvalues.",
+    "Sums and products trap: in general $\\lambda(A+B) \\neq \\lambda(A) + \\lambda(B)$; eigenvalues add or multiply directly only when $A$ and $B$ share eigenvectors ($AB = BA$)."
+  ]}
+/>
+
+---
+
+## Intuition Problem Set
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+<ExerciseCard
+  id="l21-ex1"
+  tier="L1"
+  tierLabel="L1 · Quick Geometric Check"
+  title="Mental Eigenvalues of a Rank-1 Outer Product and Orthogonal Projection"
+>
+
+Given the nonzero vector
+
+$$
+\mathbf{u} = \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}
+$$
+
+construct the outer-product matrix $A = \mathbf{u}\mathbf{u}^T$.
+
+1. Without computing a determinant, use the nullspace and the trace to find all eigenvalues of $A$ along with their algebraic multiplicities.
+2. Construct the orthogonal projection matrix onto $\operatorname{span}\{\mathbf{u}\}$, namely $P = \frac{\mathbf{u}\mathbf{u}^T}{\mathbf{u}^T \mathbf{u}}$, and find all eigenvalues of $P$ together with a basis for each eigenspace.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "The outer-product matrix $A$ has rank $1$. By the Rank-Nullity Theorem, $\\dim(\\operatorname{Null}(A)) = 3 - 1 = 2$. What eigenvalue corresponds to vectors in the nullspace?",
+    "Compute the trace $\\operatorname{tr}(A) = \\mathbf{u}^T \\mathbf{u}$ and use $\\operatorname{tr}(A) = \\sum \\lambda_i$ to read off the nonzero eigenvalue immediately."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+A rank-1 matrix compresses all of 3D space onto a single line. The entire 2D plane perpendicular to that line (the nullspace) collapses to the zero vector, so there must be two eigenvalues equal to $\lambda = 0$. The one direction that is not flattened is $\mathbf{u}$ itself, and along that line the scaling factor is simply its squared length $\mathbf{u}^T \mathbf{u} = 1^2 + 2^2 + 2^2 = 9$.
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+**Part 1**:
+Multiply $A$ by $\mathbf{u}$:
+$$
+A\mathbf{u} = (\mathbf{u}\mathbf{u}^T)\mathbf{u} = \mathbf{u}(\mathbf{u}^T \mathbf{u})
+$$
+Since $\mathbf{u}^T \mathbf{u} = 1^2 + 2^2 + 2^2 = 9$, we get $A\mathbf{u} = 9\mathbf{u}$. Thus $\lambda_1 = 9$ is an eigenvalue with eigenvector $\mathbf{u}$.
+
+Because $\operatorname{rank}(A) = 1$, the Rank-Nullity Theorem gives
+$$
+\dim(\operatorname{Null}(A)) = 3 - 1 = 2
+$$
+For any vector $\mathbf{x} \in \operatorname{Null}(A)$ (meaning $\mathbf{u}^T \mathbf{x} = 0$), we have $A\mathbf{x} = \mathbf{u}(\mathbf{u}^T \mathbf{x}) = \mathbf{0} = 0 \cdot \mathbf{x}$.
+Hence $\lambda_2 = \lambda_3 = 0$, with both geometric and algebraic multiplicity equal to $2$.
+Trace check: $\operatorname{tr}(A) = \sum u_i^2 = 9 = 9 + 0 + 0$.
+
+**Part 2**:
+The projection matrix is $P = \frac{1}{9}A$. By linearity:
+- $P\mathbf{u} = \frac{1}{9}(9\mathbf{u}) = 1 \cdot \mathbf{u} \implies \lambda_1 = 1$, with eigenspace
+
+$$
+E_1 = \operatorname{span}\left\{\begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}\right\}
+$$
+
+- For every $\mathbf{x} \perp \mathbf{u}$, $P\mathbf{x} = \mathbf{0} = 0 \cdot \mathbf{x} \implies \lambda_2 = \lambda_3 = 0$. The eigenspace is $E_0 = \operatorname{Null}(\mathbf{u}^T)$; solving $x_1 + 2x_2 + 2x_3 = 0$ gives the basis
+
+$$
+\mathbf{x}_2 = \begin{bmatrix} -2 \\ 1 \\ 0 \end{bmatrix}, \quad \mathbf{x}_3 = \begin{bmatrix} -2 \\ 0 \\ 1 \end{bmatrix}
+$$
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard
+  id="l21-ex2"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Conceptual Check: Does Gaussian Row Elimination Preserve Eigenvalues?"
+>
+
+True or False: For any invertible square matrix $A$, if Gaussian elimination produces an upper-triangular echelon matrix $U$, then because $U$ is triangular, the pivots on its diagonal equal the eigenvalues of $A$.
+
+<TrueFalseInteractive
+  id="l21-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Row operations alter the geometric directions of the matrix. The product of the pivots equals the determinant, but individual pivots are generally completely different from the eigenvalues."
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Test the simplest $2 \\times 2$ row-exchange matrix: $A = \\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix}$.",
+    "Compute the eigenvalues of $A$ and the eigenvalues of the eliminated matrix $U$, then compare them."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Gaussian elimination multiplies on the left by elementary matrices $E$. That preserves the solutions to $A\mathbf{x} = \mathbf{0}$ (the nullspace), but it twists the rotations and stretches of $A$ in space. The dynamical behavior of the matrix is lost on the very first elimination step.
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+Counterexample: Take the $2 \times 2$ permutation matrix
+$$
+A = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+$$
+Its characteristic equation is $\det(A - \lambda I) = \lambda^2 - 1 = 0 \implies \lambda_1 = 1,\; \lambda_2 = -1$, with trace $\operatorname{tr}(A) = 0 + 0 = 0$.
+
+Eliminating $A$ requires a single row exchange $R_1 \leftrightarrow R_2$, producing the upper-triangular matrix
+$$
+U = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I_2
+$$
+The pivots of $U$ are $d_1 = 1,\; d_2 = 1$, and the eigenvalues of $U$ are $\lambda_1 = 1,\; \lambda_2 = 1$ with trace $\operatorname{tr}(U) = 2$.
+
+Clearly $A$ and $U$ have completely different eigenvalues: pivots do not equal eigenvalues. The statement is false.
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard
+  id="l21-ex3"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Operator Arithmetic: Eigenvalues of Sums and Products"
+>
+
+True or False: If $\lambda_A$ is an eigenvalue of $A$ and $\lambda_B$ is an eigenvalue of $B$, then $\lambda_A + \lambda_B$ must be an eigenvalue of $A + B$, and $\lambda_A \lambda_B$ must be an eigenvalue of $AB$.
+
+<TrueFalseInteractive
+  id="l21-tf2"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Eigenvalues add or multiply pairwise only when $A$ and $B$ share the same eigenvectors (e.g., when $AB = BA$)."
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "For $(A + B)\\mathbf{x} = (\\lambda_A + \\lambda_B)\\mathbf{x}$ to hold, the vector $\\mathbf{x}$ would have to be an eigenvector of both $A$ and $B$ simultaneously. Do two arbitrary matrices share eigenvectors?",
+    "Try two strictly triangular matrices: $A = \\begin{bmatrix} 0 & 1 \\\\ 0 & 0 \\end{bmatrix}$ and $B = \\begin{bmatrix} 0 & 0 \\\\ 1 & 0 \\end{bmatrix}$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Eigenvectors are the special axes kept collinear by a matrix. If $A$'s invariant axes point in completely different directions from $B$'s invariant axes, combining the two transformations causes their dynamics to interfere, tilting the invariant axes into brand-new directions. The scalar eigenvalues cannot simply add.
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+Construct an explicit counterexample by taking
+$$
+A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}, \quad B = \begin{bmatrix} 0 & 0 \\ 1 & 0 \end{bmatrix}
+$$
+$A$ is upper triangular with eigenvalues $\lambda(A) = \{0, 0\}$, and its eigenvectors satisfy $x_2 = 0$, spanning
+
+$$
+\operatorname{span}\left\{\begin{bmatrix} 1 \\ 0 \end{bmatrix}\right\}
+$$
+
+$B$ is lower triangular with eigenvalues $\lambda(B) = \{0, 0\}$, and its eigenvectors satisfy $x_1 = 0$, spanning
+
+$$
+\operatorname{span}\left\{\begin{bmatrix} 0 \\ 1 \end{bmatrix}\right\}
+$$
+
+Adding the two matrices gives
+$$
+A + B = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+$$
+whose characteristic equation is $\lambda^2 - 1 = 0 \implies \lambda(A + B) = \{1, -1\}$, whereas $\lambda_A + \lambda_B = 0 + 0 = 0 \neq \pm 1$.
+
+Multiplying them gives
+$$
+AB = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} \begin{bmatrix} 0 & 0 \\ 1 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}
+$$
+which has eigenvalues $\{1, 0\}$, whereas $\lambda_A \lambda_B = 0 \times 0 = 0 \neq 1$.
+
+Thus the statement fails in general. It holds only when $A$ and $B$ share a common eigenbasis (as when $AB = BA$ for diagonalizable matrices).
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard
+  id="l21-ex4"
+  tier="L3"
+  tierLabel="L3 · Zero-Calculation Subspace Reasoning"
+  title="Spectral Theorems for Transposes, Powers, Inverses, and Shifts"
+>
+
+Suppose $A \in \mathbb{R}^{n \times n}$ has eigenvalue $\lambda$ with corresponding eigenvector $\mathbf{x}$.
+
+1. Prove that $A$ and $A^T$ have the exact same characteristic polynomial—and therefore the exact same eigenvalues—and explain why their eigenvectors are usually different.
+2. If $A$ is invertible, find the eigenvalue and eigenvector of $A^{-1}$.
+3. For any positive integer $k$, find the eigenvalue and eigenvector of $A^k$.
+4. For any scalar $c \in \mathbb{R}$, find the eigenvalue and eigenvector of $A + cI_n$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Use the fundamental determinant identity $\\det(M^T) = \\det(M)$ with $M = A - \\lambda I_n$.",
+    "Multiply $A\\mathbf{x} = \\lambda\\mathbf{x}$ on the left by $A^{-1}$, noting that an invertible matrix must have $\\lambda \\neq 0$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Transposing a square matrix never changes its determinant, so $A - \lambda I$ and $(A - \lambda I)^T = A^T - \lambda I$ become singular at the exact same values of $\lambda$. However, eigenvectors of $A$ live in the right nullspace of $A - \lambda I$, whereas eigenvectors of $A^T$ are left eigenvectors $\mathbf{y}^T A = \lambda \mathbf{y}^T$ living in the left nullspace—an orthogonal, generally distinct subspace.
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+**Part 1**:
+Let $p_A(\lambda) = \det(A - \lambda I_n)$. Since transposing preserves the determinant of any square matrix,
+$$
+p_{A^T}(\lambda) = \det(A^T - \lambda I_n) = \det((A - \lambda I_n)^T) = \det(A - \lambda I_n) = p_A(\lambda)
+$$
+Their characteristic polynomials are identical, so their eigenvalues and algebraic multiplicities match completely.
+
+Why the eigenvectors differ:
+Eigenvectors of $A$ satisfy $(A - \lambda I)\mathbf{x} = \mathbf{0}$, so $\mathbf{x} \in \operatorname{Null}(A - \lambda I)$.
+Eigenvectors of $A^T$ satisfy $(A^T - \lambda I)\mathbf{y} = \mathbf{0}$, so $\mathbf{y} \in \operatorname{Null}((A - \lambda I)^T) = (\operatorname{Col}(A - \lambda I))^\perp$.
+Because the nullspace and left nullspace are generally different subspaces, $A$ and $A^T$ have different eigenvectors unless $A$ is symmetric ($A = A^T$) or shares the same left/right eigenspaces.
+
+**Part 2**:
+If $A$ is invertible, then $\det(A) = \prod \lambda_i \neq 0$, so every eigenvalue satisfies $\lambda \neq 0$.
+Multiplying $A\mathbf{x} = \lambda \mathbf{x}$ on the left by $A^{-1}$ gives
+$$
+A^{-1}(A\mathbf{x}) = A^{-1}(\lambda \mathbf{x}) \implies \mathbf{x} = \lambda A^{-1}\mathbf{x} \implies A^{-1}\mathbf{x} = \frac{1}{\lambda}\mathbf{x}
+$$
+Thus $A^{-1}$ has eigenvalue $\frac{1}{\lambda}$ with the same eigenvector $\mathbf{x}$.
+
+**Part 3**:
+By mathematical induction on $k$:
+The base case $k = 1$ holds by assumption. If $A^k \mathbf{x} = \lambda^k \mathbf{x}$, then
+$$
+A^{k+1}\mathbf{x} = A(A^k \mathbf{x}) = A(\lambda^k \mathbf{x}) = \lambda^k (A\mathbf{x}) = \lambda^k (\lambda \mathbf{x}) = \lambda^{k+1}\mathbf{x}
+$$
+Thus $A^k$ has eigenvalue $\lambda^k$ with the same eigenvector $\mathbf{x}$.
+
+**Part 4**:
+By linearity of matrix addition:
+$$
+(A + cI_n)\mathbf{x} = A\mathbf{x} + cI_n \mathbf{x} = \lambda \mathbf{x} + c\mathbf{x} = (\lambda + c)\mathbf{x}
+$$
+Thus $A + cI_n$ has eigenvalue $\lambda + c$ with the same eigenvector $\mathbf{x}$.
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard
+  id="l21-ex5"
+  tier="L4"
+  tierLabel="L4 · MIT 18.06 Exam Synthesis"
+  title="MIT 18.06 Classic: Shifted All-Ones Matrix and Complete Graph Spectrum"
+>
+
+Consider the $n \times n$ all-ones matrix $J_n = \mathbf{1}\mathbf{1}^T$, where
+
+$$
+\mathbf{1} = \begin{bmatrix} 1 & 1 & \dots & 1 \end{bmatrix}^T
+$$
+
+and the adjacency matrix of the complete graph $K_n = J_n - I_n$ (zeros on the main diagonal, ones everywhere else).
+
+1. Using only nullspace dimension and the trace (no determinant expansion!), find all eigenvalues of $J_n$ along with their algebraic and geometric multiplicities.
+2. Apply the Shift Theorem to write down all eigenvalues and eigenvectors of $K_n$.
+3. Compute $\det(K_n)$, and verify your formula for $n = 3$ and $n = 4$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "$\\operatorname{rank}(J_n) = 1$. What is the dimension of its nullspace, and what happens when $J_n$ multiplies any vector whose entries sum to zero?",
+    "Since $K_n = J_n - I_n$, apply the Shift Theorem directly: $\\lambda(K_n) = \\lambda(J_n) - 1$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+The all-ones matrix is the purest rank-1 symmetric matrix. Every row sums the entries of the all-ones vector $\mathbf{1}$, scaling it by $n$. Meanwhile, every vector perpendicular to $\mathbf{1}$ (whose entries sum to zero, such as $[1, -1, 0, \dots]^T$) is annihilated by every row—and there is an entire $(n-1)$-dimensional hyperplane of such vectors! Subtracting $I_n$ simply shifts the entire spectrum down by $1$.
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+**Part 1**:
+Test the all-ones vector $\mathbf{1}$ on $J_n = \mathbf{1}\mathbf{1}^T$:
+$$
+J_n \mathbf{1} = (\mathbf{1}\mathbf{1}^T)\mathbf{1} = \mathbf{1}(\mathbf{1}^T \mathbf{1}) = n\mathbf{1}
+$$
+Thus $\lambda_1 = n$ is an eigenvalue with eigenvector $\mathbf{1}$.
+
+Since $\operatorname{rank}(J_n) = 1$, the Rank-Nullity Theorem gives
+$$
+\dim(\operatorname{Null}(J_n)) = n - \operatorname{rank}(J_n) = n - 1
+$$
+For every nonzero vector $\mathbf{x} \in \operatorname{Null}(J_n) = \{\mathbf{x} \in \mathbb{R}^n : \mathbf{1}^T \mathbf{x} = \sum x_i = 0\}$, we have
+$$
+J_n \mathbf{x} = \mathbf{0} = 0 \cdot \mathbf{x}
+$$
+Hence $\lambda = 0$ is an eigenvalue with geometric and algebraic multiplicity $n - 1$.
+The spectrum of $J_n$ is
+$$
+\operatorname{spec}(J_n) = \{n, \underbrace{0, 0, \dots, 0}_{n-1 \text{ times}}\}
+$$
+Trace check: $\operatorname{tr}(J_n) = \sum_{i=1}^n 1 = n = n + 0 + \dots + 0$.
+
+**Part 2**:
+For $K_n = J_n - I_n$, the Shift Theorem says that if $J_n \mathbf{x} = \lambda \mathbf{x}$, then $K_n \mathbf{x} = (J_n - I_n)\mathbf{x} = (\lambda - 1)\mathbf{x}$.
+Therefore, the eigenvalues of $K_n$ are
+$$
+\lambda_1(K_n) = n - 1
+$$
+$$
+\lambda_2(K_n) = \dots = \lambda_n(K_n) = 0 - 1 = -1 \quad (\text{algebraic multiplicity } n-1)
+$$
+The eigenvectors are unchanged: $\lambda = n - 1$ corresponds to $\mathbf{1}$, and $\lambda = -1$ corresponds to every nonzero vector in the hyperplane $\sum x_i = 0$.
+
+**Part 3**:
+The determinant equals the product of all eigenvalues:
+$$
+\det(K_n) = \prod_{i=1}^n \lambda_i(K_n) = (n - 1) \cdot (-1)^{n-1}
+$$
+Checking small values:
+- For $n = 3$:
+
+$$
+K_3 = \begin{bmatrix} 0 & 1 & 1 \\ 1 & 0 & 1 \\ 1 & 1 & 0 \end{bmatrix}, \qquad \det(K_3) = (3 - 1)(-1)^2 = 2 \times 1 = 2
+$$
+
+- For $n = 4$: $\det(K_4) = (4 - 1)(-1)^3 = 3 \times (-1) = -3$.
+
+Without eigenvalues, computing a general $n \times n$ determinant like $\det(K_n)$ requires tedious row operations; through the eigenvalue spectrum, the answer leaps right off the page!
+
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>

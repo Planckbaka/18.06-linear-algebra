@@ -1,0 +1,1102 @@
+---
+title: "Lecture 29: Similar Matrices and Jordan Form"
+ocwId: "L28"
+videoEpisode: "P29"
+textbookRef: "§6.2, §8.3"
+---
+
+In earlier lectures, we met the nicest, best-behaved matrices in linear algebra:
+- In Lecture 22, whenever an $n \times n$ matrix $A$ has $n$ linearly independent eigenvectors, we can diagonalize it by a similarity transformation $A = S\Lambda S^{-1}$ (equivalently, $\Lambda = S^{-1}AS$).
+- In Lectures 26 and 28, real symmetric matrices and complex Hermitian matrices go even further: they can always be orthogonally (or unitarily) diagonalized as $A = Q\Lambda Q^T$, preserving both the eigenvalues and the rigid geometry of perpendicular axes.
+
+Now, however, suppose we look at the **entire space of $n \times n$ complex matrices $\mathbb{C}^{n \times n}$**—including non-symmetric, non-diagonalizable **defective matrices**. Two fundamental classification questions immediately arise:
+1. When are two matrices $A$ and $B$ that look completely different actually **the exact same linear operator written in two different coordinate systems**? (This is **matrix similarity**: $B = M^{-1} A M$.)
+2. When a matrix **cannot be diagonalized** because it lacks enough eigenvectors, what is the **cleanest, closest-to-diagonal "canonical form"** we can reach using an invertible similarity transformation $M^{-1}AM$? (This is the celebrated **Jordan Canonical Form, JCF**.)
+
+---
+
+## 1. What Are Similar Matrices? Similarity vs. Congruence and Elimination
+
+### 1.1 The Geometric Origin: Same Operator, Different Coordinate Glasses
+
+Imagine a fixed linear transformation $T$ acting on a vector space. In the standard basis, an input $\mathbf{x}$ is mapped to $\mathbf{y} = A\mathbf{x}$. Now switch to a new basis whose basis vectors form the columns of an invertible matrix $M$, so the old and new coordinates are related by $\mathbf{x} = M\tilde{\mathbf{x}}$ and $\mathbf{y} = M\tilde{\mathbf{y}}$. Substituting these into $\mathbf{y} = A\mathbf{x}$ gives:
+
+$$
+M\tilde{\mathbf{y}} = A (M\tilde{\mathbf{x}}) \implies \tilde{\mathbf{y}} = (M^{-1} A M)\tilde{\mathbf{x}}
+$$
+
+Thus, the matrix $B = M^{-1} A M$ represents **the exact same physical and geometric transformation**, just dressed in a new coordinate system (a viewpoint we will develop fully in Lecture 32 on "Change of Basis").
+
+Before comparing similarity transformations further, we must sharply distinguish $M^{-1}AM$ from two other matrix transformations we have seen in this course:
+
+1. **Row Elimination (Row Equivalence): $U = E A$**
+   Multiplying only on the left by an invertible matrix $E$ preserves the row space $\operatorname{Row}(A)$, the nullspace $\operatorname{Null}(A)$, and $\operatorname{rank}(A)$, **but it completely destroys the eigenvalues!** For example:
+
+   $$
+   A = \begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix} \; (\lambda = 5, 0) \quad \xrightarrow{E_{21}} \quad U = \begin{bmatrix} 1 & 2 \\ 0 & 0 \end{bmatrix} \; (\lambda = 1, 0)
+   $$
+
+2. **Congruence Transformation: $C = M^T A M$ (or $M^H A M$ for complex matrices)**
+   This is the change-of-basis formula for quadratic forms $f(\mathbf{x}) = \mathbf{x}^T A \mathbf{x}$ from Lecture 28. Congruence preserves symmetry and the signs of the eigenvalues (Sylvester's Law of Inertia), **but it changes the numerical values of the eigenvalues!** For instance, take
+
+   $$
+   A = \begin{bmatrix} 2 & 0 \\ 0 & 8 \end{bmatrix}, \qquad M = \begin{bmatrix} 1 & 0 \\ 0 & 1/2 \end{bmatrix}
+   $$
+
+   Then congruence gives:
+
+   $$
+   C = M^T A M = \begin{bmatrix} 1 & 0 \\ 0 & 1/2 \end{bmatrix} \begin{bmatrix} 2 & 0 \\ 0 & 8 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 1/2 \end{bmatrix} = \begin{bmatrix} 2 & 0 \\ 0 & 2 \end{bmatrix}
+   $$
+
+   The eigenvalues changed from $\{2, 8\}$ to $\{2, 2\}$! By contrast, a similarity transformation on the same $A$ gives:
+
+   $$
+   B = M^{-1} A M = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 2 & 0 \\ 0 & 8 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 1/2 \end{bmatrix} = \begin{bmatrix} 2 & 0 \\ 0 & 8 \end{bmatrix}
+   $$
+
+   The eigenvalues $\{2, 8\}$ do not budge at all!
+
+3. **The Rare, Beautiful Intersection:**
+   If and only if the change-of-basis matrix $M = Q$ is real orthogonal ($Q^T = Q^{-1}$) or complex unitary ($U^H = U^{-1}$), **congruence and similarity become one and the same**: $Q^T A Q = Q^{-1} A Q$. That is the deep reason why the real symmetric spectral theorem $A = Q \Lambda Q^T$ in Lecture 26 preserves both symmetry and all eigenvalues simultaneously.
+
+### 1.2 Rigorous Definition of Matrix Similarity
+
+<DefinitionCard label="Definition 29.1" title="Similar Matrices & Similarity Equivalence">
+
+Let $A, B \in \mathbb{C}^{n \times n}$ (or $A, B \in \mathbb{R}^{n \times n}$ when working over the reals). If there exists an **invertible matrix** $M \in \mathbb{C}^{n \times n}$ (meaning $\det(M) \ne 0$) such that
+
+$$
+B = M^{-1} A M
+$$
+
+then we say that $B$ is **similar to** $A$, written $A \sim B$. The operation $A \mapsto M^{-1} A M$ is called a **similarity transformation**.
+
+It is straightforward to verify that "$\sim$" is a genuine **equivalence relation** on $\mathbb{C}^{n \times n}$:
+1. **Reflexive:** Taking $M = I_n$ gives $A = I_n^{-1} A I_n \implies A \sim A$.
+2. **Symmetric:** If $B = M^{-1} A M$, then $A = M B M^{-1} = (M^{-1})^{-1} B (M^{-1}) \implies B \sim A$.
+3. **Transitive:** If $B = M_1^{-1} A M_1$ and $C = M_2^{-1} B M_2$, then $C = (M_1 M_2)^{-1} A (M_1 M_2)$, where $M_1 M_2$ is still invertible, so $A \sim C$.
+
+Consequently, the entire matrix space $\mathbb{C}^{n \times n}$ is partitioned into disjoint **similarity classes (orbits)**. Matrices in the same orbit can be transformed into one another by some invertible $M^{-1}(\cdot)M$; matrices in different orbits can never be connected by any similarity transformation.
+
+</DefinitionCard>
+
+> **Real vs. Complex Note:** If two real matrices $A, B \in \mathbb{R}^{n\times n}$ are similar over $\mathbb{C}$ (meaning there is an invertible complex matrix $M \in \mathbb{C}^{n\times n}$ with $B = M^{-1}AM$), then there actually exists an invertible **real** matrix $M_{\mathbb{R}} \in \mathbb{R}^{n\times n}$ such that $B = M_{\mathbb{R}}^{-1} A M_{\mathbb{R}}$. However, to guarantee that all eigenvalues exist in our scalar field and to write the Jordan decomposition cleanly, we work over $\mathbb{C}^{n \times n}$ throughout this lecture.
+
+<SimilarityOrbitAndInvariantsDiagram caption="Similarity orbits partition matrix space: moving along an orbit via M⁻¹AM preserves all spectral and rank invariants, while matrices with matching eigenvalues, trace, and determinant can still lie on separate orbits if their geometric multiplicities differ." />
+
+---
+
+## 2. Similarity Invariants: What Never Changes Under $M^{-1}AM$?
+
+Because matrices in the same similarity orbit represent the very same linear operator, any intrinsic geometric or spectral property of the operator must remain untouched when we change the coordinate matrix $M$.
+
+<TheoremCard label="Theorem 29.1" title="Similarity Invariants Theorem">
+
+Suppose $A, B \in \mathbb{C}^{n \times n}$ are similar, i.e., $B = M^{-1} A M$ for some invertible matrix $M \in \mathbb{C}^{n \times n}$. Then $A$ and $B$ necessarily share all of the following **similarity invariants**:
+
+1. **Characteristic Polynomial:** $p_B(\lambda) = \det(B - \lambda I_n) = \det(A - \lambda I_n) = p_A(\lambda)$.
+2. **Eigenvalues and Algebraic Multiplicities:** $A$ and $B$ have the exact same set of eigenvalues, and each eigenvalue $\lambda_i$ has the same algebraic multiplicity $\operatorname{AM}(\lambda_i)$.
+3. **Trace:** $\operatorname{tr}(B) = \operatorname{tr}(A)$.
+4. **Determinant:** $\det(B) = \det(A)$.
+5. **Matrix Powers, Polynomials, and Matrix Exponentials:** For every integer $k \ge 1$ and every polynomial $f(t)$,
+
+   $$
+   B^k = M^{-1} A^k M, \qquad f(B) = M^{-1} f(A) M, \qquad e^{Bt} = M^{-1} e^{At} M
+   $$
+
+6. **Rank and Ranks of All Shifted Powers:** $\operatorname{rank}(B) = \operatorname{rank}(A)$, and more generally, for every $\lambda \in \mathbb{C}$ and every integer $k \ge 1$,
+
+   $$
+   \operatorname{rank}\!\left((B - \lambda I_n)^k\right) = \operatorname{rank}\!\left((A - \lambda I_n)^k\right)
+   $$
+
+7. **Geometric Multiplicities (Number of Independent Eigenvectors):** For every eigenvalue $\lambda$,
+
+   $$
+   \operatorname{GM}_B(\lambda) = \dim \operatorname{Null}(B - \lambda I_n) = \dim \operatorname{Null}(A - \lambda I_n) = \operatorname{GM}_A(\lambda)
+   $$
+
+   Moreover, if $\mathbf{x}_A$ is an eigenvector of $A$ for $\lambda$, then $\mathbf{x}_B = M^{-1} \mathbf{x}_A$ is an eigenvector of $B$ for $\lambda$ (giving a linear isomorphism $\mathbf{x}_A \mapsto M^{-1}\mathbf{x}_A$).
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Similarity Invariants and the Cyclic Property of the Trace">
+
+Let $B = M^{-1} A M$, where $M \in \mathbb{C}^{n \times n}$ is invertible.
+
+**1. Characteristic Polynomial, Eigenvalues, and Algebraic Multiplicities:**
+Since $M^{-1} (\lambda I_n) M = \lambda M^{-1} M = \lambda I_n$, the shifted matrix satisfies:
+
+$$
+B - \lambda I_n = M^{-1} A M - M^{-1} (\lambda I_n) M = M^{-1} (A - \lambda I_n) M
+$$
+
+Taking determinants and using $\det(XY) = \det(X)\det(Y)$ together with $\det(M^{-1})\det(M) = \det(I_n) = 1$:
+
+$$
+\det(B - \lambda I_n) = \det(M^{-1}) \det(A - \lambda I_n) \det(M) = \det(A - \lambda I_n)
+$$
+
+Because $B$ and $A$ have the exact same characteristic polynomial in $\lambda$, they must have the exact same roots (eigenvalues) with the exact same algebraic multiplicities $\operatorname{AM}(\lambda)$.
+
+**2. Cyclic Property of the Trace and $\operatorname{tr}(B) = \operatorname{tr}(A)$:**
+First prove the lemma: for any two $n \times n$ matrices $X, Y \in \mathbb{C}^{n \times n}$, $\operatorname{tr}(XY) = \operatorname{tr}(YX)$.
+Expanding the diagonal sum directly from the definition of matrix multiplication:
+
+$$
+\operatorname{tr}(XY) = \sum_{i=1}^n (XY)_{ii} = \sum_{i=1}^n \sum_{k=1}^n x_{ik} y_{ki} = \sum_{k=1}^n \sum_{i=1}^n y_{ki} x_{ik} = \sum_{k=1}^n (YX)_{kk} = \operatorname{tr}(YX)
+$$
+
+Now set $X = M^{-1}$ and $Y = AM$:
+
+$$
+\operatorname{tr}(B) = \operatorname{tr}(M^{-1}(AM)) = \operatorname{tr}((AM)M^{-1}) = \operatorname{tr}(A (MM^{-1})) = \operatorname{tr}(A I_n) = \operatorname{tr}(A)
+$$
+
+(Note: $\operatorname{tr}(A) = \sum \lambda_i$ and $\det(A) = \prod \lambda_i$ also follow from comparing coefficients of the characteristic polynomial, but the cyclic property proves $\operatorname{tr}(M^{-1}AM) = \operatorname{tr}(A)$ directly without ever computing eigenvalues!)
+
+**3. Determinant:**
+
+$$
+\det(B) = \det(M^{-1} A M) = \det(M^{-1}) \det(A) \det(M) = \det(A)
+$$
+
+**4. Matrix Powers and Exponentials:**
+For $k = 2$, $B^2 = (M^{-1} A M)(M^{-1} A M) = M^{-1} A (M M^{-1}) A M = M^{-1} A^2 M$. By induction, $B^k = M^{-1} A^k M$ for all $k \ge 1$. Taking linear combinations yields $f(B) = M^{-1} f(A) M$, and substituting into the power series gives $e^{Bt} = \sum_{k=0}^\infty \frac{t^k}{k!} B^k = M^{-1}\left(\sum_{k=0}^\infty \frac{t^k}{k!} A^k\right) M = M^{-1} e^{At} M$.
+
+**5. Ranks of Shifted Powers $\operatorname{rank}((B-\lambda I_n)^k) = \operatorname{rank}((A-\lambda I_n)^k)$:**
+By (1) and (4), for any $\lambda \in \mathbb{C}$ and $k \ge 1$:
+
+$$
+(B - \lambda I_n)^k = \left(M^{-1}(A - \lambda I_n)M\right)^k = M^{-1} (A - \lambda I_n)^k M
+$$
+
+Left-multiplying by an invertible matrix $M^{-1}$ does not change the dimension of the column space, and right-multiplying by an invertible matrix $M$ merely takes invertible linear combinations of the columns without changing the column space. Therefore, multiplying on the left and right by invertible matrices strictly preserves rank:
+
+$$
+\operatorname{rank}\!\left((B - \lambda I_n)^k\right) = \operatorname{rank}\!\left((A - \lambda I_n)^k\right)
+$$
+
+Setting $k = 1$ and $\lambda = 0$ recovers $\operatorname{rank}(B) = \operatorname{rank}(A)$.
+
+**6. Geometric Multiplicities and Eigenvector Mapping:**
+By the Rank-Nullity Theorem, $\dim \operatorname{Null}(B - \lambda I_n) = n - \operatorname{rank}(B - \lambda I_n) = n - \operatorname{rank}(A - \lambda I_n) = \dim \operatorname{Null}(A - \lambda I_n)$.
+Concretely, if $A\mathbf{x}_A = \lambda \mathbf{x}_A$ ($\mathbf{x}_A \ne \mathbf{0}$), set $\mathbf{x}_B = M^{-1} \mathbf{x}_A \ne \mathbf{0}$. Then:
+
+$$
+B \mathbf{x}_B = (M^{-1} A M)(M^{-1} \mathbf{x}_A) = M^{-1} A \mathbf{x}_A = M^{-1}(\lambda \mathbf{x}_A) = \lambda (M^{-1} \mathbf{x}_A) = \lambda \mathbf{x}_B
+$$
+
+Because $M^{-1}$ is invertible, the map $\mathbf{x}_A \mapsto M^{-1}\mathbf{x}_A$ is a linear isomorphism between $\operatorname{Null}(A - \lambda I_n)$ and $\operatorname{Null}(B - \lambda I_n)$. $\blacksquare$
+
+</ProofCollapse>
+
+---
+
+## 3. A Crucial Counterexample: Same Eigenvalues, Trace, and Determinant $\not\implies$ Similar!
+
+When first learning eigenvalues, a very common misconception is: "If two matrices have the exact same eigenvalues, trace, and determinant, they must be similar, right?"
+As the right-hand side of the diagram above illustrates (with $\operatorname{tr}=4, \det=4, \lambda=2$): **Absolutely not!**
+
+Let us examine Prof. Gilbert Strang's classic $2 \times 2$ family—all three matrices have eigenvalues $\lambda_1 = \lambda_2 = 4$, trace $\operatorname{tr} = 8$, and determinant $\det = 16$:
+
+$$
+A_1 = \begin{bmatrix} 4 & 0 \\ 0 & 4 \end{bmatrix}, \qquad
+A_2 = \begin{bmatrix} 4 & 1 \\ 0 & 4 \end{bmatrix}, \qquad
+A_3 = \begin{bmatrix} 5 & 1 \\ -1 & 3 \end{bmatrix}
+$$
+
+Let us test how these three "isospectral" matrices are related:
+
+### 3.1 Why $A_1$ Stands Alone ($A_1 \not\sim A_2$ and $A_1 \not\sim A_3$)
+
+Check the geometric multiplicity by computing the nullspace dimension of $A_i - 4I_2$:
+- For $A_1 = 4I_2$:
+
+  $$
+  A_1 - 4I_2 = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \implies \operatorname{rank}(A_1 - 4I_2) = 0 \implies \operatorname{GM}_{A_1}(4) = 2 - 0 = 2
+  $$
+
+  $A_1$ has **2** linearly independent eigenvectors (every vector in $\mathbb{C}^2$ is an eigenvector). Even more directly, for any invertible matrix $M$, $M^{-1} (4I_2) M = 4 M^{-1}M = 4I_2$—**the scalar matrix $4I_2$ sits in an orbit all by itself!**
+
+- For $A_2$:
+
+  $$
+  A_2 - 4I_2 = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} \implies \operatorname{rank}(A_2 - 4I_2) = 1 \implies \operatorname{GM}_{A_2}(4) = 2 - 1 = 1
+  $$
+
+  $A_2$ has **only 1** linearly independent eigenvector, $\mathbf{e}_1 = [1, 0]^T$. By item 7 of the Similarity Invariants Theorem, similar matrices must have the same geometric multiplicity, so $A_1$ and $A_2$ are **never similar**!
+
+### 3.2 $A_3$ Looks Full of Numbers—Is It Similar to $A_2$?
+
+First check the characteristic polynomial and shifted matrix of $A_3$:
+
+$$
+\operatorname{tr}(A_3) = 5 + 3 = 8, \quad \det(A_3) = 5 \cdot 3 - 1 \cdot (-1) = 16 \implies p_{A_3}(\lambda) = (\lambda - 4)^2
+$$
+
+Compute $A_3 - 4I_2$:
+
+$$
+A_3 - 4I_2 = \begin{bmatrix} 1 & 1 \\ -1 & -1 \end{bmatrix}
+$$
+
+Its rank is also $1$, so $\operatorname{GM}_{A_3}(4) = 2 - 1 = 1$! That tells us $A_3$ is also defective and has a strong chance of lying in the same orbit as $A_2$. Let us **construct an invertible matrix $M$** directly to verify $M^{-1} A_3 M = A_2$ (equivalently, $A_3 M = M A_2$):
+
+1. Find the unique eigenvector $\mathbf{v}_1$ of $A_3$ satisfying $(A_3 - 4I_2)\mathbf{v}_1 = \mathbf{0}$:
+
+   $$
+   \begin{bmatrix} 1 & 1 \\ -1 & -1 \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_1 + x_2 = 0 \implies \mathbf{v}_1 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+   $$
+
+2. Since a second true eigenvector does not exist, we take the next best thing: a **generalized eigenvector** $\mathbf{v}_2$ satisfying $(A_3 - 4I_2)\mathbf{v}_2 = \mathbf{v}_1$ (i.e., $A_3 \mathbf{v}_2 = 4\mathbf{v}_2 + \mathbf{v}_1$):
+
+   $$
+   \begin{bmatrix} 1 & 1 \\ -1 & -1 \end{bmatrix} \begin{bmatrix} y_1 \\ y_2 \end{bmatrix} = \begin{bmatrix} 1 \\ -1 \end{bmatrix} \implies y_1 + y_2 = 1
+   $$
+
+   Pick the simplest particular solution, $\mathbf{v}_2 = [1, 0]^T$.
+
+3. Assemble the invertible change-of-basis matrix $M = [\mathbf{v}_1 \;\; \mathbf{v}_2]$:
+
+   $$
+   M = \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} \quad (\det(M) = 1 \ne 0), \qquad M^{-1} = \begin{bmatrix} 0 & -1 \\ 1 & 1 \end{bmatrix}
+   $$
+
+   Compute directly:
+
+   $$
+   M^{-1} A_3 M = \begin{bmatrix} 0 & -1 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} 5 & 1 \\ -1 & 3 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} = \begin{bmatrix} 1 & -3 \\ 4 & 4 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} = \begin{bmatrix} 4 & 1 \\ 0 & 4 \end{bmatrix} = A_2
+   $$
+
+A bullseye! Therefore, $A_2 \sim A_3$ (both belong to the similarity orbit of the Jordan block $J_2(4)$), while neither is similar to $A_1 = 4I_2$. In fact, among $2 \times 2$ matrices, **every** matrix with eigenvalues $\lambda_1 = \lambda_2 = 4$ other than $4I_2$—such as
+
+$$
+\begin{bmatrix} 4 & 0 \\ 7 & 4 \end{bmatrix} \qquad \text{or} \qquad \begin{bmatrix} 6 & 2 \\ -2 & 2 \end{bmatrix}
+$$
+
+—is similar to $A_2$!
+
+---
+
+## 4. The Jordan Canonical Form Theorem and Generalized Eigenvector Chains
+
+When an $n \times n$ matrix $A$ is defective (fewer than $n$ independent eigenvectors), we cannot clear all off-diagonal entries to reach a diagonal matrix $\Lambda$. So what is the simplest matrix we *can* reach via $M^{-1}AM$? The answer is the ultimate classification theorem discovered by **Camille Jordan**.
+
+### 4.1 Atomic Building Blocks: Jordan Blocks and the "1-to-1 Rule"
+
+<DefinitionCard label="Definition 29.2" title="Jordan Block & Generalized Eigenvector Chain">
+
+1. **Jordan Block:**
+   For $\lambda \in \mathbb{C}$ and an integer $k \ge 1$, a $k \times k$ Jordan block $J_k(\lambda)$ is the upper bidiagonal matrix with $\lambda$ along the main diagonal, $1$ along the **first superdiagonal**, and $0$ everywhere else:
+
+   $$
+   J_k(\lambda) = \begin{bmatrix}
+   \lambda & 1 & 0 & \cdots & 0 \\
+   0 & \lambda & 1 & \cdots & 0 \\
+   \vdots & \vdots & \ddots & \ddots & \vdots \\
+   0 & 0 & 0 & \ddots & 1 \\
+   0 & 0 & 0 & \cdots & \lambda
+   \end{bmatrix}_{k \times k} = \lambda I_k + N_k
+   $$
+
+   where $N_k$ is the standard nilpotent shift matrix with $1$'s on the superdiagonal ($N_k^k = 0$, while $N_k^{k-1} \ne 0$). When $k = 1$, $J_1(\lambda) = [\lambda]$ is just a $1 \times 1$ diagonal entry.
+
+2. **Generalized Eigenvector:**
+   Let $A \in \mathbb{C}^{n \times n}$ with eigenvalue $\lambda$. A nonzero vector $\mathbf{v} \in \mathbb{C}^n$ is called a **generalized eigenvector** of $A$ associated with $\lambda$ if there exists a positive integer $m \ge 1$ such that:
+
+   $$
+   (A - \lambda I_n)^m \mathbf{v} = \mathbf{0}
+   $$
+
+   (When $m = 1$, $\mathbf{v}$ is an ordinary eigenvector.)
+
+</DefinitionCard>
+
+Why is a Jordan block the simplest possible building block? Compute $(J_k(\lambda) - \lambda I_k)\mathbf{x} = N_k \mathbf{x} = \mathbf{0}$:
+
+$$
+\begin{bmatrix}
+0 & 1 & 0 & \cdots & 0 \\
+0 & 0 & 1 & \cdots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+0 & 0 & 0 & \cdots & 1 \\
+0 & 0 & 0 & \cdots & 0
+\end{bmatrix}
+\begin{bmatrix} x_1 \\ x_2 \\ \vdots \\ x_{k-1} \\ x_k \end{bmatrix}
+=
+\begin{bmatrix} x_2 \\ x_3 \\ \vdots \\ x_k \\ 0 \end{bmatrix}
+=
+\begin{bmatrix} 0 \\ 0 \\ \vdots \\ 0 \\ 0 \end{bmatrix}
+\implies x_2 = x_3 = \dots = x_k = 0
+$$
+
+Only the first component $x_1$ is free! That means whether $k = 1, 2, 3,$ or $100$:
+- $\operatorname{rank}(J_k(\lambda) - \lambda I_k) = k - 1$, so $\dim \operatorname{Null}(J_k(\lambda) - \lambda I_k) = 1$.
+- **Each Jordan block $J_k(\lambda)$ contributes exactly 1 linearly independent eigenvector** (corresponding to the standard basis vector $\mathbf{e}_1$)!
+
+What are the remaining $k-1$ basis vectors $\mathbf{e}_2, \dots, \mathbf{e}_k$ of that block doing? Notice that $N_k \mathbf{e}_j = \mathbf{e}_{j-1}$ for $j = 2, \dots, k$. In the coordinates of the original matrix $A$ (denoting the corresponding $k$ columns of $M$ by $\mathbf{v}_1, \mathbf{v}_2, \dots, \mathbf{v}_k$), comparing $A M = M J$ column by column immediately reveals an interlocking **Jordan chain**:
+
+$$
+\begin{aligned}
+(A - \lambda I_n)\mathbf{v}_1 &= \mathbf{0} \quad &\iff \quad A\mathbf{v}_1 &= \lambda \mathbf{v}_1 \quad (\text{1 true eigenvector}) \\
+(A - \lambda I_n)\mathbf{v}_2 &= \mathbf{v}_1 \quad &\iff \quad A\mathbf{v}_2 &= \lambda \mathbf{v}_2 + \mathbf{v}_1 \\
+&\;\;\vdots && \;\;\vdots \\
+(A - \lambda I_n)\mathbf{v}_k &= \mathbf{v}_{k-1} \quad &\iff \quad A\mathbf{v}_k &= \lambda \mathbf{v}_k + \mathbf{v}_{k-1}
+\end{aligned}
+$$
+
+Algebraically, each **$1$** on the superdiagonal is precisely the coupling link that maps a generalized eigenvector $\mathbf{v}_j$ under $(A - \lambda I_n)$ **one step down the chain to $\mathbf{v}_{j-1}$**, until the chain finally terminates at zero on the true eigenvector $\mathbf{v}_1$!
+
+### 4.2 The Main Jordan Canonical Form Theorem
+
+<TheoremCard label="Theorem 29.2" title="Jordan Canonical Form Theorem">
+
+For **every** complex square matrix $A \in \mathbb{C}^{n \times n}$, there exists an invertible matrix $M \in \mathbb{C}^{n \times n}$ such that $A$ is similar to a block-diagonal matrix $J$ (called the **Jordan Canonical Form** of $A$):
+
+$$
+M^{-1} A M = J = \begin{bmatrix}
+J_1 & & & \\
+& J_2 & & \\
+& & \ddots & \\
+& & & J_s
+\end{bmatrix} = \operatorname{diag}(J_1, J_2, \dots, J_s)
+$$
+
+where each diagonal block $J_i = J_{k_i}(\lambda_i)$ is a $k_i \times k_i$ Jordan block ($\sum_{i=1}^s k_i = n$, and different blocks may share the same eigenvalue $\lambda_i$).
+
+**Uniqueness and Key Corollaries:**
+1. **Uniqueness of Block Structure:** Up to reordering the diagonal blocks $J_1, \dots, J_s$, the Jordan Canonical Form $J$ of $A$ is **uniquely determined**. Hence:
+
+   $$
+   A \sim B \iff A \text{ and } B \text{ have the exact same Jordan Canonical Form (up to block ordering)}
+   $$
+
+2. **The 1-to-1 Rule (Number of Blocks $=$ Number of Eigenvectors):**
+   - The total number of Jordan blocks $s$ equals the **maximum number of linearly independent eigenvectors** of $A$.
+   - For any given eigenvalue $\lambda_0$, the number of Jordan blocks with eigenvalue $\lambda_0$ equals its **geometric multiplicity** $\operatorname{GM}(\lambda_0) = \dim\operatorname{Null}(A - \lambda_0 I_n)$.
+   - The sum of the sizes of all Jordan blocks with eigenvalue $\lambda_0$ equals its **algebraic multiplicity** $\operatorname{AM}(\lambda_0)$.
+
+3. **Unified Diagonalizability Criterion:**
+
+   $$
+   A \text{ is diagonalizable} \iff \text{all Jordan blocks have size } 1 \times 1 \iff s = n \iff \forall i,\; \operatorname{GM}(\lambda_i) = \operatorname{AM}(\lambda_i)
+   $$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Construction via Generalized Eigenspaces & Uniqueness via Rank Drops">
+
+A complete proof of Jordan's Theorem has two parts—**existence** and **uniqueness**—and both rest squarely on subspace dimensions and matrix ranks:
+
+#### Part 1: Existence Outline (Two-Step Decomposition)
+1. **Direct-Sum Decomposition into Generalized Eigenspaces:**
+   Let $\lambda_1, \dots, \lambda_r$ be the distinct eigenvalues of $A \in \mathbb{C}^{n \times n}$ with algebraic multiplicities $m_1, \dots, m_r$ ($\sum m_i = n$). Define the generalized eigenspace for each $\lambda_i$:
+
+   $$
+   G_{\lambda_i} = \operatorname{Null}\!\left((A - \lambda_i I_n)^n\right)
+   $$
+
+   Using coprime polynomial factorization and Bézout's Identity, one proves that each $G_{\lambda_i}$ is an $A$-invariant subspace of dimension $\operatorname{AM}(\lambda_i) = m_i$, and the whole space splits as a direct sum:
+
+   $$
+   \mathbb{C}^n = G_{\lambda_1} \oplus G_{\lambda_2} \oplus \dots \oplus G_{\lambda_r}
+   $$
+
+   In a basis built by concatenating bases of these invariant subspaces, $A$ becomes block-diagonal, where each $m_i \times m_i$ block has the form $\lambda_i I_{m_i} + N_i$ with $N_i = (A - \lambda_i I_n)|_{G_{\lambda_i}}$ nilpotent ($N_i^{m_i} = 0$).
+
+2. **Chain Decomposition for a Nilpotent Operator $N$ (Induction on Dimension):**
+   It remains to show that any nilpotent operator $N: V \to V$ ($N^m = 0$) admits a basis consisting of disjoint chains $\{\mathbf{v}, N\mathbf{v}, \dots, N^{k-1}\mathbf{v}\}$. Proceed by induction on $\dim V$: let $W = \operatorname{Im}(N)$. Since $N$ is nilpotent and non-invertible, $\dim W \lt \dim V$. By the induction hypothesis, $N|_W$ has a chain basis in $W$. For each chain in $W$, pull its head (which lies in $\operatorname{Im}(N)$) back by one preimage to extend the chain by $1$ link; then complete the basis by picking remaining eigenvectors in $\operatorname{Null}(N)$ not yet covered by the tails of those chains (these form chains of length $1$). One verifies directly that all resulting vectors are linearly independent and total $\dim V$!
+
+#### Part 2: Rigorous Proof of Uniqueness (The Rank-Drop Counting Formula)
+Suppose $A$ is similar to a Jordan form $J$. We determine how many Jordan blocks of size *exactly* $m$ belong to a given eigenvalue $\lambda_0$.
+Set $B = A - \lambda_0 I_n$. By the Similarity Invariants Theorem, for every integer $p \ge 0$:
+
+$$
+\operatorname{rank}(B^p) = \operatorname{rank}\!\left((J - \lambda_0 I_n)^p\right)
+$$
+
+The rank of a power of a block-diagonal matrix is the sum of the ranks of the powers of its diagonal blocks:
+- If a block has eigenvalue $\lambda_j \ne \lambda_0$, then $J_{k_j}(\lambda_j) - \lambda_0 I_{k_j}$ has nonzero diagonal entries $\lambda_j - \lambda_0 \ne 0$, so it is invertible. Hence every power $p$ of that block has **full rank** $k_j$ (contributing $0$ to the nullity, and canceling completely when we take differences!).
+- If a block belongs to $\lambda_0$ and has size $k \times k$, then its shifted power is $N_k^p$. Each multiplication by $N_k$ shifts the diagonal of $1$'s up by one step and drops the rank by $1$ until it hits zero:
+
+  $$
+  \operatorname{rank}(N_k^p) = \max(0,\, k - p) \implies \operatorname{nullity}(N_k^p) = k - \operatorname{rank}(N_k^p) = \min(p, k)
+  $$
+
+Therefore, when $p$ increases from $p-1$ to $p$, only $\lambda_0$-blocks of size $k \ge p$ lose another $1$ in rank (blocks with $k \lt p$ are already zero matrices!). Thus we define the **$p$-th rank drop (Weyr characteristic)**:
+
+$$
+\Delta_p(\lambda_0) \coloneqq \operatorname{rank}\!\left((A - \lambda_0 I_n)^{p-1}\right) - \operatorname{rank}\!\left((A - \lambda_0 I_n)^p\right) = \big(\text{number of } \lambda_0\text{-blocks of size } \ge p\big)
+$$
+
+Consequently, the number $b_p(\lambda_0)$ of Jordan blocks of size **exactly $p$** for $\lambda_0$ is:
+
+$$
+b_p(\lambda_0) = \Delta_p(\lambda_0) - \Delta_{p+1}(\lambda_0)
+$$
+
+Because the right-hand side depends solely on the ranks $\operatorname{rank}((A-\lambda_0 I_n)^p)$—which are invariant under every similarity transformation—the block counts $b_p(\lambda_0)$ for every eigenvalue and every size are **uniquely locked in** by $A$! $\blacksquare$
+
+</ProofCollapse>
+
+<JordanCanonicalBlocksStructureDiagram caption="Anatomy of a Jordan Canonical Form: each diagonal block J_k(λ) contributes exactly 1 true eigenvector e_1 and a chain of k-1 generalized eigenvectors linked by superdiagonal 1s, while the rank-drop sequence Δ_p uniquely determines the block sizes." />
+
+---
+
+## 5. Detective Work in Practice: $4 \times 4$ Matrices and the Tie-Breaking Power of $\operatorname{rank}((A - \lambda I)^k)$
+
+For $2 \times 2$ and $3 \times 3$ matrices, knowing the algebraic multiplicity $\operatorname{AM}(\lambda)$ and geometric multiplicity $\operatorname{GM}(\lambda)$ of every eigenvalue already uniquely determines all Jordan block sizes (for instance, $3$ split into $1$ block must be $3$; into $2$ blocks must be $2+1$; into $3$ blocks must be $1+1+1$).
+
+However, **as soon as $n = 4$**, a tie appears! If $\operatorname{AM}(\lambda) = 4$ and $\operatorname{GM}(\lambda) = 2$ (meaning $2$ Jordan blocks), there are **two distinct ways** to partition $4$ into $2$ positive integers:
+- **The $3 + 1$ partition:** $J_3(\lambda) \oplus J_1(\lambda)$
+- **The $2 + 2$ partition:** $J_2(\lambda) \oplus J_2(\lambda)$
+
+These two matrices have the exact same characteristic polynomial, eigenvalues, trace, determinant, and even **the exact same geometric multiplicity** ($2$)! Yet they are **never similar**! How do we tell them apart? By our rank-drop theorem, we simply compute one more rank: the rank of the square $(A - \lambda I_4)^2$!
+
+Let us test this on two concrete $4 \times 4$ matrices:
+
+$$
+P_1 = \begin{bmatrix} 2 & 1 & 0 & 2 \\ 0 & 2 & 0 & 0 \\ 0 & 0 & 2 & 1 \\ 0 & 0 & 0 & 2 \end{bmatrix}, \qquad
+P_2 = \begin{bmatrix} 2 & 1 & 0 & 1 \\ 0 & 2 & 1 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 2 \end{bmatrix}
+$$
+
+Both are upper triangular, so their eigenvalues are immediate: $\lambda_1 = \lambda_2 = \lambda_3 = \lambda_4 = 2$ ($\operatorname{AM}(2) = 4$). Form the nilpotent shifts $B_i = P_i - 2I_4$:
+
+1. **First-Power Rank (Geometric Multiplicity Check):**
+
+   $$
+   B_1 = \begin{bmatrix} 0 & 1 & 0 & 2 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 0 & 0 \end{bmatrix}, \qquad
+   B_2 = \begin{bmatrix} 0 & 1 & 0 & 1 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix}
+   $$
+
+   - For $B_1$: columns $2$ and $4$, $[1,0,0,0]^T$ and $[2,0,1,0]^T$, are linearly independent, so $\operatorname{rank}(B_1) = 2 \implies \operatorname{GM}(2) = 4 - 2 = 2$.
+   - For $B_2$: rows $1$ and $2$, $[0,1,0,1]$ and $[0,0,1,0]$, are linearly independent, so $\operatorname{rank}(B_2) = 2 \implies \operatorname{GM}(2) = 4 - 2 = 2$.
+   **So far, it is a dead heat!**
+
+2. **Second-Power Rank (The Tie-Breaker):**
+   Square both matrices directly:
+
+   $$
+   B_1^2 = \begin{bmatrix} 0 & 1 & 0 & 2 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 0 & 0 \end{bmatrix}^2 = \begin{bmatrix} 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix} \implies \operatorname{rank}(B_1^2) = 0
+   $$
+
+   $$
+   B_2^2 = \begin{bmatrix} 0 & 1 & 0 & 1 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix}^2 = \begin{bmatrix} 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix} \implies \operatorname{rank}(B_2^2) = 1
+   $$
+
+   And $B_2^3 = B_2^2 B_2 = 0 \implies \operatorname{rank}(B_2^3) = 0$.
+
+3. **Recover the Jordan Form via the Weyr Rank-Drop Formula:**
+   - For $P_1$ (rank sequence $r_0=4, r_1=2, r_2=0$):
+     $\Delta_1 = 4 - 2 = 2$ (two blocks of size $\ge 1$);
+     $\Delta_2 = 2 - 0 = 2$ (two blocks of size $\ge 2$);
+     $\Delta_3 = 0 - 0 = 0$ (zero blocks of size $\ge 3$).
+     Hence $b_1 = 2 - 2 = 0$ and $b_2 = 2 - 0 = 2$: **$P_1$ is similar to $J_2(2) \oplus J_2(2)$** (two chains of length $2$)!
+   - For $P_2$ (rank sequence $r_0=4, r_1=2, r_2=1, r_3=0$):
+     $\Delta_1 = 4 - 2 = 2$, $\Delta_2 = 2 - 1 = 1$, $\Delta_3 = 1 - 0 = 1$, $\Delta_4 = 0$.
+     Hence $b_1 = 2 - 1 = 1$, $b_2 = 1 - 1 = 0$, and $b_3 = 1 - 0 = 1$: **$P_2$ is similar to $J_3(2) \oplus J_1(2)$** (one chain of length $3$ plus one $1 \times 1$ block)!
+
+We can even write down a chain basis $M_2$ that reduces $P_2$ to its Jordan form: start the $3$-chain from $\mathbf{v}_3 = \mathbf{e}_3$, step down via $\mathbf{v}_2 = B_2 \mathbf{v}_3 = \mathbf{e}_2$ and $\mathbf{v}_1 = B_2 \mathbf{v}_2 = \mathbf{e}_1$ (with $B_2 \mathbf{v}_1 = \mathbf{0}$), and pick an independent eigenvector $\mathbf{v}_4 = \mathbf{e}_4 - \mathbf{e}_2$ (since $B_2(\mathbf{e}_4 - \mathbf{e}_2) = \mathbf{e}_1 - \mathbf{e}_1 = \mathbf{0}$):
+
+$$
+M_2 = \begin{bmatrix} \mathbf{e}_1 & \mathbf{e}_2 & \mathbf{e}_3 & \mathbf{e}_4 - \mathbf{e}_2 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & -1 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix} \implies M_2^{-1} P_2 M_2 = \begin{bmatrix} 2 & 1 & 0 & 0 \\ 0 & 2 & 1 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 2 \end{bmatrix}
+$$
+
+---
+
+## 6. Dynamics Revealed: Why Do Jordan Blocks Produce $t e^{\lambda t}$?
+
+Back in Lecture 22 (matrix powers $\mathbf{u}_{k+1} = A\mathbf{u}_k$) and Lecture 23 (differential equations $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$), we left a mystery hanging: how does a system evolve when $A$ is defective and cannot be diagonalized?
+
+With $A = M J M^{-1}$, the answer becomes crystal clear:
+
+$$
+A^k = M J^k M^{-1}, \qquad e^{At} = M e^{Jt} M^{-1}
+$$
+
+And because $J = \operatorname{diag}(J_1, \dots, J_s)$ is block-diagonal, powers and exponentials act **independently on each block**:
+
+$$
+J^k = \operatorname{diag}\!\left(J_1^k, \dots, J_s^k\right), \qquad e^{Jt} = \operatorname{diag}\!\left(e^{J_1 t}, \dots, e^{J_s t}\right)
+$$
+
+All we need are the powers and exponential of a single Jordan block $J_m(\lambda) = \lambda I_m + N_m$! The key algebraic miracle is that **the scalar matrix $\lambda I_m$ and the nilpotent shift $N_m$ commute** ($(\lambda I_m) N_m = N_m (\lambda I_m)$)!
+
+### 6.1 Discrete Powers $J_m(\lambda)^k$: Binomial Polynomial Factors
+
+Because $\lambda I_m$ and $N_m$ commute, the Binomial Theorem applies directly, and because $N_m^m = 0$, the sum truncates after $m$ terms:
+
+$$
+J_m(\lambda)^k = (\lambda I_m + N_m)^k = \sum_{j=0}^{m-1} \binom{k}{j} \lambda^{k-j} N_m^j \quad (k \ge m-1)
+$$
+
+For $2 \times 2$ and $3 \times 3$ Jordan blocks:
+
+$$
+J_2(\lambda)^k = \begin{bmatrix} \lambda^k & k \lambda^{k-1} \\ 0 & \lambda^k \end{bmatrix}, \qquad
+J_3(\lambda)^k = \begin{bmatrix} \lambda^k & k \lambda^{k-1} & \frac{k(k-1)}{2}\lambda^{k-2} \\ 0 & \lambda^k & k \lambda^{k-1} \\ 0 & 0 & \lambda^k \end{bmatrix}
+$$
+
+**Fine Stability Criterion on the Unit Circle:**
+- If $|\lambda| \lt 1$: even with polynomial factors like $k\lambda^{k-1}$ or $k^2 \lambda^{k-2}$, exponential decay $\lambda^k$ beats every polynomial in $k$, so $J_m(\lambda)^k \to 0$ as $k \to \infty$ (possibly after a brief transient rise).
+- If $|\lambda| = 1$ (the critical boundary!): if every block for $\lambda$ is $1\times 1$, then $|\lambda^k| = 1$ and the system stays bounded (neutrally stable). As soon as there is a Jordan block of size $\ge 2 \times 2$, the upper-right entry has magnitude $|k \lambda^{k-1}| = k \to \infty$, and the system **blows up**!
+
+### 6.2 Continuous Matrix Exponential $e^{J_m(\lambda)t}$: Polynomial-Exponential Resonance $t^j e^{\lambda t}$
+
+Again, because $(\lambda t I_m)$ and $(t N_m)$ commute, the exponential law $e^{X+Y} = e^X e^Y$ from Lecture 23 holds:
+
+$$
+e^{J_m(\lambda) t} = e^{\lambda t I_m + t N_m} = e^{\lambda t I_m} e^{t N_m} = e^{\lambda t} \left( I_m + t N_m + \frac{t^2}{2!} N_m^2 + \dots + \frac{t^{m-1}}{(m-1)!} N_m^{m-1} \right)
+$$
+
+Writing out the $2 \times 2$ and $3 \times 3$ cases explicitly:
+
+$$
+e^{J_2(\lambda)t} = \begin{bmatrix} e^{\lambda t} & t e^{\lambda t} \\ 0 & e^{\lambda t} \end{bmatrix}, \qquad
+e^{J_3(\lambda)t} = \begin{bmatrix} e^{\lambda t} & t e^{\lambda t} & \frac{t^2}{2} e^{\lambda t} \\ 0 & e^{\lambda t} & t e^{\lambda t} \\ 0 & 0 & e^{\lambda t} \end{bmatrix}
+$$
+
+Here is the **complete linear-algebraic explanation** of why differential equations courses multiply by $t$ and $t^2$ when characteristic roots repeat! If a repeated root has a full set of eigenvectors (diagonalizable, all blocks $1 \times 1$), **no $t e^{\lambda t}$ term ever appears**. Only when the geometric multiplicity is defective—creating an $m \times m$ Jordan block with $m \ge 2$—do the superdiagonal $1$'s pass through $e^{t N_m}$ to inject $t e^{\lambda t}, \dots, \frac{t^{m-1}}{(m-1)!} e^{\lambda t}$ into the solution $\mathbf{u}(t) = M e^{Jt} M^{-1}\mathbf{u}(0)$.
+
+Physically, when $\operatorname{Re}(\lambda) = 0$ (such as pure imaginary eigenvalues $\lambda = \pm i\omega$ of an undamped oscillator) and a block of size $\ge 2 \times 2$ is present, the solution contains linearly growing oscillations $t e^{i\omega t}$—which in mechanics and circuits is precisely **physical resonance**!
+
+---
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+
+### Pitfall 1: Assuming "Same Eigenvalues, Trace, and Determinant $\implies$ Similar"
+This is one of the most frequent exam traps in Modules 3 and 4! Those invariants are **necessary** conditions for similarity, never sufficient:
+- For $2\times 2$ matrices, $4I_2$ and $J_2(4)$ share the same eigenvalues, trace, and determinant, yet $\operatorname{GM}(4)$ is $2$ versus $1$, so they are not similar.
+- For $4\times 4$ matrices, even "same eigenvalues + same geometric multiplicity" is not enough: $J_3(2) \oplus J_1(2)$ and $J_2(2) \oplus J_2(2)$ both have $\lambda = 2$ ($\operatorname{AM}=4$) and $\operatorname{GM}(2)=2$. You must check $\operatorname{rank}((A-2I)^2)$ (which is $1$ versus $0$) to separate them!
+
+### Pitfall 2: Confusing Similarity $M^{-1}AM$ with Congruence $M^T A M$ (or $M^H A M$)
+- Similarity $M^{-1}AM$ represents a change of basis for a **linear operator**: it **strictly preserves eigenvalues**, but in general **does not preserve symmetry**.
+- Congruence $M^T A M$ represents a change of basis for a **real quadratic form**: it **strictly preserves symmetry and inertia (signs)**, but in general **changes the numerical values of the eigenvalues**.
+Only when $M$ is orthogonal/unitary ($M^{-1} = M^T$ or $M^{-1} = M^H$) do the two formulas coincide.
+
+### Pitfall 3: Thinking a $k\times k$ Jordan Block Has $k$ Eigenvectors, or Worrying About Superdiagonal vs. Subdiagonal $1$'s
+1. No matter how large $k$ is, a single Jordan block $J_k(\lambda)$ has **exactly 1** linearly independent eigenvector (corresponding to $\mathbf{e}_1$). The other $k-1$ columns of $M$ for that block are **generalized eigenvectors** and do not satisfy $A\mathbf{v} = \lambda\mathbf{v}$.
+2. Some textbooks put the $1$'s *below* the main diagonal (the **subdiagonal**, giving $J_k(\lambda)^T$). Both conventions are completely equivalent: conjugating by the reversal permutation matrix $P_k = [\mathbf{e}_k, \dots, \mathbf{e}_1]$ gives $P_k^{-1} J_k(\lambda) P_k = J_k(\lambda)^T$, so they lie in the same similarity orbit. MIT 18.06 puts the $1$'s above the diagonal (on the superdiagonal).
+
+### Pitfall 4: Trying to Compute the Jordan Form in Floating-Point Arithmetic (Ill-Posedness!)
+While the Jordan Canonical Form is unbeatable in pure theory and exact ODEs, in numerical floating-point computation **Jordan decomposition is severely ill-posed and discontinuous**!
+Consider a tiny perturbation $\varepsilon = 10^{-16}$:
+
+$$
+A(0) = \begin{bmatrix} 4 & 1 \\ 0 & 4 \end{bmatrix} \quad (\text{one } 2\times 2 \text{ block, defective}) \qquad \text{vs.} \qquad A(\varepsilon) = \begin{bmatrix} 4 & 1 \\ \varepsilon & 4 \end{bmatrix}
+$$
+
+As soon as $\varepsilon \ne 0$ (even at machine-epsilon scale $10^{-16}$), the eigenvalues of $A(\varepsilon)$ split into $\lambda_\pm = 4 \pm \sqrt{\varepsilon} = 4 \pm 10^{-8}$ (a $10^8$-fold amplification of error!). Worse, $A(\varepsilon)$ instantaneously becomes "diagonalizable" with two $1\times 1$ blocks, but its two eigenvectors $[1, \pm 10^{-8}]^T$ are nearly collinear, giving a condition number $\kappa(S) \sim 10^8$!
+That is why numerical linear algebra libraries (such as LAPACK) never compute the Jordan form directly, relying instead on the numerically rock-solid **Schur decomposition ($A = U T U^H$ with $U$ unitary)** and the crown jewel of linear algebra coming in the next lecture—the **Singular Value Decomposition (SVD, $A = U\Sigma V^T$)**!
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l29-similarity-jordan-sandbox"
+  title="Similarity Orbit & Jordan Chain Interactive Lab"
+  description="Adjust matrix parameters and the change-of-basis matrix $M$ to observe in real time how eigenvalues, trace, determinant, and all shifted power ranks $\operatorname{rank}((A - \lambda I)^k)$ stay invariant under $B = M^{-1} A M$, and test how a tiny perturbation $\varepsilon$ collapses eigenvectors."
+/>
+
+---
+
+<KeyTakeaways title="Key Takeaways" items={[
+  "Matrix similarity ($B = M^{-1} A M$, $M$ invertible) is an equivalence relation on $\\mathbb{C}^{n \\times n}$ representing the same linear operator in two different bases; never confuse it with congruence $M^T A M$ (preserves symmetry/signs, changes eigenvalues) or row elimination $EA$ (destroys eigenvalues).",
+  "Similarity invariants: if $B = M^{-1}AM$, then $A$ and $B$ share the exact same characteristic polynomial, eigenvalues and algebraic multiplicities $\\operatorname{AM}(\\lambda)$, trace $\\operatorname{tr}(A)$, determinant $\\det(A)$, rank $\\operatorname{rank}(A)$, and all shifted power ranks $\\operatorname{rank}((A-\\lambda I)^k)$ and geometric multiplicities $\\operatorname{GM}(\\lambda)$.",
+  "Same spectrum does not imply similar: matching eigenvalues, trace, and determinant are necessary but not sufficient. $4I_2$ ($\\operatorname{GM}=2$) and $J_2(4)$ ($\\operatorname{GM}=1$) are not similar; for $4 \\times 4$ matrices, $3+1$ and $2+2$ even share $\\operatorname{GM}(2)=2$ and require $\\operatorname{rank}((A-\\lambda I)^2)$ to tell apart.",
+  "Jordan Canonical Form Theorem: every $A \\in \\mathbb{C}^{n\\times n}$ is similar to a block-diagonal matrix $J = \\operatorname{diag}(J_1, \\dots, J_s)$, unique up to block order. By the 1-to-1 rule, each $J_k(\\lambda)$ contributes 1 true eigenvector and $k-1$ generalized eigenvectors, so the number of blocks $s$ equals the total number of independent eigenvectors.",
+  "Weyr rank-drop formula: $\\Delta_m = \\operatorname{rank}((A-\\lambda I)^{m-1}) - \\operatorname{rank}((A-\\lambda I)^m)$ counts the number of $\\lambda$-blocks of size $\\ge m$, so $b_m = \\Delta_m - \\Delta_{m+1}$ uniquely determines all Jordan block sizes without computing generalized eigenvectors.",
+  "Jordan dynamics: superdiagonal $1$'s introduce binomial factors $\\binom{k}{j}\\lambda^{k-j}$ in discrete powers $J_m(\\lambda)^k$ and polynomial-exponential terms $t^j e^{\\lambda t}$ (like $t e^{\\lambda t}$) in $e^{J_m(\\lambda)t}$, explaining transient growth and resonance in defective systems."
+]} />
+
+---
+
+## 7. Intuition Problem Set
+
+<ProblemSet title="Intuition Problem Set" description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs.">
+
+<ExerciseCard id="l29-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="Similarity Classification and Explicit Jordan Basis for 2×2 Matrices">
+
+Consider the following three $2 \times 2$ matrices:
+
+$$
+A = \begin{bmatrix} 3 & 1 \\ -1 & 1 \end{bmatrix}, \qquad
+B = \begin{bmatrix} 2 & 0 \\ 4 & 2 \end{bmatrix}, \qquad
+C = \begin{bmatrix} 2 & 0 \\ 0 & 2 \end{bmatrix}
+$$
+
+1. Compute the trace, determinant, eigenvalues, and geometric multiplicity $\operatorname{GM}(\lambda)$ for each of $A, B,$ and $C$.
+2. Determine which two matrices among $A, B, C$ are similar to each other, and which one is not similar to the other two.
+3. Explicitly construct an invertible matrix $M \in \mathbb{R}^{2 \times 2}$ such that $M^{-1} A M = J_2(2)$, where
+
+   $$
+   J_2(2) = \begin{bmatrix} 2 & 1 \\ 0 & 2 \end{bmatrix}
+   $$
+
+   and verify directly that $A M = M J_2(2)$.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Computing the characteristic polynomials shows that all three matrices have the repeated eigenvalue $\\lambda_1 = \\lambda_2 = 2$, trace $4$, and determinant $4$.",
+  "Compute the ranks of $A - 2I_2$, $B - 2I_2$, and $C - 2I_2$ to find $\\operatorname{GM}(2) = 2 - \\operatorname{rank}(\\cdot - 2I_2)$ and separate diagonalizable from defective matrices.",
+  "Build $M = [\\mathbf{v}_1 \\;\\; \\mathbf{v}_2]$: first solve $(A - 2I_2)\\mathbf{v}_1 = \\mathbf{0}$ for the true eigenvector $\\mathbf{v}_1$, then solve $(A - 2I_2)\\mathbf{v}_2 = \\mathbf{v}_1$ for a generalized eigenvector $\\mathbf{v}_2$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+In the $2 \times 2$ world, once the eigenvalues are fixed at $\lambda_1 = \lambda_2 = 2$, there are only two similarity orbits: either the diagonal matrix $2I_2$ (two independent eigenvectors, an orbit of size one), or the defective orbit containing every non-scalar matrix with that spectrum (one eigenvector, all similar to $J_2(2)$). Even though $A$ is dense and $B$ is lower triangular, both have only 1 independent eigenvector, so they belong to the very same orbit!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1: Spectral Invariants and Geometric Multiplicities**
+- For $A$: $\operatorname{tr}(A) = 4$, $\det(A) = 3 - (-1) = 4$, characteristic polynomial $\lambda^2 - 4\lambda + 4 = (\lambda - 2)^2$, so $\lambda_1 = \lambda_2 = 2$.
+
+  $$
+  A - 2I_2 = \begin{bmatrix} 1 & 1 \\ -1 & -1 \end{bmatrix} \implies \operatorname{rank}(A - 2I_2) = 1 \implies \operatorname{GM}_A(2) = 2 - 1 = 1
+  $$
+
+- For $B$: $\operatorname{tr}(B) = 4$, $\det(B) = 4$, eigenvalues $\lambda_1 = \lambda_2 = 2$.
+
+  $$
+  B - 2I_2 = \begin{bmatrix} 0 & 0 \\ 4 & 0 \end{bmatrix} \implies \operatorname{rank}(B - 2I_2) = 1 \implies \operatorname{GM}_B(2) = 2 - 1 = 1
+  $$
+
+- For $C = 2I_2$: $\operatorname{tr}(C) = 4$, $\det(C) = 4$, eigenvalues $\lambda_1 = \lambda_2 = 2$.
+
+  $$
+  C - 2I_2 = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \implies \operatorname{rank}(C - 2I_2) = 0 \implies \operatorname{GM}_C(2) = 2 - 0 = 2
+  $$
+
+**Part 2: Similarity Classification**
+Both $A$ and $B$ have Jordan Canonical Form $J_2(2)$, so $A \sim B$. By contrast, $C = 2I_2$ has Jordan form $J_1(2) \oplus J_1(2)$ ($\operatorname{GM}=2 \ne 1$), so $C \not\sim A$ and $C \not\sim B$.
+
+**Part 3: Explicit Construction of $M$ and Verification**
+1. Find the true eigenvector $\mathbf{v}_1$: solving $(A - 2I_2)\mathbf{v}_1 = \mathbf{0}$ gives $x_1 + x_2 = 0$, so take $\mathbf{v}_1 = [1, -1]^T$.
+2. Find a generalized eigenvector $\mathbf{v}_2$: solving $(A - 2I_2)\mathbf{v}_2 = \mathbf{v}_1$ gives $x_1 + x_2 = 1$, so take $\mathbf{v}_2 = [1, 0]^T$.
+3. Set
+
+   $$
+   M = \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} \quad (\det(M) = 1 \ne 0), \qquad M^{-1} = \begin{bmatrix} 0 & -1 \\ 1 & 1 \end{bmatrix}
+   $$
+
+Directly verify $A M = M J_2(2)$:
+
+$$
+A M = \begin{bmatrix} 3 & 1 \\ -1 & 1 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} = \begin{bmatrix} 2 & 3 \\ -2 & -1 \end{bmatrix}, \qquad
+M J_2(2) = \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} \begin{bmatrix} 2 & 1 \\ 0 & 2 \end{bmatrix} = \begin{bmatrix} 2 & 3 \\ -2 & -1 \end{bmatrix}
+$$
+
+Both sides are identical, confirming $M^{-1} A M = J_2(2)$.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l29-ex2" tier="L2" tierLabel="L2 · Conceptual True/False" title="Concept Check: Does Having the Same Characteristic Polynomial Guarantee Similarity?">
+
+Determine whether the following statement is true or false:
+
+**"If two $n \times n$ complex matrices $A, B \in \mathbb{C}^{n \times n}$ have the exact same characteristic polynomial (and therefore the same eigenvalues, algebraic multiplicities, trace, and determinant), then $A$ and $B$ must be similar."**
+
+<TrueFalseInteractive
+  id="l29-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Having the same characteristic polynomial is necessary for similarity, not sufficient. For example, $2I_2$ and the $2 \times 2$ Jordan block $J_2(2)$ both have characteristic polynomial $(\lambda - 2)^2$, but their geometric multiplicities are $2$ and $1$, so they are not similar."
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "The characteristic polynomial fixes the eigenvalues and their algebraic multiplicities $\\operatorname{AM}(\\lambda_i)$, but it cannot lock down the geometric multiplicities $\\operatorname{GM}(\\lambda_i)$ or the Jordan block partition.",
+  "Test the simplest counterexample at $n=2$: the scalar matrix $\\lambda I_2$ versus the $2\\times 2$ Jordan block $J_2(\\lambda)$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+The characteristic polynomial only tells you "how much total dimension each eigenvalue occupies" (its algebraic multiplicity). It does not tell you whether that dimension is split into separate $1 \times 1$ rooms (diagonalizable) or chained together into a larger Jordan block. Whenever an eigenvalue repeats ($\operatorname{AM} \ge 2$), a single characteristic polynomial covers at least two distinct similarity orbits!
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **False**.
+
+**Simplest Counterexample ($n=2$):**
+Take
+
+$$
+A = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}, \qquad B = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}
+$$
+
+1. Both have the exact same characteristic polynomial: $\det(A - \lambda I_2) = \det(B - \lambda I_2) = \lambda^2$ (both have $\lambda_1 = \lambda_2 = 0$, trace $0$, and determinant $0$).
+2. However, $\operatorname{rank}(A) = 0$ whereas $\operatorname{rank}(B) = 1$, giving $\operatorname{GM}_A(0) = 2 \ne 1 = \operatorname{GM}_B(0)$.
+By the Similarity Invariants Theorem, similar matrices must have the same rank and geometric multiplicities, so $A$ and $B$ are not similar.
+
+**Further Note:** Even adding "same geometric multiplicities" is still not enough once $n \ge 4$! For instance, $J_3(0) \oplus J_1(0)$ and $J_2(0) \oplus J_2(0)$ share the characteristic polynomial $\lambda^4$ and geometric multiplicity $\operatorname{GM}(0)=2$, yet the square of the first has rank $1$ while the square of the second is $0$ (rank $0$). Two matrices are similar if and only if they have the exact same distribution of Jordan block sizes for every eigenvalue.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l29-ex3" tier="L2" tierLabel="L2/L3 · Dimension Logic & Block Uniqueness" title="Concept Check: Same Characteristic Polynomial and Geometric Multiplicity 1 for Every Eigenvalue">
+
+Determine whether the following statement is true or false:
+
+**"Suppose $A, B \in \mathbb{C}^{n \times n}$ have the exact same characteristic polynomial, and for every eigenvalue $\lambda_i$, both $A$ and $B$ have geometric multiplicity strictly equal to $1$ (i.e., $\operatorname{GM}_A(\lambda_i) = \operatorname{GM}_B(\lambda_i) = 1$). Then $A$ and $B$ must be similar!"**
+
+<TrueFalseInteractive
+  id="l29-tf2"
+  correct={true}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="True! When $\lambda_i$ has geometric multiplicity $1$, it contributes exactly 1 Jordan block. Because the size of that block must equal its algebraic multiplicity $m_i = \operatorname{AM}(\lambda_i)$, the block can only be $J_{m_i}(\lambda_i)$! Thus $A$ and $B$ share the exact same Jordan Canonical Form and must be similar."
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Remember the 1-to-1 rule: the number of Jordan blocks for $\\lambda_i$ equals its geometric multiplicity $\\operatorname{GM}(\\lambda_i)$.",
+  "The sizes of all Jordan blocks for $\\lambda_i$ sum to its algebraic multiplicity $\\operatorname{AM}(\\lambda_i) = m_i$. If there is only $1$ block allowed, is there any choice for its size?"
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Right after seeing that "same characteristic polynomial + same geometric multiplicity" can still fail (like $3+1$ vs. $2+2$), this problem tests the exact boundary of that phenomenon! Why could $3+1$ and $2+2$ diverge? Because having **2 blocks** ($\operatorname{GM}=2$) gave room to partition $4$ in two different ways. If every eigenvalue is allowed only **1 block** ($\operatorname{GM}=1$), there is only one way to pack all $m_i$ dimensions: into a single giant block $J_{m_i}(\lambda_i)$! No ambiguity remains!
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **True**.
+
+**Rigorous Proof:**
+Factor the common characteristic polynomial of $A$ and $B$ over $\mathbb{C}$ as:
+
+$$
+p_A(\lambda) = p_B(\lambda) = \prod_{i=1}^r (\lambda_i - \lambda)^{m_i}
+$$
+
+where $\lambda_1, \dots, \lambda_r$ are the distinct eigenvalues with common algebraic multiplicities $m_i = \operatorname{AM}(\lambda_i) \ge 1$ satisfying $\sum_{i=1}^r m_i = n$.
+
+Consider any eigenvalue $\lambda_i$:
+- By the Jordan Canonical Form Theorem, the number of Jordan blocks of $A$ belonging to $\lambda_i$ equals $\operatorname{GM}_A(\lambda_i) = 1$.
+- The sum of the sizes of those blocks equals $\operatorname{AM}_A(\lambda_i) = m_i$.
+- With only **1** block whose size sums to $m_i$, that block must be $J_{m_i}(\lambda_i)$.
+
+By the same reasoning, since $\operatorname{GM}_B(\lambda_i) = 1$ and $\operatorname{AM}_B(\lambda_i) = m_i$, the unique Jordan block of $B$ for $\lambda_i$ is also $J_{m_i}(\lambda_i)$.
+
+Hence $A$ and $B$ are both similar to the exact same Jordan Canonical Form:
+
+$$
+J = \operatorname{diag}\!\left(J_{m_1}(\lambda_1),\, J_{m_2}(\lambda_2),\, \dots,\, J_{m_r}(\lambda_r)\right)
+$$
+
+By symmetry and transitivity of similarity ($A \sim J$ and $B \sim J \implies A \sim B$), $A$ and $B$ must be similar! $\blacksquare$
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l29-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Weyr Rank-Drop Method: Finding the Jordan Form of a 4×4 Non-Triangular Matrix Without Generalized Eigenvectors">
+
+Consider the following non-triangular $4 \times 4$ integer matrix:
+
+$$
+A = \begin{bmatrix}
+0 & 1 & 0 & 0 \\
+-1 & 2 & 1 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
+1. Compute the characteristic polynomial $\det(A - \lambda I_4)$ to find all eigenvalues and their algebraic multiplicities.
+2. Let $B = A - \lambda I_4$ and compute $\operatorname{rank}(B)$, $\operatorname{rank}(B^2)$, and $\operatorname{rank}(B^3)$ in order.
+3. Without computing any generalized eigenvectors, use the Weyr rank-drop sequence $\Delta_m = \operatorname{rank}(B^{m-1}) - \operatorname{rank}(B^m)$ to determine the unique Jordan Canonical Form $J$ of $A$, and explain intuitively why it cannot be $J_2(1) \oplus J_2(1)$.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Expand $\\det(A - \\lambda I_4)$ along row 4 and then row 3 to pull out $(1 - \\lambda)^2$ times the determinant of the top-left $2 \\times 2$ block.",
+  "Write down $B = A - I_4$ and count the linearly independent rows to get $\\operatorname{rank}(B) = 2$; then compute the $16$ entries of $B^2$ to see whether it is the zero matrix!",
+  "If $B^2 \\ne 0$, the largest Jordan block has size at least $3$, which immediately rules out the $2+2$ partition!"
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+The bottom-right corner of $A$ is a $2 \times 2$ diagonal block with $1, 1$, immediately giving two eigenvalues $\lambda = 1$; the top-left $2\times 2$ block has trace $2$ and determinant $1$, which gives two more eigenvalues $\lambda = 1$! So all four eigenvalues are $1$. Once we see $\operatorname{rank}(B) = 2$, we know there are $4 - 2 = 2$ blocks (either $3+1$ or $2+2$). All that remains is checking whether $B^2 = 0$: since $B^2 \ne 0$, there must be a chain of length at least $3$, locking in $3+1$ on the spot!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1: Characteristic Polynomial and Algebraic Multiplicity**
+Expanding $\det(A - \lambda I_4)$ along row 4 and then row 3:
+
+$$
+\det(A - \lambda I_4) = \det \begin{bmatrix}
+-\lambda & 1 & 0 & 0 \\
+-1 & 2-\lambda & 1 & 0 \\
+0 & 0 & 1-\lambda & 0 \\
+0 & 0 & 0 & 1-\lambda
+\end{bmatrix}
+= (1 - \lambda)^2 \det \begin{bmatrix} -\lambda & 1 \\ -1 & 2-\lambda \end{bmatrix}
+$$
+
+The top-left $2\times 2$ determinant is $-\lambda(2-\lambda) - (-1)(1) = \lambda^2 - 2\lambda + 1 = (1 - \lambda)^2$.
+Thus:
+
+$$
+\det(A - \lambda I_4) = (1 - \lambda)^4
+$$
+
+So $A$ has the single eigenvalue $\lambda = 1$ with algebraic multiplicity $\operatorname{AM}(1) = 4$.
+
+**Part 2: Ranks of Powers of $B = A - I_4$**
+Write $B = A - I_4$:
+
+$$
+B = \begin{bmatrix}
+-1 & 1 & 0 & 0 \\
+-1 & 1 & 1 & 0 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0
+\end{bmatrix}
+$$
+
+1. Rows 1 and 2 of $B$, $[-1, 1, 0, 0]$ and $[-1, 1, 1, 0]$, are linearly independent, while rows 3 and 4 are zero. Hence $\operatorname{rank}(B) = 2$ ($\operatorname{GM}(1) = 4 - 2 = 2$, so there are $2$ Jordan blocks).
+2. Compute $B^2$:
+
+   $$
+   B^2 = \begin{bmatrix}
+   -1 & 1 & 0 & 0 \\
+   -1 & 1 & 1 & 0 \\
+   0 & 0 & 0 & 0 \\
+   0 & 0 & 0 & 0
+   \end{bmatrix}
+   \begin{bmatrix}
+   -1 & 1 & 0 & 0 \\
+   -1 & 1 & 1 & 0 \\
+   0 & 0 & 0 & 0 \\
+   0 & 0 & 0 & 0
+   \end{bmatrix}
+   = \begin{bmatrix}
+   0 & 0 & 1 & 0 \\
+   0 & 0 & 1 & 0 \\
+   0 & 0 & 0 & 0 \\
+   0 & 0 & 0 & 0
+   \end{bmatrix}
+   $$
+
+   Column 3 is $[1, 1, 0, 0]^T \ne \mathbf{0}$ and all other columns are zero, so $\operatorname{rank}(B^2) = 1 \ne 0$!
+3. Compute $B^3$:
+
+   $$
+   B^3 = B^2 B = \begin{bmatrix}
+   0 & 0 & 1 & 0 \\
+   0 & 0 & 1 & 0 \\
+   0 & 0 & 0 & 0 \\
+   0 & 0 & 0 & 0
+   \end{bmatrix}
+   \begin{bmatrix}
+   -1 & 1 & 0 & 0 \\
+   -1 & 1 & 1 & 0 \\
+   0 & 0 & 0 & 0 \\
+   0 & 0 & 0 & 0
+   \end{bmatrix} = 0 \implies \operatorname{rank}(B^3) = 0
+   $$
+
+**Part 3: Determining the Jordan Form via Weyr Rank Drops**
+With $r_0 = \operatorname{rank}(I_4) = 4, r_1 = 2, r_2 = 1, r_3 = 0$, the rank drops (number of blocks of size $\ge m$) are:
+- $\Delta_1 = r_0 - r_1 = 4 - 2 = 2$
+- $\Delta_2 = r_1 - r_2 = 2 - 1 = 1$
+- $\Delta_3 = r_2 - r_3 = 1 - 0 = 1$
+- $\Delta_4 = 0 - 0 = 0$
+
+Thus the block counts $b_m = \Delta_m - \Delta_{m+1}$ are:
+- $1\times 1$ blocks: $b_1 = \Delta_1 - \Delta_2 = 2 - 1 = 1$
+- $2\times 2$ blocks: $b_2 = \Delta_2 - \Delta_3 = 1 - 1 = 0$
+- $3\times 3$ blocks: $b_3 = \Delta_3 - \Delta_4 = 1 - 0 = 1$
+
+Therefore, the unique Jordan Canonical Form of $A$ (up to block ordering) is $J_3(1) \oplus J_1(1)$:
+
+$$
+J = \begin{bmatrix}
+1 & 1 & 0 & 0 \\
+0 & 1 & 1 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
+**Intuitive Explanation:** $J_2(1) \oplus J_2(1)$ satisfies $(J - I_4)^2 = 0$ (maximum chain length $2$), whereas here $B^2 \ne 0$, proving there exists a generalized eigenvector of order $3$ that survives two applications of $B$ (specifically $\mathbf{e}_3$, since $B^2 \mathbf{e}_3 = [1, 1, 0, 0]^T \ne \mathbf{0}$), which forces a $3\times 3$ block.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l29-ex5" tier="L4" tierLabel="L4 · MIT 18.06 Exam Synthesis" title="MIT 18.06 Synthesis: Prove Every Square Matrix Is Similar to Its Transpose (A ∼ Aᵀ) & Solve a Defective ODE System">
+
+This two-part problem brings together the theoretical power and dynamical payoff of Jordan Canonical Form:
+
+1. **Universal Symmetry Theorem ($A \sim A^T$):**
+   For any $A \in \mathbb{C}^{n \times n}$, it is immediate that $\det(A^T - \lambda I_n) = \det(A - \lambda I_n)$, but by Exercise 2 that alone does not prove similarity! Using the **Jordan Canonical Form Theorem**, prove rigorously that **every complex square matrix $A \in \mathbb{C}^{n \times n}$ is similar to its transpose $A^T$** (i.e., there exists an invertible matrix $W \in \mathbb{C}^{n \times n}$ such that $W^{-1} A W = A^T$).
+   *(Note: this is the ordinary transpose $A^T$, not the conjugate transpose $A^H$!)*
+
+2. **Exact Solution of a Defective Linear ODE System:**
+   Using the Jordan decomposition $A = M J M^{-1}$ and the matrix exponential $e^{At} = M e^{Jt} M^{-1}$, find the exact closed-form solution $\mathbf{u}(t)$ to the initial-value problem:
+
+   $$
+   \frac{d\mathbf{u}}{dt} = \begin{bmatrix} -1 & 1 \\ -1 & -3 \end{bmatrix} \mathbf{u}, \qquad \mathbf{u}(0) = \begin{bmatrix} 2 \\ 1 \end{bmatrix}
+   $$
+
+   Verify directly that your solution satisfies both the initial condition and the differential equation, and determine its asymptotic behavior as $t \to +\infty$.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "For Part 1, first prove for a single $k \\times k$ Jordan block that $J_k(\\lambda) \\sim J_k(\\lambda)^T$ by conjugating with the reversal permutation matrix $P_k = [\\mathbf{e}_k, \\mathbf{e}_{k-1}, \\dots, \\mathbf{e}_1]$ (note $P_k^2 = I_k$).",
+  "Assemble the block-diagonal reversal matrix $P$ to get $J^T = P^{-1} J P$, then take the transpose of $A = M J M^{-1}$ to obtain $A^T = (M^T)^{-1} J^T M^T$ and apply transitivity.",
+  "For Part 2, find the characteristic polynomial $\\det(A - \\lambda I_2) = (\\lambda + 2)^2$, build $M$ from an eigenvector $\\mathbf{v}_1$ and generalized eigenvector $\\mathbf{v}_2$, and use $e^{J_2(-2)t} = e^{-2t}(I_2 + t N_2)$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Part 1 is wonderfully clean: if you reverse the order of the basis vectors ($\mathbf{e}_k, \dots, \mathbf{e}_1$), the main diagonal of a Jordan block stays $\lambda$, while the superdiagonal of $1$'s flips across the main diagonal onto the subdiagonal—which is literally $J_k(\lambda)^T$! Once every atomic block is similar to its own transpose, any matrix $A = MJM^{-1}$ built from those blocks is automatically similar to $A^T$!
+In Part 2, you watch a defective system matrix $A$ produce a $t e^{-2t}$ term via $M e^{Jt} M^{-1}$. Because $\lambda = -2 \lt 0$, the exponential decay $e^{-2t}$ still overpowers the linear factor $t$ and pulls the state back to the origin as $t \to +\infty$.
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1 Proof: $A \sim A^T$**
+
+**Step 1 (A single Jordan block is similar to its transpose):**
+For any $k \times k$ Jordan block $J_k(\lambda)$, define the $k \times k$ **reversal permutation matrix** $P_k$ (with $1$'s on the anti-diagonal and $0$'s elsewhere):
+
+$$
+P_k = \begin{bmatrix} \mathbf{e}_k & \mathbf{e}_{k-1} & \cdots & \mathbf{e}_1 \end{bmatrix} = \begin{bmatrix}
+0 & \cdots & 0 & 1 \\
+0 & \cdots & 1 & 0 \\
+\vdots & \cdot^{\cdot^{\cdot}} & \vdots & \vdots \\
+1 & \cdots & 0 & 0
+\end{bmatrix}
+$$
+
+Clearly $P_k$ is symmetric and $P_k^2 = I_k$, so $P_k^{-1} = P_k$.
+Writing $J_k(\lambda) = \lambda I_k + N_k$ with $N_k = \sum_{i=1}^{k-1} \mathbf{e}_i \mathbf{e}_{i+1}^T$, and using $P_k \mathbf{e}_i = \mathbf{e}_{k+1-i}$:
+
+$$
+P_k^{-1} N_k P_k = P_k \left( \sum_{i=1}^{k-1} \mathbf{e}_i \mathbf{e}_{i+1}^T \right) P_k = \sum_{i=1}^{k-1} (P_k \mathbf{e}_i)(P_k \mathbf{e}_{i+1})^T = \sum_{i=1}^{k-1} \mathbf{e}_{k+1-i} \mathbf{e}_{k-i}^T
+$$
+
+Re-index with $j = k - i$ (as $i$ runs from $1$ to $k-1$, $j$ runs from $k-1$ to $1$):
+
+$$
+P_k^{-1} N_k P_k = \sum_{j=1}^{k-1} \mathbf{e}_{j+1} \mathbf{e}_j^T = N_k^T
+$$
+
+Hence:
+
+$$
+P_k^{-1} J_k(\lambda) P_k = \lambda P_k^{-1} I_k P_k + P_k^{-1} N_k P_k = \lambda I_k + N_k^T = J_k(\lambda)^T
+$$
+
+**Step 2 (The entire Jordan form is similar to its transpose):**
+By the Jordan Canonical Form Theorem, there exists an invertible $M \in \mathbb{C}^{n \times n}$ such that $A = M J M^{-1}$ with $J = \operatorname{diag}(J_{k_1}(\lambda_1), \dots, J_{k_s}(\lambda_s))$.
+Set $P = \operatorname{diag}(P_{k_1}, \dots, P_{k_s})$ (so $P^{-1} = P$). Then:
+
+$$
+P^{-1} J P = \operatorname{diag}\!\left(P_{k_1}^{-1} J_{k_1}(\lambda_1) P_{k_1}, \dots, P_{k_s}^{-1} J_{k_s}(\lambda_s) P_{k_s}\right) = \operatorname{diag}\!\left(J_{k_1}(\lambda_1)^T, \dots, J_{k_s}(\lambda_s)^T\right) = J^T
+$$
+
+So $J \sim J^T$.
+
+**Step 3 (Transfer back to $A$):**
+Take the transpose of $A = M J M^{-1}$ (using $(XYZ)^T = Z^T Y^T X^T$ and $(M^{-1})^T = (M^T)^{-1}$):
+
+$$
+A^T = (M^{-1})^T J^T M^T = (M^T)^{-1} J^T M^T
+$$
+
+Substituting $J^T = P^{-1} J P$ and $J = M^{-1} A M$:
+
+$$
+A^T = (M^T)^{-1} P^{-1} (M^{-1} A M) P M^T = (M P M^T)^{-1} A (M P M^T)
+$$
+
+Let $W = M P M^T$. As a product of three invertible matrices, $W$ is invertible and satisfies $W^{-1} A W = A^T$. Thus $A \sim A^T$ for every square matrix $A \in \mathbb{C}^{n \times n}$! $\blacksquare$
+
+---
+
+**Part 2 Solution: Defective Differential Equation System**
+
+Let $A$ be the $2 \times 2$ system matrix:
+
+$$
+A = \begin{bmatrix} -1 & 1 \\ -1 & -3 \end{bmatrix}
+$$
+
+1. **Eigenvalues and Jordan Decomposition:**
+   $\operatorname{tr}(A) = -4$ and $\det(A) = (-1)(-3) - 1(-1) = 4$, so the characteristic polynomial is:
+
+   $$
+   \lambda^2 + 4\lambda + 4 = (\lambda + 2)^2 = 0 \implies \lambda_1 = \lambda_2 = -2
+   $$
+
+   Form the shifted matrix:
+
+   $$
+   A + 2I_2 = \begin{bmatrix} 1 & 1 \\ -1 & -1 \end{bmatrix}
+   $$
+
+   Since $\operatorname{rank}(A + 2I_2) = 1$, $\operatorname{GM}(-2) = 1$. Thus $A$ is defective with Jordan form
+
+   $$
+   J = J_2(-2) = \begin{bmatrix} -2 & 1 \\ 0 & -2 \end{bmatrix}
+   $$
+
+   - True eigenvector: $(A + 2I_2)\mathbf{v}_1 = \mathbf{0} \implies \mathbf{v}_1 = [1, -1]^T$.
+   - Generalized eigenvector: $(A + 2I_2)\mathbf{v}_2 = \mathbf{v}_1 \implies x_1 + x_2 = 1$, so pick $\mathbf{v}_2 = [1, 0]^T$.
+
+   This gives the change-of-basis matrix and its inverse:
+
+   $$
+   M = \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix}, \qquad M^{-1} = \begin{bmatrix} 0 & -1 \\ 1 & 1 \end{bmatrix}
+   $$
+
+   Check:
+
+   $$
+   A M = \begin{bmatrix} -1 & 1 \\ -1 & -3 \end{bmatrix}\begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} = \begin{bmatrix} -2 & -1 \\ 2 & -1 \end{bmatrix} = \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix}\begin{bmatrix} -2 & 1 \\ 0 & -2 \end{bmatrix} = M J
+   $$
+
+2. **Matrix Exponential and Initial Condition:**
+   The exponential of the Jordan block is:
+
+   $$
+   e^{Jt} = e^{-2t} \begin{bmatrix} 1 & t \\ 0 & 1 \end{bmatrix}
+   $$
+
+   Project $\mathbf{u}(0)$ onto the Jordan chain basis:
+
+   $$
+   M^{-1} \mathbf{u}(0) = \begin{bmatrix} 0 & -1 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} 2 \\ 1 \end{bmatrix} = \begin{bmatrix} -1 \\ 3 \end{bmatrix}
+   $$
+
+   Hence the exact solution is:
+
+   $$
+   \mathbf{u}(t) = M e^{Jt} M^{-1}\mathbf{u}(0) = e^{-2t} \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} \begin{bmatrix} 1 & t \\ 0 & 1 \end{bmatrix} \begin{bmatrix} -1 \\ 3 \end{bmatrix} = e^{-2t} \begin{bmatrix} 1 & 1 \\ -1 & 0 \end{bmatrix} \begin{bmatrix} -1 + 3t \\ 3 \end{bmatrix} = e^{-2t} \begin{bmatrix} 2 + 3t \\ 1 - 3t \end{bmatrix}
+   $$
+
+3. **Direct Verification and Asymptotic Behavior:**
+   - Initial condition:
+
+     $$
+     \mathbf{u}(0) = e^0 \begin{bmatrix} 2 + 0 \\ 1 - 0 \end{bmatrix} = \begin{bmatrix} 2 \\ 1 \end{bmatrix}
+     $$
+
+   - Differential equation: differentiating $\mathbf{u}(t)$ gives
+
+     $$
+     \frac{d\mathbf{u}}{dt} = -2 e^{-2t} \begin{bmatrix} 2 + 3t \\ 1 - 3t \end{bmatrix} + e^{-2t} \begin{bmatrix} 3 \\ -3 \end{bmatrix} = e^{-2t} \begin{bmatrix} -1 - 6t \\ -5 + 6t \end{bmatrix}
+     $$
+
+     Meanwhile, multiplying by $A$ gives
+
+     $$
+     A \mathbf{u}(t) = e^{-2t} \begin{bmatrix} -1 & 1 \\ -1 & -3 \end{bmatrix} \begin{bmatrix} 2 + 3t \\ 1 - 3t \end{bmatrix} = e^{-2t} \begin{bmatrix} -(2 + 3t) + (1 - 3t) \\ -(2 + 3t) - 3(1 - 3t) \end{bmatrix} = e^{-2t} \begin{bmatrix} -1 - 6t \\ -5 + 6t \end{bmatrix}
+     $$
+
+     Both sides match identically!
+   - Asymptotics: since $\lambda = -2 \lt 0$, L'Hôpital's rule gives $\lim_{t \to +\infty} t e^{-2t} = 0$ (exponential decay dominates linear growth), so $\lim_{t \to +\infty} \mathbf{u}(t) = [0, 0]^T$ and the system is **asymptotically stable**.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>

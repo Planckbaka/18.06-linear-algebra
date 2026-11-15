@@ -1,0 +1,949 @@
+---
+title: "Lecture 27: Complex Matrices and the Fast Fourier Transform (FFT)"
+ocwId: "L26"
+videoEpisode: "P27"
+textbookRef: "§9.1–9.3"
+---
+
+In the previous two lectures, we explored the spectral theorem for real symmetric matrices ($A = Q\Lambda Q^T$) and the geometry of positive definite quadratic forms. Yet the moment we step outside the comfort zone of real symmetric matrices, even a matrix $A \in \mathbb{R}^{n\times n}$ whose entries are all real can have complex eigenvalues and complex eigenvectors—just like the $90^\circ$ rotation matrix from Lecture 21,
+
+$$
+R = \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix},
+$$
+
+whose eigenvalues are $\pm i$.
+
+To make the spectral theory and orthogonal decompositions of linear algebra truly complete, we must move from real vector spaces $\mathbb{R}^n$ to complex vector spaces $\mathbb{C}^n$. Even more exciting, this generalization gives birth to one of the most important algorithms in all of applied mathematics and engineering:
+
+1. **Complex Space Geometry & the Operator Dictionary**: We see why the ordinary dot product $\mathbf{z}^T\mathbf{z}$ breaks down completely in $\mathbb{C}^n$, forcing us to introduce the **conjugate transpose (Hermitian transpose)** $\mathbf{z}^H$. With that single adjustment, symmetric matrices generalize to **Hermitian matrices ($A^H = A$)**, and orthogonal matrices generalize to **unitary matrices ($U^H U = I$)**.
+2. **The Discrete Fourier Matrix $F_n$ & the Fast Fourier Transform (FFT)**: Built from the $n$-th roots of unity, the Fourier matrix $F_n$ satisfies the remarkably clean orthogonality relation $F_n^H F_n = n I_n$. By permuting even and odd indices and factoring out diagonal twiddle factors, the seemingly dense $n \times n$ matrix-vector product $F_n\mathbf{x}$ splits into a product of sparse matrices—collapsing the operation count from $\mathcal{O}(n^2)$ down to $\frac{1}{2} n \log_2 n$!
+
+---
+
+## 1. Complex Vector Spaces $\mathbb{C}^n$ and the Conjugate Inner Product
+
+### 1.1 Why Does the Real Dot Product $\mathbf{z}^T\mathbf{z}$ Break Down in $\mathbb{C}^n$?
+
+In $\mathbb{R}^n$, the squared length of a vector is defined by the dot product $\mathbf{x}^T\mathbf{x} = \sum_{k=1}^n x_k^2$. Because the square of any real number is nonnegative, we always have $\mathbf{x}^T\mathbf{x} \ge 0$, with equality if and only if $\mathbf{x} = \mathbf{0}$.
+
+However, if we blindly carry $\mathbf{z}^T\mathbf{z}$ over into the complex vector space $\mathbb{C}^n$, disaster strikes immediately. Consider this very simple nonzero complex vector:
+
+$$
+\mathbf{z} = \begin{bmatrix} 1 \\ i \end{bmatrix} \in \mathbb{C}^2, \qquad \mathbf{z} \ne \mathbf{0}
+$$
+
+If we apply the ordinary transpose without conjugation, we get:
+
+$$
+\mathbf{z}^T \mathbf{z} = 1^2 + i^2 = 1 + (-1) = 0
+$$
+
+A nonzero vector has "squared length" equal to $0$! Worse still, if we take $\mathbf{w} = [0, i]^T$, we get $\mathbf{w}^T\mathbf{w} = -1 \lt 0$—a negative squared length! That completely destroys the geometric foundations of length (norm), distance, and orthogonal projection.
+
+The only way to rescue positivity is to take the **complex conjugate** of every entry when we transpose (recall $\overline{a+bi} = a-bi$). That turns $z_k^2$ into the squared modulus $|z_k|^2 = \bar{z}_k z_k = a_k^2 + b_k^2 \ge 0$.
+
+<DefinitionCard title="Conjugate Transpose & Complex Inner Product">
+
+Let $\mathbf{z}, \mathbf{w} \in \mathbb{C}^n$ be complex vectors and $A \in \mathbb{C}^{m\times n}$ be a complex matrix.
+
+1. **Conjugate Transpose (Hermitian Transpose)**: Transpose the matrix or vector and take the complex conjugate of every entry (the order of transposing and conjugating does not matter), denoted by the superscript $H$:
+   $$
+   \mathbf{z}^H = \overline{\mathbf{z}}^T = \begin{bmatrix} \bar{z}_1 & \bar{z}_2 & \dots & \bar{z}_n \end{bmatrix} \in \mathbb{C}^{1\times n}, \qquad A^H = \overline{A}^T \in \mathbb{C}^{n\times m}
+   $$
+   (In physics and functional analysis, this is often written $A^*$ or $A^\dagger$; in linear algebra and throughout this course, we use $A^H$.)
+2. **Complex Inner Product**: The standard inner product of $\mathbf{z}$ and $\mathbf{w}$ in $\mathbb{C}^n$ is defined by:
+   $$
+   \langle \mathbf{z}, \mathbf{w} \rangle = \mathbf{z}^H \mathbf{w} = \sum_{k=1}^n \bar{z}_k w_k
+   $$
+3. **Length (Euclidean Norm) of a Complex Vector**:
+   $$
+   \|\mathbf{z}\| = \sqrt{\mathbf{z}^H \mathbf{z}} = \sqrt{\sum_{k=1}^n |z_k|^2} \ge 0
+   $$
+   which is strictly positive definite: $\|\mathbf{z}\| = 0 \iff \mathbf{z} = \mathbf{0}$.
+4. **Orthogonality in $\mathbb{C}^n$**: Vectors $\mathbf{z}$ and $\mathbf{w}$ are orthogonal ($\mathbf{z} \perp \mathbf{w}$) if $\mathbf{z}^H \mathbf{w} = 0$.
+
+</DefinitionCard>
+
+Returning to $\mathbf{z} = [1, i]^T$, its squared length under the complex inner product is now:
+
+$$
+\mathbf{z}^H \mathbf{z} = \begin{bmatrix} 1 & -i \end{bmatrix} \begin{bmatrix} 1 \\ i \end{bmatrix} = 1\cdot 1 + (-i)\cdot i = 1 + 1 = 2 \implies \|\mathbf{z}\| = \sqrt{2} \gt 0
+$$
+
+**Key algebraic rules for the complex inner product** (watch carefully where conjugation appears compared to $\mathbb{R}^n$):
+- **Conjugate Symmetry**: Swapping the order of two vectors conjugates the inner product:
+  $$
+  \mathbf{w}^H \mathbf{z} = \sum_{k=1}^n \bar{w}_k z_k = \overline{\sum_{k=1}^n \bar{z}_k w_k} = \overline{\mathbf{z}^H \mathbf{w}}
+  $$
+  Orthogonality remains symmetric, because $\mathbf{z}^H \mathbf{w} = 0 \iff \mathbf{w}^H \mathbf{z} = \overline{0} = 0$.
+- **Reverse-Order Rule**: For any matrices $A \in \mathbb{C}^{m\times k}$ and $B \in \mathbb{C}^{k\times n}$ of compatible sizes, we still have:
+  $$
+  (AB)^H = B^H A^H
+  $$
+- **Sesquilinearity**: Scalar factors $\alpha \in \mathbb{C}$ pull out linearly from the right, and with a conjugate from the left:
+  $$
+  \mathbf{z}^H (\alpha \mathbf{w}) = \alpha (\mathbf{z}^H \mathbf{w}), \qquad (\alpha \mathbf{z})^H \mathbf{w} = \bar{\alpha} (\mathbf{z}^H \mathbf{w})
+  $$
+
+### 1.2 The Translation Dictionary from $\mathbb{R}^n$ to $\mathbb{C}^n$
+
+Here is a remarkably reliable rule of thumb: **almost everywhere you see a transpose $^T$ in real linear algebra, replace it with the conjugate transpose $^H$ in complex linear algebra.**
+
+| Core Concept | Real Space $\mathbb{R}^n$ | Complex Space $\mathbb{C}^n$ (Add Conjugation) | Key Invariant Property |
+| :--- | :---: | :---: | :--- |
+| Transpose operator | $A^T$ | $A^H = \bar{A}^T$ | $(AB)^H = B^H A^H$ |
+| Standard inner product | $\mathbf{x}^T \mathbf{y}$ | $\mathbf{z}^H \mathbf{w} = \sum \bar{z}_k w_k$ | Positivity $\mathbf{z}^H\mathbf{z} \gt 0$ ($\mathbf{z} \ne \mathbf{0}$) |
+| Real-spectrum matrix | Real symmetric ($A^T = A$) | **Hermitian matrix** ($A^H = A$) | All eigenvalues $\lambda_i \in \mathbb{R}$ |
+| Length-preserving matrix | Orthogonal ($Q^T Q = I_n$) | **Unitary matrix** ($U^H U = I_n$) | Preserves norm $\|U\mathbf{z}\| = \|\mathbf{z}\|$, and $|\lambda_i| = 1$ |
+| Spectral theorem | $A = Q \Lambda Q^T$ | $A = U \Lambda U^H$ | Orthonormal basis of eigenvectors |
+
+---
+
+## 2. Spectral Theory of Hermitian and Unitary Matrices
+
+Following our translation dictionary, the true complex counterpart of a real symmetric matrix is not a complex symmetric matrix ($A^T = A$), but a **Hermitian matrix** ($A^H = A$). Likewise, the true complex counterpart of an orthogonal matrix is a **unitary matrix** ($U^H U = I_n$).
+
+<DefinitionCard title="Hermitian Matrix & Unitary Matrix">
+
+Let $A, U \in \mathbb{C}^{n\times n}$ be $n \times n$ complex square matrices.
+
+1. **Hermitian Matrix (Self-Adjoint Matrix)**: A matrix $A$ equal to its own conjugate transpose:
+   $$
+   A^H = A \quad (\text{equivalently, } a_{jk} = \bar{a}_{kj} \text{ for all } 1 \le j, k \le n)
+   $$
+   In particular, every diagonal entry must satisfy $a_{kk} = \bar{a}_{kk}$, meaning **all diagonal entries of a Hermitian matrix are real**.
+2. **Unitary Matrix**: A square matrix $U$ whose columns form an orthonormal basis of $\mathbb{C}^n$ under the complex inner product:
+   $$
+   U^H U = I_n
+   $$
+   Because $U$ is square, its left inverse equals its right inverse: $U^{-1} = U^H$ and $U U^H = I_n$ (so the rows of $U$ are orthonormal as well).
+
+</DefinitionCard>
+
+Let us work through a concrete $2\times 2$ Hermitian matrix by hand to see its eigenvalues and eigenvectors in action:
+
+$$
+A = \begin{bmatrix} 3 & 1 - i \\ 1 + i & 2 \end{bmatrix}
+$$
+
+- **Verify the Hermitian condition**: Taking the conjugate transpose gives $A^H = A$. Notice the diagonal entries $3$ and $2$ are real, while the off-diagonal entries $1-i$ and $1+i$ are complex conjugates of each other.
+- **Find the eigenvalues**: $\operatorname{tr}(A) = 3 + 2 = 5$, and $\det(A) = 3\times 2 - (1-i)(1+i) = 6 - 2 = 4$. The characteristic equation is:
+  $$
+  \lambda^2 - 5\lambda + 4 = (\lambda - 4)(\lambda - 1) = 0 \implies \lambda_1 = 4, \quad \lambda_2 = 1
+  $$
+  Both eigenvalues are real!
+- **Find and normalize the eigenvectors**:
+  - For $\lambda_1 = 4$: Solving $(A - 4I)\mathbf{x}_1 = \mathbf{0}$, i.e.,
+
+    $$
+    \begin{bmatrix} -1 & 1-i \\ 1+i & -2 \end{bmatrix}\mathbf{x}_1 = \mathbf{0},
+    $$
+
+    gives $\mathbf{x}_1 = [1-i, \, 1]^T$. Its squared norm is $|1-i|^2 + 1^2 = 2 + 1 = 3$, so the unit eigenvector is
+
+    $$
+    \mathbf{u}_1 = \frac{1}{\sqrt{3}}\begin{bmatrix} 1-i \\ 1 \end{bmatrix}.
+    $$
+
+  - For $\lambda_2 = 1$: Solving $(A - I)\mathbf{x}_2 = \mathbf{0}$, i.e.,
+
+    $$
+    \begin{bmatrix} 2 & 1-i \\ 1+i & 1 \end{bmatrix}\mathbf{x}_2 = \mathbf{0},
+    $$
+
+    gives $\mathbf{x}_2 = [1, \, -1-i]^T$. Its squared norm is $1^2 + |-1-i|^2 = 1 + 2 = 3$, so the unit eigenvector is
+
+    $$
+    \mathbf{u}_2 = \frac{1}{\sqrt{3}}\begin{bmatrix} 1 \\ -1-i \end{bmatrix}.
+    $$
+
+- **Verify complex orthogonality and unitary diagonalization**:
+  $$
+  \mathbf{u}_1^H \mathbf{u}_2 = \frac{1}{3}\Big(\overline{(1-i)}\cdot 1 + \bar{1}\cdot (-1-i)\Big) = \frac{1}{3}\big((1+i) + (-1-i)\big) = 0
+  $$
+  Setting
+
+  $$
+  U = [\mathbf{u}_1 \;\; \mathbf{u}_2] = \frac{1}{\sqrt{3}}\begin{bmatrix} 1-i & 1 \\ 1 & -1-i \end{bmatrix},
+  $$
+
+  we see directly that $U^H U = I_2$ and
+
+  $$
+  A = U \begin{bmatrix} 4 & 0 \\ 0 & 1 \end{bmatrix} U^H!
+  $$
+
+This clean structure is no accident—it is guaranteed by the following central theorem.
+
+<TheoremCard title="Spectral Theorem for Hermitian & Unitary Matrices">
+
+1. **Four Spectral Properties of Hermitian Matrices** (for $A \in \mathbb{C}^{n\times n}$ with $A^H = A$):
+   - **Real quadratic form**: For every $\mathbf{z} \in \mathbb{C}^n$, the complex quadratic form $\mathbf{z}^H A \mathbf{z}$ is always a real number ($\mathbf{z}^H A \mathbf{z} \in \mathbb{R}$);
+   - **Real eigenvalues**: Every eigenvalue of $A$ is real ($\lambda_1, \dots, \lambda_n \in \mathbb{R}$);
+   - **Orthogonal eigenvectors**: Eigenvectors corresponding to distinct eigenvalues ($\lambda_1 \ne \lambda_2$) are orthogonal under the complex inner product ($\mathbf{x}_1^H \mathbf{x}_2 = 0$);
+   - **Complex Spectral Theorem**: Every Hermitian matrix can be unitarily diagonalized as:
+     $$
+     A = U \Lambda U^H
+     $$
+     where $U \in \mathbb{C}^{n\times n}$ is unitary ($U^H U = I_n$) and $\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n) \in \mathbb{R}^{n\times n}$ is real diagonal.
+
+2. **Three Geometric & Spectral Properties of Unitary Matrices** (for $U \in \mathbb{C}^{n\times n}$ with $U^H U = I_n$):
+   - **Isometry (preserves inner products and lengths)**: For all $\mathbf{z}, \mathbf{w} \in \mathbb{C}^n$, $(U\mathbf{z})^H(U\mathbf{w}) = \mathbf{z}^H\mathbf{w}$ and $\|U\mathbf{z}\| = \|\mathbf{z}\|$;
+   - **Eigenvalues on the unit circle**: Every eigenvalue $\lambda \in \mathbb{C}$ of $U$ has modulus $|\lambda| = 1$;
+   - **Group closure**: The product $U_1 U_2$ of two $n \times n$ unitary matrices and the inverse $U^{-1} = U^H$ are also unitary. Normalized orthogonal basis transforms such as $\frac{1}{\sqrt{n}}F_n$ fit directly into this unitary framework.
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Real Eigenvalues & Orthogonal Eigenvectors of Hermitian Matrices, and Isometry of Unitary Matrices">
+
+**1. Proof that $\mathbf{z}^H A \mathbf{z}$ and all eigenvalues of a Hermitian matrix are real:**
+
+Suppose $A \in \mathbb{C}^{n\times n}$ satisfies $A^H = A$. For any $\mathbf{z} \in \mathbb{C}^n$, consider the $1\times 1$ scalar $\alpha = \mathbf{z}^H A \mathbf{z}$. Taking its conjugate transpose (which for a $1\times 1$ scalar is simply its complex conjugate $\bar{\alpha}$):
+
+$$
+\bar{\alpha} = (\mathbf{z}^H A \mathbf{z})^H = \mathbf{z}^H A^H (\mathbf{z}^H)^H = \mathbf{z}^H A \mathbf{z} = \alpha
+$$
+
+A complex number equals its own conjugate if and only if its imaginary part is zero, so $\mathbf{z}^H A \mathbf{z} \in \mathbb{R}$.
+
+Now suppose $A\mathbf{x} = \lambda \mathbf{x}$ with $\mathbf{x} \ne \mathbf{0}$. Multiply both sides on the left by $\mathbf{x}^H$:
+
+$$
+\mathbf{x}^H A \mathbf{x} = \mathbf{x}^H (\lambda \mathbf{x}) = \lambda (\mathbf{x}^H \mathbf{x}) = \lambda \|\mathbf{x}\|^2
+$$
+
+Because $\mathbf{x} \ne \mathbf{0}$, positivity of the complex inner product guarantees that the denominator $\|\mathbf{x}\|^2 = \mathbf{x}^H\mathbf{x} \gt 0$ is strictly positive (never zero!). Thus we can safely divide:
+
+$$
+\lambda = \frac{\mathbf{x}^H A \mathbf{x}}{\mathbf{x}^H \mathbf{x}} \in \mathbb{R}
+$$
+
+(Notice: without conjugation, $\mathbf{x}^T\mathbf{x}$ could be $0$, and this classic division proof would collapse!)
+
+**2. Proof that eigenvectors for distinct eigenvalues are orthogonal in $\mathbb{C}^n$:**
+
+Suppose $A\mathbf{x}_1 = \lambda_1 \mathbf{x}_1$ and $A\mathbf{x}_2 = \lambda_2 \mathbf{x}_2$ with $\lambda_1 \ne \lambda_2$. Compute $\mathbf{x}_1^H A \mathbf{x}_2$ in two ways:
+- Using $A\mathbf{x}_2 = \lambda_2 \mathbf{x}_2$: $\mathbf{x}_1^H (A\mathbf{x}_2) = \lambda_2 (\mathbf{x}_1^H \mathbf{x}_2)$;
+- Using $A = A^H$ and $\lambda_1 \in \mathbb{R}$ (so $\bar{\lambda}_1 = \lambda_1$):
+  $$
+  \mathbf{x}_1^H A \mathbf{x}_2 = (A^H \mathbf{x}_1)^H \mathbf{x}_2 = (A\mathbf{x}_1)^H \mathbf{x}_2 = (\lambda_1 \mathbf{x}_1)^H \mathbf{x}_2 = \bar{\lambda}_1 (\mathbf{x}_1^H \mathbf{x}_2) = \lambda_1 (\mathbf{x}_1^H \mathbf{x}_2)
+  $$
+
+Subtracting the two expressions yields $(\lambda_1 - \lambda_2)(\mathbf{x}_1^H \mathbf{x}_2) = 0$. Since $\lambda_1 \ne \lambda_2$, we must have $\mathbf{x}_1^H \mathbf{x}_2 = 0$.
+
+**3. Proof that unitary matrices preserve inner products, preserve norms, and have $|\lambda| = 1$:**
+
+Suppose $U^H U = I_n$. For any $\mathbf{z}, \mathbf{w} \in \mathbb{C}^n$:
+
+$$
+(U\mathbf{z})^H (U\mathbf{w}) = \mathbf{z}^H (U^H U) \mathbf{w} = \mathbf{z}^H I_n \mathbf{w} = \mathbf{z}^H \mathbf{w}
+$$
+
+Setting $\mathbf{w} = \mathbf{z}$ immediately gives $\|U\mathbf{z}\|^2 = (U\mathbf{z})^H (U\mathbf{z}) = \mathbf{z}^H \mathbf{z} = \|\mathbf{z}\|^2$, so $\|U\mathbf{z}\| = \|\mathbf{z}\|$.
+
+If $U\mathbf{x} = \lambda \mathbf{x}$ with $\mathbf{x} \ne \mathbf{0}$, take the Euclidean norm of both sides:
+
+$$
+\|U\mathbf{x}\| = \|\lambda \mathbf{x}\| = |\lambda| \|\mathbf{x}\|
+$$
+
+Since $\|U\mathbf{x}\| = \|\mathbf{x}\|$ and $\|\mathbf{x}\| \gt 0$, dividing by $\|\mathbf{x}\|$ gives $|\lambda| = 1$. Q.E.D.
+
+</ProofCollapse>
+
+---
+
+## 3. The Discrete Fourier Transform (DFT) Matrix $F_n$ and Orthogonality of Roots of Unity
+
+Now we meet the star of today's lecture—what Prof. Gilbert Strang calls "the most important complex matrix in mathematics": the **Discrete Fourier Transform (DFT) matrix** $F_n$. It seamlessly unites the idea of an orthogonal basis in vector spaces with frequency analysis of periodic waves.
+
+### 3.1 The $n$-th Roots of Unity and Construction of $F_n$
+
+Recall the equation $z^n = 1$ in the complex plane. It has $n$ solutions equally spaced around the unit circle $|z| = 1$, all generated by powers of the **primitive $n$-th root of unity**:
+
+$$
+w = w_n = e^{2\pi i / n} = \cos\frac{2\pi}{n} + i \sin\frac{2\pi}{n}
+$$
+
+Clearly $w^n = e^{2\pi i} = 1$, and the points $1, w, w^2, \dots, w^{n-1}$ divide the unit circle into $n$ equal sectors of angle $\frac{2\pi}{n}$.
+
+<DefinitionCard title="Discrete Fourier Transform (DFT) Matrix">
+
+Let $n \ge 1$ be a positive integer and set $w = e^{2\pi i / n}$. Using zero-based indexing $j, k \in \{0, 1, \dots, n-1\}$, the **$n \times n$ Fourier matrix** $F_n \in \mathbb{C}^{n\times n}$ is defined entrywise by:
+
+$$
+(F_n)_{jk} = w^{jk} \qquad (0 \le j, k \le n-1)
+$$
+
+Written out explicitly:
+
+$$
+F_n = \begin{bmatrix}
+1 & 1 & 1 & \cdots & 1 \\
+1 & w & w^2 & \cdots & w^{n-1} \\
+1 & w^2 & w^4 & \cdots & w^{2(n-1)} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+1 & w^{n-1} & w^{2(n-1)} & \cdots & w^{(n-1)^2}
+\end{bmatrix}
+$$
+
+> **A Note on Sign Conventions**: In MIT 18.06 and Strang's textbook, $w = e^{+2\pi i / n}$ is used to define $F_n$ (with its conjugate $\bar{w} = e^{-2\pi i / n}$ appearing in $F_n^{-1} = \frac{1}{n}F_n^H$). In signal processing (DSP) and many software libraries, $\bar{w} = e^{-2\pi i / n}$ is used for the forward analysis DFT and $w = e^{+2\pi i / n}$ for the inverse synthesis IDFT. These two conventions simply swap $F_n$ and $\bar{F}_n$; every orthogonality, unitarity, and FFT factorization theorem holds identically in both! Throughout this lecture we follow the MIT 18.06 convention $w = e^{2\pi i/n}$.
+
+</DefinitionCard>
+
+### 3.2 Inspecting the $4\times 4$ Fourier Matrix $F_4$ by Hand
+
+When $n = 4$, the primitive 4th root of unity is $w = e^{2\pi i / 4} = e^{i\pi/2} = i$. Its powers march around the unit circle in $90^\circ$ steps:
+
+$$
+w^0 = 1, \quad w^1 = i, \quad w^2 = -1, \quad w^3 = -i, \quad w^4 = 1
+$$
+
+Filling in $(F_4)_{jk} = i^{jk}$ gives the $4\times 4$ matrix:
+
+$$
+F_4 = \begin{bmatrix}
+1 & 1 & 1 & 1 \\
+1 & i & i^2 & i^3 \\
+1 & i^2 & i^4 & i^6 \\
+1 & i^3 & i^6 & i^9
+\end{bmatrix} = \begin{bmatrix}
+1 & 1 & 1 & 1 \\
+1 & i & -1 & -i \\
+1 & -1 & 1 & -1 \\
+1 & -i & -1 & i
+\end{bmatrix}
+$$
+
+Let us immediately test the columns $\mathbf{c}_0, \mathbf{c}_1, \mathbf{c}_2, \mathbf{c}_3$ of $F_4$ using our complex inner product:
+- **Squared length**: Every entry has modulus $1$, so $\mathbf{c}_k^H \mathbf{c}_k = |1|^2 + |w^k|^2 + |w^{2k}|^2 + |w^{3k}|^2 = 1 + 1 + 1 + 1 = 4 = n$.
+- **Column 0 is orthogonal to Column 1**:
+  $$
+  \mathbf{c}_0^H \mathbf{c}_1 = \bar{1}\cdot 1 + \bar{1}\cdot i + \bar{1}\cdot(-1) + \bar{1}\cdot(-i) = 1 + i - 1 - i = 0
+  $$
+- **Column 1 is orthogonal to Column 3** (watch how conjugation saves the day!):
+  $$
+  \mathbf{c}_1^H \mathbf{c}_3 = \bar{1}\cdot 1 + \bar{i}\cdot(-i) + \overline{(-1)}\cdot(-1) + \overline{(-i)}\cdot i = 1 + (-i)(-i) + 1 + (i)(i) = 1 - 1 + 1 - 1 = 0
+  $$
+  Compare: if you forgot to conjugate and mistakenly computed $\mathbf{c}_1^T \mathbf{c}_3$, you would get $1 + i(-i) + 1 + (-i)i = 1 + 1 + 1 + 1 = 4 \ne 0$! This is another vivid reminder of why conjugation is indispensable.
+
+At a glance, we can now write down $F_4^H F_4$ and the inverse $F_4^{-1}$:
+
+$$
+F_4^H F_4 = 4 I_4 \implies F_4^{-1} = \frac{1}{4} F_4^H = \frac{1}{4} \begin{bmatrix}
+1 & 1 & 1 & 1 \\
+1 & -i & -1 & i \\
+1 & -1 & 1 & -1 \\
+1 & i & -1 & -i
+\end{bmatrix}
+$$
+
+### 3.3 Orthogonality and Geometric Intuition for General $F_n$
+
+<TheoremCard title="Orthogonality & Unitarity of the DFT Matrix">
+
+For every integer $n \ge 1$, the Discrete Fourier Transform matrix $F_n \in \mathbb{C}^{n\times n}$ satisfies:
+
+1. **Pairwise orthogonal columns**:
+   $$
+   F_n^H F_n = n I_n
+   $$
+2. **Normalized unitary matrix**: Dividing each column of $F_n$ by its length $\sqrt{n}$ produces a strictly unitary matrix $\tilde{F}_n = \frac{1}{\sqrt{n}} F_n$ ($\tilde{F}_n^H \tilde{F}_n = I_n$).
+3. **Instant inversion formula**: Because $F_n$ is complex symmetric ($(F_n)_{jk} = w^{jk} = (F_n)_{kj}$, so $F_n^T = F_n$), its inverse requires no elimination—just conjugation and scaling by $\frac{1}{n}$:
+   $$
+   F_n^{-1} = \frac{1}{n} F_n^H = \frac{1}{n} \bar{F}_n
+   $$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Geometric Series Summation and Unit-Circle Cancellation">
+
+Consider the $(j, k)$ entry of $F_n^H F_n$ ($0 \le j, k \le n-1$), which is the complex inner product of column $j$ ($\mathbf{c}_j$) and column $k$ ($\mathbf{c}_k$):
+
+$$
+(F_n^H F_n)_{jk} = \mathbf{c}_j^H \mathbf{c}_k = \sum_{r=0}^{n-1} \overline{w^{rj}} \, w^{rk}
+$$
+
+Since $|w| = 1$, we have $\bar{w} = w^{-1}$, so $\overline{w^{rj}} = w^{-rj}$. Let $m = k - j$. Then:
+
+$$
+(F_n^H F_n)_{jk} = \sum_{r=0}^{n-1} w^{r(k - j)} = \sum_{r=0}^{n-1} (w^m)^r = 1 + w^m + w^{2m} + \dots + w^{(n-1)m}
+$$
+
+There are two cases:
+- **Diagonal entries ($j = k$, so $m = 0$)**: Since $w^0 = 1$, we sum $n$ ones:
+  $$
+  (F_n^H F_n)_{jj} = \sum_{r=0}^{n-1} 1 = n
+  $$
+- **Off-diagonal entries ($j \ne k$, so $m \not\equiv 0 \pmod n$)**: Because $0 \lt |m| \le n - 1$, the common ratio $w^m = e^{2\pi i m / n} \ne 1$. Yet $(w^m)^n = (w^n)^m = 1^m = 1$. By the finite geometric series formula:
+  $$
+  1 + w^m + w^{2m} + \dots + w^{(n-1)m} = \frac{1 - (w^m)^n}{1 - w^m} = \frac{1 - 1}{1 - w^m} = 0
+  $$
+
+Combining both cases, $(F_n^H F_n)_{jk} = n \delta_{jk}$, i.e., $F_n^H F_n = n I_n$. Consequently, $\left(\frac{1}{\sqrt{n}}F_n\right)^H \left(\frac{1}{\sqrt{n}}F_n\right) = \frac{1}{n}(nI_n) = I_n$ and $F_n^{-1} = \frac{1}{n} F_n^H$. Since $F_n^T = F_n$, we also have $F_n^H = \overline{F_n}^T = \bar{F}_n$. Q.E.D.
+
+</ProofCollapse>
+
+**Why is the geometric picture so beautiful?** Whenever $m \not\equiv 0 \pmod n$, the complex numbers $1, w^m, w^{2m}, \dots, w^{(n-1)m}$ are unit vectors symmetrically distributed around the unit circle (their centroid is at $0$). If you place these $n$ vectors tip-to-tail, they trace out a closed regular polygon or symmetric star polygon—returning right back to the origin $0$!
+
+<ComplexInnerProductAndUnitaryCircleDiagram caption="Complex inner product conjugation and symmetric cancellation of n-th roots of unity on the unit circle." />
+
+---
+
+## 4. The Fast Fourier Transform (FFT): The Divide-and-Conquer Miracle from $\mathcal{O}(n^2)$ to $\frac{1}{2}n\log_2 n$
+
+### 4.1 Why Is Direct Multiplication $F_n \mathbf{x}$ Too Slow?
+
+Computing the frequency spectrum $\mathbf{y} = F_n \mathbf{x}$ of a discrete signal $\mathbf{x} \in \mathbb{C}^n$—or reconstructing the signal via $\mathbf{x} = \frac{1}{n} F_n^H \mathbf{y}$—is algebraically just a single matrix-vector product.
+
+However, doing that matrix multiplication row by row takes $n$ multiplications per row across $n$ rows, for a total of $n^2$ complex multiplications. In modern audio processing, radar imaging, or spectral methods for PDEs, sample sizes routinely reach $n = 2^{20} \approx 10^6$, where $n^2 \approx 10^{12}$ multiplications would bring even a fast computer to a crawl.
+
+In 1965, Cooley and Tukey rediscovered (building on an idea that actually goes back to Gauss in 1805!) a remarkable **sparse block factorization** hidden inside $F_n$. When $n$ is a power of $2$ ($n = 2^L$), you never have to multiply by $F_n$ as a dense matrix!
+
+### 4.2 A First Look at Even-Odd Splitting: From $F_4$ to General $F_n$
+
+Let us factor $F_4 \mathbf{x}$ by hand to see the pattern. Given $\mathbf{x} = [x_0, x_1, x_2, x_3]^T$ and $w = i$:
+
+$$
+\mathbf{y} = F_4 \mathbf{x} = \begin{bmatrix} 1 & 1 & 1 & 1 \\ 1 & i & -1 & -i \\ 1 & -1 & 1 & -1 \\ 1 & -i & -1 & i \end{bmatrix} \begin{bmatrix} x_0 \\ x_1 \\ x_2 \\ x_3 \end{bmatrix}
+$$
+
+Instead of keeping $x_0, x_1, x_2, x_3$ in order, put the **even-indexed entries** $(x_0, x_2)$ in the top half and the **odd-indexed entries** $(x_1, x_3)$ in the bottom half. That is just left-multiplication by an **even-odd permutation matrix** $P_4$:
+
+$$
+P_4 \mathbf{x} = \begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} x_0 \\ x_1 \\ x_2 \\ x_3 \end{bmatrix} = \begin{bmatrix} x_0 \\ x_2 \\ \hline x_1 \\ x_3 \end{bmatrix}
+$$
+
+Now apply a half-size $2$-point DFT matrix
+
+$$
+F_2 = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}
+$$
+
+to each half separately (notice that $w_4^2 = i^2 = -1$ is precisely the primitive $2$-nd root of unity $w_2$!):
+
+$$
+\mathbf{y}_{\text{even}} = F_2 \begin{bmatrix} x_0 \\ x_2 \end{bmatrix} = \begin{bmatrix} x_0 + x_2 \\ x_0 - x_2 \end{bmatrix} = \begin{bmatrix} E_0 \\ E_1 \end{bmatrix}, \qquad
+\mathbf{y}_{\text{odd}} = F_2 \begin{bmatrix} x_1 \\ x_3 \end{bmatrix} = \begin{bmatrix} x_1 + x_3 \\ x_1 - x_3 \end{bmatrix} = \begin{bmatrix} O_0 \\ O_1 \end{bmatrix}
+$$
+
+Now watch the magic happen! Compare those half-transforms with the four components of $F_4 \mathbf{x}$:
+- $y_0 = (x_0 + x_2) + 1\cdot(x_1 + x_3) = E_0 + 1 \cdot O_0$
+- $y_1 = (x_0 - x_2) + i\cdot(x_1 - x_3) = E_1 + i \cdot O_1$
+- $y_2 = (x_0 + x_2) - 1\cdot(x_1 + x_3) = E_0 - 1 \cdot O_0$
+- $y_3 = (x_0 - x_2) - i\cdot(x_1 - x_3) = E_1 - i \cdot O_1$
+
+Look at $y_2$ and $y_3$: **they require zero new multiplications!** They simply flip the sign on the twiddle factor $D_2 = \operatorname{diag}(1, i)$ used in $y_0$ and $y_1$. Written as a product of three sparse matrices, we have the breathtaking identity:
+
+$$
+F_4 = \begin{bmatrix} I_2 & D_2 \\ I_2 & -D_2 \end{bmatrix} \begin{bmatrix} F_2 & 0 \\ 0 & F_2 \end{bmatrix} P_4
+= \begin{bmatrix} 1 & 0 & 1 & 0 \\ 0 & 1 & 0 & i \\ 1 & 0 & -1 & 0 \\ 0 & 1 & 0 & -i \end{bmatrix}
+\begin{bmatrix} 1 & 1 & 0 & 0 \\ 1 & -1 & 0 & 0 \\ 0 & 0 & 1 & 1 \\ 0 & 0 & 1 & -1 \end{bmatrix}
+\begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+Multiply those three matrices on the right yourself—you will recover $F_4$ entry for entry!
+
+### 4.3 The General Radix-2 FFT Block Factorization Theorem
+
+This divide-and-conquer factorization holds for every even integer $n$.
+
+<TheoremCard title="Radix-2 FFT Matrix Factorization Theorem (Cooley-Tukey / Strang)">
+
+Let $n = 2m$ be any positive even integer, and let $w = e^{2\pi i / n}$ be the primitive $n$-th root of unity. Then the $n \times n$ Fourier matrix $F_n \in \mathbb{C}^{n\times n}$ factors exactly as the product of three sparse block matrices:
+
+$$
+F_n = \begin{bmatrix} I_{n/2} & D_{n/2} \\ I_{n/2} & -D_{n/2} \end{bmatrix} \begin{bmatrix} F_{n/2} & 0 \\ 0 & F_{n/2} \end{bmatrix} P_n
+$$
+
+where the three factors are:
+1. **Even-Odd Permutation Matrix $P_n \in \mathbb{R}^{n\times n}$**: Reorders the input vector $\mathbf{x} = [x_0, x_1, \dots, x_{n-1}]^T$ into its even-indexed and odd-indexed halves:
+
+   $$
+   P_n\mathbf{x} = \begin{bmatrix} \mathbf{x}_{\text{even}} \\ \mathbf{x}_{\text{odd}} \end{bmatrix} = \begin{bmatrix} x_0, x_2, \dots, x_{n-2} \mid x_1, x_3, \dots, x_{n-1} \end{bmatrix}^T
+   $$
+
+2. **Half-Size Fourier Blocks $F_{n/2} \in \mathbb{C}^{(n/2)\times(n/2)}$**: The DFT matrices of size $n/2$, built from the root of unity $w_{n/2} = e^{2\pi i / (n/2)} = w^2$;
+3. **Twiddle Factor Diagonal Matrix $D_{n/2}$**:
+   $$
+   D_{n/2} = \operatorname{diag}\!\left(1, \, w, \, w^2, \, \dots, \, w^{n/2 - 1}\right)
+   $$
+
+When $n = 2^L$, applying this factorization recursively to the two $F_{n/2}$ blocks decomposes $F_n$ into $L = \log_2 n$ ultra-sparse butterfly matrices (each row has at most $2$ nonzero entries) times a bit-reversal permutation matrix. This reduces the number of complex multiplications from $n^2$ down to:
+
+$$
+M(n) = \frac{1}{2} n \log_2 n
+$$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Even-Odd Index Splitting and Butterfly Complexity Recurrence">
+
+**Part 1: Proof of the block matrix factorization**
+
+Set $m = n/2$. For any vector $\mathbf{x} = [x_0, x_1, \dots, x_{n-1}]^T \in \mathbb{C}^n$, examine the $j$-th component $(F_n \mathbf{x})_j$ ($0 \le j \le n-1$). Split the sum over $k$ into even indices $k = 2r$ and odd indices $k = 2r + 1$ ($r = 0, 1, \dots, m-1$):
+
+$$
+(F_n \mathbf{x})_j = \sum_{k=0}^{n-1} w^{jk} x_k = \sum_{r=0}^{m-1} w^{j(2r)} x_{2r} + \sum_{r=0}^{m-1} w^{j(2r+1)} x_{2r+1}
+$$
+
+Factor out $w^j$ from the odd sum and rewrite $w^{j(2r)} = (w^2)^{jr}$:
+
+$$
+(F_n \mathbf{x})_j = \sum_{r=0}^{m-1} (w^2)^{jr} x_{2r} + w^j \sum_{r=0}^{m-1} (w^2)^{jr} x_{2r+1}
+$$
+
+**Key Insight 1 (Half-size frequencies match)**: Since $w = e^{2\pi i / n}$, we have:
+
+$$
+w^2 = e^{2\pi i / (n/2)} = e^{2\pi i / m} = w_m
+$$
+
+This is the exact generator of $F_{n/2}$! Let $\mathbf{y}_{\text{even}} = F_{n/2} \mathbf{x}_{\text{even}}$ and $\mathbf{y}_{\text{odd}} = F_{n/2} \mathbf{x}_{\text{odd}}$.
+
+Now split the output row indices into the top half ($0 \le j \le m-1$) and the bottom half (written $j + m$, with $0 \le j \le m-1$):
+- **Top half ($0 \le j \le m-1$)**:
+  $$
+  (F_n \mathbf{x})_j = (\mathbf{y}_{\text{even}})_j + w^j (\mathbf{y}_{\text{odd}})_j
+  $$
+  In block vector form, this is $\mathbf{y}_{\text{even}} + D_m \mathbf{y}_{\text{odd}}$.
+- **Bottom half (row $j + m$, $0 \le j \le m-1$)**:
+  **Key Insight 2 (Periodicity and half-period sign flip)**: Since $w_m = w^2$ satisfies $(w^2)^m = w^n = 1$, and $w^m = e^{2\pi i (n/2)/n} = e^{i\pi} = -1$, we have:
+  $$
+  (w^2)^{(j+m)r} = (w^2)^{jr} \cdot ((w^2)^m)^r = (w^2)^{jr} \cdot 1 = (w^2)^{jr}
+  $$
+  $$
+  w^{j+m} = w^m \cdot w^j = -w^j
+  $$
+  Substituting into the expansion immediately yields:
+  $$
+  (F_n \mathbf{x})_{j+m} = \sum_{r=0}^{m-1} (w^2)^{jr} x_{2r} - w^j \sum_{r=0}^{m-1} (w^2)^{jr} x_{2r+1} = (\mathbf{y}_{\text{even}})_j - w^j (\mathbf{y}_{\text{odd}})_j
+  $$
+  In block vector form, this is $\mathbf{y}_{\text{even}} - D_m \mathbf{y}_{\text{odd}}$.
+
+Stacking the top and bottom halves together gives, for every $\mathbf{x} \in \mathbb{C}^n$:
+
+$$
+F_n \mathbf{x} = \begin{bmatrix} I_{n/2} & D_{n/2} \\ I_{n/2} & -D_{n/2} \end{bmatrix} \begin{bmatrix} F_{n/2} & 0 \\ 0 & F_{n/2} \end{bmatrix} \begin{bmatrix} \mathbf{x}_{\text{even}} \\ \mathbf{x}_{\text{odd}} \end{bmatrix} = \begin{bmatrix} I_{n/2} & D_{n/2} \\ I_{n/2} & -D_{n/2} \end{bmatrix} \begin{bmatrix} F_{n/2} & 0 \\ 0 & F_{n/2} \end{bmatrix} P_n \mathbf{x}
+$$
+
+Since $\mathbf{x}$ is arbitrary, the matrix factorization holds!
+
+---
+
+**Part 2: Recursive complexity $M(n) = \frac{1}{2} n \log_2 n$**
+
+Let $M(n)$ be the number of complex multiplications needed for an $n$-point FFT:
+1. Permuting by $P_n$ only reorders entries and requires $0$ multiplications;
+2. Computing $F_{n/2}\mathbf{x}_{\text{even}}$ and $F_{n/2}\mathbf{x}_{\text{odd}}$ takes $2 M(n/2)$ complex multiplications;
+3. Forming $\mathbf{d} = D_{n/2} \mathbf{y}_{\text{odd}}$ takes at most $\frac{n}{2}$ complex multiplications (multiplying each entry of $\mathbf{y}_{\text{odd}}$ by $1, w, \dots, w^{n/2-1}$). Because both halves share the same vector $\mathbf{d}$, computing $\mathbf{y}_{\text{even}} + \mathbf{d}$ and $\mathbf{y}_{\text{even}} - \mathbf{d}$ uses only $n$ additions/subtractions and zero extra multiplications!
+
+This gives the recurrence (with base case $M(1) = 0$, since $F_1 = [1]$):
+
+$$
+M(n) = 2 M(n/2) + \frac{n}{2}
+$$
+
+For $n = 2^L$ ($L = \log_2 n$), unrolling the recurrence level by level gives:
+
+$$
+\begin{aligned}
+M(n) &= 2 \left( 2 M(n/4) + \frac{n}{4} \right) + \frac{n}{2} = 4 M(n/4) + \frac{n}{2} + \frac{n}{2} \\
+&= 2^L M(1) + \underbrace{\frac{n}{2} + \frac{n}{2} + \dots + \frac{n}{2}}_{L \text{ terms}} \\
+&= 0 + L \cdot \frac{n}{2} = \frac{1}{2} n \log_2 n
+\end{aligned}
+$$
+
+(If we also count additions and subtractions, $A(n) = 2A(n/2) + n = n\log_2 n$, so the total arithmetic count is only $\frac{3}{2} n \log_2 n$.)
+
+For $n = 1024 = 2^{10}$:
+- Direct matrix multiplication requires $n^2 = 1024^2 = 1{,}048{,}576 \approx 10^6$ complex multiplications;
+- The FFT requires only $\frac{1}{2} \times 1024 \times 10 = 5{,}120$ complex multiplications;
+- That is a speedup of $1{,}048{,}576 / 5{,}120 = 204.8\times$ (**over 200 times faster**)! For $n = 2^{20} \approx 10^6$, the speedup exceeds $100{,}000\times$. Q.E.D.
+
+</ProofCollapse>
+
+<FastFourierButterflyFactorizationDiagram caption="Radix-2 FFT block factorization of F_n via even-odd permutation P_n, two half-size DFTs F_{n/2}, and butterfly recombination with twiddle factors D_{n/2}." />
+
+---
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+
+### 1. Pitfall 1: Forgetting to Conjugate in $\mathbb{C}^n$ (Writing $\mathbf{z}^T\mathbf{w}$ Instead of $\mathbf{z}^H\mathbf{w}$)
+This is the most fatal mistake when moving from real to complex linear algebra. Without conjugation:
+- The nonzero vector $\mathbf{z} = [1, i]^T$ has $\mathbf{z}^T\mathbf{z} = 1 + i^2 = 0$, shattering the rule that $\|\mathbf{z}\| = 0 \iff \mathbf{z} = \mathbf{0}$;
+- Columns 1 and 3 of $F_4$ are genuinely orthogonal in $\mathbb{C}^4$ ($\mathbf{c}_1^H\mathbf{c}_3 = 0$), yet computing $\mathbf{c}_1^T\mathbf{c}_3$ gives $4 \ne 0$, which would trick you into thinking the Fourier columns aren't orthogonal!
+
+### 2. Pitfall 2: Confusing Complex Symmetric ($A^T = A$) with Hermitian ($A^H = A$)
+Many informal notes say "symmetric matrices have real eigenvalues and orthogonal eigenvectors," forgetting the crucial requirement that **$A$ must be real ($A \in \mathbb{R}^{n\times n}$) or complex Hermitian ($A^H = A$)**! For a **complex symmetric** matrix ($A^T = A$ with $A^H \ne A$), the spectral theorem fails completely:
+- **Non-real eigenvalues counterexample**:
+
+  $$
+  C = \begin{bmatrix} 1 & i \\ i & 1 \end{bmatrix}
+  $$
+
+  satisfies $C^T = C$, yet its eigenvalues are $\lambda = 1 \pm i \notin \mathbb{R}$;
+- **Non-diagonalizable (defective) counterexample**:
+
+  $$
+  B = \begin{bmatrix} 1 & i \\ i & -1 \end{bmatrix}
+  $$
+
+  also satisfies $B^T = B$, yet $\operatorname{tr}(B) = 0$ and $\det(B) = -1 - i^2 = 0$, giving a repeated eigenvalue $\lambda_1 = \lambda_2 = 0$ with $\operatorname{rank}(B) = 1$ and only one independent eigenvector $[1, i]^T$—it cannot even be diagonalized! Moreover, a Hermitian matrix must have real diagonal entries, whereas a complex symmetric matrix can have any complex numbers on its diagonal.
+
+### 3. Pitfall 3: Forgetting the $\frac{1}{\sqrt{n}}$ Normalization or the $\frac{1}{n}$ Inverse Factor for $F_n$
+The columns of $F_n$ are **mutually orthogonal, not unit vectors**—each column has length $\sqrt{n}$ (since $\|\mathbf{c}_k\|^2 = \sum_{r=0}^{n-1} |w^{rk}|^2 = n$). Therefore:
+- $F_n$ itself is **not** unitary: $F_n^H F_n = n I_n \ne I_n$;
+- Only $\tilde{F}_n = \frac{1}{\sqrt{n}} F_n$ is a unitary matrix;
+- The inverse DFT must divide by $n$: $F_n^{-1} = \frac{1}{n} F_n^H = \frac{1}{n} \bar{F}_n$. Forgetting that $\frac{1}{n}$ factor amplifies the reconstructed signal by $n$ (in discrete Parseval's identity, $\|F_n \mathbf{x}\|^2 = n \|\mathbf{x}\|^2$).
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l27-complex-fft-sandbox"
+  title="Unit Circle Roots of Unity & 8-Point FFT Butterfly Lab"
+  description="Adjust the dimension $n = 2, 4, 8, 16$ and frequency difference $m = k - j$ to watch the unit-circle vectors $\sum_{r=0}^{n-1} w^{mr}$ close into a zero-sum polygon, and step through the Radix-2 FFT dataflow from even-odd permutation $P_n$ to twiddle-factor $D_{n/2}$ butterfly merging."
+/>
+
+---
+
+<KeyTakeaways title="Key Takeaways" items={[
+  "Complex inner product requires conjugation: For $\\mathbf{z}, \\mathbf{w} \\in \\mathbb{C}^n$, define $\\mathbf{z}^H = \\overline{\\mathbf{z}}^T$ and $\\langle \\mathbf{z}, \\mathbf{w} \\rangle = \\mathbf{z}^H \\mathbf{w} = \\sum_{k=1}^n \\bar{z}_k w_k$, guaranteeing positivity $\\mathbf{z}^H \\mathbf{z} = \\sum |z_k|^2 \\gt 0$ for $\\mathbf{z} \\ne \\mathbf{0}$ and conjugate symmetry $\\mathbf{w}^H \\mathbf{z} = \\overline{\\mathbf{z}^H \\mathbf{w}}$.",
+  "Real-to-complex translation dictionary: In complex linear algebra, $^T$ becomes $^H$; real symmetric matrices ($A^T = A$) become Hermitian matrices ($A^H = A$); and real orthogonal matrices ($Q^T Q = I_n$) become unitary matrices ($U^H U = I_n$).",
+  "Hermitian spectral theorem & unitary isometry: Hermitian matrices ($A^H = A$) have real diagonal entries, real quadratic forms $\\mathbf{z}^H A\\mathbf{z} \\in \\mathbb{R}$, real eigenvalues, and orthogonal eigenvectors, yielding $A = U\\Lambda U^H$. Unitary matrices ($U^H U = I_n$) preserve inner products and norms and have all eigenvalues on the unit circle ($|\\lambda| = 1$). Never confuse complex symmetric ($A^T = A$) with Hermitian!",
+  "Orthogonality of the Fourier matrix $F_n$: With $w = e^{2\\pi i/n}$ and $(F_n)_{jk} = w^{jk}$, geometric series cancellation $1 + w^m + \\dots + w^{(n-1)m} = 0$ ($m \\not\\equiv 0 \\pmod n$) gives $F_n^H F_n = n I_n$. Thus $\\frac{1}{\\sqrt{n}} F_n$ is unitary and $F_n^{-1} = \\frac{1}{n} F_n^H = \\frac{1}{n} \\bar{F}_n$.",
+  "Sparse block structure of the FFT: Using $w_n^2 = w_{n/2}$ and $w_n^{n/2} = -1$, the Cooley-Tukey / Strang factorization writes $F_n = B_n \\operatorname{diag}(F_{n/2}, F_{n/2}) P_n$ (with butterfly blocks $I_{n/2}, \\pm D_{n/2}$), giving the recurrence $M(n) = 2M(n/2) + \\frac{n}{2}$ and cutting multiplications from $\\mathcal{O}(n^2)$ to $\\frac{1}{2} n \\log_2 n$."
+]} />
+
+---
+
+## 5. Problem Set
+
+<ProblemSet title="Intuition Problem Set" description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs. Covers complex inner products, Hermitian unitary diagonalization, complex symmetric vs. Hermitian traps, DFT unitarity, skew-Hermitian matrices, and 4-point FFT / circulant diagonalization.">
+
+<ExerciseCard id="l27-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="Complex Inner Products and Unitary Diagonalization of a 2×2 Hermitian Matrix">
+
+1. Let
+
+   $$
+   \mathbf{z} = \begin{bmatrix} 1+i \\ 2-i \end{bmatrix}, \qquad \mathbf{w} = \begin{bmatrix} i \\ 1+2i \end{bmatrix} \in \mathbb{C}^2.
+   $$
+
+   Compute the complex inner products $\mathbf{z}^H \mathbf{w}$ and $\mathbf{w}^H \mathbf{z}$, as well as the Euclidean norm $\|\mathbf{z}\|$.
+2. Verify that
+
+   $$
+   A = \begin{bmatrix} 4 & 1+i \\ 1-i & 3 \end{bmatrix}
+   $$
+
+   is Hermitian, and find its unitary diagonalization $A = U \Lambda U^H$ (with $U^H U = I_2$ and $\Lambda$ real diagonal).
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 1: Remember to conjugate every entry of $\\mathbf{z}$ when forming $\\mathbf{z}^H = [1-i, \\; 2+i]$. Once you have $\\mathbf{z}^H\\mathbf{w}$, simply take its complex conjugate to get $\\mathbf{w}^H\\mathbf{z}$.",
+  "Part 2: Use $\\operatorname{tr}(A) = 7$ and $\\det(A) = 4\\times 3 - |1+i|^2 = 10$ to find the real eigenvalues $\\lambda_1 = 5$ and $\\lambda_2 = 2$ immediately.",
+  "After finding nonzero eigenvectors $\\mathbf{x}_1, \\mathbf{x}_2$, normalize each by $\\|\\mathbf{x}_i\\| = \\sqrt{\\mathbf{x}_i^H\\mathbf{x}_i}$ and check that $\\mathbf{u}_1^H \\mathbf{u}_2 = 0$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+In Part 1, forming $\mathbf{z}^H$ reverses the complex phases of $\mathbf{z}$ before multiplying by $\mathbf{w}$. When $\mathbf{z}$ meets itself, every imaginary phase cancels out, leaving a strictly positive sum of squared moduli. In Part 2, the real diagonal entries ($4, 3$) and conjugate off-diagonal entries ($1+i$ and $1-i$) lock the eigenvalues onto the real line and force the two eigendirections to be perpendicular in $\mathbb{C}^2$.
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1 Solution:**
+
+First, $\mathbf{z}^H = [1-i, \; 2+i]$, so:
+
+$$
+\mathbf{z}^H \mathbf{w} = (1-i)i + (2+i)(1+2i) = (i + 1) + (2 + 4i + i - 2) = (1 + i) + 5i = 1 + 6i
+$$
+
+By conjugate symmetry, $\mathbf{w}^H \mathbf{z} = \overline{\mathbf{z}^H \mathbf{w}} = 1 - 6i$. Checking directly:
+
+$$
+\mathbf{w}^H \mathbf{z} = (-i)(1+i) + (1-2i)(2-i) = (1 - i) + (2 - i - 4i - 2) = 1 - 6i
+$$
+
+For the Euclidean norm of $\mathbf{z}$:
+
+$$
+\|\mathbf{z}\|^2 = \mathbf{z}^H \mathbf{z} = |1+i|^2 + |2-i|^2 = (1^2 + 1^2) + (2^2 + (-1)^2) = 2 + 5 = 7 \implies \|\mathbf{z}\| = \sqrt{7}
+$$
+
+**Part 2 Solution:**
+
+1. **Verify Hermitian property**:
+   $$
+   A^H = \overline{\begin{bmatrix} 4 & 1-i \\ 1+i & 3 \end{bmatrix}} = \begin{bmatrix} 4 & 1+i \\ 1-i & 3 \end{bmatrix} = A
+   $$
+2. **Find the real eigenvalues**:
+   The characteristic polynomial is $\det(A - \lambda I_2) = (4-\lambda)(3-\lambda) - (1+i)(1-i) = \lambda^2 - 7\lambda + 10 = (\lambda - 5)(\lambda - 2) = 0$, giving $\lambda_1 = 5$ and $\lambda_2 = 2$.
+3. **Find and normalize the eigenvectors**:
+   - For $\lambda_1 = 5$:
+     $$
+     (A - 5I_2)\mathbf{x}_1 = \begin{bmatrix} -1 & 1+i \\ 1-i & -2 \end{bmatrix}\begin{bmatrix} x_{11} \\ x_{21} \end{bmatrix} = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 1+i \\ 1 \end{bmatrix}
+     $$
+     Its squared norm is $\|\mathbf{x}_1\|^2 = |1+i|^2 + 1^2 = 3$, so
+
+     $$
+     \mathbf{u}_1 = \frac{1}{\sqrt{3}}\begin{bmatrix} 1+i \\ 1 \end{bmatrix}.
+     $$
+
+   - For $\lambda_2 = 2$:
+     $$
+     (A - 2I_2)\mathbf{x}_2 = \begin{bmatrix} 2 & 1+i \\ 1-i & 1 \end{bmatrix}\begin{bmatrix} x_{12} \\ x_{22} \end{bmatrix} = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ -1+i \end{bmatrix}
+     $$
+     Its squared norm is $\|\mathbf{x}_2\|^2 = 1^2 + |-1+i|^2 = 3$, so
+
+     $$
+     \mathbf{u}_2 = \frac{1}{\sqrt{3}}\begin{bmatrix} 1 \\ -1+i \end{bmatrix}.
+     $$
+
+4. **Check orthogonality and assemble $U\Lambda U^H$**:
+   $$
+   \mathbf{u}_1^H \mathbf{u}_2 = \frac{1}{3}\big((1-i)\cdot 1 + 1\cdot(-1+i)\big) = 0
+   $$
+   Thus, with
+
+   $$
+   U = \frac{1}{\sqrt{3}}\begin{bmatrix} 1+i & 1 \\ 1 & -1+i \end{bmatrix}, \qquad \Lambda = \begin{bmatrix} 5 & 0 \\ 0 & 2 \end{bmatrix},
+   $$
+
+   we have $U^H U = I_2$ and $A = U \Lambda U^H$.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l27-ex2" tier="L2" tierLabel="L2 · Conceptual True/False" title="True or False: Complex Symmetric Matrices vs. Hermitian Matrices">
+
+Determine whether the following statement is true or false:
+
+"If a complex square matrix $A \in \mathbb{C}^{n\times n}$ satisfies $A^T = A$, then all eigenvalues of $A$ must be real and $A$ can always be unitarily diagonalized as $A = U\Lambda U^H$."
+
+<TrueFalseInteractive
+  id="l27-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! On $\mathbb{C}^{n\times n}$, $A^T = A$ only means complex symmetric—it guarantees neither real eigenvalues nor diagonalizability! For example, the complex symmetric matrix $C$ with rows $[1, i]$ and $[i, 1]$ has eigenvalues $1 \pm i \notin \mathbb{R}$, and $B$ with rows $[1, i]$ and $[i, -1]$ is not even diagonalizable. You need the Hermitian condition $A^H = A$!"
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Distinguish complex symmetric ($A^T = A$) from Hermitian ($A^H = A$): the first transposes without conjugating.",
+  "Try constructing a $2\\times 2$ matrix with $A^T = A$ and $A^2 = 0$ (hint: use $1^2 + i^2 = 0$)."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+For real matrices, $A^T = A$ forces real eigenvalues because $\mathbf{x}^T\mathbf{x} \gt 0$. In $\mathbb{C}^n$, dropping the conjugate not only loses reality of the eigenvalues—it can even destroy the existence of a full set of eigenvectors! Because the complex vector $[1, i]^T$ is "self-orthogonal" under the unconjugated dot product ($\mathbf{z}^T\mathbf{z} = 0$), a nonzero complex symmetric matrix can collapse into a defective nilpotent matrix.
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **False**. Over $\mathbb{C}^{n\times n}$, only the **Hermitian condition $A^H = A$** guarantees real eigenvalues and unitary diagonalizability. Complex symmetry ($A^T = A$) guarantees neither:
+
+- **Counterexample 1 (Non-real eigenvalues)**:
+  $$
+  C = \begin{bmatrix} 1 & i \\ i & 1 \end{bmatrix}
+  $$
+  Clearly $C^T = C$, but its characteristic equation $(1-\lambda)^2 - i^2 = (1-\lambda)^2 + 1 = 0$ yields complex eigenvalues $\lambda_{1,2} = 1 \pm i \notin \mathbb{R}$.
+- **Counterexample 2 (Not even diagonalizable / defective)**:
+  $$
+  B = \begin{bmatrix} 1 & i \\ i & -1 \end{bmatrix}
+  $$
+  Clearly $B^T = B$, yet $\operatorname{tr}(B) = 0$ and $\det(B) = -1 - i^2 = 0$, so $\lambda_1 = \lambda_2 = 0$ is a repeated eigenvalue. However, $\operatorname{rank}(B) = 1$, so $\dim \operatorname{Null}(B) = 2 - 1 = 1$ (spanned solely by $[1, i]^T$). With only one independent eigenvector, $B$ is **not diagonalizable at all**!
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l27-ex3" tier="L2" tierLabel="L2 · Conceptual True/False" title="True or False: Unitarity and Normalization of the Fourier Matrix">
+
+Determine whether the following statement is true or false:
+
+"For every positive integer $n$, the Discrete Fourier Transform matrix $F_n \in \mathbb{C}^{n\times n}$ is itself a unitary matrix (i.e., $F_n^H F_n = I_n$), so its inverse is simply $F_n^{-1} = F_n^H$."
+
+<TrueFalseInteractive
+  id="l27-tf2"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! The columns of $F_n$ are mutually orthogonal, not unit vectors: each column has squared length $n$, so $F_n^H F_n = n I_n$ (not $I_n$). Only $\frac{1}{\sqrt{n}} F_n$ is unitary, and the inverse DFT must divide by $n$: $F_n^{-1} = \frac{1}{n} F_n^H$."
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Compute the squared length $\\mathbf{c}_0^H \\mathbf{c}_0$ of column $0$ of $F_n$, $\\mathbf{c}_0 = [1, 1, \\dots, 1]^T$. Is it $1$ or $n$?",
+  "If $\\mathbf{c}_0^H \\mathbf{c}_0 = n$, how must you scale $F_n$ so that every column has length $1$?"
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Every entry of $F_n$ lies on the unit circle (modulus $1$), so each column of $n$ entries has squared length $n$ (length $\sqrt{n}$). The columns are orthogonal, just not yet normalized to unit length—like an orthogonal basis scaled up by $\sqrt{n}$. Multiplying by $F_n$ scales vector norms by $\sqrt{n}$, so the inverse must scale back down by $n$ ($F_n^{-1} = \frac{1}{n} F_n^H$).
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **False**.
+
+Consider the $k$-th column of $F_n$, $\mathbf{c}_k = [1, w^k, w^{2k}, \dots, w^{(n-1)k}]^T$. Since every entry has modulus $|w^{rk}| = 1$, its squared norm is:
+
+$$
+\mathbf{c}_k^H \mathbf{c}_k = \sum_{r=0}^{n-1} |w^{rk}|^2 = \sum_{r=0}^{n-1} 1 = n
+$$
+
+Hence $F_n^H F_n = n I_n$, so for all $n \ge 2$, $F_n$ is **not** unitary. The correct normalized unitary matrix and inverse are:
+1. $\tilde{F}_n = \frac{1}{\sqrt{n}} F_n$ is unitary ($\tilde{F}_n^H \tilde{F}_n = I_n$);
+2. $F_n^{-1} = \frac{1}{n} F_n^H = \frac{1}{n} \bar{F}_n$.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l27-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Spectral Structure of Skew-Hermitian Matrices">
+
+Let $K \in \mathbb{C}^{n\times n}$ be a **skew-Hermitian matrix**, meaning $K^H = -K$ (analogous to a real skew-symmetric matrix $K^T = -K$).
+
+Without solving characteristic polynomials, use the conjugate inner product and the "$i$-rotation trick" to prove:
+1. Every eigenvalue of $K$ is **purely imaginary** ($\lambda = ib$ with $b \in \mathbb{R}$);
+2. $K$ is always unitarily diagonalizable ($K = U \Lambda U^H$ for some unitary matrix $U$);
+3. For the Cayley transform $U_C = (I_n + K)(I_n - K)^{-1}$, prove that $I_n - K$ is invertible and $U_C$ is always **unitary**!
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "One-stroke trick for Parts 1 and 2: consider the matrix $A = iK$! Compute $A^H = (iK)^H = -i K^H$—what kind of matrix is $A$?",
+  "Once you see $A = iK$ is Hermitian, the Hermitian Spectral Theorem immediately solves both Part 1 and Part 2!",
+  "Part 3: Why can't $0$ be an eigenvalue of $I_n - K$? (Hint: $1 - ib \\ne 0$.) Also note that $(I_n + K)$ commutes with $(I_n - K)^{-1}$, then compute $U_C^H U_C$ directly."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+In the complex plane, multiplying by $i$ rotates the real axis by $90^\circ$ onto the imaginary axis. A Hermitian matrix $A^H = A$ has all its eigenvalues on the real axis; a skew-Hermitian matrix $K^H = -K$ is simply a Hermitian matrix rotated by $90^\circ$ ($K = -iA$), so its eigenvalues lie on the imaginary axis (purely imaginary) and it shares the exact same orthonormal eigenvectors. Under the Cayley map $\frac{1+ib}{1-ib}$, the numerator and denominator are complex conjugates of each other and thus have identical modulus—mapping every point on the imaginary axis onto the unit circle, which turns a skew-Hermitian matrix into a unitary matrix!
+</SolutionIntuition>
+<SolutionRigorous>
+**Parts 1 & 2: Purely imaginary eigenvalues and unitary diagonalization via $A = iK$:**
+
+Define $A = iK$ and take its conjugate transpose:
+
+$$
+A^H = (iK)^H = \bar{i} K^H = (-i)(-K) = iK = A
+$$
+
+So $A = iK$ is **Hermitian**! By the Hermitian Spectral Theorem:
+- There exists a unitary matrix $U$ and a **real** diagonal matrix $\Lambda_A = \operatorname{diag}(a_1, \dots, a_n) \in \mathbb{R}^{n\times n}$ such that $A = U \Lambda_A U^H$;
+- Multiplying both sides by $-i$ gives:
+  $$
+  K = -iA = U (-i \Lambda_A) U^H = U \operatorname{diag}(-ia_1, \dots, -ia_n) U^H
+  $$
+This proves simultaneously that (1) every eigenvalue $\lambda_k = -ia_k$ of $K$ is purely imaginary, and (2) $K$ is unitarily diagonalizable by the same unitary matrix $U$!
+
+**Part 3: Invertibility of $I_n - K$ and unitarity of $U_C = (I_n + K)(I_n - K)^{-1}$:**
+
+- **Invertibility**: The eigenvalues of $I_n - K$ are $1 - \lambda_k = 1 + ia_k$. Since $a_k \in \mathbb{R}$, the real part is $1 \ne 0$, so $1 + ia_k \ne 0$. Thus $0$ is not an eigenvalue of $I_n - K$, and $I_n - K$ is invertible.
+- **Unitarity**: Because $K^H = -K$, we have $(I_n + K)^H = I_n - K$ and $(I_n - K)^H = I_n + K$. Moreover, $(I_n + K)$ and $(I_n - K)$ commute (both are polynomials in $K$), so $(I_n + K)$ commutes with $(I_n - K)^{-1}$, and $[(I_n - K)^{-1}]^H = [(I_n - K)^H]^{-1} = (I_n + K)^{-1}$. Therefore:
+  $$
+  U_C^H U_C = \big[(I_n - K)^{-1}\big]^H (I_n + K)^H (I_n + K) (I_n - K)^{-1}
+  = (I_n + K)^{-1} (I_n - K) (I_n + K) (I_n - K)^{-1}
+  $$
+  Commuting the middle factors $(I_n - K)(I_n + K) = (I_n + K)(I_n - K)$ gives:
+  $$
+  U_C^H U_C = (I_n + K)^{-1} (I_n + K) (I_n - K) (I_n - K)^{-1} = I_n \cdot I_n = I_n
+  $$
+  Hence $U_C$ is unitary. Q.E.D.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l27-ex5" tier="L4" tierLabel="L4 · MIT 18.06 Exam Synthesis" title="MIT 18.06 Synthesis: 4-Point FFT Butterfly Calculation and Diagonalizing Circulant Matrices">
+
+This capstone problem connects the FFT factorization directly to signal convolution and circulant matrices:
+
+1. **4-Point FFT by Hand**: Given the input signal $\mathbf{x} = [1, 2, 0, -1]^T$, follow the three-stage Radix-2 FFT factorization
+   $$
+   \mathbf{y} = F_4 \mathbf{x} = \begin{bmatrix} I_2 & D_2 \\ I_2 & -D_2 \end{bmatrix} \begin{bmatrix} F_2 & 0 \\ 0 & F_2 \end{bmatrix} P_4 \mathbf{x}
+   $$
+   step by step (compute $P_4\mathbf{x}$ $\to$ two $2$-point DFTs $\to$ twiddle-factor butterfly combination), and verify your result against direct multiplication $F_4\mathbf{x}$.
+2. **Diagonalizing Circulant Matrices with $F_n$ (Core MIT 18.06 Application)**: Let $P$ be the $4\times 4$ cyclic shift permutation matrix
+   $$
+   P = \begin{bmatrix} 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \\ 1 & 0 & 0 & 0 \end{bmatrix}.
+   $$
+   Prove that every column $\mathbf{c}_k = [1, i^k, i^{2k}, i^{3k}]^T$ ($k = 0, 1, 2, 3$) of $F_4$ is an eigenvector of $P$! Deduce that any circulant matrix $C = c_0 I + c_1 P + c_2 P^2 + c_3 P^3$ is diagonalized by the unitary Fourier matrix $\tilde{F}_4 = \frac{1}{2} F_4$, with $k$-th eigenvalue equal to $(F_4 \mathbf{c})_k$ where $\mathbf{c} = [c_0, c_1, c_2, c_3]^T$.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 1: $P_4\\mathbf{x} = [x_0, x_2 \\mid x_1, x_3]^T = [1, 0 \\mid 2, -1]^T$; apply $F_2$ (with rows $[1, 1]$ and $[1, -1]$) to each half; then combine with $D_2 = \\operatorname{diag}(1, i)$.",
+  "Part 2: Multiply $P$ directly into column $\\mathbf{c}_k = [1, w^k, w^{2k}, w^{3k}]^T$ (with $w = i$)! Since $P$ shifts entries cyclically upward by one slot, you will immediately see $P\\mathbf{c}_k = w^k \\mathbf{c}_k$!",
+  "Once $P \\mathbf{c}_k = w^k \\mathbf{c}_k$, it follows that $P^2\\mathbf{c}_k = w^{2k}\\mathbf{c}_k$ and $P^3\\mathbf{c}_k = w^{3k}\\mathbf{c}_k$, so applying $C = \\sum c_m P^m$ simply evaluates the polynomial at $w^k$!"
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Part 1 shows how the FFT breaks 16 potential interactions into two $2$-point sum-and-difference steps plus one twiddle rotation and butterfly merge: the even samples $[1, 0]$ and odd samples $[2, -1]$ are transformed independently, then $D_2 = \operatorname{diag}(1, i)$ rotates the odd half's phases before adding and subtracting. Part 2 reveals the true secret behind why the FFT dominates signal processing, PDEs, and convolutional neural networks: **every shift-invariant operator (circulant matrix / discrete convolution) becomes diagonal in the Fourier basis!** Because the complex exponentials $\mathbf{c}_k = [1, w^k, w^{2k}, \dots]$ are the natural eigenvectors of the cyclic shift $P$ (shifting by one step simply multiplies by the phase $w^k$), any circulant convolution $C\mathbf{x}$ reduces to three $\mathcal{O}(n\log n)$ FFTs and elementwise multiplication: $C\mathbf{x} = F_n^{-1}\big((F_n\mathbf{c}) \odot (F_n\mathbf{x})\big)$!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1 Solution (Step-by-step 4-point FFT):**
+
+1. **Stage 1 (Even-Odd Permutation $P_4\mathbf{x}$)**:
+   $$
+   \mathbf{x}^{(1)} = P_4 \mathbf{x} = \begin{bmatrix} x_0 \\ x_2 \\ \hline x_1 \\ x_3 \end{bmatrix} = \begin{bmatrix} 1 \\ 0 \\ \hline 2 \\ -1 \end{bmatrix}
+   $$
+2. **Stage 2 (Two independent 2-point DFTs)**:
+   $$
+   \mathbf{y}_{\text{even}} = F_2 \begin{bmatrix} 1 \\ 0 \end{bmatrix} = \begin{bmatrix} 1 + 0 \\ 1 - 0 \end{bmatrix} = \begin{bmatrix} 1 \\ 1 \end{bmatrix}, \qquad
+   \mathbf{y}_{\text{odd}} = F_2 \begin{bmatrix} 2 \\ -1 \end{bmatrix} = \begin{bmatrix} 2 + (-1) \\ 2 - (-1) \end{bmatrix} = \begin{bmatrix} 1 \\ 3 \end{bmatrix}
+   $$
+3. **Stage 3 (Twiddle factor $D_2 = \operatorname{diag}(1, i)$ butterfly merge)**:
+   First compute
+
+   $$
+   D_2 \mathbf{y}_{\text{odd}} = \begin{bmatrix} 1 & 0 \\ 0 & i \end{bmatrix}\begin{bmatrix} 1 \\ 3 \end{bmatrix} = \begin{bmatrix} 1 \\ 3i \end{bmatrix},
+   $$
+
+   and then perform the butterfly additions and subtractions:
+   $$
+   \mathbf{y} = \begin{bmatrix} \mathbf{y}_{\text{even}} + D_2 \mathbf{y}_{\text{odd}} \\ \mathbf{y}_{\text{even}} - D_2 \mathbf{y}_{\text{odd}} \end{bmatrix} = \begin{bmatrix} 1 + 1 \\ 1 + 3i \\ 1 - 1 \\ 1 - 3i \end{bmatrix} = \begin{bmatrix} 2 \\ 1 + 3i \\ 0 \\ 1 - 3i \end{bmatrix}
+   $$
+   **Check against direct multiplication $F_4 \mathbf{x}$**:
+   $$
+   \begin{bmatrix} 1 & 1 & 1 & 1 \\ 1 & i & -1 & -i \\ 1 & -1 & 1 & -1 \\ 1 & -i & -1 & i \end{bmatrix} \begin{bmatrix} 1 \\ 2 \\ 0 \\ -1 \end{bmatrix} = \begin{bmatrix} 1 + 2 + 0 - 1 \\ 1 + 2i + 0 + i \\ 1 - 2 + 0 + 1 \\ 1 - 2i + 0 - i \end{bmatrix} = \begin{bmatrix} 2 \\ 1 + 3i \\ 0 \\ 1 - 3i \end{bmatrix}
+   $$
+   Exact match!
+
+**Part 2 Solution (Fourier diagonalization of circulant matrices):**
+
+1. **Verify that $\mathbf{c}_k$ is an eigenvector of $P$**:
+   Let $w = i$. Since $w^4 = 1$, multiplying $P$ into the $k$-th column $\mathbf{c}_k = [1, w^k, w^{2k}, w^{3k}]^T$ of $F_4$ gives:
+   $$
+   P \mathbf{c}_k = \begin{bmatrix} 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \\ 1 & 0 & 0 & 0 \end{bmatrix} \begin{bmatrix} 1 \\ w^k \\ w^{2k} \\ w^{3k} \end{bmatrix} = \begin{bmatrix} w^k \\ w^{2k} \\ w^{3k} \\ 1 \end{bmatrix} = \begin{bmatrix} w^k \\ w^{2k} \\ w^{3k} \\ w^{4k} \end{bmatrix} = w^k \begin{bmatrix} 1 \\ w^k \\ w^{2k} \\ w^{3k} \end{bmatrix} = w^k \mathbf{c}_k
+   $$
+   Thus, for every $k \in \{0, 1, 2, 3\}$, $\mathbf{c}_k$ is an eigenvector of $P$ with eigenvalue $w^k = i^k$ (namely $1, i, -1, -i$). In matrix form, $P F_4 = F_4 \Lambda_P$ with $\Lambda_P = \operatorname{diag}(1, i, -1, -i)$.
+2. **Diagonalization and eigenvalues of any circulant matrix $C$**:
+   Because $\mathbf{c}_k$ is an eigenvector of $P$, we have $P^m \mathbf{c}_k = (w^k)^m \mathbf{c}_k = w^{mk} \mathbf{c}_k$ for every $m \ge 0$. Applying $C = \sum_{m=0}^3 c_m P^m$ to $\mathbf{c}_k$:
+   $$
+   C \mathbf{c}_k = \left( \sum_{m=0}^3 c_m P^m \right) \mathbf{c}_k = \left( \sum_{m=0}^3 c_m w^{mk} \right) \mathbf{c}_k = (F_4 \mathbf{c})_k \, \mathbf{c}_k
+   $$
+   Here $\sum_{m=0}^3 w^{km} c_m$ is precisely $(F_4 \mathbf{c})_k$!
+
+   Letting $\tilde{F}_4 = \frac{1}{2} F_4$ be the unitary Fourier matrix (whose orthonormal columns $\tilde{\mathbf{c}}_k = \frac{1}{2}\mathbf{c}_k$ satisfy $\tilde{F}_4^H \tilde{F}_4 = I_4$), we obtain:
+   $$
+   C = \tilde{F}_4 \, \operatorname{diag}(F_4 \mathbf{c}) \, \tilde{F}_4^H = F_4 \, \operatorname{diag}(F_4 \mathbf{c}) \, F_4^{-1}
+   $$
+   This is the linear-algebraic heart of the Convolution Theorem: $C \mathbf{x} = F_4^{-1}\big((F_4 \mathbf{c}) \odot (F_4 \mathbf{x})\big)$, allowing circulant convolution in $\mathcal{O}(n\log n)$ operations via the FFT!
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>
+
+---
+
+## Summary & Next Lecture Preview
+
+In this lecture we extended linear algebra from $\mathbb{R}^n$ to $\mathbb{C}^n$, using the conjugate transpose $^H$ to build the complete spectral theory of Hermitian and unitary matrices. Out of the roots of unity came the Fourier matrix $F_n$, whose orthogonal columns ($F_n^H F_n = n I_n$) and recursive even-odd butterfly factorization (the FFT) cut the cost of spectral transforms from $n^2$ down to $\frac{1}{2} n \log_2 n$—transforming modern science and engineering.
+
+In the next lecture (Lecture 28: Positive Definite Matrices and Minima), we return to the heart of optimization and geometry—**how pivots, determinants, eigenvalues, and factorizations $A = R^T R$ tell us when a symmetric matrix is positive definite ($\mathbf{x}^T A \mathbf{x} \gt 0$)**, connecting linear algebra directly to multivariable minima (the Hessian test) and the geometry of ellipsoids!
+
+<details class="mt-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-4 text-sm text-slate-600 dark:text-slate-400">
+  <summary class="cursor-pointer font-medium text-slate-700 dark:text-slate-300 select-none">Source Reference & Course Mapping</summary>
+  <div class="mt-2 space-y-1">
+    <p>This lecture corresponds to MIT 18.06 <em>Linear Algebra</em>, Lecture 26 (<em>Complex Matrices; Fast Fourier Transform</em>), and Sections 9.1–9.3 of Gilbert Strang's <em>Introduction to Linear Algebra</em> (5th ed.).</p>
+    <p>Lecture highlights: Prof. Strang introduces complex numbers via $2\times 2$ eigenvalues, presents the $\mathbb{R}^n \to \mathbb{C}^n$ translation dictionary ($^T \to {}^H$, symmetric $\to$ Hermitian, orthogonal $\to$ unitary), verifies the conjugate orthogonality of $F_4$, and derives the Cooley-Tukey block factorization $F_n \to F_{n/2}$ with its $\frac{1}{2}n\log_2 n$ operation count.</p>
+  </div>
+</details>

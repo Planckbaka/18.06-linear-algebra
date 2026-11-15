@@ -1,0 +1,1154 @@
+---
+title: "Lecture 24: Markov Matrices and Fourier Series"
+ocwId: "L24"
+videoEpisode: "P24"
+textbookRef: "§10.3, §4.4"
+---
+
+In the previous lectures, we built the algebraic machinery of eigenvalues and eigenvectors ($A\mathbf{x} = \lambda \mathbf{x}$) and saw how diagonalization solves discrete difference equations $\mathbf{u}_{k+1} = A\mathbf{u}_k$. Now, Prof. Gilbert Strang takes us to two towering applications of linear algebra:
+
+1. **Markov Matrices (Transition Matrices)**: The matrices governing discrete random walks, population migration, Google PageRank, and modern generative diffusion models. Using the fundamental theorem of the four subspaces (row rank equals column rank), we will prove why $\lambda_1 = 1$ is *always* an eigenvalue and why the steady state dominates the long-term limit.
+2. **Fourier Series**: Extending orthogonal projection from finite-dimensional Euclidean space $\mathbb{R}^n$ (Lecture 17) seamlessly to the infinite-dimensional space of continuous functions $L^2([0, 2\pi])$. Remarkably, the classical Fourier coefficient formulas memorized in calculus turn out to be nothing more than the orthogonal basis projection formula in a function inner-product space!
+
+---
+
+## 1. Markov Matrices and Conservation of Probability Mass
+
+In probability, dynamical systems, and operations research, we frequently study discrete Markov chains evolving across a finite set of mutually exclusive states. At each discrete time step $k \to k+1$, the state vector $\mathbf{u}_k$ evolves according to the linear recurrence:
+
+$$
+\mathbf{u}_{k+1} = A \mathbf{u}_k
+$$
+
+To guarantee that $\mathbf{u}_k$ remains a valid probability distribution at every step, the transition matrix $A$ must obey two strict structural laws.
+
+<DefinitionCard title="Markov Matrix (Column-Stochastic Matrix)">
+
+Let $A \in \mathbb{R}^{n \times n}$ be a square matrix. We say that $A$ is a **Markov matrix** (or **column-stochastic matrix**) if it satisfies both of the following conditions:
+
+1. **Non-negativity**: Every entry in the matrix is non-negative; that is, for all $1 \le i, j \le n$,
+   $$
+   a_{ij} \ge 0
+   $$
+2. **Columns sum to 1 (Column-Stochasticity)**: Every column adds up to $1$; that is, for every column index $j \in \{1, 2, \dots, n\}$,
+   $$
+   \sum_{i=1}^n a_{ij} = 1
+   $$
+
+Using the all-ones row vector $\mathbf{1}^T = [1, 1, \dots, 1] \in \mathbb{R}^{1 \times n}$, this second condition can be written compactly as:
+
+$$
+\mathbf{1}^T A = \mathbf{1}^T
+$$
+
+</DefinitionCard>
+
+Why is column-stochasticity the lifeblood of a probabilistic system? Suppose $\mathbf{u}_k \in \mathbb{R}^n$ is a probability distribution vector at step $k$, with non-negative entries summing to $1$: $\mathbf{1}^T \mathbf{u}_k = \sum_{i=1}^n u_{i, k} = 1$. By associativity of matrix multiplication:
+
+$$
+\mathbf{1}^T \mathbf{u}_{k+1} = \mathbf{1}^T (A \mathbf{u}_k) = (\mathbf{1}^T A) \mathbf{u}_k = \mathbf{1}^T \mathbf{u}_k = 1
+$$
+
+This proves that **total probability mass is strictly conserved over time**! The state vector $\mathbf{u}_k$ is forever confined to the $(n-1)$-dimensional standard probability simplex $\Delta^{n-1} = \{\mathbf{u} \in \mathbb{R}^n \mid \mathbf{1}^T \mathbf{u} = 1, \, u_i \ge 0\}$.
+
+---
+
+## 2. Three Core Spectral Properties and the Four-Subspace Proof
+
+The extraordinary elegance of Markov matrices stems directly from their spectral structure.
+
+<TheoremCard title="Core Spectral Properties of Markov Matrices">
+
+Let $A \in \mathbb{R}^{n \times n}$ be a column-stochastic Markov matrix. Then:
+
+1. **Guaranteed steady-state eigenvalue**: $\lambda_1 = 1$ is always an eigenvalue of $A$.
+2. **Bounded spectral radius**: Every eigenvalue $\lambda_i \in \mathbb{C}$ of $A$ lies on or inside the unit circle:
+   $$
+   |\lambda_i| \le 1
+   $$
+3. **Zero-sum law for transient eigenvectors**: If $\lambda \ne 1$ is an eigenvalue of $A$ with corresponding right eigenvector $\mathbf{x}$ ($A\mathbf{x} = \lambda \mathbf{x}$), then the components of $\mathbf{x}$ must sum to zero:
+   $$
+   \mathbf{1}^T \mathbf{x} = 0
+   $$
+4. **Perron–Frobenius Theorem**: If $A$ is strictly positive ($a_{ij} \gt 0$ for all $i, j$) or primitive ($A^m \gt 0$ for some positive integer $m$), then $\lambda_1 = 1$ is a simple dominant eigenvalue (algebraic and geometric multiplicity $1$), and all other eigenvalues strictly satisfy $|\lambda_i| \lt 1$ ($i \ge 2$). In this case, there exists a unique strictly positive steady-state vector $\mathbf{u}_\infty \gt \mathbf{0}$ ($\mathbf{1}^T \mathbf{u}_\infty = 1$) such that for *any* initial probability distribution $\mathbf{u}_0 \in \Delta^{n-1}$,
+   $$
+   \lim_{k \to \infty} A^k \mathbf{u}_0 = \mathbf{u}_\infty
+   $$
+
+</TheoremCard>
+
+Let us admire how Prof. Strang uses the Fundamental Theorem of Linear Algebra—the four subspaces—to give a pure, unforgettable algebraic proof of these facts.
+
+<ProofCollapse title="Rigorous Proof: Four-Subspace Proof of Theorem 1 (Why λ₁ = 1 Always Holds)">
+
+**Proof Strategy:**
+
+We want to show there exists a nonzero vector $\mathbf{x}_1 \ne \mathbf{0}$ satisfying $(A - I)\mathbf{x}_1 = \mathbf{0}$, which is equivalent to showing that the nullspace of $A - I$ is nontrivial: $\dim \operatorname{Null}(A - I) \ge 1$.
+
+**Step 1 (Columns summing to 1 gives an eigenvector of $A^T$):**
+Start from the column-sum condition:
+
+$$
+\mathbf{1}^T A = \mathbf{1}^T \iff \mathbf{1}^T A - \mathbf{1}^T I = \mathbf{0}^T \iff \mathbf{1}^T (A - I) = \mathbf{0}^T
+$$
+
+Take the transpose of both sides:
+
+$$
+(A - I)^T \mathbf{1} = \mathbf{0} \iff (A^T - I) \mathbf{1} = \mathbf{0}
+$$
+
+This reveals that the all-ones vector $\mathbf{1} = [1, 1, \dots, 1]^T$ is a right eigenvector of $A^T$ for $\lambda = 1$!
+
+**Step 2 (Nontrivial left nullspace):**
+The equation above says $\mathbf{1}$ lies in the nullspace of $A^T - I$ (which is the left nullspace of $A - I$):
+
+$$
+\mathbf{1} \in \operatorname{Null}(A^T - I)
+$$
+
+Since $\mathbf{1} \ne \mathbf{0}$, this subspace contains at least a line, so:
+
+$$
+\dim \operatorname{Null}(A^T - I) \ge 1
+$$
+
+**Step 3 (Row rank equals column rank):**
+By the Fundamental Theorem of Linear Algebra, any square matrix and its transpose have the exact same rank:
+
+$$
+\operatorname{rank}(A - I) = \operatorname{rank}((A - I)^T) = r
+$$
+
+By the Rank–Nullity Theorem:
+
+$$
+\dim \operatorname{Null}(A - I) = n - r = \dim \operatorname{Null}(A^T - I) \ge 1
+$$
+
+**Step 4 (Conclusion):**
+Because $\dim \operatorname{Null}(A - I) \ge 1$, there must exist a nonzero vector $\mathbf{x}_1 \ne \mathbf{0}$ such that:
+
+$$
+(A - I)\mathbf{x}_1 = \mathbf{0} \iff A \mathbf{x}_1 = 1 \cdot \mathbf{x}_1
+$$
+
+Q.E.D.! The all-ones vector is an eigenvector of $A^T$, and dimension conservation across the four subspaces immediately locks $\lambda_1 = 1$ as an eigenvalue of $A$.
+
+</ProofCollapse>
+
+<ProofCollapse title="Rigorous Proof: Spectral Bound |λ| ≤ 1 and Zero-Sum Eigenvectors (1ᵀx = 0)">
+
+**Proof of the Zero-Sum Law (Property 3):**
+
+Suppose $\lambda \ne 1$ is an eigenvalue of $A$ with right eigenvector $\mathbf{x}$, so $A \mathbf{x} = \lambda \mathbf{x}$.
+Left-multiply both sides by the all-ones row vector $\mathbf{1}^T$:
+
+$$
+\mathbf{1}^T (A \mathbf{x}) = \mathbf{1}^T (\lambda \mathbf{x})
+$$
+
+Using associativity and $\mathbf{1}^T A = \mathbf{1}^T$:
+
+$$
+(\mathbf{1}^T A) \mathbf{x} = \lambda (\mathbf{1}^T \mathbf{x}) \implies \mathbf{1}^T \mathbf{x} = \lambda (\mathbf{1}^T \mathbf{x})
+$$
+
+Rearranging terms:
+
+$$
+(1 - \lambda)(\mathbf{1}^T \mathbf{x}) = 0
+$$
+
+Since $\lambda \ne 1$, we have $1 - \lambda \ne 0$, and dividing by $1 - \lambda$ yields:
+
+$$
+\mathbf{1}^T \mathbf{x} = 0
+$$
+
+**Physical meaning**: Every decaying transient mode must have components summing to zero! It represents a pure **redistribution of probability mass** among states (what one state gains, others must lose), never creating or destroying total probability.
+
+**Proof of the Spectral Bound $|\lambda| \le 1$ (Property 2):**
+
+Because $A$ and $A^T$ share the exact same characteristic polynomial $\det(A - \lambda I) = \det((A - \lambda I)^T) = \det(A^T - \lambda I)$, they have the exact same eigenvalues.
+Let $\lambda \in \mathbb{C}$ be any eigenvalue of $A^T$, with nonzero eigenvector $\mathbf{y} \ne \mathbf{0}$:
+
+$$
+A^T \mathbf{y} = \lambda \mathbf{y}
+$$
+
+Pick an index $m$ where $\mathbf{y}$ achieves its maximum magnitude, so $|y_m| = \|\mathbf{y}\|_\infty = \max_{1 \le i \le n} |y_i| \gt 0$.
+Look at the $m$-th scalar component of $A^T \mathbf{y} = \lambda \mathbf{y}$:
+
+$$
+\lambda y_m = (A^T \mathbf{y})_m = \sum_{j=1}^n (A^T)_{mj} y_j = \sum_{j=1}^n a_{jm} y_j
+$$
+
+Take absolute values on both sides, apply the triangle inequality, and use the non-negativity of $A$ ($a_{jm} \ge 0$):
+
+$$
+|\lambda| |y_m| = \left| \sum_{j=1}^n a_{jm} y_j \right| \le \sum_{j=1}^n a_{jm} |y_j| \le \sum_{j=1}^n a_{jm} |y_m| = \left( \sum_{j=1}^n a_{jm} \right) |y_m|
+$$
+
+Since every column of $A$ sums to $1$, we have $\sum_{j=1}^n a_{jm} = 1$:
+
+$$
+|\lambda| |y_m| \le 1 \cdot |y_m|
+$$
+
+Dividing both sides by $|y_m| \gt 0$ gives:
+
+$$
+|\lambda| \le 1
+$$
+
+Q.E.D.! No eigenvalue of a Markov matrix can ever escape the unit disk.
+
+</ProofCollapse>
+
+---
+
+## 3. Classic $2 \times 2$ Migration Model and Convergence Dynamics
+
+To make the theory concrete, let us track annual population migration between two regions—say, Boston and California.
+
+Let the transition matrix be:
+
+$$
+A = \begin{bmatrix} 0.9 & 0.2 \\ 0.1 & 0.8 \end{bmatrix}
+$$
+
+Column 1 says that each year, $90\%$ of Boston's population stays in Boston and $10\%$ moves to California. Column 2 says that $20\%$ of California's population moves to Boston and $80\%$ stays in California. Every column sums to $1$, and every entry is strictly positive.
+
+### 1. Finding Eigenvalues and Eigenvectors
+
+We can use the trace shortcut!
+The trace is $\operatorname{tr}(A) = 0.9 + 0.8 = 1.7$. Because $A$ is a Markov matrix, we already know $\lambda_1 = 1$:
+
+$$
+\lambda_1 + \lambda_2 = \operatorname{tr}(A) = 1.7 \implies \lambda_2 = 1.7 - 1 = 0.7
+$$
+
+Check the determinant: $\det(A) = 0.9 \times 0.8 - 0.2 \times 0.1 = 0.72 - 0.02 = 0.70 = \lambda_1 \lambda_2$. Spot on!
+
+For the steady-state eigenvalue $\lambda_1 = 1$:
+
+$$
+(A - I)\mathbf{x}_1 = \begin{bmatrix} -0.1 & 0.2 \\ 0.1 & -0.2 \end{bmatrix}\mathbf{x}_1 = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies \mathbf{x}_1 = \begin{bmatrix} 2 \\ 1 \end{bmatrix}
+$$
+
+Normalizing so that the entries sum to $1$ gives the steady-state distribution:
+
+$$
+\mathbf{u}_\infty = \begin{bmatrix} 2/3 \\ 1/3 \end{bmatrix}
+$$
+
+For the decaying transient eigenvalue $\lambda_2 = 0.7$:
+
+$$
+(A - 0.7 I)\mathbf{x}_2 = \begin{bmatrix} 0.2 & 0.2 \\ 0.1 & 0.1 \end{bmatrix}\mathbf{x}_2 = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+Notice immediately that $\mathbf{1}^T \mathbf{x}_2 = 1 + (-1) = 0$—the components sum to zero!
+
+### 2. Trajectory Along the Probability Simplex
+
+Suppose everyone starts in Boston:
+
+$$
+\mathbf{u}_0 = \begin{bmatrix} 1 \\ 0 \end{bmatrix}
+$$
+
+Expanding $\mathbf{u}_0$ in the eigenbasis $\{\mathbf{u}_\infty, \mathbf{x}_2\}$:
+
+$$
+\begin{bmatrix} 1 \\ 0 \end{bmatrix} = c_1 \begin{bmatrix} 2/3 \\ 1/3 \end{bmatrix} + c_2 \begin{bmatrix} 1 \\ -1 \end{bmatrix} \implies c_1 = 1, \quad c_2 = \frac{1}{3}
+$$
+
+At time step $k$, the state vector is:
+
+$$
+\mathbf{u}_k = A^k \mathbf{u}_0 = 1 \cdot (1)^k \begin{bmatrix} 2/3 \\ 1/3 \end{bmatrix} + \frac{1}{3} (0.7)^k \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+As $k \to \infty$, the geometric decay term $(0.7)^k \to 0$, leaving:
+
+$$
+\lim_{k \to \infty} \mathbf{u}_k = \mathbf{u}_\infty = \begin{bmatrix} 2/3 \\ 1/3 \end{bmatrix}
+$$
+
+Regardless of the initial distribution, Boston will eventually settle at $\frac{2}{3}$ of the total population and California at $\frac{1}{3}$.
+
+<MarkovSteadyStateSimplexDiagram caption="Probability state trajectory sliding along the 1D probability simplex (u₁ + u₂ = 1) toward the steady state u_∞ = [2/3, 1/3]ᵀ as the zero-sum transient mode (0.7)ᵏ[1, -1]ᵀ decays to zero." />
+
+---
+
+## 4. From $\mathbb{R}^n$ to Infinite-Dimensional Function Space: Fourier Series
+
+Now let us lift our perspective to a much larger mathematical universe. Here Prof. Strang reveals one of the grandest unifications in mathematics: **the theory of orthogonal projection doesn't stop at $\mathbb{R}^n$—it governs infinite-dimensional function spaces!**
+
+### 1. From Vector Dot Products to Function Inner Products
+
+In finite-dimensional Euclidean space $\mathbb{R}^n$, the dot product of two vectors $\mathbf{f} = [f_1, \dots, f_n]^T$ and $\mathbf{g} = [g_1, \dots, g_n]^T$ is:
+
+$$
+\mathbf{f}^T \mathbf{g} = \sum_{i=1}^n f_i g_i
+$$
+
+Let the dimension $n \to \infty$: replace the discrete index $i \in \{1, \dots, n\}$ by a continuous variable $x$ on $[0, 2\pi]$, and replace the discrete components $f_i$ by function values $f(x)$. The sum naturally becomes a Riemann integral. In the space $L^2([0, 2\pi])$ of square-integrable real functions, the **continuous inner product** is defined as:
+
+$$
+\langle f, g \rangle = \int_0^{2\pi} f(x) g(x)\,dx
+$$
+
+The squared length (norm squared) of a function represents the total energy of the signal:
+
+$$
+\|f\|^2 = \langle f, f \rangle = \int_0^{2\pi} f(x)^2\,dx
+$$
+
+The geometric condition for orthogonality is identical to $\mathbb{R}^n$: two functions $f$ and $g$ are orthogonal if and only if $\langle f, g \rangle = 0$!
+
+### 2. Orthogonality and Lengths of the Trigonometric Basis
+
+<TheoremCard title="Orthogonality and Basis Norms of the Trigonometric System">
+
+In the inner-product space $L^2([0, 2\pi])$, the standard trigonometric family:
+
+$$
+\mathcal{B} = \{1, \cos x, \sin x, \cos 2x, \sin 2x, \dots, \cos kx, \sin kx, \dots\}
+$$
+
+forms a mutually orthogonal basis of functions. Their inner products and squared norms satisfy:
+
+1. **Squared norm of the constant basis function**:
+   $$
+   \|1\|^2 = \langle 1, 1 \rangle = \int_0^{2\pi} 1^2\,dx = 2\pi
+   $$
+2. **Squared norms of the sine and cosine basis functions**: For every positive integer $k \ge 1$,
+   $$
+   \|\cos kx\|^2 = \int_0^{2\pi} \cos^2(kx)\,dx = \pi, \qquad \|\sin kx\|^2 = \int_0^{2\pi} \sin^2(kx)\,dx = \pi
+   $$
+3. **Pairwise orthogonality**: All distinct basis functions have zero inner product:
+   $$
+   \langle 1, \cos kx \rangle = 0, \quad \langle 1, \sin kx \rangle = 0
+   $$
+   $$
+   \langle \cos kx, \sin mx \rangle = 0 \quad (\forall k, m \ge 1)
+   $$
+   $$
+   \langle \cos kx, \cos mx \rangle = 0, \quad \langle \sin kx, \sin mx \rangle = 0 \quad (k \ne m)
+   $$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Orthogonality Integrals of the Trigonometric Basis">
+
+Apply the product-to-sum trigonometric identities:
+
+$$
+\cos(kx)\cos(mx) = \frac{1}{2}\left[\cos((k-m)x) + \cos((k+m)x)\right]
+$$
+
+$$
+\sin(kx)\sin(mx) = \frac{1}{2}\left[\cos((k-m)x) - \cos((k+m)x)\right]
+$$
+
+$$
+\sin(kx)\cos(mx) = \frac{1}{2}\left[\sin((k+m)x) + \sin((k-m)x)\right]
+$$
+
+When $k \ne m$, both $k-m \ne 0$ and $k+m \ne 0$. Because any integer-frequency sine or cosine integrates to zero over a full period $[0, 2\pi]$:
+
+$$
+\int_0^{2\pi} \cos(nx)\,dx = 0, \quad \int_0^{2\pi} \sin(nx)\,dx = 0 \quad (\forall n \in \mathbb{Z}, \; n \ne 0)
+$$
+
+every product-to-sum integral vanishes, establishing pairwise orthogonality.
+
+When $k = m \ge 1$, we have $\cos((k-m)x) = \cos(0) = 1$, so:
+
+$$
+\|\cos kx\|^2 = \int_0^{2\pi} \cos^2(kx)\,dx = \frac{1}{2}\int_0^{2\pi}(1 + \cos(2kx))\,dx = \frac{1}{2}(2\pi) + 0 = \pi
+$$
+
+$$
+\|\sin kx\|^2 = \int_0^{2\pi} \sin^2(kx)\,dx = \frac{1}{2}\int_0^{2\pi}(1 - \cos(2kx))\,dx = \frac{1}{2}(2\pi) - 0 = \pi
+$$
+
+Finally, for the constant function $1$: $\langle 1, 1 \rangle = \int_0^{2\pi} 1\,dx = 2\pi$. Q.E.D.!
+
+</ProofCollapse>
+
+### 3. The Essence of Fourier Series: Lecture 17 Projection in Infinite Dimensions
+
+Recall the key formula from Lecture 17: if $\{\mathbf{q}_1, \dots, \mathbf{q}_n\}$ is an **orthogonal basis** (not necessarily normalized to unit length), then any vector $\mathbf{v}$ expands as $\mathbf{v} = \sum c_i \mathbf{q}_i$. To find $c_i$, simply take the dot product with $\mathbf{q}_i$:
+
+$$
+\mathbf{q}_i^T \mathbf{v} = c_i (\mathbf{q}_i^T \mathbf{q}_i) \implies c_i = \frac{\mathbf{q}_i^T \mathbf{v}}{\mathbf{q}_i^T \mathbf{q}_i} = \frac{\mathbf{q}_i^T \mathbf{v}}{\|\mathbf{q}_i\|^2}
+$$
+
+Now expand a function $f(x)$ in the orthogonal trigonometric basis:
+
+$$
+f(x) = a_0 \cdot 1 + \sum_{k=1}^\infty (a_k \cos kx + b_k \sin kx)
+$$
+
+Applying the **exact same orthogonal projection formula** (inner product of $f$ with the basis function divided by the basis function's squared norm):
+
+1. **DC component (projection onto the constant $1$)**:
+   $$
+   a_0 = \frac{\langle f, 1 \rangle}{\|1\|^2} = \frac{\int_0^{2\pi} f(x) \cdot 1\,dx}{2\pi} = \frac{1}{2\pi} \int_0^{2\pi} f(x)\,dx
+   $$
+   This is simply the average value of $f(x)$ on $[0, 2\pi]$!
+2. **Cosine coefficients (projection onto $\cos kx$)**:
+   $$
+   a_k = \frac{\langle f, \cos kx \rangle}{\|\cos kx\|^2} = \frac{\int_0^{2\pi} f(x)\cos(kx)\,dx}{\pi} = \frac{1}{\pi} \int_0^{2\pi} f(x)\cos(kx)\,dx
+   $$
+3. **Sine coefficients (projection onto $\sin kx$)**:
+   $$
+   b_k = \frac{\langle f, \sin kx \rangle}{\|\sin kx\|^2} = \frac{\int_0^{2\pi} f(x)\sin(kx)\,dx}{\pi} = \frac{1}{\pi} \int_0^{2\pi} f(x)\sin(kx)\,dx
+   $$
+
+That is the entire secret behind the Fourier formulas in calculus textbooks! **They are not mysterious integration tricks—they are simply component-by-component orthogonal projections in function space.**
+
+### 4. Parseval's Identity: The Infinite-Dimensional Pythagorean Theorem
+
+In finite dimensions, an orthogonal expansion satisfies the Pythagorean theorem $\|\mathbf{v}\|^2 = \sum c_i^2 \|\mathbf{q}_i\|^2$. In infinite-dimensional function space, the exact same conservation of energy yields **Parseval's Identity**:
+
+$$
+\|f\|^2 = \langle f, f \rangle = a_0^2 \|1\|^2 + \sum_{k=1}^\infty \left( a_k^2 \|\cos kx\|^2 + b_k^2 \|\sin kx\|^2 \right)
+$$
+
+Substituting the squared norms of each basis function gives:
+
+$$
+\int_0^{2\pi} f(x)^2\,dx = 2\pi a_0^2 + \pi \sum_{k=1}^\infty (a_k^2 + b_k^2)
+$$
+
+Total physical energy in the time/space domain equals the sum of energies across all orthogonal harmonic components in the frequency domain.
+
+<FourierFunctionSpaceProjectionDiagram caption="Orthogonal projection in L²([0, 2π]): a target function f(x) is projected onto mutually orthogonal basis directions (1, cos x, sin x, ...), and Parseval's identity equates total signal energy to the sum of squared harmonic projections." />
+
+---
+
+## 5. Square Wave Expansion and a Three-Line Proof for the Odd Basel Sum
+
+Let us see this framework in action on engineering's quintessential test signal: the $2\pi$-periodic square wave defined on $[0, 2\pi)$ by:
+
+$$
+f(x) = \begin{cases} 1, & 0 \le x \lt \pi \\ -1, & \pi \le x \lt 2\pi \end{cases}
+$$
+
+### 1. Computing the Fourier Projection Coefficients
+
+1. **DC term**: Because the positive and negative halves cancel, the average is zero:
+   $$
+   a_0 = \frac{1}{2\pi}\left( \int_0^\pi 1\,dx + \int_\pi^{2\pi} (-1)\,dx \right) = \frac{\pi - \pi}{2\pi} = 0
+   $$
+2. **Cosine terms**: Because $f(x)$ is odd-symmetric, every cosine projection vanishes:
+   $$
+   a_k = \frac{1}{\pi}\left( \int_0^\pi \cos kx\,dx - \int_\pi^{2\pi} \cos kx\,dx \right) = \frac{1}{\pi k}\left( [\sin kx]_0^\pi - [\sin kx]_\pi^{2\pi} \right) = 0
+   $$
+3. **Sine terms**:
+   $$
+   b_k = \frac{1}{\pi}\left( \int_0^\pi \sin kx\,dx - \int_\pi^{2\pi} \sin kx\,dx \right) = \frac{1}{\pi k}\left( [-\cos kx]_0^\pi - [-\cos kx]_\pi^{2\pi} \right)
+   $$
+   $$
+   = \frac{1}{\pi k}\left( (1 - \cos k\pi) - (\cos 2k\pi - \cos k\pi) \right) = \frac{2}{\pi k}(1 - \cos k\pi)
+   $$
+   When $k$ is even, $\cos k\pi = 1 \implies b_k = 0$.
+   When $k$ is odd, $\cos k\pi = -1 \implies b_k = \frac{4}{\pi k}$.
+
+Thus, the orthogonal Fourier expansion of the square wave is:
+
+$$
+f(x) \sim \frac{4}{\pi}\left( \sin x + \frac{1}{3}\sin 3x + \frac{1}{5}\sin 5x + \frac{1}{7}\sin 7x + \dots \right)
+$$
+
+### 2. Solving the Odd Basel Sum via the Pythagorean Theorem
+
+Compute the squared norm of the square wave itself:
+
+$$
+\|f\|^2 = \int_0^{2\pi} f(x)^2\,dx = \int_0^{2\pi} (\pm 1)^2\,dx = 2\pi
+$$
+
+Substitute the Fourier coefficients into Parseval's identity (with $a_0 = a_k = 0$):
+
+$$
+\|f\|^2 = \pi \sum_{m=0}^\infty b_{2m+1}^2 = \pi \sum_{m=0}^\infty \left( \frac{4}{\pi(2m+1)} \right)^2 = \frac{16}{\pi} \sum_{m=0}^\infty \frac{1}{(2m+1)^2}
+$$
+
+Equate the two expressions for $\|f\|^2$:
+
+$$
+2\pi = \frac{16}{\pi} \sum_{m=0}^\infty \frac{1}{(2m+1)^2} \implies \sum_{m=0}^\infty \frac{1}{(2m+1)^2} = \frac{2\pi^2}{16} = \frac{\pi^2}{8}
+$$
+
+Using nothing more than the Pythagorean theorem for orthogonal projections, we have derived in a few lines the celebrated sum of odd reciprocal squares: $\frac{1}{1^2} + \frac{1}{3^2} + \frac{1}{5^2} + \dots = \frac{\pi^2}{8}$!
+
+---
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+
+### 1. Column-Stochastic vs. Row-Stochastic Conventions
+In MIT 18.06, Prof. Strang consistently uses **column-stochastic** Markov matrices (states are column vectors $\mathbf{u}_k$, the recurrence is $\mathbf{u}_{k+1} = A\mathbf{u}_k$, and columns sum to $1$: $\mathbf{1}^T A = \mathbf{1}^T$). In this convention, the steady state is a **right eigenvector** of $A$ ($A\mathbf{u}_\infty = \mathbf{u}_\infty$).
+However, in computer science, the original PageRank paper, reinforcement learning, and discrete diffusion models (D3PM), authors often use **row-stochastic** transition matrices $P = A^T$ (states are row vectors $\boldsymbol{\pi}_k^T$, the recurrence is $\boldsymbol{\pi}_{k+1}^T = \boldsymbol{\pi}_k^T P$, and rows sum to $1$: $P\mathbf{1} = \mathbf{1}$). Under that convention, the steady state is a **left eigenvector** ($\boldsymbol{\pi}_\infty^T P = \boldsymbol{\pi}_\infty^T$). Always check which convention a paper uses before mixing up left and right eigenvectors!
+
+### 2. Having $\lambda_1 = 1$ Does Not Guarantee Convergence to a Unique Steady State!
+Although every non-negative column-stochastic matrix has $\lambda_1 = 1$, that alone does *not* guarantee convergence to a unique steady state:
+- **Periodic oscillation**: The permutation matrix
+
+$$
+P = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+$$
+
+has eigenvalues $\lambda_1 = 1$ and $\lambda_2 = -1$. Because a non-$1$ eigenvalue sits on the unit circle ($|-1| = 1$), the state bounces back and forth between the two endpoints forever and never converges.
+- **Reducible multiple steady states**: The identity matrix $I_2$ is a valid Markov matrix, with repeated eigenvalue $\lambda_1 = \lambda_2 = 1$. Every point on the simplex is a steady state, so the limit depends entirely on the initial state.
+Only when the Perron–Frobenius condition holds (the matrix is primitive, i.e., $A^m \gt 0$ for some $m \ge 1$) are all remaining eigenvalues strictly bounded by $|\lambda_i| \lt 1$, guaranteeing a unique steady state!
+
+### 3. Why Some Textbooks Write $\frac{a_0}{2}$ for the Fourier Constant Term
+Students often wonder why one textbook writes $f(x) = \frac{a_0}{2} + \sum \dots$ while another writes $f(x) = a_0 \cdot 1 + \sum \dots$.
+The reason is the basis norm! The constant function $1$ has squared norm $\|1\|^2 = 2\pi$, whereas $\cos kx$ and $\sin kx$ have squared norm $\pi$. In orthogonal projection, the denominator is always the squared norm of the basis vector. If a textbook defines $a_0 = \frac{1}{\pi}\int_0^{2\pi} f(x)\,dx$ (forcing a $\pi$ in the denominator to match $a_k$), it must compensate by putting $\frac{a_0}{2}$ in the series; if we strictly follow linear algebra projection $a_0 = \frac{\langle f, 1 \rangle}{\|1\|^2}$, the denominator is $2\pi$ and no $\frac{1}{2}$ factor is needed. Both conventions are mathematically equivalent, but the $2\pi$ denominator preserves the pure geometry of orthogonal projection!
+
+</PitfallAlert>
+
+---
+
+<InteractiveCanvasSlot
+  id="l24-markov-fourier-sandbox"
+  title="Markov Simplex Convergence & Fourier Approximation Sandbox"
+  description="Explore exponential convergence of probability vectors along the simplex under varying subdominant eigenvalues $\lambda_2$, and observe Gibbs phenomenon and monotone MSE decay as trigonometric basis terms approximate a square wave."
+/>
+
+---
+
+<KeyTakeaways title="Key Takeaways" items={[
+  "Algebraic essence of Markov matrices: non-negative entries ($a_{ij} \\ge 0$) and columns summing to 1 ($\\mathbf{1}^T A = \\mathbf{1}^T$), ensuring total probability mass $\\mathbf{1}^T \\mathbf{u}_k = 1$ is strictly conserved inside the probability simplex.",
+  "Four-subspace proof of $\\lambda_1 = 1$: $(A^T - I)\\mathbf{1} = \\mathbf{0}$ places $\\mathbf{1} \\in \\operatorname{Null}(A^T - I)$; by row rank = column rank, $\\dim \\operatorname{Null}(A - I) = \\dim \\operatorname{Null}(A^T - I) \\ge 1$, guaranteeing a nonzero steady-state eigenvector $A\\mathbf{x}_1 = \\mathbf{x}_1$.",
+  "Zero-sum transient modes: every eigenvector with $\\lambda \\ne 1$ satisfies $\\mathbf{1}^T \\mathbf{x} = 0$, representing pure probability exchange between states without altering total probability.",
+  "Perron–Frobenius Theorem: for strictly positive ($A \\gt 0$) or primitive Markov matrices, all other eigenvalues satisfy $|\\lambda_i| \\lt 1$, guaranteeing geometric convergence from any initial distribution to a unique positive steady state.",
+  "Inner product on function space: viewing $[0, 2\\pi]$ as an infinite-dimensional vector space gives the continuous inner product $\\langle f, g \\rangle = \\int_0^{2\\pi} f(x)g(x)\\,dx$ and energy norm $\\|f\\|^2 = \\int_0^{2\\pi} f(x)^2\\,dx$.",
+  "Fourier series as orthogonal projection: the trigonometric basis is mutually orthogonal, so Fourier coefficients $a_k, b_k$ are simply Lecture 17 projections $c_i = \\frac{\\langle \\mathbf{v}, \\mathbf{q}_i \\rangle}{\\|\\mathbf{q}_i\\|^2}$ in $L^2([0, 2\\pi])$, and Parseval's identity is the infinite-dimensional Pythagorean theorem."
+]} />
+
+---
+
+## 6. Intuition Problem Set
+
+<ProblemSet title="Intuition Problem Set" description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs.">
+
+<ExerciseCard id="l24-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="Steady State and Closed-Form Matrix Powers for a 2x2 Markov Matrix">
+
+Consider the Markov matrix:
+
+$$
+A = \begin{bmatrix} 0.8 & 0.3 \\ 0.2 & 0.7 \end{bmatrix}
+$$
+
+1. Find the eigenvalues $\lambda_1, \lambda_2$ and corresponding eigenvectors $\mathbf{x}_1, \mathbf{x}_2$ of $A$.
+2. Find the normalized steady-state vector $\mathbf{u}_\infty$ satisfying $\mathbf{1}^T \mathbf{u}_\infty = 1$.
+3. Using the diagonalization $A = S \Lambda S^{-1}$, write an explicit formula for $A^k$ and compute $\lim_{k \to \infty} A^k$.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Since $A$ is a Markov matrix, we know $\\lambda_1 = 1$. Use the trace $\\operatorname{tr}(A) = \\lambda_1 + \\lambda_2$ to find $\\lambda_2$ immediately.",
+  "The eigenvector for $\\lambda_2$ must have components summing to zero: $\\mathbf{1}^T \\mathbf{x}_2 = 0$.",
+  "Write $A^k = S \\Lambda^k S^{-1}$. As $k \\to \\infty$, $\\lambda_2^k \\to 0$, and every column of the limiting matrix equals $\\mathbf{u}_\\infty$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+From the trace, $\operatorname{tr}(A) = 0.8 + 0.7 = 1.5$. Because every Markov matrix has $\lambda_1 = 1$, the second eigenvalue must be $\lambda_2 = 1.5 - 1 = 0.5$. Since $|\lambda_2| = 0.5 \lt 1$, the transient mode shrinks by half at every step. The steady-state direction comes from $(A - I)\mathbf{x}_1 = \mathbf{0}$, which balances the cross-flows between the two states.
+</SolutionIntuition>
+<SolutionRigorous>
+**Step 1: Eigenvalues and Eigenvectors**
+The characteristic equation is:
+
+$$
+\det(A - \lambda I) = (0.8 - \lambda)(0.7 - \lambda) - 0.06 = \lambda^2 - 1.5\lambda + 0.5 = (\lambda - 1)(\lambda - 0.5) = 0
+$$
+
+So $\lambda_1 = 1$ and $\lambda_2 = 0.5$.
+
+For $\lambda_1 = 1$:
+
+$$
+(A - I)\mathbf{x}_1 = \begin{bmatrix} -0.2 & 0.3 \\ 0.2 & -0.3 \end{bmatrix} \begin{bmatrix} x_{11} \\ x_{21} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies 2x_{11} = 3x_{21} \implies \mathbf{x}_1 = \begin{bmatrix} 3 \\ 2 \end{bmatrix}
+$$
+
+For $\lambda_2 = 0.5$:
+
+$$
+(A - 0.5 I)\mathbf{x}_2 = \begin{bmatrix} 0.3 & 0.3 \\ 0.2 & 0.2 \end{bmatrix} \begin{bmatrix} x_{12} \\ x_{22} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_{12} + x_{22} = 0 \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+**Step 2: Normalized Steady-State Vector**
+Normalizing $\mathbf{x}_1$ so its components sum to $1$:
+
+$$
+\mathbf{u}_\infty = \frac{1}{3 + 2} \begin{bmatrix} 3 \\ 2 \end{bmatrix} = \begin{bmatrix} 3/5 \\ 2/5 \end{bmatrix} = \begin{bmatrix} 0.6 \\ 0.4 \end{bmatrix}
+$$
+
+**Step 3: Diagonalization and Matrix Powers**
+Construct $S$ and $S^{-1}$:
+
+$$
+S = \begin{bmatrix} 3 & 1 \\ 2 & -1 \end{bmatrix}, \quad \det(S) = -3 - 2 = -5
+$$
+
+$$
+S^{-1} = -\frac{1}{5} \begin{bmatrix} -1 & -1 \\ -2 & 3 \end{bmatrix} = \begin{bmatrix} 1/5 & 1/5 \\ 2/5 & -3/5 \end{bmatrix}
+$$
+
+Therefore:
+
+$$
+A^k = S \begin{bmatrix} 1^k & 0 \\ 0 & (0.5)^k \end{bmatrix} S^{-1} = \begin{bmatrix} 3 & 1 \\ 2 & -1 \end{bmatrix} \begin{bmatrix} 1/5 & 1/5 \\ (0.5)^k (2/5) & -(0.5)^k (3/5) \end{bmatrix}
+$$
+
+$$
+A^k = \begin{bmatrix} \frac{3}{5} + \frac{2}{5}(0.5)^k & \frac{3}{5} - \frac{3}{5}(0.5)^k \\ \frac{2}{5} - \frac{2}{5}(0.5)^k & \frac{2}{5} + \frac{3}{5}(0.5)^k \end{bmatrix}
+$$
+
+As $k \to \infty$, $(0.5)^k \to 0$, giving:
+
+$$
+\lim_{k \to \infty} A^k = \begin{bmatrix} 3/5 & 3/5 \\ 2/5 & 2/5 \end{bmatrix} = \begin{bmatrix} 0.6 & 0.6 \\ 0.4 & 0.4 \end{bmatrix} = [\mathbf{u}_\infty \;\; \mathbf{u}_\infty]
+$$
+
+The limiting matrix has rank $1$, with every column equal to the unique steady-state vector!
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l24-ex2" tier="L2" tierLabel="L2 · Conceptual True/False" title="True or False: Unique Convergence of Markov Matrix Powers">
+
+Determine whether the following statement is true or false:
+
+"For *any* non-negative, column-stochastic Markov matrix $A \in \mathbb{R}^{n \times n}$, the matrix power sequence $A^k$ converges as $k \to \infty$ to a rank-1 matrix whose columns are all equal to a single steady-state vector."
+
+<TrueFalseInteractive
+  id="l24-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! If a Markov matrix is periodic (like the permutation matrix with $\lambda = 1, -1$), $A^k$ oscillates forever and never converges. If it is reducible (like $I_2$), the limit has rank 2 with unequal columns. Perron–Frobenius conditions (positive or primitive $A$) are required to guarantee a unique rank-1 limit."
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Test a permutation matrix $P$ that swaps two states ($p_{12} = p_{21} = 1$, zeros on the diagonal). Its columns sum to $1$, but what does $P^k$ do?",
+  "Also test the identity matrix $A = I_2$. It is a valid Markov matrix—does its limit have rank $1$?"
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Not every Markov matrix converges, and even when it does, the limit need not have rank $1$. A permutation matrix bounces states back and forth between vertices of the simplex forever; the identity matrix leaves every point frozen as its own steady state without mixing. Only when the chain is strictly positive or primitive (well-connected and aperiodic) does the system forget its initial state and collapse onto a unique rank-1 attractor.
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **False**. Two counterexamples suffice:
+
+**Counterexample 1 (Periodic oscillation, no limit):**
+Take the $2 \times 2$ permutation matrix:
+
+$$
+P = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+$$
+
+Its entries are non-negative and its columns sum to $1$, so it is a valid Markov matrix. Its eigenvalues are $\lambda_1 = 1$ and $\lambda_2 = -1$, and its powers are:
+
+$$
+P^k = \begin{cases} \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}, & k \text{ even} \\ \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}, & k \text{ odd} \end{cases}
+$$
+
+As $k \to \infty$, $P^k$ alternates endlessly between $I_2$ and $P$, so $\lim_{k \to \infty} P^k$ does not exist.
+
+**Counterexample 2 (Reducible matrix, limit has rank 2):**
+Take the identity matrix:
+
+$$
+A = I_2 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}
+$$
+
+It is non-negative and column-stochastic. For every $k$, $A^k = I_2$, so the limit exists, but $\operatorname{rank}(I_2) = 2 \ne 1$ and its two columns are not equal.
+
+**Conclusion**: Only under the Perron–Frobenius hypotheses ($A^m \gt 0$ for some $m \ge 1$) do all eigenvalues other than $\lambda_1 = 1$ satisfy $|\lambda_i| \lt 1$, ensuring convergence of $A^k$ to the unique rank-1 matrix $[\mathbf{u}_\infty \;\; \dots \;\; \mathbf{u}_\infty]$.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l24-ex3" tier="L2" tierLabel="L2 · Conceptual True/False" title="True or False: Zero-Sum Law for Non-1 Eigenvalues">
+
+Determine whether the following statement is true or false:
+
+"Let $A \in \mathbb{R}^{n \times n}$ be a column-stochastic Markov matrix. If $\lambda \ne 1$ is an eigenvalue of $A$ with corresponding right eigenvector $\mathbf{x}$ ($A\mathbf{x} = \lambda \mathbf{x}$), then the components of $\mathbf{x}$ must sum to zero: $\mathbf{1}^T \mathbf{x} = 0$."
+
+<TrueFalseInteractive
+  id="l24-tf2"
+  correct={true}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="True! Left-multiplying $A\mathbf{x} = \lambda \mathbf{x}$ by $\mathbf{1}^T$ and using $\mathbf{1}^T A = \mathbf{1}^T$ gives $\mathbf{1}^T \mathbf{x} = \lambda (\mathbf{1}^T \mathbf{x})$, so $(1 - \lambda)(\mathbf{1}^T \mathbf{x}) = 0$. Since $\lambda \ne 1$, we must have $\mathbf{1}^T \mathbf{x} = 0$."
+/>
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Write column-stochasticity in vector form: $\\mathbf{1}^T A = \\mathbf{1}^T$.",
+  "Left-multiply the eigenvalue equation $A\\mathbf{x} = \\lambda \\mathbf{x}$ by $\\mathbf{1}^T$ and use associativity."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Multiplying by a Markov matrix preserves the sum of a vector's components. If an eigenvector is scaled by $\lambda$ under $A$, then its component sum is also scaled by $\lambda$—yet it must remain unchanged. The only number $S$ that satisfies $S = \lambda S$ when $\lambda \ne 1$ is $S = 0$!
+</SolutionIntuition>
+<SolutionRigorous>
+The statement is **True**. The proof is concise and exact:
+
+Because $A$ is column-stochastic, every column sums to $1$, which means:
+
+$$
+\mathbf{1}^T A = \mathbf{1}^T
+$$
+
+Since $\mathbf{x}$ is a right eigenvector for $\lambda$:
+
+$$
+A \mathbf{x} = \lambda \mathbf{x}
+$$
+
+Left-multiply both sides by $\mathbf{1}^T$:
+
+$$
+\mathbf{1}^T (A \mathbf{x}) = \mathbf{1}^T (\lambda \mathbf{x})
+$$
+
+By associativity and linearity:
+
+$$
+(\mathbf{1}^T A) \mathbf{x} = \lambda (\mathbf{1}^T \mathbf{x})
+$$
+
+Substitute $\mathbf{1}^T A = \mathbf{1}^T$ on the left:
+
+$$
+\mathbf{1}^T \mathbf{x} = \lambda (\mathbf{1}^T \mathbf{x})
+$$
+
+Rearrange:
+
+$$
+(1 - \lambda)(\mathbf{1}^T \mathbf{x}) = 0
+$$
+
+Since $\lambda \ne 1$, we have $1 - \lambda \ne 0$. Dividing through by $1 - \lambda$ gives:
+
+$$
+\mathbf{1}^T \mathbf{x} = 0
+$$
+
+Thus the components of $\mathbf{x}$ strictly sum to zero.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l24-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Determinant of A - I and Closure of Markov Matrices Under Multiplication">
+
+Let $A, B \in \mathbb{R}^{n \times n}$ both be column-stochastic Markov matrices.
+
+1. Using properties of determinants and transposes, prove that:
+   $$
+   \det(A - I_n) = 0
+   $$
+2. Prove that the matrix product $AB$ is also a valid column-stochastic Markov matrix.
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 1: Use $\\det(M) = \\det(M^T)$, and examine the sum of the rows of $A - I_n$ (or the action of $(A - I_n)^T$ on $\\mathbf{1}$).",
+  "Part 2: Verify the two Markov axioms for $AB$: non-negativity of entries and $\\mathbf{1}^T (AB) = \\mathbf{1}^T$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+Part 1: Every column of $A - I$ sums to $1 - 1 = 0$. Adding all rows of $A - I$ into the first row produces an entire row of zeros, so the determinant must be zero!
+Part 2: Sums of products of non-negative numbers stay non-negative; and left-multiplying by $\mathbf{1}^T$ passes right through $A$ and $B$ in turn: $\mathbf{1}^T (AB) = (\mathbf{1}^T A)B = \mathbf{1}^T B = \mathbf{1}^T$.
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1 Proof:**
+Consider the $j$-th column of $A - I_n$. Because the columns of $A$ sum to $1$:
+
+$$
+\sum_{i=1}^n (A - I_n)_{ij} = \sum_{i=1}^n a_{ij} - 1 = 1 - 1 = 0
+$$
+
+Equivalently, the rows $\mathbf{r}_1, \dots, \mathbf{r}_n$ of $A - I_n$ sum to the zero row vector:
+
+$$
+\sum_{i=1}^n \mathbf{r}_i = \mathbf{0}^T
+$$
+
+Hence the rows of $A - I_n$ are linearly dependent, so $A - I_n$ is singular. Equivalently, $(A - I_n)^T \mathbf{1} = \mathbf{0}$ with $\mathbf{1} \ne \mathbf{0}$, so $(A - I_n)^T$ is singular, and by determinant transpose invariance:
+
+$$
+\det(A - I_n) = \det((A - I_n)^T) = 0
+$$
+
+This confirms from the determinant perspective that $\lambda = 1$ is always a root of $\det(A - \lambda I) = 0$.
+
+**Part 2 Proof:**
+We verify both axioms for $C = AB$:
+
+1. **Non-negativity**: Let $A = [a_{ik}]$ and $B = [b_{kj}]$. Each entry of $C$ is:
+   $$
+   c_{ij} = \sum_{k=1}^n a_{ik} b_{kj}
+   $$
+   Since $A$ and $B$ are Markov matrices, $a_{ik} \ge 0$ and $b_{kj} \ge 0$ for all $i, j, k$. Products and finite sums of non-negative numbers are non-negative, so $c_{ij} \ge 0$ for all $i, j$.
+2. **Column-stochasticity**: Compute $\mathbf{1}^T C$:
+   $$
+   \mathbf{1}^T C = \mathbf{1}^T (AB)
+   $$
+   By associativity of matrix multiplication:
+   $$
+   \mathbf{1}^T (AB) = (\mathbf{1}^T A) B
+   $$
+   Because $A$ is column-stochastic, $\mathbf{1}^T A = \mathbf{1}^T$:
+   $$
+   (\mathbf{1}^T A) B = \mathbf{1}^T B
+   $$
+   Because $B$ is column-stochastic, $\mathbf{1}^T B = \mathbf{1}^T$:
+   $$
+   \mathbf{1}^T B = \mathbf{1}^T
+   $$
+   Thus $\mathbf{1}^T (AB) = \mathbf{1}^T$, meaning every column of $AB$ sums to $1$.
+
+Therefore, $AB$ is a valid column-stochastic Markov matrix.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+<ExerciseCard id="l24-ex5" tier="L4" tierLabel="L4 · MIT 18.06 Exam Synthesis" title="Synthesis Challenge: PageRank Absorbing States & Fourier Best Square Approximation">
+
+This problem explores two landmark applications of Markov steady states and Fourier orthogonal projection:
+
+1. **Google PageRank Dead-Ends and the Damping Matrix**:
+   Consider a 3-node web graph with column-stochastic transition matrix:
+   $$
+   A = \begin{bmatrix} 0 & 1/2 & 0 \\ 1 & 0 & 0 \\ 0 & 1/2 & 1 \end{bmatrix}
+   $$
+   (a) Verify that $A$ is a column-stochastic Markov matrix, find its eigenvalues and steady-state vector $\mathbf{u}_\infty$, and explain why node 3 acts as an absorbing "black hole."
+   (b) To cure dead-end traps, Google introduces a damping factor $\alpha \in (0, 1)$ (typically $\alpha = 0.85$) to form the Google matrix:
+   $$
+   G = \alpha A + \frac{1 - \alpha}{3} \mathbf{1} \mathbf{1}^T
+   $$
+   Prove that $G$ is a strictly positive Markov matrix, and explain how the Perron–Frobenius theorem guarantees existence, uniqueness, and power-iteration convergence of the PageRank vector.
+
+2. **Best $L^2$ Approximation by Trigonometric Polynomials (Infinite-Dimensional Least Squares)**:
+   For a function $f \in L^2([0, 2\pi])$ and any $N$-th order trigonometric polynomial:
+   $$
+   S_N(x) = c_0 + \sum_{k=1}^N (c_k \cos kx + d_k \sin kx)
+   $$
+   Use orthogonality to prove that the mean-square approximation error
+   $$
+   E(c_0, \{c_k\}, \{d_k\}) = \|f - S_N\|^2 = \int_0^{2\pi} (f(x) - S_N(x))^2\,dx
+   $$
+   achieves its unique global minimum if and only if the coefficients equal the Fourier orthogonal projection coefficients ($c_0 = a_0, \, c_k = a_k, \, d_k = b_k$).
+
+<ProgressiveHint buttonPrefix="Unlock Hint" hints={[
+  "Part 1(a): For a block lower-triangular matrix, read off the eigenvalues from the diagonal blocks. Node 3 has a self-loop of weight $1$, so probability entering node 3 can never escape.",
+  "Part 1(b): Check $\\mathbf{1}^T G = \\mathbf{1}^T$. Since $(1-\\alpha)/3 \\gt 0$ and $\\alpha \\gt 0$, every entry of $G$ is strictly positive, triggering Perron–Frobenius.",
+  "Part 2: Expand $\\|f - S_N\\|^2 = \\|f\\|^2 - 2\\langle f, S_N \\rangle + \\|S_N\\|^2$, and complete the square into terms of the form $\\pi (c_k - a_k)^2$."
+]} />
+
+<DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
+<SolutionIntuition>
+In PageRank, absorbing states (dangling nodes with no outgoing links) swallow all PageRank score over time. Adding a small random-teleportation term ($\frac{1-\alpha}{3}\mathbf{1}\mathbf{1}^T$) turns a sparse, reducible graph into a strictly positive matrix, activating Perron–Frobenius and ensuring a unique, rapidly computable steady state.
+In function approximation, Fourier series is Lecture 15's least-squares projection in infinite dimensions: the closest point in the subspace is always the orthogonal projection, and any deviation in the coefficients simply adds extra squared legs via the Pythagorean theorem!
+</SolutionIntuition>
+<SolutionRigorous>
+**Part 1: PageRank Analysis**
+
+**(a) Eigenvalues and Steady State:**
+The column sums of $A$ are $0+1+0=1$, $1/2+0+1/2=1$, and $0+0+1=1$, with all entries non-negative, so $A$ is a valid Markov matrix.
+Expand $\det(A - \lambda I) = 0$ along the third column (which has only the diagonal entry $1 - \lambda$):
+
+$$
+\det(A - \lambda I) = (1 - \lambda) \det \begin{bmatrix} -\lambda & 1/2 \\ 1 & -\lambda \end{bmatrix} = (1 - \lambda)\left(\lambda^2 - \frac{1}{2}\right) = 0
+$$
+
+The eigenvalues are:
+
+$$
+\lambda_1 = 1, \quad \lambda_2 = \frac{\sqrt{2}}{2} \approx 0.707, \quad \lambda_3 = -\frac{\sqrt{2}}{2} \approx -0.707
+$$
+
+For $\lambda_1 = 1$, solve $(A - I)\mathbf{x} = \mathbf{0}$:
+
+$$
+\begin{bmatrix} -1 & 1/2 & 0 \\ 1 & -1 & 0 \\ 0 & 1/2 & 0 \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \\ x_3 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}
+$$
+
+Row 3 gives $x_2 / 2 = 0 \implies x_2 = 0$; Row 1 then gives $-x_1 = 0 \implies x_1 = 0$; $x_3$ is free. Normalizing gives:
+
+$$
+\mathbf{u}_\infty = \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}
+$$
+
+Physical interpretation: Column 3 is $[0, 0, 1]^T$, meaning once a random surfer reaches node 3, they stay at node 3 forever (no outgoing links). Meanwhile, nodes 1 and 2 leak probability into node 3 at every step. Over time, node 3 absorbs $100\%$ of the probability mass, destroying any meaningful ranking between nodes 1 and 2.
+
+**(b) Properties of the Google Matrix $G$:**
+Check column sums:
+
+$$
+\mathbf{1}^T G = \alpha (\mathbf{1}^T A) + \frac{1 - \alpha}{3} (\mathbf{1}^T \mathbf{1}) \mathbf{1}^T
+$$
+
+Since $\mathbf{1}^T A = \mathbf{1}^T$ and $\mathbf{1}^T \mathbf{1} = 3$:
+
+$$
+\mathbf{1}^T G = \alpha \mathbf{1}^T + \frac{1 - \alpha}{3} \cdot 3 \mathbf{1}^T = \alpha \mathbf{1}^T + (1 - \alpha)\mathbf{1}^T = \mathbf{1}^T
+$$
+
+So $G$ is column-stochastic. Furthermore, since $a_{ij} \ge 0$ and $\frac{1 - \alpha}{3} \gt 0$ for $\alpha \in (0, 1)$:
+
+$$
+G_{ij} = \alpha a_{ij} + \frac{1 - \alpha}{3} \ge \frac{1 - \alpha}{3} \gt 0
+$$
+
+Every entry of $G$ is strictly positive. By the **Perron–Frobenius Theorem**:
+1. There exists a unique strictly positive steady-state vector $\mathbf{r} \gt \mathbf{0}$ ($\mathbf{1}^T \mathbf{r} = 1$) satisfying $G\mathbf{r} = \mathbf{r}$.
+2. $\lambda_1 = 1$ is a simple dominant eigenvalue, while all other eigenvalues satisfy $|\lambda_i| \le \alpha \lt 1$.
+3. Starting from any initial distribution $\mathbf{u}_0$, power iteration $\mathbf{u}_k = G^k \mathbf{u}_0$ converges exponentially at rate $\mathcal{O}(\alpha^k)$ to the unique PageRank vector $\mathbf{r}$, completely eliminating the black-hole trap!
+
+---
+
+**Part 2: Best $L^2$ Approximation Proof**
+
+Expand the squared $L^2$ error:
+
+$$
+E = \|f - S_N\|^2 = \langle f - S_N, f - S_N \rangle = \|f\|^2 - 2\langle f, S_N \rangle + \|S_N\|^2
+$$
+
+Substitute $S_N(x) = c_0 \cdot 1 + \sum_{k=1}^N (c_k \cos kx + d_k \sin kx)$.
+By bilinearity of the inner product:
+
+$$
+\langle f, S_N \rangle = c_0 \langle f, 1 \rangle + \sum_{k=1}^N \left( c_k \langle f, \cos kx \rangle + d_k \langle f, \sin kx \rangle \right)
+$$
+
+By pairwise orthogonality of the trigonometric basis, all cross terms vanish in $\|S_N\|^2$:
+
+$$
+\|S_N\|^2 = c_0^2 \|1\|^2 + \sum_{k=1}^N \left( c_k^2 \|\cos kx\|^2 + d_k^2 \|\sin kx\|^2 \right) = 2\pi c_0^2 + \pi \sum_{k=1}^N (c_k^2 + d_k^2)
+$$
+
+By definition of the Fourier coefficients, $\langle f, 1 \rangle = 2\pi a_0$, $\langle f, \cos kx \rangle = \pi a_k$, and $\langle f, \sin kx \rangle = \pi b_k$. Substituting these into $E$:
+
+$$
+E = \|f\|^2 - 2\left[ 2\pi a_0 c_0 + \pi \sum_{k=1}^N (a_k c_k + b_k d_k) \right] + 2\pi c_0^2 + \pi \sum_{k=1}^N (c_k^2 + d_k^2)
+$$
+
+Complete the square for each coefficient:
+
+$$
+E = \|f\|^2 + 2\pi (c_0^2 - 2a_0 c_0) + \pi \sum_{k=1}^N \left[ (c_k^2 - 2a_k c_k) + (d_k^2 - 2b_k d_k) \right]
+$$
+
+$$
+E = \|f\|^2 - 2\pi a_0^2 - \pi \sum_{k=1}^N (a_k^2 + b_k^2) + 2\pi (c_0 - a_0)^2 + \pi \sum_{k=1}^N \left[ (c_k - a_k)^2 + (d_k - b_k)^2 \right]
+$$
+
+Observe the two parts:
+- The first part $\|f\|^2 - 2\pi a_0^2 - \pi \sum_{k=1}^N (a_k^2 + b_k^2)$ is independent of $c_0, c_k, d_k$.
+- The second part is a sum of non-negative squares: $2\pi (c_0 - a_0)^2 \ge 0$, $\pi (c_k - a_k)^2 \ge 0$, and $\pi (d_k - b_k)^2 \ge 0$.
+
+This non-negative sum reaches its unique global minimum of $0$ if and only if every squared term vanishes:
+
+$$
+c_0 = a_0, \quad c_k = a_k, \quad d_k = b_k \quad (\forall 1 \le k \le N)
+$$
+
+At this optimum, the minimum squared error is:
+
+$$
+\min E = \|f\|^2 - 2\pi a_0^2 - \pi \sum_{k=1}^N (a_k^2 + b_k^2)
+$$
+
+Q.E.D.! The Fourier coefficients uniquely minimize the $L^2$ approximation error—confirming once again that **Fourier series is orthogonal projection in function space**.
+</SolutionRigorous>
+</DualSolution>
+
+</ExerciseCard>
+
+</ProblemSet>
+
+---
+
+<FrontierAIReading
+  id="AI-11"
+  title="Forward Markov Noising Chains in Diffusion Models (DDPM & Discrete D3PM): Matrix Powers and Steady-State Noise Limits"
+  paperRef="Ho et al. (NeurIPS 2020) DDPM · Austin et al. (NeurIPS 2021) Structured Denoising Diffusion Models in Discrete State-Spaces (D3PM)"
+>
+
+### 1. The Forward Noising Process of Generative AI Is a Time-Inhomogeneous Markov Chain
+
+Modern generative diffusion models (such as Stable Diffusion and Sora) operate in two stages:
+1. **Forward Process**: Gradually inject small amounts of noise into clean data until it collapses into an uninformative steady-state noise distribution.
+2. **Reverse Denoising Process**: Train a neural network to invert each step, synthesizing realistic data from pure noise.
+
+In discrete state-space diffusion models (**D3PM**, and modern discrete language diffusion models like MDLM), a token $x$ lives in a discrete vocabulary $\{1, 2, \dots, K\}$ (where $K$ can be tens of thousands).
+
+From step $t-1$ to $t$, the distribution evolves via a row-stochastic transition matrix $Q_t \in \mathbb{R}^{K \times K}$ (note: ML literature uses the row-stochastic convention $Q_t = A_t^T$, $Q_t \mathbf{1} = \mathbf{1}$, with row-vector states):
+
+$$
+q(\mathbf{x}_t \mid \mathbf{x}_{t-1}) = \mathbf{x}_{t-1}^T Q_t
+$$
+
+After $t$ consecutive noising steps from clean input $\mathbf{x}_0$, the conditional distribution is governed by the **cumulative matrix product**:
+
+$$
+q(\mathbf{x}_t \mid \mathbf{x}_0) = \mathbf{x}_0^T Q_1 Q_2 \dots Q_t = \mathbf{x}_0^T \bar{Q}_t
+$$
+
+where $\bar{Q}_t = \prod_{s=1}^t Q_s$.
+
+### 2. Spectral Decomposition of the Uniform Kernel and $\mathcal{O}(1)$ Closed-Form Jumps
+
+In D3PM, the foundational noising kernel is the **Uniform Transition Kernel**. At step $s$, it takes the form:
+
+$$
+Q_s = (1 - \beta_s) I_K + \frac{\beta_s}{K} \mathbf{1} \mathbf{1}^T
+$$
+
+where $\beta_s \in (0, 1)$ is the noise schedule hyperparameter. Notice that $Q_s$ is a symmetric Markov matrix! Let us compute its eigendecomposition:
+
+1. **Steady-state eigenvalue and eigenvector**:
+   $$
+   Q_s \mathbf{1} = (1 - \beta_s)\mathbf{1} + \frac{\beta_s}{K} \mathbf{1} (\mathbf{1}^T \mathbf{1}) = (1 - \beta_s)\mathbf{1} + \frac{\beta_s}{K} \mathbf{1} (K) = \mathbf{1}
+   $$
+   So $\lambda_1 = 1$ with eigenvector $\mathbf{1}$. Normalized, the steady state is the **uniform distribution** $\mathbf{u}_\infty = \frac{1}{K}\mathbf{1}^T$ over the vocabulary!
+2. **Transient eigenvalues and zero-sum eigenspace**:
+   For any nonzero vector $\mathbf{v} \in \mathbf{1}^\perp$ satisfying $\mathbf{1}^T \mathbf{v} = 0$ (the $(K-1)$-dimensional zero-sum subspace):
+   $$
+   Q_s \mathbf{v} = (1 - \beta_s)\mathbf{v} + \frac{\beta_s}{K} \mathbf{1} (\mathbf{1}^T \mathbf{v}) = (1 - \beta_s)\mathbf{v} + \mathbf{0} = (1 - \beta_s)\mathbf{v}
+   $$
+   Thus, all remaining $K-1$ eigenvalues are equal and strictly less than $1$:
+   $$
+   \lambda_2 = \lambda_3 = \dots = \lambda_K = 1 - \beta_s \lt 1
+   $$
+3. **Closed-form matrix product and direct sampling**:
+   Key insight: the eigenvector basis of $Q_s$ ($1$-dimensional $\mathbf{1}$ plus $(K-1)$-dimensional $\mathbf{1}^\perp$) is **identical for every step $s$**!
+   Because they share the same orthogonal eigenbasis, all $Q_s$ commute and are simultaneously diagonalizable. On this eigenbasis, the cumulative product $\bar{Q}_t$ acts with:
+   - eigenvalue $1 \times 1 \times \dots \times 1 = 1$ along the steady-state direction $\mathbf{1}$;
+   - eigenvalue $\prod_{s=1}^t (1 - \beta_s)$ along every zero-sum direction $\mathbf{v} \in \mathbf{1}^\perp$.
+
+Defining the cumulative decay factor $\bar{\alpha}_t = \prod_{s=1}^t (1 - \beta_s)$, spectral expansion yields a remarkably clean **closed-form formula**:
+
+$$
+\bar{Q}_t = \prod_{s=1}^t Q_s = \bar{\alpha}_t I_K + (1 - \bar{\alpha}_t) \frac{1}{K} \mathbf{1}\mathbf{1}^T
+$$
+
+**Why this matters in practice**: During diffusion training, we sample a random step $t \in [1, T]$ and noise a batch of data. Without eigendecomposition, multiplying $t$ dense $K \times K$ matrices would cost $\mathcal{O}(t K^3)$. With this spectral closed form, we compute the exact noisy distribution in $\mathcal{O}(1)$ time:
+
+$$
+q(\mathbf{x}_t \mid \mathbf{x}_0) = \bar{\alpha}_t \mathbf{x}_0^T + (1 - \bar{\alpha}_t) \frac{1}{K}\mathbf{1}^T
+$$
+
+For large $t$, $\bar{\alpha}_t \to 0$, the original signal $\mathbf{x}_0$ decays exponentially to zero, and the distribution converges to the maximum-entropy uniform steady state!
+
+### 3. Unified View: Masked Diffusion and Continuous Gaussian DDPM
+
+Beyond uniform noise, modern discrete language diffusion (such as MDLM) often uses an **absorbing mask transition kernel**:
+
+$$
+Q_s = (1 - \beta_s) I + \beta_s \mathbf{e}_{\text{mask}} \mathbf{1}^T
+$$
+
+where every token transitions with probability $\beta_s$ into a special `[MASK]` absorbing state. Its eigenvalues are again $1$ (steady state) and $1 - \beta_s$ (transient decay), generalizing BERT-style masking into continuous-time Markov diffusion.
+
+In continuous DDPM (Ho et al., 2020), the discrete vocabulary is replaced by $\mathbb{R}^d$, and the discrete Markov chain becomes an Ornstein–Uhlenbeck Gaussian diffusion process:
+
+$$
+\mathbf{x}_t = \sqrt{1 - \beta_t}\,\mathbf{x}_{t-1} + \sqrt{\beta_t}\,\boldsymbol{\epsilon}_t \implies \mathbf{x}_t = \sqrt{\bar{\alpha}_t}\,\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t}\,\boldsymbol{\epsilon}
+$$
+
+whose steady-state attractor is the standard Gaussian $\mathcal{N}(\mathbf{0}, I)$. Whether discrete or continuous, text or images, generative diffusion models rest squarely on Markov spectral decay and steady-state limits!
+
+<CollapsibleCode language="python" title="d3pm_markov_spectral_decay.py — D3PM Spectral Decay & Closed-Form Sampling">
+```python
+"""
+Verify spectral decay and closed-form direct sampling for D3PM discrete diffusion.
+Demonstrates exact equivalence between iterative matrix multiplication and the
+spectral closed-form solution, as well as convergence to the uniform steady state.
+"""
+import torch
+
+def verify_d3pm_markov_dynamics():
+    # Vocabulary size K=5, diffusion steps T=30
+    K = 5
+    T = 30
+    torch.manual_seed(42)
+
+    # Linear noise schedule beta_t from 0.02 to 0.20
+    betas = torch.linspace(0.02, 0.20, T)
+    alphas = 1.0 - betas
+    alpha_bars = torch.cumprod(alphas, dim=0)
+
+    # 1. Verify eigenvalue structure of a single-step transition matrix Q_0
+    t_test = 0
+    beta_0 = betas[t_test].item()
+    ones = torch.ones(K, K)
+    I = torch.eye(K)
+    # Row-stochastic matrix: each row sums to 1
+    Q_0 = (1.0 - beta_0) * I + (beta_0 / K) * ones
+
+    # Compute eigenvalues
+    eigenvalues = torch.linalg.eigvals(Q_0)
+    print("=" * 60)
+    print(f"Step t=1 transition matrix Q_1 eigenvalues (expected: one 1.0, {K-1} copies of {1.0 - beta_0:.4f}):")
+    for idx, ev in enumerate(sorted(eigenvalues.real, reverse=True)):
+        print(f"  lambda_{idx+1}: {ev.item():.6f}")
+
+    # 2. Verify iterative product(Q_s) against the spectral closed-form Q_bar_T
+    Q_bar_iterative = torch.eye(K)
+    for s in range(T):
+        beta_s = betas[s].item()
+        Q_s = (1.0 - beta_s) * I + (beta_s / K) * ones
+        Q_bar_iterative = Q_bar_iterative @ Q_s
+
+    # Compute Q_bar_T directly via spectral closed form
+    alpha_bar_T = alpha_bars[-1].item()
+    Q_bar_analytical = alpha_bar_T * I + (1.0 - alpha_bar_T) * (1.0 / K) * ones
+
+    # Measure Frobenius norm difference
+    diff = torch.norm(Q_bar_iterative - Q_bar_analytical).item()
+    print("\n" + "=" * 60)
+    print(f"T={T} iterative product Q_bar vs. spectral closed form:")
+    print(f"  Cumulative decay factor alpha_bar_T = {alpha_bar_T:.6f}")
+    print(f"  Frobenius norm error: {diff:.2e} (matches within floating-point precision!)")
+
+    # 3. Simulate evolution from a one-hot state toward the uniform steady state
+    # Initial state: deterministic token 0 (one-hot row vector)
+    x_0 = torch.zeros(1, K)
+    x_0[0, 0] = 1.0
+
+    print("\n" + "=" * 60)
+    print("Evolution of x_0 = [1, 0, 0, 0, 0] under the forward Markov noising chain:")
+    print(f"  t=0 : {x_0.squeeze().tolist()}")
+    for step in [5, 10, 20, 30]:
+        ab = alpha_bars[step-1].item()
+        # Direct closed-form evaluation q(x_t | x_0) = x_0 @ Q_bar_t
+        prob_t = ab * x_0 + (1.0 - ab) * (1.0 / K) * torch.ones(1, K)
+        probs_formatted = [round(p, 4) for p in prob_t.squeeze().tolist()]
+        print(f"  t={step:2d} (alpha_bar={ab:.4f}) : {probs_formatted}")
+
+    print("\nSteady-state limit (t -> inf): uniform distribution [0.2, 0.2, 0.2, 0.2, 0.2]")
+    print("=" * 60)
+
+if __name__ == '__main__':
+    verify_d3pm_markov_dynamics()
+```
+</CollapsibleCode>
+
+</FrontierAIReading>

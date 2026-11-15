@@ -1,0 +1,542 @@
+## Looking Back from the Summit of Module I: One Number $r$ Governs All Twelve Lectures!
+
+Congratulations on completing the entire core theory of MIT 18.06 Module I (Lectures 01–12)! Before stepping into the arena of MIT's first midterm exam (Quiz 1), Professor Gilbert Strang draws a master architectural map on the blackboard that unifies the first twelve lectures: **on the surface, you learned elimination, $PA = LU$, transposes and permutations, $R = \operatorname{rref}(A)$, particular and complete solutions, linear independence, basis and dimension, the Four Fundamental Subspaces, matrix spaces, rank-$1$ outer products, and circuit incidence matrices; yet deep in the bones of the subject, every single one of these topics revolves around one central invariant—the matrix rank $\operatorname{rank}(A) = r$!**
+
+Let us first survey this global navigation map, which unifies computation ($PA = LU$) and geometric structure ($[R \mid E]$ and the Four Fundamental Subspaces):
+
+<Module1SynthesisMapDiagram caption="Global synthesis map of Module I: the computational corridor PA = LU for O(n^3/3) elimination and O(n^2) triangular solves, alongside the structural corridor [A | I_m] -> [R | E] governed by the rank r across all Four Fundamental Subspaces." />
+
+### The Two Main Corridors: Why Learn Both $PA = LU$ and $[A \mid I_m] \to [R \mid E]$?
+
+Many students ask a great question right before the exam: *"Since both $PA = LU$ and $EA = R$ perform Gaussian elimination, why does linear algebra invent two different bookkeeping systems?"* The answer is that each serves a distinct mission, governing **large-scale numerical computation** and **exact subspace anatomy**, respectively:
+
+1. **The Computational Corridor $PA = LU$ (Engineered for $n \times n$ Invertible Systems in $\mathcal{O}(\frac{1}{3}n^3)$ Operations)**:
+   First use a permutation matrix $P$ (satisfying $P^T = P^{-1}$) to reorder the rows in advance and avoid zeros in the pivot positions, then apply top-down row elimination to reduce $PA$ to an upper triangular matrix $U$. Because top-down elimination introduces no cross-interference from upward elimination, every multiplier $\ell_{ij}$ slots directly—untouched—into the unit lower triangular matrix $L$! Once you pay the one-time $\frac{1}{3}n^3$ cost to factor $PA = LU$, you can handle thousands of right-hand sides $\mathbf{b}$ by two rapid triangular substitutions ($L\mathbf{c} = P\mathbf{b}$ and $U\mathbf{x} = \mathbf{c}$), slashing the per-solve cost to $\mathcal{O}(n^2)$!
+2. **The Structural Corridor $[A \mid I_m] \to [R \mid E]$ (Panoramic Four-Subspace Anatomy for Any $m \times n$ Matrix)**:
+   Continue eliminating upward above the pivots and divide each pivot row by its pivot to reach the unique **Reduced Row Echelon Form (RREF)** $R = EA$ (where the invertible matrix $E \in \mathbb{R}^{m\times m}$ automatically records the entire sequence of row operations). The number of pivots $r$ decisively locks in the dimensions and canonical bases of all Four Fundamental Subspaces!
+
+<DefinitionCard id="def-13-1" label="Definition 13.1" title="Quiz 1 Master Reference: Subspace Invariance Under Elementary Operations & Basis Extraction Laws">
+Let $A \in \mathbb{R}^{m\times n}$ have rank $\operatorname{rank}(A) = r$, let augmented row reduction yield $[A \mid I_m] \to [R \mid E]$ (so $EA = R$ with $E$ invertible), and let $Q \in \mathbb{R}^{n\times n}$ be any invertible column-operation matrix:
+
+1. **Left-Multiplication by Row Operations $EA$ (such as $A \to U \to R$)**:
+   - **Strictly Invariant (Input Space $\mathbb{R}^n$)**: $\operatorname{Row}(EA) = \operatorname{Row}(A)$ and $\operatorname{Null}(EA) = \operatorname{Null}(A)$;
+   - **Rotated Direction but Same Dimension (Output Space $\mathbb{R}^m$)**: $\operatorname{Col}(EA) = E\operatorname{Col}(A) \neq \operatorname{Col}(A)$ and $\operatorname{Null}((EA)^T) = E^{-T}\operatorname{Null}(A^T) \neq \operatorname{Null}(A^T)$.
+2. **Right-Multiplication by Column Operations $AQ$ (such as permuting free columns)**:
+   - **Strictly Invariant (Output Space $\mathbb{R}^m$)**: $\operatorname{Col}(AQ) = \operatorname{Col}(A)$ and $\operatorname{Null}((AQ)^T) = \operatorname{Null}(A^T)$;
+   - **Rotated Direction but Same Dimension (Input Space $\mathbb{R}^n$)**: $\operatorname{Row}(AQ) = Q^T\operatorname{Row}(A)$ and $\operatorname{Null}(AQ) = Q^{-1}\operatorname{Null}(A)$.
+3. **The Four-Subspace Basis Extraction Rules (Memorize to Never Lose Points)**:
+   - $\operatorname{Row}(A) \subseteq \mathbb{R}^n$ ($\dim = r$): **Copy the first $r$ nonzero rows of $R$ directly** (written vertically as column vectors);
+   - $\operatorname{Null}(A) \subseteq \mathbb{R}^n$ ($\dim = n - r$): **Solve $R\mathbf{x}=\mathbf{0}$ directly for the $n - r$ special solutions corresponding to the free variables** (when the $r$ pivot columns come first so that $R$ has top-left block $I_r$ and top-right free block $F$, the nullspace basis matrix has top block $-F$ and bottom block $I_{n-r}$);
+   - $\operatorname{Col}(A) \subseteq \mathbb{R}^m$ ($\dim = r$): **NEVER copy from $R$! You MUST go back to the original matrix $A$ and extract its $r$ pivot columns**;
+   - $\operatorname{Null}(A^T) \subseteq \mathbb{R}^m$ ($\dim = m - r$): **Copy the bottom $m - r$ rows of the record matrix $E$ directly** (written vertically as column vectors, satisfying $E_{\text{bottom}}\mathbf{b} = \mathbf{0} \iff \mathbf{b} \in \operatorname{Col}(A)$).
+</DefinitionCard>
+
+---
+
+## The MIT 18.06 Quiz 1 Heavy Arsenal: Five Golden Inequalities of Rank and Subspaces
+
+On an MIT 18.06 midterm exam, the problems that separate the top scores are never routine arithmetic—they are **zero-calculation rank deduction problems that give you no explicit numbers, only matrix dimensions and product conditions (such as $AB = 0$, $A^2 = 0$, or $AB = I$)**! The theorem below distills all the rank laws scattered across Lectures 03, 06, 08, 10, and 11 into five razor-sharp scalpels:
+
+<InteractiveCanvasSlot
+  id="l13-module1-rank-sandbox"
+  title="Interactive Sandbox: Module I Four Rank Regimes & Product Subspace Inclusion Explorer"
+  description="Adjust dimensions m, n, r and cascaded products A*B to observe Col(AB) inside Col(A), Null(B) inside Null(AB), and transitions across the four full-rank and rank-deficient solution regimes."
+/>
+
+<TheoremCard id="thm-13-1" label="Theorem 13.1" title="The Five Master Laws of Matrix Rank and Subspace Inclusion (The Rank Arsenal)">
+Assuming all matrix dimensions make the corresponding additions or multiplications valid, the following five ironclad laws hold over $\mathbb{R}$:
+1. **Natural Geometric Ceiling & Transpose Symmetry**: For any $A \in \mathbb{R}^{m\times n}$,
+
+   $$
+   0 \le \operatorname{rank}(A) = \operatorname{rank}(A^T) \le \min(m, n)
+   $$
+
+2. **Product Subspace Nesting & Rank Bottleneck Inequality**: For any $A \in \mathbb{R}^{m\times n}$ and $B \in \mathbb{R}^{n\times p}$, we always have $\operatorname{Col}(AB) \subseteq \operatorname{Col}(A)$, $\operatorname{Row}(AB) \subseteq \operatorname{Row}(B)$, and $\operatorname{Null}(B) \subseteq \operatorname{Null}(AB)$, which implies:
+
+   $$
+   \operatorname{rank}(AB) \le \min\bigl(\operatorname{rank}(A),\; \operatorname{rank}(B)\bigr)
+   $$
+
+   **Invertible Rank-Preservation Corollary**: If $P \in \mathbb{R}^{m\times m}$ and $Q \in \mathbb{R}^{n\times n}$ are invertible, then $\operatorname{rank}(PAQ) = \operatorname{rank}(A)$.
+3. **Rank Subadditivity & Rank-1 Atomic Decomposition**: For $A, B \in \mathbb{R}^{m\times n}$ of the same size,
+
+   $$
+   |\operatorname{rank}(A) - \operatorname{rank}(B)| \le \operatorname{rank}(A + B) \le \operatorname{rank}(A) + \operatorname{rank}(B)
+   $$
+
+   Moreover, $\operatorname{rank}(A) = r$ if and only if $A$ can be written as a sum of at minimum $r$ rank-$1$ outer product matrices $\sum_{k=1}^r \mathbf{u}_k \mathbf{v}_k^T$.
+4. **Zero-Product Annihilation Inequality (Sylvester Nullity Special Case)**: If $A \in \mathbb{R}^{m\times n}$ and $B \in \mathbb{R}^{n\times p}$ satisfy **$AB = 0$**, then every column of $B$ lies in the nullspace of $A$, i.e., **$\operatorname{Col}(B) \subseteq \operatorname{Null}(A)$**! Taking dimensions on both sides immediately gives:
+
+   $$
+   AB = 0 \quad \Longrightarrow \quad \operatorname{rank}(B) \le \dim\operatorname{Null}(A) = n - \operatorname{rank}(A) \quad \Longleftrightarrow \quad \operatorname{rank}(A) + \operatorname{rank}(B) \le n
+   $$
+
+   *(Special Case: If an $n \times n$ square matrix satisfies the nilpotent condition $A^2 = 0$, setting $B = A$ immediately yields $2\operatorname{rank}(A) \le n \implies \operatorname{rank}(A) \le \lfloor n/2 \rfloor$!)*
+5. **One-Sided Inverses & Shape Rigidity Criterion**: Let $A \in \mathbb{R}^{m\times n}$.
+   - A **left inverse** $L A = I_n$ exists $\iff \operatorname{rank}(A) = n$ (full column rank, requiring a **tall-thin or square matrix $m \ge n$**, where $A\mathbf{x}=\mathbf{b}$ has $0$ or $1$ solution);
+   - A **right inverse** $A R_{\text{inv}} = I_m$ exists $\iff \operatorname{rank}(A) = m$ (full row rank, requiring a **short-wide or square matrix $m \le n$**, where $A\mathbf{x}=\mathbf{b}$ has at least one solution for every $\mathbf{b}$);
+   - **The Fatal Trap**: If $m \gt n$ (a tall-thin matrix), multiplying $(n \times m)$ by $(m \times n)$ can produce $I_n$, but multiplying $(m \times n)$ by $(n \times m)$ produces a large $m \times m$ square matrix whose rank is at most $n \lt m$—**it can NEVER equal $I_m$ (it is never invertible)**!
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Zero-Product Inclusion Col(B) in Null(A) and Existence of One-Sided Inverses">
+1. **Law 4 ($AB = 0 \implies \operatorname{rank}(A) + \operatorname{rank}(B) \le n$)**:
+   Take any $\mathbf{y} \in \operatorname{Col}(B)$; then there exists $\mathbf{z} \in \mathbb{R}^p$ such that $\mathbf{y} = B\mathbf{z}$. Left-multiplying by $A$ gives $A\mathbf{y} = A(B\mathbf{z}) = (AB)\mathbf{z} = 0\mathbf{z} = \mathbf{0}$, so $\mathbf{y} \in \operatorname{Null}(A)$! Thus the subspace inclusion $\operatorname{Col}(B) \subseteq \operatorname{Null}(A)$ holds. By monotonicity of subspace dimensions together with the Rank-Nullity Theorem $\dim\operatorname{Null}(A) = n - \operatorname{rank}(A)$, we obtain $\operatorname{rank}(B) = \dim\operatorname{Col}(B) \le n - \operatorname{rank}(A)$, or equivalently $\operatorname{rank}(A) + \operatorname{rank}(B) \le n$.
+2. **Law 5 (One-Sided Inverses and Rank)**:
+   - Suppose there exists $L \in \mathbb{R}^{n\times m}$ such that $LA = I_n$. By Law 2 (the rank bottleneck inequality), $n = \operatorname{rank}(I_n) = \operatorname{rank}(LA) \le \operatorname{rank}(A) \le n$, squeezing $\operatorname{rank}(A) = n$ (which forces $n \le m$). Conversely, if $\operatorname{rank}(A) = n$, then $\operatorname{rref}(A) = EA$ has $I_n$ in its top $n$ rows and $0$ below; taking the first $n$ rows of $E$ as $L$ gives $LA = I_n$!
+   - Applying this left-inverse characterization to $A^T$ and taking transposes immediately yields: a right inverse $A R_{\text{inv}} = I_m$ exists $\iff \operatorname{rank}(A^T) = m \iff \operatorname{rank}(A) = m$ (which forces $m \le n$).
+</ProofCollapse>
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+1. **The Complete Solution Set Is Not a Subspace**: When $\mathbf{b} \neq \mathbf{0}$, the solution set $\{\mathbf{x}_p + \mathbf{x}_n\}$ of $A\mathbf{x} = \mathbf{b}$ does not contain the origin $\mathbf{0}$—it is a translated **affine flat**, never a vector subspace!
+2. **Equal Dimension $\neq$ Equal Subspace**: A square matrix always satisfies $\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A) = r$, but unless $A$ is symmetric or invertible, in general $\operatorname{Row}(A) \neq \operatorname{Col}(A)$ (for instance, the $2 \times 2$ matrix with $a_{12} = 1$ and all other entries $0$ has row space along the $x_2$-axis and column space along the $x_1$-axis).
+3. **Never Scramble the Order of $PA = LU$**: Permuting rows first and eliminating second is $PA = LU$; writing $A = L_1 P_1 U_1$ changes the structure of the factors! Moreover, elimination proceeds without row exchanges if and only if the leading principal submatrices of orders $1, 2, \dots, r$ successively yield nonzero pivots.
+4. **Free Columns Can Stand to the Left of Pivot Columns in RREF**: Never blindly memorize the block formula with $-F$ stacked above $I_{n-r}$! If column $2$ is free and column $3$ is a pivot column (as in Lectures 07 and 10), the $1$s and $0$s of the special solutions must be placed strictly in **the row indices corresponding to the free variables themselves**!
+5. **Over $\mathbb{R}$, $\operatorname{rank}(A^T A) = \operatorname{rank}(A)$ Always Holds, but Squaring a General Matrix $A^2$ Can Lose Rank**: Every real matrix satisfies $\operatorname{Null}(A^T A) = \operatorname{Null}(A)$ (because $A^T A \mathbf{x} = \mathbf{0} \implies \mathbf{x}^T A^T A \mathbf{x} = \|A\mathbf{x}\|_2^2 = 0 \implies A\mathbf{x} = \mathbf{0}$!), whereas for an unsymmetric square matrix, $\operatorname{rank}(A^2)$ can easily drop below $\operatorname{rank}(A)$ (for example, a nonzero nilpotent matrix with $A^2 = 0$)!
+6. **Fixed-Rank Matrices and Invertible Matrices Do Not Form Subspaces**: Inside the matrix space $M$, symmetric matrices, upper triangular matrices, and trace-zero matrices form subspaces; however, "matrices of rank exactly $k$," "matrices of rank at most $k$ (for $1\le k \lt \min(m,n)$)," and "invertible matrices" all fail closure under addition!
+</PitfallAlert>
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "**Dual Engines of Computation and Structure**: To solve invertible square linear systems, use $PA = LU$ ($\\mathcal{O}(n^3/3)$ elimination + $\\mathcal{O}(n^2)$ substitution); to dissect complete solutions and the Four Fundamental Subspaces of rectangular matrices, use $[A \\mid I_m] \\to [R \\mid E]$.",
+    "**The Four Fundamental Subspaces Dimension Balance**: In the input space $\\mathbb{R}^n$, $\\dim\\operatorname{Row}(A) = r$ and $\\dim\\operatorname{Null}(A) = n - r$; in the output space $\\mathbb{R}^m$, $\\dim\\operatorname{Col}(A) = r$ and $\\dim\\operatorname{Null}(A^T) = m - r$.",
+    "**Five Iron Laws of Rank Reasoning**: $\\operatorname{rank}(AB) \\le \\min(\\operatorname{rank}A, \\operatorname{rank}B)$; $AB = 0 \\implies \\operatorname{rank}(A) + \\operatorname{rank}(B) \\le n$; $|\\operatorname{rank}A - \\operatorname{rank}B| \\le \\operatorname{rank}(A+B) \\le \\operatorname{rank}A + \\operatorname{rank}B$; and for any real matrix, $\\operatorname{rank}(A^T A) = \\operatorname{rank}(A)$.",
+    "**Physical Closure of Network Incidence Matrices**: A connected graph with $v$ nodes and $e$ edges has rank $r = v - 1$, a tree has no loops ($e = v - 1$), and the loop-space dimension $e - v + 1 = f_{\\text{bounded}}$ yields Euler's Formula $v - e + f = 2$."
+  ]}
+/>
+
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+  <ExerciseCard
+    id="l13-ex1"
+    tier="L1"
+    tierLabel="L1 · Quick Geometric Check"
+    title="Quiz 1 Problem 1 (PA = LU & Two-Step Triangular Solve): Lightning Solution Without Finding A⁻¹"
+  >
+    Suppose a $3 \times 3$ invertible matrix $A$ has undergone Gaussian elimination with row exchanges to produce the factorization $PA = LU$, where:
+
+    $$
+    P = \begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ 1 & 0 & 0 \end{bmatrix}, \qquad
+    L = \begin{bmatrix} 1 & 0 & 0 \\ 2 & 1 & 0 \\ -1 & 3 & 1 \end{bmatrix}, \qquad
+    U = \begin{bmatrix} 1 & 2 & 0 \\ 0 & 1 & 1 \\ 0 & 0 & 2 \end{bmatrix}
+    $$
+
+    1. **Without multiplying out $P^{-1}LU$ to reconstruct $A$**, find the unique solution $\mathbf{x}$ to $A\mathbf{x} = \mathbf{b}$ for the right-hand side vector $\mathbf{b} = (5, 1, 4)^T$ strictly via the two-step triangular substitution pipeline (first solve $L\mathbf{c} = P\mathbf{b}$, then solve $U\mathbf{x} = \mathbf{c}$);
+    2. Without doing matrix multiplication, state by inspection what the inverse permutation matrix $P^{-1}$ equals, and what $P^3$ equals!
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "Never forget the row permutation in Step 0! Since $A\\mathbf{x} = \\mathbf{b} \\iff PA\\mathbf{x} = P\\mathbf{b} \\iff LU\\mathbf{x} = P\\mathbf{b}$, compute $P\\mathbf{b}$ first: row 1 picks $b_2=1$, row 2 picks $b_3=4$, and row 3 picks $b_1=5$!",
+        "Use forward substitution to solve the lower triangular system $L\\mathbf{c} = (1, 4, 5)^T$: $c_1 = 1$, $2c_1 + c_2 = 4$, and $-c_1 + 3c_2 + c_3 = 5$.",
+        "Use back substitution to solve the upper triangular system $U\\mathbf{x} = \\mathbf{c}$. For Part 2, recall the orthogonality of permutation matrices $P^{-1} = P^T$, and notice that $P$ cyclically shifts $(1,2,3)$ into $(2,3,1)$—where does shifting 3 times return you?"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        This is the practical payoff of Lectures 04 and 05 in action: $PA = LU$ has already done all the heavy lifting of elimination for you! All you need to do is shuffle the right-hand side vector $\mathbf{b}$ with the same permutation $P$ to get $P\mathbf{b}$, peel off $L$ from top to bottom, and peel off $U$ from bottom to top—using nothing more than addition, subtraction, and a single division by $2$! As for $P$, each application shifts the three rows cyclically upward by one slot, so applying it three times brings every row right back home ($P^3 = I_3$), and stepping backward one slot is the same as stepping forward two slots ($P^{-1} = P^T = P^2$)!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        1. **Two-Step Triangular Solve for $LU\mathbf{x} = P\mathbf{b}$**:
+           - **Permute the Right-Hand Side First**:
+
+             $$
+             P\mathbf{b} = \begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ 1 & 0 & 0 \end{bmatrix} \begin{bmatrix} 5 \\ 1 \\ 4 \end{bmatrix} = \begin{bmatrix} 1 \\ 4 \\ 5 \end{bmatrix}
+             $$
+
+           - **Step 1: Forward Substitution $L\mathbf{c} = P\mathbf{b}$**:
+             From $c_1 = 1$, we get $2c_1 + c_2 = 4 \implies c_2 = 2$, and $-c_1 + 3c_2 + c_3 = 5 \implies -1 + 6 + c_3 = 5 \implies c_3 = 0$. Thus $\mathbf{c} = (1, 2, 0)^T$.
+           - **Step 2: Back Substitution $U\mathbf{x} = \mathbf{c}$**:
+             From $2x_3 = c_3 = 0 \implies x_3 = 0$, we get $x_2 + x_3 = c_2 = 2 \implies x_2 = 2$, and $x_1 + 2x_2 = c_1 = 1 \implies x_1 = 1 - 4 = -3$.
+             Hence the unique solution is:
+
+             $$
+             \mathbf{x} = \begin{bmatrix} -3 \\ 2 \\ 0 \end{bmatrix}
+             $$
+
+        2. **Inverse and Period of the Permutation Matrix**:
+           By the orthogonality of permutation matrices (Lecture 05),
+
+           $$
+           P^{-1} = P^T = \begin{bmatrix} 0 & 0 & 1 \\ 1 & 0 & 0 \\ 0 & 1 & 0 \end{bmatrix}
+           $$
+
+           Because $P$ performs the $3$-cycle row permutation $(1 \leftarrow 2 \leftarrow 3 \leftarrow 1)$, applying it $3$ times restores every row to its original position, so **$P^3 = I_3$**.
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l13-ex2"
+    tier="L2"
+    tierLabel="L2 · Conceptual True/False"
+    title="Quiz 1 Problem 2 (Concept Trap I): Does rank(A²) Always Equal rank(A) for Any Real Square Matrix?"
+  >
+    Determine whether the following classic proposition—which has a historical error rate above 60% on Quiz 1—is true or false:
+
+    > **Proposition**: For every $n \times n$ real square matrix $A$, since real matrices always satisfy $\operatorname{rank}(A^T A) = \operatorname{rank}(A)$, by the same logic we must also have $\operatorname{rank}(A^2) = \operatorname{rank}(A)$.
+
+    <TrueFalseInteractive
+      id="l13-tf1"
+      correct={false}
+      trueLabel="True"
+      falseLabel="False (Counterexample Exists)"
+      quickFeedback="False! The matrix A^T A preserves rank because over the reals Row(A) and Null(A) intersect only at 0, so a nonzero output Ax can never fall into Null(A^T). In contrast, A^2 = A*A feeds Col(A) directly into Null(A)—whenever Col(A) lies inside Null(A) (such as the 2x2 shift matrix with a_12 = 1 and all other entries 0), A has rank 1 while A^2 = 0 has rank 0!"
+    />
+
+    1. Give a nonzero $2 \times 2$ matrix $A$ such that $A^2 = 0$, and explain why the rank drops by $1$ in terms of the geometric relationship between $\operatorname{Col}(A)$ and $\operatorname{Null}(A)$;
+    2. **Follow-Up**: If we replace $A$ with a real **symmetric** square matrix $S$ (satisfying $S^T = S$), does the identity $\operatorname{rank}(S^2) = \operatorname{rank}(S)$ become **universally true**? Give a rigorous two-line proof!
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "For Part 1, use our old friend with row 1 equal to $[0, 1]$ and row 2 equal to $[0, 0]$: its column space is the $x_1$-axis, and its nullspace is ALSO the $x_1$-axis ($\\operatorname{Col}(A) = \\operatorname{Null}(A)$)! Multiplying by $A$ the first time collapses the plane onto the $x_1$-axis, and multiplying by $A$ the second time swallows the entire $x_1$-axis into the origin $\\mathbf{0}$!",
+        "For Part 2: when $S^T = S$, we have $S^2 = S \\cdot S = S^T S$! How do we prove $\\operatorname{Null}(A^T A) = \\operatorname{Null}(A)$ over $\\mathbb{R}$ in two lines? Suppose $A^T A \\mathbf{x} = \\mathbf{0}$ and left-multiply both sides by $\\mathbf{x}^T$ to form the squared Euclidean norm!"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        Think of multiplying by $A$ twice as passing through two consecutive filters: the first filter outputs vectors living in $\operatorname{Col}(A)$, while the second filter annihilates everything living in $\operatorname{Null}(A)$. For an ordinary unsymmetric square matrix, $\operatorname{Col}(A)$ can march straight into the jaws of $\operatorname{Null}(A)$ and get swallowed whole (causing the rank to collapse)! For a real symmetric matrix $S^T = S$, however, its column space equals its row space $\operatorname{Row}(S)$, and over $\mathbb{R}$ the row space and nullspace meet only at $\mathbf{0}$—so no nonzero vector emerging from the first filter can ever be swallowed by the second filter, and not a single dimension of rank is lost!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        **The proposition is False**.
+
+        1. **Unsymmetric Counterexample**: Take
+
+           $$
+           A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}, \qquad A^2 = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}
+           $$
+
+           Here $\operatorname{rank}(A) = 1$, whereas $\operatorname{rank}(A^2) = 0 \lt 1$. The geometric root cause is that $\operatorname{Col}(A) = \operatorname{span}\{(1,0)^T\} \subseteq \operatorname{Null}(A)$.
+
+        2. **Real Symmetric Matrices Always Preserve Rank Upon Squaring ($S^T = S \implies \operatorname{rank}(S^2) = \operatorname{rank}(S)$)**:
+           First we show that for any real matrix $M \in \mathbb{R}^{m\times n}$, $\operatorname{Null}(M^T M) = \operatorname{Null}(M)$:
+           - If $M\mathbf{x} = \mathbf{0}$, left-multiplying by $M^T$ gives $M^T M \mathbf{x} = \mathbf{0}$, so $\operatorname{Null}(M) \subseteq \operatorname{Null}(M^T M)$;
+           - Conversely, if $M^T M \mathbf{x} = \mathbf{0}$, left-multiplying by $\mathbf{x}^T$ yields $\mathbf{x}^T M^T M \mathbf{x} = (M\mathbf{x})^T (M\mathbf{x}) = \|M\mathbf{x}\|_2^2 = 0$. Since $M$ and $\mathbf{x}$ are real, a sum of squares vanishes only if every component vanishes, forcing $M\mathbf{x} = \mathbf{0}$, so $\operatorname{Null}(M^T M) \subseteq \operatorname{Null}(M)$!
+           By the Rank-Nullity Theorem, $n - \operatorname{rank}(M^T M) = n - \operatorname{rank}(M) \implies \operatorname{rank}(M^T M) = \operatorname{rank}(M)$.
+           Now since $S^T = S$, we have $S^2 = S^T S$, and applying the identity above immediately proves that **$\operatorname{rank}(S^2) = \operatorname{rank}(S^T S) = \operatorname{rank}(S)$ holds universally**!
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l13-ex3"
+    tier="L2"
+    tierLabel="L2 · Conceptual True/False"
+    title="Quiz 1 Problem 3 (Concept Trap II): Can a Tall-Thin Matrix Times a Short-Wide Matrix Be Invertible?"
+  >
+    Determine whether the following proposition is true or false:
+
+    > **Proposition**: Let $A$ be a $5 \times 3$ real matrix and $B$ be a $3 \times 5$ real matrix. If the $3 \times 3$ product matrix satisfies $BA = I_3$ (the $3 \times 3$ identity matrix), then the reversed $5 \times 5$ product matrix $AB$ can at least possibly be invertible (provided the entries of $A$ and $B$ are chosen cleverly enough).
+
+    <TrueFalseInteractive
+      id="l13-tf2"
+      correct={false}
+      trueLabel="True"
+      falseLabel="False (Counterexample Exists)"
+      quickFeedback="Impossible (100% singular and non-invertible)! Even choosing the entries by hand cannot save it: the information flow passes through an intermediate 3-dimensional bottleneck R^3, so by Theorem 13.1 Law 2, rank(AB) <= min(rank(A), rank(B)) <= 3 < 5! A 5x5 square matrix of rank at most 3 has a nullspace of dimension at least 5 - 3 = 2, so it can never be invertible!"
+    />
+
+    Given $A \in \mathbb{R}^{5\times 3}$ and $B \in \mathbb{R}^{3\times 5}$ with $BA = I_3$:
+    1. Find the **exact rank $\operatorname{rank}(AB)$** of the $5 \times 5$ matrix $P = AB$ (not merely an inequality, but a uniquely determined integer!) along with the dimensions of its Four Fundamental Subspaces;
+    2. Compute $P^2 = (AB)(AB)$! What geometric role does $P = AB$ play?
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "On one hand, the bottleneck upper bound gives $\\operatorname{rank}(AB) \\le \\operatorname{rank}(A) \\le 3$; on the other hand, use $BA = I_3$ by sandwiching $AB$ between $B$ on the left and $A$ on the right: $B(AB)A = (BA)(BA) = I_3 \\cdot I_3 = I_3$!",
+        "Since $B(AB)A = I_3$ has rank $3$, the product rank inequality gives $3 = \\operatorname{rank}(B(AB)A) \\le \\operatorname{rank}(AB)$! Squeezed from above and below, what integer must $\\operatorname{rank}(AB)$ equal?",
+        "By associativity, $P^2 = A(BA)B = A I_3 B = AB = P$—an idempotent matrix satisfying $P^2 = P$ is precisely a **subspace projection matrix**, which takes center stage in Module II!"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        Picture the composite map $\mathbb{R}^5 \xrightarrow{B} \mathbb{R}^3 \xrightarrow{A} \mathbb{R}^5$ as an hourglass: five-dimensional space is squeezed through a three-dimensional waist and then mapped back into five-dimensional space. The two lost dimensions ($\dim\operatorname{Null}(B) = 2$) are annihilated forever and can never be recovered to fill all of $\mathbb{R}^5$! However, because $BA = I_3$ guarantees that nothing is lost inside the three-dimensional waist itself, a three-dimensional slice of $\mathbb{R}^5$ is preserved completely intact ($P^2 = P$, with rank locked at $3$)—making $P = AB$ a projection operator onto the $3$-dimensional column space $\operatorname{Col}(A)$!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        **The proposition is False**: $AB \in \mathbb{R}^{5\times 5}$ is necessarily singular (non-invertible).
+
+        1. **Squeezing the Exact Rank $\operatorname{rank}(AB) = 3$**:
+           - **Upper Bound**: Since $A \in \mathbb{R}^{5\times 3}$, $\operatorname{rank}(AB) \le \operatorname{rank}(A) \le 3 \lt 5$ (so $AB$ cannot be invertible).
+           - **Lower Bound**: Using $BA = I_3$ and associativity of matrix multiplication, consider $B(AB)A = (BA)(BA) = I_3^2 = I_3$. Applying the product rank inequality again yields:
+
+             $$
+             3 = \operatorname{rank}(I_3) = \operatorname{rank}\bigl(B(AB)A\bigr) \le \operatorname{rank}(AB)
+             $$
+
+           Combining the upper and lower bounds locks in **$\operatorname{rank}(AB) = 3$**! Consequently, the Four Fundamental Subspaces of $P = AB \in \mathbb{R}^{5\times 5}$ have dimensions $\dim\operatorname{Col}(P) = \dim\operatorname{Row}(P) = 3$ and $\dim\operatorname{Null}(P) = \dim\operatorname{Null}(P^T) = 5 - 3 = 2$.
+
+        2. **Idempotent Projection Structure**:
+
+           $$
+           P^2 = (AB)(AB) = A(BA)B = A I_3 B = AB = P
+           $$
+
+           Thus $P = AB$ is the projection matrix that projects $\mathbb{R}^5$ onto the $3$-dimensional subspace $\operatorname{Col}(A)$ along $\operatorname{Null}(B)$ (which becomes an orthogonal projection when $B = (A^TA)^{-1}A^T$)!
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+
+  <ExerciseCard
+    id="l13-ex4"
+    tier="L3"
+    tierLabel="L3 · Reverse-Engineering Subspaces"
+    title="Quiz 1 Problem 4 (Reconstructing an Unknown System from Its Complete Solution): Strang's Classic Detective Problem!"
+  >
+    Suppose the **complete solution** to an unknown real linear system $A\mathbf{x} = \mathbf{b}$ is given by:
+
+    $$
+    \mathbf{x} = \begin{bmatrix} 2 \\ 0 \\ 0 \\ 0 \end{bmatrix} + c_1 \begin{bmatrix} -1 \\ 1 \\ 0 \\ 0 \end{bmatrix} + c_2 \begin{bmatrix} -3 \\ 0 \\ -2 \\ 1 \end{bmatrix} \qquad (\forall c_1, c_2 \in \mathbb{R})
+    $$
+
+    You are also told that the coefficient matrix $A$ has **$m = 3$ rows**. Answer all of the following questions:
+    1. What are the exact dimensions $m \times n$ of $A$, its rank $\operatorname{rank}(A) = r$, and the dimensions of its Four Fundamental Subspaces?
+    2. Write down the **unique possible** reduced row echelon form $R = \operatorname{rref}(A)$!
+    3. If you are further told that $A\mathbf{x} = \mathbf{b}$ is solvable if and only if the right-hand side $\mathbf{b} = (b_1, b_2, b_3)^T$ satisfies the solvability condition $b_1 + b_2 - b_3 = 0$, find a basis for the left nullspace $\operatorname{Null}(A^T)$ and construct an explicit matrix $A$ and vector $\mathbf{b}$ satisfying all given conditions!
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "First count the components of $\\mathbf{x}$: there are $4$ components $\\implies n = 4$ columns! The two linearly independent special solutions span $\\operatorname{Null}(A) \\implies \\dim\\operatorname{Null}(A) = n - r = 2 \\implies r = 4 - 2 = 2$!",
+        "Look at which two positions in the two special solutions contain $(1,0)$ and $(0,1)$: components $2$ and $4$! That means columns $2$ and $4$ are the free columns, and **columns $1$ and $3$ are the pivot columns**! Substituting both special solutions into $R\\mathbf{x}_n = \\mathbf{0}$ immediately determines every entry of $R$!",
+        "For Part 3: the solvability condition $b_1 + b_2 - b_3 = 0 \\iff [1, 1, -1]\\mathbf{b} = 0$ shows that $(1, 1, -1)^T$ spans the left nullspace $\\operatorname{Null}(A^T)$ (which has dimension $3 - 2 = 1$)! Simply replace row 3 of $R$ with the sum of its first two rows (so $\\text{row}_1 + \\text{row}_2 - \\text{row}_3 = \\mathbf{0}^T$), and compute $\\mathbf{b} = A\\mathbf{x}_p$!"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        This detective problem strings together Lectures 06, 07, 08, and 10 into a single gem!
+        - The particular solution $\mathbf{x}_p = (2,0,0,0)^T$ gives away the secret of column $1$ ($\mathbf{b} = 2\cdot\text{col}_1(A)$);
+        - The two special solutions attached to $c_1, c_2$ reveal the entire nullspace $\operatorname{Null}(A)$, and since $\operatorname{Null}(R) = \operatorname{Null}(A)$, that hands you the unique reduced row echelon form $R$ on a silver platter;
+        - Finally, the solvability condition $b_1 + b_2 - b_3 = 0$ reveals the unique normal vector $(1, 1, -1)^T$ spanning the left nullspace $\operatorname{Null}(A^T)$ in the output space! Once you snap those pieces together, the matrix $A$ has nowhere to hide!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        1. **Shape, Rank, and Dimensions of the Four Subspaces**:
+           Since $\mathbf{x} \in \mathbb{R}^4$, we have $n = 4$; combined with $m = 3$, $A \in \mathbb{R}^{3\times 4}$. The two special solutions $\mathbf{s}_1 = (-1,1,0,0)^T$ and $\mathbf{s}_2 = (-3,0,-2,1)^T$ are linearly independent and span $\operatorname{Null}(A)$, so $\dim\operatorname{Null}(A) = 2$ and $r = 4 - 2 = \mathbf{2}$.
+           The dimensions of the Four Fundamental Subspaces are $\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A) = 2$, $\dim\operatorname{Null}(A) = 2$, and $\dim\operatorname{Null}(A^T) = 3 - 2 = 1$.
+
+        2. **Uniquely Determining $R = \operatorname{rref}(A)$**:
+           In the two special solutions $\mathbf{s}_1 = (-1,1,0,0)^T$ and $\mathbf{s}_2 = (-3,0,-2,1)^T$, the standard basis pattern $(1,0)$ and $(0,1)$ appears in coordinates $x_2$ and $x_4$, identifying columns $2$ and $4$ as the free columns and columns $1$ and $3$ as the pivot columns. Requiring $R\mathbf{s}_1 = \mathbf{0}$ and $R\mathbf{s}_2 = \mathbf{0}$ uniquely fixes the free entries in rows $1$ and $2$:
+
+           $$
+           R = \begin{bmatrix} 1 & 1 & 0 & 3 \\ 0 & 0 & 1 & 2 \\ 0 & 0 & 0 & 0 \end{bmatrix}
+           $$
+
+           Any $3\times 4$ RREF matrix sharing this nullspace has the exact same row space $\operatorname{Row}(R) = \operatorname{Null}(A)^\perp$, so by the uniqueness of RREF this matrix $R$ is **unique**!
+
+        3. **Basis for the Left Nullspace and Explicit Construction of $A$ and $\mathbf{b}$**:
+           The solvability condition $b_1 + b_2 - b_3 = 0 \iff b_1 + b_2 - b_3 = (1, 1, -1)\mathbf{b} = 0$, together with $\dim\operatorname{Null}(A^T) = 1$, gives the left nullspace basis:
+
+           $$
+           \mathcal{B}_{\text{left-null}} = \left\{ \begin{bmatrix} 1 \\ 1 \\ -1 \end{bmatrix} \right\}
+           $$
+
+           To make $A = E^{-1} R$ satisfy $(1, 1, -1) A = \mathbf{0}^T$ (meaning row $3$ equals the sum of rows $1$ and $2$), we simply set row $3$ of $A$ to be $\text{row}_1(R) + \text{row}_2(R)$, and then compute $\mathbf{b} = A\mathbf{x}_p$ using $\mathbf{x}_p = (2,0,0,0)^T$:
+
+           $$
+           A = \begin{bmatrix} 1 & 1 & 0 & 3 \\ 0 & 0 & 1 & 2 \\ 1 & 1 & 1 & 5 \end{bmatrix}, \qquad \mathbf{b} = A \begin{bmatrix} 2 \\ 0 \\ 0 \\ 0 \end{bmatrix} = \begin{bmatrix} 2 \\ 0 \\ 2 \end{bmatrix}
+           $$
+
+           *(Verification: $b_1 + b_2 - b_3 = 2 + 0 - 2 = 0$, and eliminating row $3$ reduces $A\mathbf{x} = \mathbf{b}$ back to $R\mathbf{x} = (2,0,0)^T$, matching the complete solution identically!)*
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l13-ex5"
+    tier="L4"
+    tierLabel="L4 · MIT 18.06 Exam Synthesis"
+    title="Quiz 1 Problem 5 (Zero Products & Nilpotent Ceiling): If a 5×5 Matrix Satisfies A² = 0, What Is Its Maximum Possible Rank?"
+  >
+    Let $A$ be a $5 \times 5$ real square matrix satisfying the nilpotent equation **$A^2 = 0$** (the zero matrix).
+    1. Using subspace inclusion, prove rigorously that $\operatorname{rank}(A)$ **can never equal $3, 4$, or $5$**! Find the set of all possible integer values of $\operatorname{rank}(A)$;
+    2. For the maximum possible rank $r_{\max}$ you found, explicitly construct a $5 \times 5$ real matrix $A$ satisfying both $A^2 = 0$ and $\operatorname{rank}(A) = r_{\max}$!
+    3. **Advanced Generalization**: If three matrices $A, B, C \in \mathbb{R}^{6\times 6}$ satisfy the triple product $ABC = 0$, prove that $\operatorname{rank}(A) + \operatorname{rank}(B) + \operatorname{rank}(C) \le 12$!
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "For Part 1: $A^2 = A \\cdot A = 0$ means that every column of $A$ is sent to $\\mathbf{0}$ when left-multiplied by $A$, so $\\operatorname{Col}(A) \\subseteq \\operatorname{Null}(A)$!",
+        "Take dimensions on both sides: $r = \\dim\\operatorname{Col}(A) \\le \\dim\\operatorname{Null}(A) = 5 - r \\implies 2r \\le 5 \\implies r \\le 2.5$! Since the rank must be an integer, its maximum possible value is $2$!",
+        "For Part 2, to construct a $5\\times 5$ nilpotent matrix of rank $2$, place a $2\\times 2$ identity block $I_2$ in the top-right corner (columns 4 and 5 of rows 1 and 2) and $0$s everywhere else! For Part 3, apply Sylvester's rank inequality to $(AB)C = 0$!"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        The equation $A^2 = 0$ demands that the entire column space $\operatorname{Col}(A)$ (of dimension $r$) hide inside the nullspace $\operatorname{Null}(A)$ (of dimension $5 - r$)! If $r \ge 3$, the column space has dimension at least $3$, while the nullspace has dimension at most $5 - 3 = 2$—and how could a $3$-dimensional volume fit inside a $2$-dimensional plane? Thus $2r \le 5$, capping the rank at $2$! As for the triple product $ABC = 0$, each multiplication can lose at most as much rank as the nullspace dimension $6 - \operatorname{rank}$ of the left factor, so chaining two steps immediately locks in the ceiling of $12$!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        1. **Upper Bound on the Rank of a Nilpotent Matrix**:
+           Because $A^2 = 0$, for every vector $\mathbf{y} = A\mathbf{x} \in \operatorname{Col}(A)$ we have $A\mathbf{y} = A^2\mathbf{x} = \mathbf{0}$, which proves $\operatorname{Col}(A) \subseteq \operatorname{Null}(A)$. Letting $r = \operatorname{rank}(A)$ and taking dimensions yields:
+
+           $$
+           r = \dim\operatorname{Col}(A) \le \dim\operatorname{Null}(A) = 5 - r \implies 2r \le 5 \implies r \le 2
+           $$
+
+           Since rank is a nonnegative integer, $\operatorname{rank}(A) \in \{0, 1, 2\}$, and can never be $3, 4$, or $5$!
+
+        2. **Explicit $5 \times 5$ Construction Achieving Maximum Rank $r_{\max} = 2$**:
+           Using block matrix multiplication, place the $2 \times 2$ identity matrix $I_2$ in the top-right corner and zeros everywhere else:
+
+           $$
+           A = \begin{bmatrix}
+           0 & 0 & 0 & 1 & 0 \\
+           0 & 0 & 0 & 0 & 1 \\
+           0 & 0 & 0 & 0 & 0 \\
+           0 & 0 & 0 & 0 & 0 \\
+           0 & 0 & 0 & 0 & 0
+           \end{bmatrix}
+           $$
+
+           Clearly the first two rows contain $2$ pivots, so $\operatorname{rank}(A) = 2$; meanwhile $\operatorname{Col}(A) = \operatorname{span}\{\mathbf{e}_1, \mathbf{e}_2\} \subseteq \operatorname{span}\{\mathbf{e}_1, \mathbf{e}_2, \mathbf{e}_3\} = \operatorname{Null}(A)$, so $A^2 = 0$! *(Taking $0_{5\times 5}$ achieves $r=0$ and setting only $a_{15}=1$ achieves $r=1$, so every value in $\{0,1,2\}$ is attainable.)*
+
+        3. **Proof that $ABC = 0 \implies \operatorname{rank}(A) + \operatorname{rank}(B) + \operatorname{rank}(C) \le 12$**:
+           First we establish Sylvester's general rank lower bound: for any $X, Y \in \mathbb{R}^{n\times n}$, restricting the linear map $X$ to $\operatorname{Col}(Y)$ gives $\left.X\right|_{\operatorname{Col}(Y)} : \operatorname{Col}(Y) \to \operatorname{Col}(XY)$ with kernel $\operatorname{Col}(Y) \cap \operatorname{Null}(X)$. Applying the Rank-Nullity Theorem to this restriction gives:
+
+           $$
+           \operatorname{rank}(Y) = \dim\operatorname{Col}(XY) + \dim\bigl(\operatorname{Col}(Y) \cap \operatorname{Null}(X)\bigr) \le \operatorname{rank}(XY) + \dim\operatorname{Null}(X) = \operatorname{rank}(XY) + n - \operatorname{rank}(X)
+           $$
+
+           which rearranges to Sylvester's inequality $\operatorname{rank}(XY) \ge \operatorname{rank}(X) + \operatorname{rank}(Y) - n$!
+           Setting $n = 6$, we first apply Theorem 13.1 Law 4 to $(AB)C = 0$ to obtain $\operatorname{rank}(AB) + \operatorname{rank}(C) \le 6$; substituting $\operatorname{rank}(AB) \ge \operatorname{rank}(A) + \operatorname{rank}(B) - 6$ into this inequality immediately gives:
+
+           $$
+           \operatorname{rank}(A) + \operatorname{rank}(B) - 6 + \operatorname{rank}(C) \le 6 \quad \Longrightarrow \quad \operatorname{rank}(A) + \operatorname{rank}(B) + \operatorname{rank}(C) \le 12
+           $$
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+  <ExerciseCard
+    id="l13-ex6"
+    tier="L4"
+    tierLabel="L4 · MIT 18.06 Exam Synthesis"
+    title="Quiz 1 Problem 6 (Module I Grand Slam Finale): Complete Subspace Anatomy of Rank-1 Perturbed Network Matrices"
+  >
+    Let $\mathbf{e} = (1, 1, 1, 1)^T \in \mathbb{R}^4$ be the all-ones column vector and let $\mathbf{w} = (1, 2, 3, 4)^T \in \mathbb{R}^4$. Consider the two $4 \times 4$ real symmetric matrices:
+
+    $$
+    M_1 = \mathbf{e}\mathbf{e}^T = \begin{bmatrix} 1 & 1 & 1 & 1 \\ 1 & 1 & 1 & 1 \\ 1 & 1 & 1 & 1 \\ 1 & 1 & 1 & 1 \end{bmatrix}, \qquad
+    M_2 = \mathbf{e}\mathbf{w}^T + \mathbf{w}\mathbf{e}^T
+    $$
+
+    1. Find the rank of $M_1$, the $10$th power $M_1^{10}$ (without brute-force multiplication!), and the rank and Four Fundamental Subspaces of $B = I_4 - \frac{1}{4} M_1$! *(Bonus connection: how is $B$ related to the graph Laplacian matrix $L_{K_4}$ of the complete graph $K_4$ from Lecture 12?)*
+    2. Find the exact rank $\operatorname{rank}(M_2)$ of $M_2$, and write down the dimension and a basis for its nullspace $\operatorname{Null}(M_2)$!
+
+    <ProgressiveHint
+      buttonPrefix="Unlock Hint"
+      hints={[
+        "For Part 1: $M_1 = \\mathbf{e}\\mathbf{e}^T$ is a rank-$1$ matrix! By the outer-product squaring trick from `l11-ex4`, $M_1^2 = (\\mathbf{e}^T\\mathbf{e}) M_1 = 4 M_1$, so by induction the $10$th power is $4^9 M_1$!",
+        "Next examine $B = I_4 - \\frac{1}{4} M_1$: observe that $B \\mathbf{e} = \\mathbf{e} - \\frac{1}{4}(4\\mathbf{e}) = \\mathbf{0}$! Meanwhile, for any zero-sum vector $\\mathbf{x}$ satisfying $x_1+x_2+x_3+x_4=0$, we have $M_1\\mathbf{x} = \\mathbf{e}(\\mathbf{e}^T\\mathbf{x}) = \\mathbf{0}$ and hence $B\\mathbf{x} = \\mathbf{x}$! Notice that $4B = 4I_4 - M_1 = 3I_4 - (M_1 - I_4) = D_{K_4} - W_{K_4}$ is literally the graph Laplacian $L_{K_4}$ of the complete graph $K_4$!",
+        "For Part 2: since $\\mathbf{e}$ and $\\mathbf{w}$ are linearly independent, when does $M_2 \\mathbf{x} = (\\mathbf{w}^T\\mathbf{x})\\mathbf{e} + (\\mathbf{e}^T\\mathbf{x})\\mathbf{w} = \\mathbf{0}$ hold? By the definition of linear independence of $\\{\\mathbf{e}, \\mathbf{w}\\}$, both scalar inner-product coefficients must vanish simultaneously!"
+      ]}
+    />
+
+    <DualSolution
+      triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+      intuitionLabel="Geometric Intuition"
+      rigorousLabel="Rigorous Proof / Construction"
+    >
+      <SolutionIntuition>
+
+        This grand-slam finale links together Lecture 03 outer products, Lecture 07 nullspace bases, Lecture 09 linear independence, Lecture 10 the Four Fundamental Subspaces, Lecture 11 powers of rank-$1$ matrices, and Lecture 12 graph Laplacians in one stroke:
+        - The all-ones matrix $M_1 = \mathbf{e}\mathbf{e}^T$ has trace $4$, so each multiplication by $M_1$ pulls out a scalar factor of $\mathbf{e}^T\mathbf{e} = 4$; meanwhile, $4B = 4I_4 - \mathbf{e}\mathbf{e}^T$ has $3$s on the diagonal and $-1$s off the diagonal, which is word-for-word the graph Laplacian $L_{K_4} = A_{K_4}^T A_{K_4}$ of the tetrahedral complete graph $K_4$ (whose rank for a connected $4$-node graph is $4 - 1 = 3$)!
+        - In Part 2, never expand the $4\times 4$ matrix $M_2$ entry by entry! Instead, use the linear independence of $\{\mathbf{e}, \mathbf{w}\}$ directly: $c_1\mathbf{e} + c_2\mathbf{w} = \mathbf{0} \iff c_1 = c_2 = 0$, which collapses $M_2\mathbf{x} = \mathbf{0}$ into an effortless $2 \times 4$ homogeneous system!
+
+      </SolutionIntuition>
+      <SolutionRigorous>
+
+        1. **Powers of $M_1$ and the Four Subspaces of $B = I_4 - \frac{1}{4}M_1$ (Network Isomorphism)**:
+           - Since $\mathbf{e} \neq \mathbf{0}$, $\operatorname{rank}(M_1) = \mathbf{1}$. Because $\mathbf{e}^T\mathbf{e} = 1^2+1^2+1^2+1^2 = 4$, we have $M_1^2 = (\mathbf{e}^T\mathbf{e})M_1 = 4M_1$, and induction yields:
+
+             $$
+             M_1^{10} = 4^9 M_1 = 262{,}144 \, \mathbf{e}\mathbf{e}^T
+             $$
+
+           - Now consider the symmetric matrix $B = I_4 - \frac{1}{4}\mathbf{e}\mathbf{e}^T$: scaling by $4$ gives
+
+             $$
+             4B = \begin{bmatrix} 3 & -1 & -1 & -1 \\ -1 & 3 & -1 & -1 \\ -1 & -1 & 3 & -1 \\ -1 & -1 & -1 & 3 \end{bmatrix} = D_{K_4} - W_{K_4} = L_{K_4}
+             $$
+
+             which is precisely the graph Laplacian $A_{K_4}^T A_{K_4}$ of the connected $4$-node complete graph $K_4$! By Theorem 12.1 from Lecture 12 and symmetry $B^T = B$:
+             - **Rank**: $\operatorname{rank}(B) = \operatorname{rank}(L_{K_4}) = 4 - 1 = \mathbf{3}$;
+             - **Nullspace and Left Nullspace**: $\operatorname{Null}(B) = \operatorname{Null}(B^T) = \operatorname{span}\{(1,1,1,1)^T\}$ ($\dim = 1$);
+             - **Column Space and Row Space**: $\operatorname{Col}(B) = \operatorname{Row}(B) = \{ \mathbf{x} \in \mathbb{R}^4 : x_1 + x_2 + x_3 + x_4 = 0 \}$ (the zero-sum hyperplane of dimension $3$, with basis $\{(-1,1,0,0)^T, (-1,0,1,0)^T, (-1,0,0,1)^T\}$).
+
+        2. **Exact Rank and Nullspace Basis of $M_2 = \mathbf{e}\mathbf{w}^T + \mathbf{w}\mathbf{e}^T$**:
+           For any $\mathbf{x} \in \mathbb{R}^4$, write out $M_2 \mathbf{x} = \mathbf{0}$:
+
+           $$
+           M_2 \mathbf{x} = (\mathbf{w}^T\mathbf{x})\,\mathbf{e} + (\mathbf{e}^T\mathbf{x})\,\mathbf{w} = \mathbf{0}
+           $$
+
+           Since $\mathbf{e} = (1,1,1,1)^T$ and $\mathbf{w} = (1,2,3,4)^T$ are clearly not scalar multiples of each other, the pair $\{\mathbf{e}, \mathbf{w}\}$ is **linearly independent**! By definition of linear independence, the linear combination above vanishes **if and only if** both scalar inner-product coefficients vanish simultaneously:
+
+           $$
+           \begin{cases} \mathbf{e}^T\mathbf{x} = x_1 + x_2 + x_3 + x_4 = 0 \\ \mathbf{w}^T\mathbf{x} = x_1 + 2x_2 + 3x_3 + 4x_4 = 0 \end{cases}
+           \xrightarrow{\text{RREF}}
+           \begin{bmatrix} 1 & 0 & -1 & -2 \\ 0 & 1 & 2 & 3 \end{bmatrix} \mathbf{x} = \mathbf{0}
+           $$
+
+           This $2 \times 4$ constraint system has rank $2$, so $\dim\operatorname{Null}(M_2) = 4 - 2 = \mathbf{2}$, and the Rank-Nullity Theorem gives **$\operatorname{rank}(M_2) = 4 - 2 = 2$**!
+           Setting the free variables $(x_3, x_4) = (1, 0)$ and $(0, 1)$, we read off a canonical basis for $\operatorname{Null}(M_2)$:
+
+           $$
+           \mathcal{B}_{\operatorname{Null}(M_2)} = \left\{ \begin{bmatrix} 1 \\ -2 \\ 1 \\ 0 \end{bmatrix}, \; \begin{bmatrix} 2 \\ -3 \\ 0 \\ 1 \end{bmatrix} \right\}
+           $$
+
+      </SolutionRigorous>
+    </DualSolution>
+  </ExerciseCard>
+
+</ProblemSet>

@@ -1,0 +1,1109 @@
+---
+title: "Lecture 33: Module IV Review (Quiz 3 Review)"
+ocwId: "L32"
+videoEpisode: "P33"
+textbookRef: "Ch. 6–8 Review"
+---
+
+## The Big Picture: The Third Great Leap of Linear Algebra—From Symmetric Spectra and Positive Definite Energy to Universal SVD and Coordinate-Free Operators
+
+If Module I ($Ax = b$ and the four fundamental subspaces) answered when a linear system has solutions, and Modules II and III (projections, determinants, and general eigenvalues) conquered least-squares approximation and the decoupling of dynamical systems, then Module IV (Lectures 26–32) completes linear algebra's third great leap—from special square matrices to **geometric completeness, minimum energy, repairing defective matrices, universal factorization for any rectangular matrix, and coordinate-free abstraction**:
+
+1. **First Summit: The Real Symmetric and Complex Hermitian Spectral Theorem ($A = Q\Lambda Q^T$ and $A = U\Lambda U^H$)**  
+   For a general square matrix, diagonalization $A = S\Lambda S^{-1}$ neither guarantees real eigenvalues nor orthogonal eigenvectors, and it can fail altogether when the matrix is defective. Yet when a matrix possesses **symmetry** ($A = A^T \in \mathbb{R}^{n\times n}$) or **conjugate symmetry** ($A = A^H \in \mathbb{C}^{n\times n}$), every eigenvalue is forced onto the real axis, eigenspaces for distinct eigenvalues are automatically orthogonal, and every real symmetric matrix factors via an **orthogonal matrix** $Q$ into a sum of mutually orthogonal rank-1 projections: $A = Q\Lambda Q^T = \sum_{i=1}^n \lambda_i \mathbf{q}_i \mathbf{q}_i^T$. Over $\mathbb{C}^n$, inner products must take the complex conjugate ($\mathbf{z}^H \mathbf{w}$); the Fourier matrix $F_n$ has orthogonal columns, and the Fast Fourier Transform (FFT) butterfly factorization slashes the operation count from $\mathcal{O}(n^2)$ down to $\frac{1}{2}n\log_2 n$.
+2. **Second Summit: Positive Definite Matrices (SPD) and High-Dimensional Energy Ellipsoids**  
+   When a real symmetric matrix has all eigenvalues not merely real, but **strictly positive**, it transforms from a table of numbers into a **strictly convex energy bowl** $\mathbf{x}^T A \mathbf{x} \gt 0$. Five equivalent criteria—positive quadratic-form energy, positive eigenvalues, positive leading principal minors, positive pivots without row exchanges, and full-column-rank inner product $R^T R$—lock together on the foundation $A = A^T$. Sylvester's Law of Inertia shows that congruence $M^T A M$ changes the numerical values of eigenvalues while strictly conserving the counts of positive, negative, and zero eigenvalues. The level surface $\mathbf{x}^T A \mathbf{x} = 1$ aligns along the orthogonal eigenvector axes $\mathbf{q}_i$ with semi-axis lengths $1/\sqrt{\lambda_i}$, precisely measuring directional curvature at a local minimum of a multivariable Hessian.
+3. **Third Summit: Similarity Orbits and Jordan Canonical Form Beyond Symmetry ($B = M^{-1}AM$ and $MJM^{-1}$)**  
+   Once symmetry is lost, two square matrices can share the exact same eigenvalues, trace, determinant, and even algebraic and geometric multiplicities, yet still fail to be similar! Similarity transformations $B = M^{-1}AM$ preserve the characteristic polynomial, rank, trace, determinant, and the ranks of all powers $(A - \lambda I)^k$. For a **defective matrix** that lacks a full set of $n$ independent eigenvectors, the Jordan Canonical Form $J = \operatorname{diag}(J_1, \dots, J_s)$ fills the final gap using chains of generalized eigenvectors: each Jordan block corresponds to exactly one independent eigenvector, and the rank-drop formula on powers $(A - \lambda I)^k$ uniquely determines all block sizes.
+4. **Fourth Summit: Universal SVD for Any $m\times n$ Matrix and Coordinate-Free Linear Transformations ($A = U\Sigma V^T$ and $T: V \to W$)**  
+   For an arbitrary rectangular matrix $A \in \mathbb{R}^{m\times n}$ with no symmetry whatsoever, once we stop forcing the input and output spaces to share the same basis and instead equip $\mathbb{R}^n$ and $\mathbb{R}^m$ with their own orthonormal bases $V$ and $U$, the Singular Value Decomposition $A = U\Sigma V^T$ diagonalizes **every matrix on Earth** via "orthogonal alignment $\to$ axis-wise stretching $\to$ orthogonal orientation." Stepping back from coordinates altogether and viewing $T: V \to W$ as a pure geometric map between vector spaces explains why changing a single shared basis on $V \to V$ yields similarity $M^{-1}AM$, whereas changing orthonormal bases independently in input and output spaces yields the universal diagonal matrix $\Sigma = U^T A V$!
+
+<Module4Quiz3SynthesisMapDiagram caption="Synthesis map of Module IV connecting the Spectral Theorem, Positive Definite Energy Ellipsoids, Similarity and Jordan Canonical Form, Universal SVD, and Coordinate-Free Linear Operators." />
+
+---
+
+## Master Reference: Module IV Matrix Families, Factorizations, and Equivalence Relations
+
+Before walking into MIT 18.06 Quiz 3, make sure this master reference table covering Lectures 26–32 is second nature—knowing each matrix family's **field, spectral distribution, basis structure**, and **geometric meaning**:
+
+<DefinitionCard label="Master Reference" title="Module IV Matrix Families, Factorizations, and Equivalence Relations">
+
+| Family / Relation | Field & Algebraic Definition | Eigenvalue / Singular Value Spectrum | Eigenvector / Basis Structure | Core Geometric & Physical Meaning |
+| :--- | :--- | :--- | :--- | :--- |
+| **Real Symmetric** | $A \in \mathbb{R}^{n\times n}$<br/>$A^T = A$ | All eigenvalues are real<br/>$\lambda_i \in \mathbb{R}$ | Full orthonormal eigenbasis $Q$<br/>$A = Q\Lambda Q^T$ ($Q^T Q = I_n$) | Pure real scaling along orthogonal principal axes; distinct eigenspaces are orthogonal |
+| **Hermitian** | $A \in \mathbb{C}^{n\times n}$<br/>$A^H = A$ ($\overline{A}^T = A$) | All eigenvalues are real<br/>$\lambda_i \in \mathbb{R}$ | Complex orthonormal eigenbasis (unitary $U$)<br/>$A = U\Lambda U^H$ ($U^H U = I_n$) | Complex counterpart of real symmetric matrices; $\mathbf{z}^H A \mathbf{z}$ is always real |
+| **Orthogonal / Unitary** | $Q \in \mathbb{R}^{n\times n}$ ($Q^T Q = I$)<br/>$U \in \mathbb{C}^{n\times n}$ ($U^H U = I$) | All eigenvalues lie on the unit circle<br/>$\lvert \lambda_i \rvert = 1$ | Orthonormal columns; normal matrix<br/>Always unitarily diagonalizable | Rigid rotations and reflections; preserves inner products and norms $\lVert U\mathbf{x}\rVert_2 = \lVert \mathbf{x}\rVert_2$; $\kappa = 1$ |
+| **Symmetric Positive Definite (SPD)** | $A = A^T \in \mathbb{R}^{n\times n}$<br/>$\forall \mathbf{x}\ne \mathbf{0}, \mathbf{x}^T A \mathbf{x} \gt 0$ | All eigenvalues strictly positive<br/>$\lambda_1, \dots, \lambda_n \gt 0$ | Orthogonal eigenbasis $Q$ + unique Cholesky $L_c L_c^T$ + symmetric square root $A^{1/2}$ | Strictly convex paraboloid energy bowl; $\mathbf{x}^T A \mathbf{x} = 1$ is an ellipsoid with semi-axes $1/\sqrt{\lambda_i}$ |
+| **Symmetric Positive Semidefinite (PSD)** | $A = A^T \in \mathbb{R}^{n\times n}$<br/>$\forall \mathbf{x} \in \mathbb{R}^n, \mathbf{x}^T A \mathbf{x} \ge 0$ | All eigenvalues non-negative<br/>$\lambda_1, \dots, \lambda_n \ge 0$ | Factors as $A = R^T R$ ($R$ may be rank-deficient); e.g. Gram matrix $A^T A$ | Degenerate trough/cylinder bowl (flat along $\operatorname{Null}(A)$); all principal minors $\ge 0$ |
+| **Real Skew-Symmetric** | $K \in \mathbb{R}^{n\times n}$<br/>$K^T = -K$ | All nonzero eigenvalues are pure imaginary<br/>$\lambda_i = i\omega_i$ ($\omega_i \in \mathbb{R}$) | Unitarily diagonalizable ($K^T K = K K^T$); odd $n$ always has $\lambda = 0$ | Infinitesimal rotation generator; $\mathbf{x}^T K \mathbf{x} \equiv 0$; $e^{Kt}$ is always orthogonal |
+| **Similarity** | $B = M^{-1} A M$<br/>$M \in \mathbb{C}^{n\times n}$ invertible | Identical characteristic polynomial & eigenvalues (with all power ranks) | Maps eigenvector $\mathbf{x}$ to $M^{-1}\mathbf{x}$; generally breaks symmetry & orthogonality | Same linear operator $T: V \to V$ expressed in two different coordinate bases |
+| **Congruence** | $B = M^T A M$ ($A = A^T$)<br/>$M \in \mathbb{R}^{n\times n}$ invertible | Generally **changes** eigenvalue magnitudes, but preserves inertia $(n_+, n_-, n_0)$ | Preserves symmetry and rank; coincides with similarity iff $M$ is orthogonal | Same quadratic energy form expressed under coordinate change $\mathbf{x} = M\mathbf{y}$ |
+| **Jordan Block** | $J_k(\lambda) \in \mathbb{C}^{k\times k}$<br/>$\lambda$ on diagonal, $1$ on superdiagonal | Single eigenvalue $\lambda$<br/>$\operatorname{AM}(\lambda) = k, \operatorname{GM}(\lambda) = 1$ | Only $1$ eigenvector, plus $k-1$ generalized eigenvectors in a chain | Atomic building block of non-diagonalizable operators; produces $t^j e^{\lambda t}$ in ODEs |
+| **Singular Value Decomposition (SVD)** | Any $A \in \mathbb{R}^{m\times n}$<br/>$A = U\Sigma V^T$ | Nonzero singular values $\sigma_1 \ge \dots \ge \sigma_r \gt 0$ ($\sigma_i = \sqrt{\lambda_i(A^T A)}$) | $V \in \mathbb{R}^{n\times n}$ orthogonal ($\operatorname{Row}, \operatorname{Null}$)<br/>$U \in \mathbb{R}^{m\times m}$ orthogonal ($\operatorname{Col}, \operatorname{Null}(A^T)$) | Maps unit sphere to ellipsoid: orthogonal align $\to$ axis stretch $\to$ orthogonal orient |
+
+From a course-wide vantage point, keep the boundaries among the three matrix equivalences and two universal orthogonal factorizations crystal clear:
+1. **Three Fundamental Equivalence Relations**: Gaussian elimination $EA$ (preserves row space and nullspace, destroys eigenvalues), congruence $M^T A M$ (preserves quadratic inertia signs, changes eigenvalue magnitudes), and similarity $M^{-1} A M$ (preserves the entire spectrum and Jordan block structure of a linear operator).
+2. **The Ultimate Bridge Between One-Sided and Two-Sided Basis Changes**: For a square matrix, if you allow only a **single shared basis change** ($M^{-1} A M$), the best you can always achieve is block upper-triangular (Schur) or Jordan form $J$. Once you allow **independent orthonormal basis changes in the input and output spaces** ($U^T A V$), every $m\times n$ matrix diagonalizes in one stroke to a pure non-negative diagonal matrix $\Sigma$!
+
+</DefinitionCard>
+
+---
+
+## Six Core Synthesis Theorems of Module IV
+
+Quiz 3 proof and synthesis problems expect you to move fluidly across symmetric spectra, energy bowls, Jordan blocks, singular values, and abstract operators. Here are the six pillar theorems uniting the entire module, each with its complete proof:
+
+<TheoremCard label="Theorem 1" title="Real Spectral Theorem, Orthogonal Rank-1 Projections, and Complex Normal/Schur Unification">
+
+Let $A \in \mathbb{R}^{n\times n}$ be real symmetric ($A = A^T$), or more generally let $A \in \mathbb{C}^{n\times n}$ be Hermitian ($A = A^H$). Then:
+
+1. **Real Eigenvalues**: Every eigenvalue of $A$ is **real** ($\lambda_1, \dots, \lambda_n \in \mathbb{R}$), and in the real symmetric case we can always choose purely real eigenvectors.
+2. **Orthogonality Across Distinct Eigenvalues**: Eigenvectors corresponding to distinct eigenvalues ($\lambda_i \ne \lambda_j$) are automatically orthogonal ($\mathbf{x}_i^T \mathbf{x}_j = 0$, or $\mathbf{x}_i^H \mathbf{x}_j = 0$ over $\mathbb{C}$).
+3. **Spectral Decomposition as Rank-1 Projections**: There exists a real orthogonal matrix $Q = [\mathbf{q}_1, \dots, \mathbf{q}_n] \in \mathbb{R}^{n\times n}$ ($Q^T Q = Q Q^T = I_n$) and a real diagonal matrix $\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n)$ such that:
+   $$
+   A = Q \Lambda Q^T = \sum_{i=1}^n \lambda_i \mathbf{q}_i \mathbf{q}_i^T = \sum_{i=1}^n \lambda_i P_i
+   $$
+   where each $P_i = \mathbf{q}_i \mathbf{q}_i^T$ is a symmetric rank-1 orthogonal projection satisfying $P_i^2 = P_i = P_i^T$, $P_i P_j = O$ for $i \ne j$, and the completeness identity $\sum_{i=1}^n P_i = I_n$.
+4. **Complex Schur Triangularization & the Normal Matrix Boundary**: Every complex square matrix $A \in \mathbb{C}^{n\times n}$ is unitarily similar to an upper-triangular matrix, $A = U T U^H$ (Schur decomposition). Moreover, $A$ is unitarily diagonalizable ($A = U \Lambda U^H$) **if and only if** $A$ is a **normal matrix**, meaning $A^H A = A A^H$ (which includes Hermitian $A^H = A$, skew-Hermitian $A^H = -A$, and unitary $U^H U = I$ matrices such as the normalized Fourier matrix $\frac{1}{\sqrt{n}}F_n$).
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Conjugate Inner Products, Inductive Diagonalization, and Schur Normality">
+
+**Step 1: Prove that eigenvalues of Hermitian / real symmetric matrices are real.**
+
+Let $(\lambda, \mathbf{x})$ be any eigenpair of $A \in \mathbb{C}^{n\times n}$ ($A^H = A$), with $\lambda \in \mathbb{C}$ and $\mathbf{x} \in \mathbb{C}^n \setminus \{\mathbf{0}\}$. Evaluate the complex quadratic form $\mathbf{x}^H A \mathbf{x}$ in two ways:
+- Substituting $A\mathbf{x} = \lambda \mathbf{x}$ on the right:
+  $$
+  \mathbf{x}^H (A\mathbf{x}) = \mathbf{x}^H (\lambda \mathbf{x}) = \lambda (\mathbf{x}^H \mathbf{x}) = \lambda \|\mathbf{x}\|_2^2
+  $$
+- Using $(A\mathbf{x})^H = \mathbf{x}^H A^H$ and $A^H = A$ on the left:
+  $$
+  \mathbf{x}^H A \mathbf{x} = \mathbf{x}^H A^H \mathbf{x} = (A\mathbf{x})^H \mathbf{x} = (\lambda \mathbf{x})^H \mathbf{x} = \bar{\lambda} (\mathbf{x}^H \mathbf{x}) = \bar{\lambda} \|\mathbf{x}\|_2^2
+  $$
+Since $\mathbf{x} \ne \mathbf{0}$, we have $\|\mathbf{x}\|_2^2 \gt 0$. Canceling $\|\mathbf{x}\|_2^2$ gives $\lambda = \bar{\lambda}$, so $\lambda \in \mathbb{R}$. When $A$ is real symmetric, $(A - \lambda I_n)$ is a singular real matrix, so $(A - \lambda I_n)\mathbf{x} = \mathbf{0}$ has a nonzero real solution $\mathbf{x} \in \mathbb{R}^n$.
+
+**Step 2: Prove that eigenvectors for distinct eigenvalues are orthogonal.**
+
+Suppose $A\mathbf{x}_i = \lambda_i \mathbf{x}_i$ and $A\mathbf{x}_j = \lambda_j \mathbf{x}_j$ with $\lambda_i \ne \lambda_j$ (and $\lambda_i, \lambda_j \in \mathbb{R}$). Then:
+$$
+\lambda_i (\mathbf{x}_i^H \mathbf{x}_j) = (\lambda_i \mathbf{x}_i)^H \mathbf{x}_j = (A\mathbf{x}_i)^H \mathbf{x}_j = \mathbf{x}_i^H A^H \mathbf{x}_j = \mathbf{x}_i^H (A\mathbf{x}_j) = \lambda_j (\mathbf{x}_i^H \mathbf{x}_j)
+$$
+Rearranging gives $(\lambda_i - \lambda_j)(\mathbf{x}_i^H \mathbf{x}_j) = 0$. Since $\lambda_i \ne \lambda_j$, we conclude $\mathbf{x}_i^H \mathbf{x}_j = 0$ (or $\mathbf{x}_i^T \mathbf{x}_j = 0$ in the real case).
+
+**Step 3: Complete the spectral decomposition by induction on $n$ (valid even with repeated eigenvalues!).**
+
+- For $n = 1$, every $1\times 1$ real matrix is already diagonal; take $Q = [1]$.
+- Assume the theorem holds for $(n-1)\times (n-1)$ real symmetric matrices. Given an $n\times n$ real symmetric matrix $A$, Step 1 guarantees at least one real eigenvalue $\lambda_1 \in \mathbb{R}$ and a unit real eigenvector $\mathbf{q}_1 \in \mathbb{R}^n$ ($\|\mathbf{q}_1\|_2 = 1$). Extend $\mathbf{q}_1$ via Gram-Schmidt to an orthonormal basis of $\mathbb{R}^n$, forming an orthogonal matrix $Q_1 = [\mathbf{q}_1 \;\; \tilde{Q}] \in \mathbb{R}^{n\times n}$ (so $\tilde{Q}^T \mathbf{q}_1 = \mathbf{0}$ and $\tilde{Q}^T \tilde{Q} = I_{n-1}$). Compute the block product:
+  $$
+  Q_1^T A Q_1 = \begin{bmatrix} \mathbf{q}_1^T \\ \tilde{Q}^T \end{bmatrix} \begin{bmatrix} \lambda_1 \mathbf{q}_1 & A\tilde{Q} \end{bmatrix} = \begin{bmatrix} \lambda_1 \mathbf{q}_1^T \mathbf{q}_1 & \mathbf{q}_1^T A \tilde{Q} \\ \lambda_1 \tilde{Q}^T \mathbf{q}_1 & \tilde{Q}^T A \tilde{Q} \end{bmatrix}
+  $$
+  Here $\tilde{Q}^T \mathbf{q}_1 = \mathbf{0}$, and because $Q_1^T A Q_1$ is still symmetric ($(Q_1^T A Q_1)^T = Q_1^T A^T Q_1 = Q_1^T A Q_1$), the top-right row vector is $\mathbf{q}_1^T A \tilde{Q} = (\tilde{Q}^T A^T \mathbf{q}_1)^T = \lambda_1 (\tilde{Q}^T \mathbf{q}_1)^T = \mathbf{0}^T$! Thus the first row and column decouple completely:
+  $$
+  Q_1^T A Q_1 = \begin{bmatrix} \lambda_1 & \mathbf{0}^T \\ \mathbf{0} & A_1 \end{bmatrix}, \qquad A_1 = \tilde{Q}^T A \tilde{Q} \in \mathbb{R}^{(n-1)\times(n-1)}
+  $$
+  Since $A_1^T = A_1$ is still real symmetric, the induction hypothesis gives an $(n-1)\times(n-1)$ orthogonal matrix $Q_2$ with $Q_2^T A_1 Q_2 = \Lambda_{n-1}$. Setting $Q = Q_1 \operatorname{diag}(1, Q_2)$ yields an orthogonal matrix satisfying $Q^T A Q = \operatorname{diag}(\lambda_1, \Lambda_{n-1}) = \Lambda$.
+
+**Step 4: Schur decomposition and normal matrices.**
+
+Repeating the basis-extension induction over $\mathbb{C}^n$ without symmetry does not zero out the top-right block, giving unitary upper-triangularization $A = U T U^H$ for **every** $A \in \mathbb{C}^{n\times n}$. Furthermore, $A^H A = A A^H$ holds if and only if $T^H T = T T^H$. Comparing diagonal entries row by row: the $(1,1)$ entry gives $|t_{11}|^2 = \sum_{j=1}^n |t_{1j}|^2 \implies t_{12} = \dots = t_{1n} = 0$. Inducting through rows $2, \dots, n$ forces every off-diagonal entry of $T$ to zero, so $T = \Lambda$ is diagonal! Expanding $A = Q\Lambda Q^T$ as a sum of column-times-row outer products yields $A = \sum_{i=1}^n \lambda_i \mathbf{q}_i \mathbf{q}_i^T$.
+
+</ProofCollapse>
+
+---
+
+<TheoremCard label="Theorem 2" title="Five Equivalent Criteria for SPD Matrices and the Energy Ellipsoid Principal Axes">
+
+**Essential Prerequisite**: Let $A = A^T \in \mathbb{R}^{n\times n}$ be a **real symmetric matrix**. Then the following five statements are pairwise equivalent ($\iff$), each defining a **Symmetric Positive Definite (SPD) matrix ($A \succ 0$)**:
+
+1. **Energy / Quadratic Form Criterion**: For every nonzero vector $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$, $\mathbf{x}^T A \mathbf{x} \gt 0$;
+2. **Eigenvalue Criterion**: All $n$ real eigenvalues of $A$ are strictly positive: $\lambda_1, \lambda_2, \dots, \lambda_n \gt 0$;
+3. **Leading Principal Minor (Sylvester) Criterion**: All $n$ upper-left leading principal submatrices $A_k = A_{1:k,\, 1:k}$ have strictly positive determinants: $\det(A_k) \gt 0$ for $k = 1, \dots, n$;
+4. **Pivot Criterion**: Gaussian elimination on $A$ requires no row exchanges, producing $A = L D L^T$ ($L$ unit lower-triangular) with all $n$ pivots strictly positive: $d_1, \dots, d_n \gt 0$;
+5. **Full-Column-Rank Gram Criterion**: There exists a matrix $R \in \mathbb{R}^{m\times n}$ with independent columns ($\operatorname{rank}(R) = n$) such that $A = R^T R$ (special cases include the Cholesky factorization $A = L_c L_c^T$ and the symmetric square root $A = A^{1/2} A^{1/2}$ with $A^{1/2} = Q\sqrt{\Lambda}Q^T \succ 0$).
+
+**Geometric Ellipsoid & Multivariable Calculus Corollaries**:
+- When $A \succ 0$, the level surface $\{\mathbf{x} \in \mathbb{R}^n : \mathbf{x}^T A \mathbf{x} = 1\}$ is an $n$-dimensional ellipsoid whose principal axes point along the orthonormal eigenvectors $\mathbf{q}_1, \dots, \mathbf{q}_n$, with semi-axis lengths $a_i = \frac{1}{\sqrt{\lambda_i}}$ (larger eigenvalues mean steeper energy walls and **shorter** ellipsoid semi-axes).
+- For a twice-differentiable function $f: \mathbb{R}^n \to \mathbb{R}$ at a stationary point $\nabla f(\mathbf{x}^*) = \mathbf{0}$, if the Hessian $H(\mathbf{x}^*) = \nabla^2 f(\mathbf{x}^*)$ satisfies $H(\mathbf{x}^*) \succ 0$, then $\mathbf{x}^*$ is a strict local minimum; if $H(\mathbf{x}^*)$ has both positive and negative eigenvalues (indefinite), then $\mathbf{x}^*$ is a saddle point.
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Two Closed Implication Chains for SPD and Ellipsoid Semi-Axes">
+
+We establish pairwise equivalence via two closed implication chains: $(1) \implies (2) \implies (5) \implies (1)$ and $(1) \implies (3) \iff (4) \implies (5)$:
+
+1. **$(1) \implies (2)$**: Take any unit eigenpair $A\mathbf{q}_i = \lambda_i \mathbf{q}_i$ ($\|\mathbf{q}_i\|_2 = 1 \ne 0$). Substituting into $(1)$ gives:
+   $$
+   0 \lt \mathbf{q}_i^T A \mathbf{q}_i = \lambda_i (\mathbf{q}_i^T \mathbf{q}_i) = \lambda_i \implies \lambda_i \gt 0
+   $$
+2. **$(2) \implies (5)$**: By the Spectral Theorem, $A = Q\Lambda Q^T$. Since every $\lambda_i \gt 0$, define $\sqrt{\Lambda} = \operatorname{diag}(\sqrt{\lambda_1}, \dots, \sqrt{\lambda_n})$. Let $R = \sqrt{\Lambda} Q^T \in \mathbb{R}^{n\times n}$. Since both factors are invertible, $\operatorname{rank}(R) = n$, and $R^T R = Q \sqrt{\Lambda} \sqrt{\Lambda} Q^T = Q \Lambda Q^T = A$.
+3. **$(5) \implies (1)$**: If $A = R^T R$ and $\operatorname{Null}(R) = \{\mathbf{0}\}$ (independent columns), then for any $\mathbf{x} \ne \mathbf{0}$ we have $R\mathbf{x} \ne \mathbf{0}$, so:
+   $$
+   \mathbf{x}^T A \mathbf{x} = \mathbf{x}^T R^T R \mathbf{x} = \|R\mathbf{x}\|_2^2 \gt 0
+   $$
+4. **$(1) \implies (3)$**: Fix $1 \le k \le n$ and consider the leading principal submatrix $A_k$. For any nonzero $\mathbf{y} \in \mathbb{R}^k \setminus \{\mathbf{0}\}$, pad it with $n-k$ zeros to form $\mathbf{x} = [\mathbf{y}^T, \mathbf{0}^T]^T \in \mathbb{R}^n \setminus \{\mathbf{0}\}$. Then $\mathbf{y}^T A_k \mathbf{y} = \mathbf{x}^T A \mathbf{x} \gt 0$, so $A_k$ is itself a $k\times k$ SPD matrix! By $(1) \implies (2)$, all eigenvalues of $A_k$ are strictly positive, hence $\det(A_k) = \prod_{j=1}^k \lambda_j(A_k) \gt 0$.
+5. **$(3) \iff (4)$**: Whenever all $\det(A_k) \ne 0$, elimination encounters no zero pivots (no row swaps needed) and $A_k = L_k D_k L_k^T$ with $\det(L_k) = 1$. Taking determinants gives $\det(A_k) = d_1 d_2 \cdots d_k$, so:
+   $$
+   d_1 = \det(A_1), \quad d_k = \frac{\det(A_k)}{\det(A_{k-1})} \;\; (k \ge 2) \implies \big(\forall k,\; \det(A_k) \gt 0 \iff \forall k,\; d_k \gt 0\big)
+   $$
+6. **$(4) \implies (5)$**: If $A = L D L^T$ with all $d_i \gt 0$, set $R = \sqrt{D} L^T$ (an invertible upper-triangular matrix with diagonal entries $\sqrt{d_i} \gt 0$). Then $R^T R = L \sqrt{D} \sqrt{D} L^T = L D L^T = A$ and $\operatorname{rank}(R) = n$.
+
+**Geometric Derivation of Ellipsoid Semi-Axes**: Introduce the orthogonal coordinate change $\mathbf{x} = Q\mathbf{y}$ (so $\mathbf{y} = Q^T \mathbf{x}$, where $y_i = \mathbf{q}_i^T \mathbf{x}$ is the coordinate along the $i$-th eigenvector axis). Substituting into $\mathbf{x}^T A \mathbf{x} = 1$:
+$$
+\mathbf{x}^T (Q\Lambda Q^T) \mathbf{x} = \mathbf{y}^T \Lambda \mathbf{y} = \sum_{i=1}^n \lambda_i y_i^2 = \sum_{i=1}^n \frac{y_i^2}{(1/\sqrt{\lambda_i})^2} = 1
+$$
+This is the standard equation of an ellipsoid aligned with axes $\mathbf{q}_i$ and semi-axis lengths $1/\sqrt{\lambda_i}$! Near a stationary point, the second-order Taylor expansion $f(\mathbf{x}^* + \Delta \mathbf{x}) \approx f(\mathbf{x}^*) + \frac{1}{2}\Delta \mathbf{x}^T H(\mathbf{x}^*) \Delta \mathbf{x}$ shows that $H(\mathbf{x}^*) \succ 0$ forces positive curvature in every direction (local minimum), while an indefinite Hessian gives upward and downward directions (saddle point).
+
+</ProofCollapse>
+
+---
+
+<TheoremCard label="Theorem 3" title="Similarity (M⁻¹AM) vs. Congruence (MᵀAM) and Sylvester's Law of Inertia">
+
+Let $M$ be an invertible $n\times n$ matrix acting as a change-of-basis matrix. Contrast the two central matrix equivalence relations in linear algebra:
+
+1. **Similarity Transformation ($B = M^{-1} A M$)**:  
+   For any square matrix $A \in \mathbb{C}^{n\times n}$ and invertible $M \in \mathbb{C}^{n\times n}$, we say $B = M^{-1} A M$ is **similar** to $A$ ($A \sim B$). Similarity strictly preserves all **similarity invariants**:
+   - Characteristic polynomial $\det(\lambda I_n - B) = \det(\lambda I_n - A)$, hence **all eigenvalues and algebraic multiplicities $\operatorname{AM}(\lambda)$**;
+   - Trace $\operatorname{tr}(B) = \operatorname{tr}(A)$ and determinant $\det(B) = \det(A)$;
+   - For **every** $\lambda \in \mathbb{C}$ and integer $k \ge 0$, the power ranks $\operatorname{rank}\!\left((B - \lambda I_n)^k\right) = \operatorname{rank}\!\left((A - \lambda I_n)^k\right)$, which preserves geometric multiplicities $\operatorname{GM}(\lambda)$ and the entire Jordan block structure;
+   - **Critical Warning**: Similarity generally **does not preserve symmetry or Hermitianness**.
+2. **Congruence Transformation & Sylvester's Law of Inertia ($B = M^T A M$)**:  
+   Let $A = A^T \in \mathbb{R}^{n\times n}$ be real symmetric and $M \in \mathbb{R}^{n\times n}$ be any invertible real matrix, with $B = M^T A M$ (over $\mathbb{C}$, $B = M^H A M$). Then $B$ remains symmetric with $\operatorname{rank}(B) = \operatorname{rank}(A)$. Although $B$'s eigenvalues generally **differ numerically** from $A$'s, $A$ and $B$ share the exact same **inertia**—the counts of positive, negative, and zero eigenvalues:
+   $$
+   \big(n_+(B),\; n_-(B),\; n_0(B)\big) = \big(n_+(A),\; n_-(A),\; n_0(A)\big)
+   $$
+   Immediate corollary: in $A = L D L^T$ (without row swaps), $D = L^{-1} A (L^{-1})^T$ is congruent to $A$, so **the numbers of positive, negative, and zero pivots $d_i$ equal the numbers of positive, negative, and zero eigenvalues $\lambda_i$ of $A$**!
+3. **The Unique Intersection of Both Worlds**:  
+   The maps $M^{-1} A M$ and $M^T A M$ coincide (preserving exact eigenvalues *and* symmetry/quadratic-form geometry) **if and only if** $M$ is orthogonal ($M^T = M^{-1}$), i.e., $B = Q^T A Q$ (or unitary $U^H A U$ over $\mathbb{C}$).
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Similarity Invariants and Subspace-Dimension Proof of Sylvester's Law of Inertia">
+
+**Part I: Algebraic proof of similarity invariants.**
+
+1. Characteristic polynomial invariance:
+   $$
+   \det(\lambda I_n - M^{-1} A M) = \det\!\big(M^{-1}(\lambda I_n - A)M\big) = \det(M^{-1})\det(\lambda I_n - A)\det(M) = \det(\lambda I_n - A)
+   $$
+   Hence the trace (sum of eigenvalues) and determinant (product of eigenvalues) are automatically invariant.
+2. Shifted-power rank invariance:
+   $$
+   (M^{-1} A M - \lambda I_n)^k = \big(M^{-1}(A - \lambda I_n)M\big)^k = M^{-1} (A - \lambda I_n)^k M
+   $$
+   Multiplying on the left and right by invertible matrices preserves rank, so $\operatorname{rank}\!\left((B - \lambda I_n)^k\right) = \operatorname{rank}\!\left((A - \lambda I_n)^k\right)$.
+
+**Part II: Subspace-dimension intersection proof of Sylvester's Law of Inertia (no continuity argument needed; works for any invertible $M$).**
+
+Let $A$ have inertia $(n_+, n_-, n_0)$ and $B = M^T A M$ have inertia $(n'_+, n'_-, n'_0)$.
+1. **Equal zero counts**: Since $M$ and $M^T$ are invertible, $\operatorname{rank}(B) = \operatorname{rank}(A)$, so $n'_0 = n - \operatorname{rank}(B) = n - \operatorname{rank}(A) = n_0$.
+2. **Prove $n_+ = n'_+$**:
+   - Let $V_+ \subseteq \mathbb{R}^n$ be the span of the orthonormal eigenvectors of $A$ with positive eigenvalues, so $\dim V_+ = n_+$ and for every nonzero $\mathbf{y} = \sum_{i=1}^{n_+} c_i \mathbf{q}_i \in V_+ \setminus \{\mathbf{0}\}$, we have $\mathbf{y}^T A \mathbf{y} = \sum_{i=1}^{n_+} \lambda_i c_i^2 \gt 0$.
+   - Let $W'_{\le 0} \subseteq \mathbb{R}^n$ be the span of the orthonormal eigenvectors of $B$ with non-positive eigenvalues ($\le 0$), so $\dim W'_{\le 0} = n'_- + n'_0 = n - n'_+$. Because $M$ is invertible, $\dim(M W'_{\le 0}) = n - n'_+$, and for any $\mathbf{y} = M\mathbf{w} \in M W'_{\le 0}$:
+     $$
+     \mathbf{y}^T A \mathbf{y} = (M\mathbf{w})^T A (M\mathbf{w}) = \mathbf{w}^T (M^T A M) \mathbf{w} = \mathbf{w}^T B \mathbf{w} \le 0
+     $$
+   - Any nonzero vector $\mathbf{y} \in V_+ \cap (M W'_{\le 0})$ would satisfy both $\mathbf{y}^T A \mathbf{y} \gt 0$ and $\le 0$, impossible! Thus $V_+ \cap (M W'_{\le 0}) = \{\mathbf{0}\}$. By the dimension formula:
+     $$
+     n_+ + (n - n'_+) = \dim V_+ + \dim(M W'_{\le 0}) \le n \implies n_+ \le n'_+
+     $$
+   - Writing $A = (M^{-1})^T B M^{-1}$ and swapping the roles of $A$ and $B$ yields $n'_+ \le n_+$, so $n_+ = n'_+$.
+3. Applying the same argument to $-A$ and $-B = M^T (-A) M$ gives $n_- = n'_-$. Q.E.D.
+
+</ProofCollapse>
+
+---
+
+<TheoremCard label="Theorem 4" title="Jordan Canonical Form, 1-to-1 Block–Eigenvector Rule, and the Power-Rank Formula">
+
+Let $A \in \mathbb{C}^{n\times n}$ be **any complex square matrix**. Then:
+
+1. **Existence & Uniqueness of Jordan Form**: There exists an invertible matrix $M \in \mathbb{C}^{n\times n}$ such that:
+   $$
+   M^{-1} A M = J = \operatorname{diag}(J_{k_1}(\lambda_1),\, J_{k_2}(\lambda_2),\, \dots,\, J_{k_s}(\lambda_s))
+   $$
+   where each $k_i \times k_i$ Jordan block has $\lambda_i$ on the main diagonal, $1$ on the first superdiagonal, and $0$ elsewhere. Up to permutation of the diagonal blocks, $J$ is **uniquely determined** by $A$.
+2. **1-to-1 Correspondence (Blocks $=$ Independent Eigenvectors)**:
+   - The total number of Jordan blocks $s$ equals the maximum number of linearly independent eigenvectors of $A$;
+   - For a fixed eigenvalue $\lambda_0$, the number of $\lambda_0$-blocks equals its geometric multiplicity $\operatorname{GM}(\lambda_0) = \dim\operatorname{Null}(A - \lambda_0 I_n)$, and the sum of their sizes equals its algebraic multiplicity $\operatorname{AM}(\lambda_0)$;
+   - $A$ is diagonalizable if and only if every Jordan block is $1\times 1$ (i.e., $s = n$).
+3. **Exact Block-Size Rank-Drop Formula (Weyr Numbers)**:  
+   For a given eigenvalue $\lambda_0$, set $r_k = \operatorname{rank}\!\left((A - \lambda_0 I_n)^k\right)$ (with $r_0 = n$) and nullity $\nu_k = n - r_k$ ($k \ge 0$). Then:
+   - The number of $\lambda_0$-Jordan blocks of size **at least $k$** is $\Delta_k = \nu_k - \nu_{k-1} = r_{k-1} - r_k$ ($k \ge 1$);
+   - The number of $\lambda_0$-Jordan blocks of size **exactly $k$** is:
+     $$
+     b_k(\lambda_0) = \Delta_k - \Delta_{k+1} = r_{k-1} - 2 r_k + r_{k+1} = (\nu_k - \nu_{k-1}) - (\nu_{k+1} - \nu_k)
+     $$
+   Therefore: **Two matrices $A, B \in \mathbb{C}^{n\times n}$ are similar if and only if they have the same eigenvalues and $\operatorname{rank}((A - \lambda_0 I)^k) = \operatorname{rank}((B - \lambda_0 I)^k)$ for every eigenvalue $\lambda_0$ and every $k \ge 1$.**
+4. **Resonant Polynomial Terms in Defective ODEs**: For an $m \times m$ Jordan block $J_m(\lambda_0) = \lambda_0 I_m + N_m$, the matrix exponential generates terms $t^j e^{\lambda_0 t}$ ($0 \le j \le m - 1$):
+   $$
+   e^{J_m(\lambda_0) t} = e^{\lambda_0 t} \sum_{j=0}^{m-1} \frac{t^j}{j!} N_m^j
+   $$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Block-Size Rank Formula and Jordan Matrix Exponential">
+
+**Step 1: Prove the block-size rank formula $b_k(\lambda_0) = r_{k-1} - 2r_k + r_{k+1}$.**
+
+By similarity invariance (Theorem 3), for every $k \ge 0$:
+$$
+\nu_k = \dim\operatorname{Null}\!\left((A - \lambda_0 I_n)^k\right) = \dim\operatorname{Null}\!\left((J - \lambda_0 I_n)^k\right)
+$$
+Inspect each diagonal block of $J - \lambda_0 I_n$:
+- If a block has eigenvalue $\lambda_j \ne \lambda_0$, then $J_{m_j}(\lambda_j) - \lambda_0 I_{m_j}$ is upper-triangular with nonzero diagonal entries $\lambda_j - \lambda_0$, so all of its $k$-th powers are invertible and contribute $0$ to the nullity $\nu_k$.
+- If a block has eigenvalue $\lambda_0$ and size $m \times m$, then $J_m(\lambda_0) - \lambda_0 I_m = N_m$ (the nilpotent shift matrix with $1$s on the first superdiagonal). Each multiplication by $N_m$ shifts the superdiagonal of $1$s up-right by one step, dropping the rank by $1$ until it vanishes:
+  $$
+  \operatorname{rank}(N_m^k) = \max(0,\, m - k) \implies \operatorname{nullity}(N_m^k) = m - \max(0,\, m - k) = \min(k,\, m)
+  $$
+Summing over all $\lambda_0$-blocks gives $\nu_k = \sum_{\lambda_0\text{-blocks}} \min(k, m)$. Now take the $k$-th increment $\Delta_k = \nu_k - \nu_{k-1}$:
+$$
+\min(k, m) - \min(k - 1, m) = \begin{cases} 1, & m \ge k \\ 0, & m \lt k \end{cases}
+$$
+Every $\lambda_0$-block of size $\ge k$ contributes exactly $1$ to $\Delta_k$, while blocks of size $\lt k$ have already saturated and contribute $0$! Hence $\Delta_k = \nu_k - \nu_{k-1} = r_{k-1} - r_k$ is the exact number of $\lambda_0$-blocks of size $\ge k$. Subtracting the count of blocks of size $\ge k+1$ gives the number of blocks of size **exactly $k$**:
+$$
+b_k(\lambda_0) = \Delta_k - \Delta_{k+1} = (r_{k-1} - r_k) - (r_k - r_{k+1}) = r_{k-1} - 2r_k + r_{k+1}
+$$
+
+**Step 2: Prove the defective matrix exponential formula $e^{J_m(\lambda_0)t}$.**
+
+Write $J_m(\lambda_0) t = (\lambda_0 t) I_m + t N_m$. Because the scalar matrix $(\lambda_0 t) I_m$ **commutes** with $t N_m$, the exponential splits as a product:
+$$
+e^{J_m(\lambda_0)t} = e^{(\lambda_0 t)I_m} e^{t N_m} = e^{\lambda_0 t} \sum_{j=0}^{\infty} \frac{t^j}{j!} N_m^j
+$$
+Since $N_m^m = O$ (shifting $m$ times zeros out the matrix), the infinite series truncates cleanly at $j = m - 1$:
+$$
+e^{J_m(\lambda_0)t} = e^{\lambda_0 t} \begin{bmatrix}
+1 & t & \frac{t^2}{2!} & \cdots & \frac{t^{m-1}}{(m-1)!} \\
+0 & 1 & t & \cdots & \frac{t^{m-2}}{(m-2)!} \\
+\vdots & & \ddots & \ddots & \vdots \\
+0 & 0 & 0 & \cdots & 1
+\end{bmatrix}
+$$
+This explains from first principles why repeated defective eigenvalues produce resonant terms $t e^{\lambda_0 t}, t^2 e^{\lambda_0 t}, \dots$!
+
+</ProofCollapse>
+
+---
+
+<TheoremCard label="Theorem 5" title="Universal SVD, Orthonormal Bases for the Four Subspaces, and Eckart-Young Optimality">
+
+Let $A \in \mathbb{R}^{m\times n}$ be **any real matrix** (rectangular or square, symmetric or not), of rank $r = \operatorname{rank}(A)$.
+
+1. **Existence & Sign-Locked Construction**:  
+   The symmetric PSD matrix $A^T A \in \mathbb{R}^{n\times n}$ has exactly $r$ positive eigenvalues $\lambda_1 \ge \dots \ge \lambda_r \gt 0$ and $n-r$ zero eigenvalues. Set the nonzero singular values $\sigma_i = \sqrt{\lambda_i} \gt 0$ ($1 \le i \le r$), choose an orthonormal eigenbasis $\{\mathbf{v}_1, \dots, \mathbf{v}_n\}$ of $A^T A$, and **uniquely lock** the first $r$ left singular vectors via:
+   $$
+   \mathbf{u}_i := \frac{1}{\sigma_i} A \mathbf{v}_i \qquad (1 \le i \le r)
+   $$
+   Complete $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ with an orthonormal basis $\{\mathbf{u}_{r+1}, \dots, \mathbf{u}_m\}$ of $\operatorname{Null}(A^T)$. Then the orthogonal matrices $U = [\mathbf{u}_1, \dots, \mathbf{u}_m] \in \mathbb{R}^{m\times m}$, $V = [\mathbf{v}_1, \dots, \mathbf{v}_n] \in \mathbb{R}^{n\times n}$, and the diagonal matrix $\Sigma \in \mathbb{R}^{m\times n}$ (with $\operatorname{diag}(\sigma_1,\dots,\sigma_r)$ in the upper-left) satisfy:
+   $$
+   A = U \Sigma V^T = \sum_{i=1}^r \sigma_i \mathbf{u}_i \mathbf{v}_i^T \iff U^T A V = \Sigma
+   $$
+2. **Orthonormal Bases for All Four Fundamental Subspaces**:
+   - Input space $\mathbb{R}^n = \operatorname{Row}(A) \oplus \operatorname{Null}(A)$: $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ is an orthonormal basis for $\operatorname{Row}(A)$, and $\{\mathbf{v}_{r+1}, \dots, \mathbf{v}_n\}$ is an orthonormal basis for $\operatorname{Null}(A)$;
+   - Output space $\mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T)$: $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ is an orthonormal basis for $\operatorname{Col}(A)$, and $\{\mathbf{u}_{r+1}, \dots, \mathbf{u}_m\}$ is an orthonormal basis for $\operatorname{Null}(A^T)$.
+3. **Operator 2-Norm, Frobenius Norm, and Eckart-Young Optimal Low-Rank Approximation**:  
+   The induced 2-norm is $\|A\|_2 = \max_{\|\mathbf{x}\|_2=1} \|A\mathbf{x}\|_2 = \sigma_1$, and the Frobenius norm is $\|A\|_F = \sqrt{\sum_{i,j} a_{ij}^2} = \sqrt{\sum_{i=1}^r \sigma_i^2}$. For any $1 \le k \lt r$, the $k$-term truncation $A_k = \sum_{i=1}^k \sigma_i \mathbf{u}_i \mathbf{v}_i^T$ is the **best rank-$k$ approximation** to $A$:
+   $$
+   \min_{\operatorname{rank}(B) \le k} \|A - B\|_2 = \|A - A_k\|_2 = \sigma_{k+1}, \qquad \min_{\operatorname{rank}(B) \le k} \|A - B\|_F = \|A - A_k\|_F = \sqrt{\sum_{i=k+1}^r \sigma_i^2}
+   $$
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Automatic Orthonormality of Left Singular Vectors and Eckart-Young Spectral Bound">
+
+**Step 1: Prove $\mathbf{u}_i = \frac{1}{\sigma_i} A \mathbf{v}_i$ automatically forms an orthonormal basis of $\operatorname{Col}(A)$.**
+
+Since $\operatorname{Null}(A^T A) = \operatorname{Null}(A)$, we have $\operatorname{rank}(A^T A) = \operatorname{rank}(A) = r$, and $\mathbf{x}^T A^T A \mathbf{x} = \|A\mathbf{x}\|_2^2 \ge 0$. Thus $A^T A$ has $r$ positive eigenvalues $\sigma_1^2 \ge \dots \ge \sigma_r^2 \gt 0$ and $n-r$ zero eigenvalues (whose orthonormal eigenvectors $\mathbf{v}_{r+1}, \dots, \mathbf{v}_n$ satisfy $A^T A \mathbf{v}_i = \mathbf{0} \implies \|A\mathbf{v}_i\|_2^2 = 0 \implies A\mathbf{v}_i = \mathbf{0}$, spanning $\operatorname{Null}(A)$).
+
+For $1 \le i, j \le r$, compute $\mathbf{u}_i^T \mathbf{u}_j$:
+$$
+\mathbf{u}_i^T \mathbf{u}_j = \frac{1}{\sigma_i \sigma_j} (A\mathbf{v}_i)^T (A\mathbf{v}_j) = \frac{1}{\sigma_i \sigma_j} \mathbf{v}_i^T (A^T A \mathbf{v}_j) = \frac{\sigma_j^2}{\sigma_i \sigma_j} (\mathbf{v}_i^T \mathbf{v}_j) = \frac{\sigma_j}{\sigma_i} \delta_{ij} = \delta_{ij}
+$$
+Since each $\mathbf{u}_i \in \operatorname{Col}(A)$, these $r$ orthonormal vectors span the $r$-dimensional column space $\operatorname{Col}(A)$. Moreover, $\mathbf{u}_i^T A \mathbf{v}_j = \sigma_j \mathbf{u}_i^T \mathbf{u}_j = \sigma_j \delta_{ij}$ for $1 \le j \le r$ and $0$ for $j \gt r$, which gives $U^T A V = \Sigma$, i.e., $A = U\Sigma V^T$!
+
+**Step 2: Prove $\|A\|_2 = \sigma_1$ and $\|A - B\|_2 \ge \sigma_{k+1}$ (Eckart-Young in the 2-norm).**
+
+Expand any unit vector $\mathbf{x} \in \mathbb{R}^n$ ($\|\mathbf{x}\|_2 = 1$) in the orthonormal basis $V$ as $\mathbf{x} = \sum_{i=1}^n c_i \mathbf{v}_i$ ($\sum_{i=1}^n c_i^2 = 1$). Then:
+$$
+\|A\mathbf{x}\|_2^2 = \left\| \sum_{i=1}^r \sigma_i c_i \mathbf{u}_i \right\|_2^2 = \sum_{i=1}^r \sigma_i^2 c_i^2 \le \sigma_1^2 \sum_{i=1}^n c_i^2 = \sigma_1^2
+$$
+Equality holds at $\mathbf{x} = \mathbf{v}_1$, so $\|A\|_2 = \sigma_1$. Likewise $A - A_k = \sum_{i=k+1}^r \sigma_i \mathbf{u}_i \mathbf{v}_i^T$ has largest singular value $\sigma_{k+1}$, so $\|A - A_k\|_2 = \sigma_{k+1}$.
+
+Now let $B \in \mathbb{R}^{m\times n}$ be **any** matrix with $\operatorname{rank}(B) \le k$:
+- Consider the two subspaces $W_1 = \operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_{k+1}\} \subseteq \mathbb{R}^n$ ($\dim W_1 = k+1$) and $W_2 = \operatorname{Null}(B) \subseteq \mathbb{R}^n$ ($\dim W_2 = n - \operatorname{rank}(B) \ge n - k$).
+- Since $\dim W_1 + \dim W_2 \ge (k+1) + (n - k) = n + 1 \gt n$, their intersection $W_1 \cap W_2$ must contain a unit vector $\mathbf{z} \in W_1 \cap W_2$ ($\|\mathbf{z}\|_2 = 1$).
+- Because $\mathbf{z} \in \operatorname{Null}(B)$, we have $B\mathbf{z} = \mathbf{0}$; and because $\mathbf{z} = \sum_{i=1}^{k+1} c_i \mathbf{v}_i \in W_1$ with $\sum_{i=1}^{k+1} c_i^2 = 1$:
+  $$
+  \|A - B\|_2^2 \ge \|(A - B)\mathbf{z}\|_2^2 = \|A\mathbf{z}\|_2^2 = \sum_{i=1}^{k+1} \sigma_i^2 c_i^2 \ge \sigma_{k+1}^2 \sum_{i=1}^{k+1} c_i^2 = \sigma_{k+1}^2
+  $$
+Thus $\|A - B\|_2 \ge \sigma_{k+1} = \|A - A_k\|_2$, establishing the cornerstone theorem of dimensionality reduction and data compression.
+
+</ProofCollapse>
+
+---
+
+<TheoremCard label="Theorem 6" title="Coordinate-Free Linear Transformations, Matrix Representation, and Basis-Change Laws (M⁻¹AM vs. UᵀAV)">
+
+Let $V$ and $W$ be finite-dimensional vector spaces over $\mathbb{F}$ ($\mathbb{R}$ or $\mathbb{C}$) with $\dim V = n$ and $\dim W = m$, and let $T: V \to W$ be a **linear transformation**:
+$$
+T(c\mathbf{v}_1 + d\mathbf{v}_2) = c\,T(\mathbf{v}_1) + d\,T(\mathbf{v}_2), \qquad \forall c, d \in \mathbb{F},\;\; \forall \mathbf{v}_1, \mathbf{v}_2 \in V
+$$
+
+1. **Unique Matrix Representation**:  
+   Given an ordered input basis $\mathcal{B}_V = (\mathbf{v}_1, \dots, \mathbf{v}_n)$ and an ordered output basis $\mathcal{B}_W = (\mathbf{w}_1, \dots, \mathbf{w}_m)$, there is a unique matrix $A = [T]_{\mathcal{B}_W \leftarrow \mathcal{B}_V} \in \mathbb{F}^{m\times n}$ whose $j$-th column is the coordinate vector $[T(\mathbf{v}_j)]_{\mathcal{B}_W}$ of $T(\mathbf{v}_j)$ in $\mathcal{B}_W$:
+   $$
+   T(\mathbf{v}_j) = \sum_{i=1}^m a_{ij} \mathbf{w}_i \iff [T(\mathbf{x})]_{\mathcal{B}_W} = A \, [\mathbf{x}]_{\mathcal{B}_V}, \quad \forall \mathbf{x} \in V
+   $$
+2. **Same-Space Single-Basis Change (Similarity $B = M^{-1} A M$)**:  
+   When $V = W$ and input and output use the **same basis**, switching from an old basis $\mathcal{B}$ to a new basis $\mathcal{B}'$ via the change-of-basis matrix $M \in \mathbb{F}^{n\times n}$ (whose $j$-th column is $[\mathbf{b}'_j]_{\mathcal{B}}$, so $[\mathbf{x}]_{\mathcal{B}} = M [\mathbf{x}]_{\mathcal{B}'}$) transforms $A = [T]_{\mathcal{B} \leftarrow \mathcal{B}}$ into $B = [T]_{\mathcal{B}' \leftarrow \mathcal{B}'}$ by **similarity**:
+   $$
+   B = M^{-1} A M
+   $$
+3. **Two-Space Independent Basis Change & "Good Bases" in Signal Processing**:  
+   If we independently change the input basis $\mathcal{B}'_V$ (transition matrix $V_0$) and output basis $\mathcal{B}'_W$ (transition matrix $U_0$), the matrix becomes $U_0^{-1} A V_0$; choosing orthonormal singular bases yields $\Sigma = U^T A V$. In engineering and compression (such as DFT, DCT, and Haar wavelets $\mathbf{x} = W\mathbf{c}$), a "good basis" combines two traits: a **fast orthogonal transform** ($\mathcal{O}(n\log n)$ or $\mathcal{O}(n)$) and **high energy compaction** (a handful of large coefficients suffice to reconstruct the signal).
+
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Matrix Representation Isomorphism and Basis-Change Formulas">
+
+**Step 1: Prove the coordinate-multiplication identity $[T(\mathbf{x})]_{\mathcal{B}_W} = A \, [\mathbf{x}]_{\mathcal{B}_V}$.**
+
+Let $\mathbf{x} \in V$ have coordinate vector $[\mathbf{x}]_{\mathcal{B}_V} = [c_1, \dots, c_n]^T$, meaning $\mathbf{x} = \sum_{j=1}^n c_j \mathbf{v}_j$. By linearity of $T$:
+$$
+T(\mathbf{x}) = T\!\left(\sum_{j=1}^n c_j \mathbf{v}_j\right) = \sum_{j=1}^n c_j T(\mathbf{v}_j) = \sum_{j=1}^n c_j \left(\sum_{i=1}^m a_{ij} \mathbf{w}_i\right) = \sum_{i=1}^m \left(\sum_{j=1}^n a_{ij} c_j\right) \mathbf{w}_i
+$$
+Since $\mathcal{B}_W$ is linearly independent, the $i$-th coefficient $\sum_{j=1}^n a_{ij} c_j$ is uniquely the $i$-th coordinate of $T(\mathbf{x})$ in $\mathcal{B}_W$. In matrix notation, $[T(\mathbf{x})]_{\mathcal{B}_W} = A \, [\mathbf{x}]_{\mathcal{B}_V}$!
+
+**Step 2: Prove $B = M^{-1} A M$ and the two-space formula $U_0^{-1} A V_0$.**
+
+Let $\mathbf{y} = T(\mathbf{x})$. In the old basis $\mathcal{B}$, $[\mathbf{y}]_{\mathcal{B}} = A [\mathbf{x}]_{\mathcal{B}}$; in the new basis $\mathcal{B}'$, $[\mathbf{y}]_{\mathcal{B}'} = B [\mathbf{x}]_{\mathcal{B}'}$. Substituting $[\mathbf{x}]_{\mathcal{B}} = M [\mathbf{x}]_{\mathcal{B}'}$ and $[\mathbf{y}]_{\mathcal{B}} = M [\mathbf{y}]_{\mathcal{B}'}$:
+$$
+M [\mathbf{y}]_{\mathcal{B}'} = [\mathbf{y}]_{\mathcal{B}} = A [\mathbf{x}]_{\mathcal{B}} = A (M [\mathbf{x}]_{\mathcal{B}'}) = (A M) [\mathbf{x}]_{\mathcal{B}'}
+$$
+Multiplying on the left by $M^{-1}$ gives $[\mathbf{y}]_{\mathcal{B}'} = (M^{-1} A M) [\mathbf{x}]_{\mathcal{B}'}$. By uniqueness of the representing matrix, $B = M^{-1} A M$!
+For a general map $T: V \to W$ with $[\mathbf{x}]_{\mathcal{B}_V} = V_0 [\mathbf{x}]_{\mathcal{B}'_V}$ and $[\mathbf{y}]_{\mathcal{B}_W} = U_0 [\mathbf{y}]_{\mathcal{B}'_W}$, the identical steps yield $[\mathbf{y}]_{\mathcal{B}'_W} = (U_0^{-1} A V_0) [\mathbf{x}]_{\mathcal{B}'_V}$; taking orthogonal $U_0 = U$ and $V_0 = V$ recovers $\Sigma = U^T A V$!
+
+</ProofCollapse>
+
+---
+
+## Interactive Sandbox: Module IV Factorizations and Energy Ellipsoids
+
+<InteractiveCanvasSlot
+  id="l33-quiz3-synthesis-sandbox"
+  title="Module IV Interactive Sandbox: Spectral Decomposition, Energy Ellipsoids, Jordan Shear, and SVD Geometry"
+  description="Switch freely between an SPD energy bowl $\mathbf{x}^T A \mathbf{x} = 1$, a defective non-symmetric Jordan shear flow, and the 3-step SVD circle-to-ellipse pipeline for any $2\times 2$ matrix, directly comparing single-basis $M^{-1}AM$ against dual-orthonormal-basis $U^T A V$."
+/>
+
+---
+
+## Five-Minute Pre-Exam Checklist: Six High-Frequency Pitfalls in Module IV
+
+<PitfallAlert title="Five-Minute Pre-Exam Checklist: Six High-Frequency Pitfalls in Module IV">
+
+1. **Pitfall 1: Forgetting the Symmetry Prerequisite ($A = A^T$) in Positive Definiteness Tests**  
+   Never conclude $\mathbf{x}^T A \mathbf{x} \gt 0$ merely from positive eigenvalues, positive leading principal minors, or positive pivots! For example, the non-symmetric matrix
+   $$
+   A = \begin{bmatrix} 1 & 4 \\ 0 & 1 \end{bmatrix}
+   $$
+   has $\lambda_1 = \lambda_2 = 1 \gt 0$, $\det(A_1) = 1 \gt 0$, $\det(A_2) = 1 \gt 0$, and pivots $d_1 = d_2 = 1 \gt 0$, yet $\mathbf{x} = [1, -1]^T$ gives $\mathbf{x}^T A \mathbf{x} = 1 - 4 + 1 = -2 \lt 0$! All five SPD criteria **require $A = A^T$** (or replacing $A$ by its symmetric part $\frac{A + A^T}{2}$).
+2. **Pitfall 2: Sign Mismatch From Solving $U$ and $V$ Independently in SVD**  
+   Multiplying an eigenvector by $-1$ still gives a unit eigenvector! If you compute $\mathbf{v}_i$ from $A^T A$ and **separately** compute $\mathbf{u}_i$ from $A A^T$ with arbitrary signs, multiplying $U \Sigma V^T$ back out can flip signs or scramble the matrix (giving $\sigma_1 \mathbf{u}_1 \mathbf{v}_1^T - \sigma_2 \mathbf{u}_2 \mathbf{v}_2^T \ne A$). **Ironclad rule: for every nonzero singular value ($1 \le i \le r$), lock the sign of $\mathbf{u}_i$ via $\mathbf{u}_i = \frac{1}{\sigma_i} A \mathbf{v}_i$!**
+3. **Pitfall 3: Confusing Singular Values $\sigma_i$ With Eigenvalues $\lambda_i$ (or $|\lambda_i|$)**  
+   The relation $\sigma_i = |\lambda_i|$ holds only for normal matrices (real symmetric, Hermitian, orthogonal/unitary)—and even for an indefinite symmetric matrix, $\lambda = -5$ gives $\sigma = |-5| = 5$. For a general non-symmetric matrix such as the shear
+   $$
+   A = \begin{bmatrix} 1 & 2 \\ 0 & 1 \end{bmatrix},
+   $$
+   both eigenvalues equal $1$, yet
+   $$
+   A^T A = \begin{bmatrix} 1 & 2 \\ 2 & 5 \end{bmatrix}
+   $$
+   gives $\sigma_1 = \sqrt{2} + 1 \approx 2.414 \ne 1$ and $\sigma_2 = \sqrt{2} - 1 \approx 0.414 \ne 1$. Eigenvalues belong to square matrices over $\mathbb{C}$; singular values are always non-negative real numbers for any $m\times n$ matrix!
+4. **Pitfall 4: Assuming Equal Characteristic Polynomial, Trace, Determinant, and Even $\operatorname{AM}, \operatorname{GM}$ Implies Similarity**  
+   While $2I_2$ and $J_2(2)$ already differ in $\operatorname{GM}$ ($2$ vs. $1$), a subtler $4\times 4$ trap has $\operatorname{AM}(2) = 4$ and $\operatorname{GM}(2) = 2$ for *both* $J_3(2) \oplus J_1(2)$ and $J_2(2) \oplus J_2(2)$, yet they are **never similar**! Only checking $\operatorname{rank}((A - \lambda I)^k)$ settles similarity.
+5. **Pitfall 5: Confusing "Pivot Values Equal Eigenvalues" With "Pivot Signs Match Eigenvalue Signs"**  
+   In $A = L D L^T$, the pivots $d_1, \dots, d_n$ almost never equal the eigenvalues $\lambda_1, \dots, \lambda_n$ (for $A = [[2, 1], [1, 2]]$, the pivots are $2, \frac{3}{2}$ while the eigenvalues are $3, 1$). Sylvester's Law of Inertia guarantees only that the **counts** of positive, negative, and zero entries match.
+6. **Pitfall 6: Confusing Similarity $M^{-1}AM$ With Congruence $M^TAM$ (and Dropping Conjugates Over $\mathbb{C}$)**  
+   $M^{-1} A M$ preserves the spectrum and Jordan structure of a linear operator $T: V \to V$, whereas $M^T A M$ preserves symmetry and inertia of a quadratic form $\mathbf{x}^T A \mathbf{x}$. They coincide only when $M$ is orthogonal ($M^T = M^{-1}$). Also, in $\mathbb{C}^n$, always use $\mathbf{z}^H \mathbf{w}$ rather than $\mathbf{z}^T \mathbf{w}$ (for $\mathbf{z} = [1, i]^T$, $\mathbf{z}^T \mathbf{z} = 1 + i^2 = 0$ would falsely give zero length!).
+
+</PitfallAlert>
+
+---
+
+## Key Takeaways
+
+<KeyTakeaways title="Key Takeaways" items={[
+  "Golden Rule of the Spectral Theorem: Real symmetric ($A = A^T$) and complex Hermitian ($A = A^H$) matrices have purely real eigenvalues, orthogonal eigenspaces for distinct eigenvalues, and factor into rank-1 orthogonal projections $A = Q\\Lambda Q^T = \\sum \\lambda_i \\mathbf{q}_i \\mathbf{q}_i^T$; the Fourier matrix satisfies $F_n^H F_n = nI_n$ with FFT complexity $\\frac{1}{2}n\\log_2 n$.",
+  "Five-Way SPD Equivalence: Assuming $A = A^T$, $\\mathbf{x}^T A \\mathbf{x} \\gt 0$, $\\lambda_i \\gt 0$, $\\det(A_k) \\gt 0$, $LDL^T$ pivots $d_i \\gt 0$, and $A = R^T R$ (full column rank, including Cholesky and $A^{1/2}$) are all equivalent; the ellipsoid $\\mathbf{x}^T A \\mathbf{x} = 1$ has semi-axes $1/\\sqrt{\\lambda_i}$.",
+  "Similarity vs. Congruence: Similarity $M^{-1}AM$ preserves characteristic polynomials, trace, determinant, and Jordan blocks; congruence $M^T A M$ preserves inertia $(n_+, n_-, n_0)$ by Sylvester's Law (matching pivot signs to eigenvalue signs); they meet only at orthogonal $Q^T A Q$.",
+  "Jordan Blocks & Defectiveness: Each chain of generalized eigenvectors forms one Jordan block, so the total number of blocks equals the number of independent eigenvectors; block sizes are uniquely determined by $b_k(\\lambda_0) = r_{k-1} - 2r_k + r_{k+1}$.",
+  "Universal SVD & Sign Locking: For any $A \\in \\mathbb{R}^{m\\times n}$, solving $A^T A \\mathbf{v}_i = \\sigma_i^2 \\mathbf{v}_i$ and setting $\\mathbf{u}_i = \\frac{1}{\\sigma_i}A\\mathbf{v}_i$ locks signs consistently to yield $A = U\\Sigma V^T$, giving orthonormal bases for all four subspaces and the optimal rank-$k$ approximation $A_k$ (Eckart-Young).",
+  "Coordinate-Free Linear Operators: Fixing input and output bases gives a unique matrix $[T]_{\\mathcal{B}_W \\leftarrow \\mathcal{B}_V}$; changing a single shared basis on $V \\to V$ obeys similarity $B = M^{-1}AM$, while independent orthonormal basis changes on $V$ and $W$ diagonalize every operator to $\\Sigma = U^T A V$."
+]} />
+
+---
+
+## MIT 18.06 Quiz 3 Practice Exam (6 Cross-Lecture Synthesis Problems)
+
+<ProblemSet
+  title="MIT 18.06 Quiz 3 Practice Exam (6 Cross-Lecture Synthesis Problems)"
+  description="Modeled directly on MIT 18.06 Quiz 3, testing symmetric/skew-symmetric ODE energy bounds, SPD parameter domains and square roots, Jordan block rank-drop identification, sign-consistent SVD by hand, polynomial-space change of basis, and conceptual true/false analysis."
+>
+
+### Exercise 1: Symmetric & Skew-Symmetric Matrix ODEs, Energy Conservation, and Decay Bounds (L2)
+
+<ExerciseCard
+  id="l33-ex1"
+  tier="L2"
+  tierLabel="L2 · Symmetric/Skew-Symmetric ODEs & Energy Bounds"
+  title="Symmetric/Skew-Symmetric Matrix ODEs & Energy Evolution"
+>
+
+Consider the real symmetric matrix $S$, the real skew-symmetric matrix $K$, and their non-symmetric sum $A = S + K$:
+
+$$
+S = \begin{bmatrix} -2 & 1 \\ 1 & -2 \end{bmatrix}, \qquad K = \begin{bmatrix} 0 & -3 \\ 3 & 0 \end{bmatrix}, \qquad A = S + K = \begin{bmatrix} -2 & -2 \\ 4 & -2 \end{bmatrix}
+$$
+
+1. Find the spectral decomposition $S = Q\Lambda Q^T$, and explicitly solve the linear ODE $\frac{d\mathbf{v}}{dt} = S\mathbf{v}$ with initial condition $\mathbf{v}(0) = [3, 1]^T$.
+2. For any real skew-symmetric matrix $K \in \mathbb{R}^{n\times n}$ ($K^T = -K$), prove that $\frac{d\mathbf{u}}{dt} = K\mathbf{u}$ strictly conserves the Euclidean norm $\|\mathbf{u}(t)\|_2$, and prove that $e^{Kt}$ is always an orthogonal matrix.
+3. Now consider the coupled non-symmetric system $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$ ($A = S + K$). Setting $E(t) = \|\mathbf{u}(t)\|_2^2$, prove that $\frac{dE}{dt} = 2\mathbf{u}(t)^T S \mathbf{u}(t)$ (so $K$ cancels out of the instantaneous energy rate), and use the eigenvalues of $S$ to find sharp exponential upper and lower decay bounds for $\|\mathbf{u}(t)\|_2$ ($t \ge 0$).
+
+First test the classic true/false property of real skew-symmetric matrices below:
+
+<TrueFalseInteractive
+  id="l33-tf1"
+  correct={true}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="True! Since $K^T = -K$, if $K\mathbf{x} = \lambda\mathbf{x}$ ($\mathbf{x}\ne\mathbf{0}$), then $\lambda\|\mathbf{x}\|_2^2 = \mathbf{x}^H K \mathbf{x}$, and taking the conjugate transpose gives $\bar{\lambda}\|\mathbf{x}\|_2^2 = \mathbf{x}^H K^H \mathbf{x} = -\mathbf{x}^H K \mathbf{x} = -\lambda\|\mathbf{x}\|_2^2$, so $\bar{\lambda} = -\lambda$ (purely imaginary or zero). Also $(e^{Kt})^T e^{Kt} = e^{K^T t}e^{Kt} = e^{-Kt}e^{Kt} = I_n$."
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "The symmetric structure of $S$ immediately suggests eigenvectors proportional to $[1, 1]^T$ and $[1, -1]^T$.",
+    "Differentiate $E(t) = \\mathbf{u}^T \\mathbf{u}$ using the product rule: $\\frac{d}{dt}(\\mathbf{u}^T \\mathbf{u}) = (\\frac{d\\mathbf{u}}{dt})^T \\mathbf{u} + \\mathbf{u}^T (\\frac{d\\mathbf{u}}{dt})$.",
+    "Use the Rayleigh quotient bounds for any real symmetric matrix $S$: $\\lambda_{\\min}(S)\\|\\mathbf{u}\\|_2^2 \\le \\mathbf{u}^T S \\mathbf{u} \\le \\lambda_{\\max}(S)\\|\\mathbf{u}\\|_2^2$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+In dynamics and physics, any real square matrix $A$ splits uniquely into a **symmetric dissipative/stretching part** $S = \frac{1}{2}(A + A^T)$ and a **skew-symmetric pure-rotation part** $K = \frac{1}{2}(A - A^T)$.
+
+The symmetric part shapes the energy bowl and governs how fast trajectories collapse toward (or expand from) the origin; the skew-symmetric part $K$ acts like a pure angular-velocity field, spinning the state vector without ever changing its length. Thus, in the instantaneous rate of change of total energy $E(t) = \|\mathbf{u}(t)\|_2^2$, the rotational part $K$ disappears completely, leaving the eigenvalues of $S$ to set the exact upper and lower guardrails on the decay rate!
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**Part 1: Spectral decomposition of $S$ and solution to $\frac{d\mathbf{v}}{dt} = S\mathbf{v}$.**
+
+For $S$:
+- $\operatorname{tr}(S) = -4$ and $\det(S) = 4 - 1 = 3$, giving $\lambda^2 + 4\lambda + 3 = (\lambda + 1)(\lambda + 3) = 0$, so $\lambda_1 = -1$ and $\lambda_2 = -3$.
+- For $\lambda_1 = -1$: $(S + I)\mathbf{x}_1 = \mathbf{0} \implies \mathbf{q}_1 = \frac{1}{\sqrt{2}}[1, 1]^T$;
+- For $\lambda_2 = -3$: $(S + 3I)\mathbf{x}_2 = \mathbf{0} \implies \mathbf{q}_2 = \frac{1}{\sqrt{2}}[1, -1]^T$.
+
+Thus the spectral decomposition is:
+$$
+S = Q \Lambda Q^T = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} -1 & 0 \\ 0 & -3 \end{bmatrix} \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}
+$$
+Projecting $\mathbf{v}(0) = [3, 1]^T$ onto the orthonormal eigenbasis:
+- $c_1 = \mathbf{q}_1^T \mathbf{v}(0) = \frac{3+1}{\sqrt{2}} = 2\sqrt{2} \implies c_1 \mathbf{q}_1 = 2[1, 1]^T$;
+- $c_2 = \mathbf{q}_2^T \mathbf{v}(0) = \frac{3-1}{\sqrt{2}} = \sqrt{2} \implies c_2 \mathbf{q}_2 = [1, -1]^T$.
+
+Hence:
+$$
+\mathbf{v}(t) = 2 e^{-t} \begin{bmatrix} 1 \\ 1 \end{bmatrix} + e^{-3t} \begin{bmatrix} 1 \\ -1 \end{bmatrix} = \begin{bmatrix} 2e^{-t} + e^{-3t} \\ 2e^{-t} - e^{-3t} \end{bmatrix}
+$$
+
+**Part 2: Energy conservation and orthogonality of $e^{Kt}$.**
+
+For $\frac{d\mathbf{u}}{dt} = K\mathbf{u}$ with $K^T = -K$:
+$$
+\frac{d}{dt}\|\mathbf{u}(t)\|_2^2 = \frac{d}{dt}(\mathbf{u}^T \mathbf{u}) = (K\mathbf{u})^T \mathbf{u} + \mathbf{u}^T (K\mathbf{u}) = \mathbf{u}^T (K^T + K) \mathbf{u} = \mathbf{u}^T O \mathbf{u} = 0
+$$
+So $\|\mathbf{u}(t)\|_2 = \|\mathbf{u}(0)\|_2$ for all $t \in \mathbb{R}$. Moreover, since transposition commutes with matrix exponentiation and $-Kt$ commutes with $Kt$:
+$$
+(e^{Kt})^T e^{Kt} = e^{K^T t} e^{Kt} = e^{-Kt} e^{Kt} = e^{(-Kt + Kt)} = e^{O} = I_n
+$$
+So $e^{Kt}$ is always orthogonal (and by continuity from $\det(e^O) = 1$, $\det(e^{Kt}) = +1$: a pure rotation!).
+
+**Part 3: Energy rate and exponential decay bounds for $\frac{d\mathbf{u}}{dt} = (S + K)\mathbf{u}$.**
+
+Differentiating $E(t) = \mathbf{u}(t)^T \mathbf{u}(t)$:
+$$
+\frac{dE}{dt} = (A\mathbf{u})^T \mathbf{u} + \mathbf{u}^T (A\mathbf{u}) = \mathbf{u}^T (A^T + A) \mathbf{u} = \mathbf{u}^T \big((S - K) + (S + K)\big)\mathbf{u} = 2 \mathbf{u}(t)^T S \mathbf{u}(t)
+$$
+Expanding $\mathbf{u}(t) = \alpha_1(t) \mathbf{q}_1 + \alpha_2(t) \mathbf{q}_2$ in the eigenbasis of $S$ (with $\alpha_1^2 + \alpha_2^2 = E(t)$):
+$$
+\mathbf{u}^T S \mathbf{u} = \lambda_1 \alpha_1^2 + \lambda_2 \alpha_2^2 = -\alpha_1^2 - 3\alpha_2^2
+$$
+Hence $-3 E(t) \le \mathbf{u}^T S \mathbf{u} \le -E(t)$, so:
+$$
+-6 E(t) \le \frac{dE}{dt} \le -2 E(t)
+$$
+For $E(0) \gt 0$, dividing by $E(t)$ and integrating from $0$ to $t \ge 0$ gives $E(0) e^{-6t} \le E(t) \le E(0) e^{-2t}$. Taking square roots yields the sharp norm bounds:
+$$
+\|\mathbf{u}(0)\|_2 e^{-3t} \le \|\mathbf{u}(t)\|_2 \le \|\mathbf{u}(0)\|_2 e^{-t} \qquad (\forall t \ge 0)
+$$
+(Note: although $A$ has eigenvalues $-2 \pm 2\sqrt{2}i$ with real part $-2$, the rotational coupling causes the instantaneous decay rate to oscillate between $e^{-3t}$ and $e^{-t}$!)
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 2: Parameterized Tridiagonal SPD Domain, $LDL^T$ Completing the Square, and Symmetric Square Root (L2/L3)
+
+<ExerciseCard
+  id="l33-ex2"
+  tier="L3"
+  tierLabel="L2/L3 · SPD Parameter Range, Completing the Square & Square Root"
+  title="SPD Parameter Range, LDLᵀ Completing the Square, and Symmetric Square Root"
+>
+
+Consider the $3\times 3$ parameterized real symmetric matrix $A(c)$ and the $2\times 2$ symmetric matrix $B$:
+$$
+A(c) = \begin{bmatrix} 2 & -1 & 0 \\ -1 & 2 & -1 \\ 0 & -1 & c \end{bmatrix}, \qquad B = \begin{bmatrix} 5 & 4 \\ 4 & 5 \end{bmatrix}
+$$
+
+1. Use both leading principal minors and $A(c) = L D L^T$ to find all real values of $c$ for which $A(c)$ is **strictly positive definite (SPD)**.
+2. Express the quadratic form $q(x_1, x_2, x_3) = \mathbf{x}^T A(c) \mathbf{x}$ as a sum of squares, determine the range of $c$ for which $A(c)$ is **positive semidefinite (PSD)**, and at the critical value $c = c_*$ find all nonzero vectors $\mathbf{x}$ with $\mathbf{x}^T A(c_*) \mathbf{x} = 0$ (i.e., $\operatorname{Null}(A(c_*))$).
+3. For the SPD matrix $B$, find its **symmetric square root** $B^{1/2} = Q \sqrt{\Lambda} Q^T$ (verify $(B^{1/2})^2 = B$), and determine the semi-axis lengths and unit axis directions of the ellipse $\mathbf{x}^T B \mathbf{x} = 1$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Compute the leading principal minors $\\det(A_1), \\det(A_2), \\det(A_3)$ in order; the pivots $d_k$ and multipliers directly give the sum-of-squares coefficients.",
+    "The pivots form the diagonal matrix $D$, while the linear expressions inside the squares correspond to the rows of $L^T \\mathbf{x}$!",
+    "For a $2\\times 2$ symmetric matrix with equal diagonal entries $a$ and off-diagonal entries $b$, the orthonormal eigenvectors are always $\\frac{1}{\\sqrt{2}}[1, 1]^T$ and $\\frac{1}{\\sqrt{2}}[1, -1]^T$ with eigenvalues $a+b$ and $a-b$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Completing the square is the exact mirror image of symmetric Gaussian elimination $A = L D L^T$ in the world of quadratic forms!
+
+The three pivots $d_1, d_2, d_3$ become the weights in front of the three squared terms, while the rows of $L^T$ give the linear combinations inside each parenthesis. Because the first two pivots are strictly positive, the final pivot $c - \frac{2}{3}$ acts as a master switch for the 3D energy bowl: positive means every wall curves upward (SPD), zero flattens the bowl along a single line (PSD), and negative collapses it into a saddle (indefinite).
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**Part 1: Leading principal minors and $LDL^T$ for the SPD range.**
+
+Compute the three leading principal minors of $A(c)$:
+- $\det(A_1) = 2 \gt 0$;
+- $\det(A_2) = 2(2) - (-1)(-1) = 4 - 1 = 3 \gt 0$;
+- Expanding along row 1 for $\det(A_3)$:
+  $$
+  \det(A_3) = 2\det\begin{bmatrix} 2 & -1 \\ -1 & c \end{bmatrix} - (-1)\det\begin{bmatrix} -1 & -1 \\ 0 & c \end{bmatrix} = 2(2c - 1) + (-c) = 3c - 2
+  $$
+
+By Theorem 2, $A(c) \succ 0$ if and only if $\det(A_k) \gt 0$ for $k = 1, 2, 3$, which gives:
+$$
+3c - 2 \gt 0 \iff c \gt \frac{2}{3}
+$$
+
+Confirming via symmetric elimination $A(c) = L D L^T$:
+- Subtract $(-\frac{1}{2}) \times$ row 1 from row 2: row 2 becomes $[0,\, \frac{3}{2},\, -1]$, with multiplier $\ell_{21} = -\frac{1}{2}$ and pivots $d_1 = 2$, $d_2 = \frac{3}{2}$;
+- Subtract $(-\frac{2}{3}) \times$ new row 2 from row 3: row 3 becomes $[0,\, 0,\, c - \frac{2}{3}]$, with multiplier $\ell_{32} = -\frac{2}{3}$ and pivot $d_3 = c - \frac{2}{3}$.
+
+Thus:
+$$
+L = \begin{bmatrix} 1 & 0 & 0 \\ -1/2 & 1 & 0 \\ 0 & -2/3 & 1 \end{bmatrix}, \qquad D = \begin{bmatrix} 2 & 0 & 0 \\ 0 & 3/2 & 0 \\ 0 & 0 & c - 2/3 \end{bmatrix}
+$$
+Requiring all pivots $d_i \gt 0$ again yields $c - \frac{2}{3} \gt 0 \iff c \gt \frac{2}{3}$.
+
+**Part 2: Sum of squares, PSD range, and critical nullspace.**
+
+Using $\mathbf{x}^T A(c) \mathbf{x} = (L^T \mathbf{x})^T D (L^T \mathbf{x})$, we read off the sum of squares directly:
+$$
+q(x_1, x_2, x_3) = 2x_1^2 - 2x_1 x_2 + 2x_2^2 - 2x_2 x_3 + c x_3^2 = 2\left(x_1 - \frac{1}{2}x_2\right)^2 + \frac{3}{2}\left(x_2 - \frac{2}{3}x_3\right)^2 + \left(c - \frac{2}{3}\right)x_3^2
+$$
+- If $c \ge \frac{2}{3}$, all three coefficients are non-negative, so $q(\mathbf{x}) \ge 0$ for all $\mathbf{x} \in \mathbb{R}^3$;
+- If $c \lt \frac{2}{3}$, choosing $x_3 = 3, x_2 = 2, x_1 = 1$ zeros out the first two squares and gives $q(1, 2, 3) = 9(c - \frac{2}{3}) \lt 0$.
+
+Hence $A(c)$ is **positive semidefinite (PSD)** if and only if $c \ge \frac{2}{3}$. At $c_* = \frac{2}{3}$, $q(\mathbf{x}) = 0$ if and only if both squares vanish:
+$$
+x_2 - \frac{2}{3}x_3 = 0 \;\text{ and }\; x_1 - \frac{1}{2}x_2 = 0 \implies \mathbf{x} = t\begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix} \quad (t \in \mathbb{R})
+$$
+So $\operatorname{Null}(A(2/3)) = \operatorname{span}\{[1, 2, 3]^T\}$ (check: $A(2/3)[1,2,3]^T = [2-2, -1+4-3, -2+2]^T = \mathbf{0}$).
+
+**Part 3: Symmetric square root $B^{1/2}$ and ellipse geometry.**
+
+For $B$:
+- $\lambda_1 = 5 + 4 = 9$, unit eigenvector $\mathbf{q}_1 = \frac{1}{\sqrt{2}}[1, 1]^T$;
+- $\lambda_2 = 5 - 4 = 1$, unit eigenvector $\mathbf{q}_2 = \frac{1}{\sqrt{2}}[1, -1]^T$.
+
+With $\sqrt{\Lambda} = \operatorname{diag}(3, 1)$, the symmetric square root is:
+$$
+B^{1/2} = Q \sqrt{\Lambda} Q^T = \frac{1}{2} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} 3 & 0 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} = \frac{1}{2} \begin{bmatrix} 3 & 1 \\ 3 & -1 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} = \frac{1}{2} \begin{bmatrix} 4 & 2 \\ 2 & 4 \end{bmatrix} = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}
+$$
+Check:
+$$
+(B^{1/2})^2 = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}\begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix} = \begin{bmatrix} 5 & 4 \\ 4 & 5 \end{bmatrix} = B,
+$$
+and $B^{1/2}$ is SPD.
+
+For the ellipse $\mathbf{x}^T B \mathbf{x} = 1$:
+- Along $\mathbf{q}_1 = \frac{1}{\sqrt{2}}[1, 1]^T$ (steepest curvature $\lambda_1 = 9$), the **minor** semi-axis has length $a_1 = \frac{1}{\sqrt{9}} = \frac{1}{3}$;
+- Along $\mathbf{q}_2 = \frac{1}{\sqrt{2}}[1, -1]^T$ (gentlest curvature $\lambda_2 = 1$), the **major** semi-axis has length $a_2 = \frac{1}{\sqrt{1}} = 1$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 3: Similarity Invariants and Identifying Jordan Form via $\operatorname{rank}((A - \lambda I)^k)$ (L3)
+
+<ExerciseCard
+  id="l33-ex3"
+  tier="L3"
+  tierLabel="L3 · Similarity Invariants & Jordan Block Rank Formula"
+  title="Similarity Invariants and Jordan Block Identification via Power Ranks"
+>
+
+Consider the following two $4 \times 4$ matrices:
+$$
+A = \begin{bmatrix} 2 & 1 & 0 & -1 \\ 0 & 2 & 1 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 2 \end{bmatrix}, \qquad B = \begin{bmatrix} 2 & 1 & 0 & 0 \\ 0 & 2 & 0 & 0 \\ 0 & 0 & 2 & 1 \\ 0 & 0 & 0 & 2 \end{bmatrix}
+$$
+
+1. Compute and compare the characteristic polynomial, trace $\operatorname{tr}$, determinant $\det$, and algebraic and geometric multiplicities $\operatorname{AM}(2)$ and $\operatorname{GM}(2)$ of $A$ and $B$.
+2. Are $A$ and $B$ similar? Compute $\operatorname{rank}((A - 2I_4)^k)$ and $\operatorname{rank}((B - 2I_4)^k)$ for $k = 0, 1, 2, 3$, and apply the block-size rank-drop formula to determine the Jordan Canonical Form $J_A$ of $A$.
+3. Explicitly construct a basis of generalized eigenvectors for $A$ to form an invertible matrix $M \in \mathbb{R}^{4\times 4}$ and verify $M^{-1} A M = J_A$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Both $A$ and $B$ are upper-triangular, so their eigenvalues sit on the main diagonal, and $A - 2I_4$ has only two nonzero rows!",
+    "Compare $(A - 2I_4)^2$ and $(B - 2I_4)^2$ to see which vanishes; use $b_k(2) = r_{k-1} - 2r_k + r_{k+1}$.",
+    "For the $3\\times 3$ Jordan chain of $A$, start from $\\mathbf{e}_3$ and multiply repeatedly by $N = A - 2I_4$; for the 4th column, pick an eigenvector outside that chain."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+This is the textbook case for distinguishing "pseudo-similar" matrices! $A$ and $B$ share the exact same characteristic polynomial, trace, determinant, and even $\operatorname{AM}(2) = 4$ and $\operatorname{GM}(2) = 2$. Ordinary eigenvalue tools cannot tell them apart.
+
+Squaring $N = A - 2I_4$ immediately cracks the case: $B$ consists of two short chains of length 2 (so $(B-2I)^2 = O$), whereas $A$—despite the distracting $-1$ in entry $(1, 4)$—actually hides one long chain of length 3 plus one isolated eigenvector of length 1, so $(A - 2I_4)^2$ does not vanish!
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**Part 1: Verification that basic spectral and multiplicity invariants match.**
+
+Both $A$ and $B$ are upper-triangular with all diagonal entries equal to $2$, so:
+- Identical characteristic polynomial: $p_A(\lambda) = p_B(\lambda) = (2 - \lambda)^4$, single eigenvalue $\lambda = 2$ with $\operatorname{AM}(2) = 4$;
+- Identical trace and determinant: $\operatorname{tr}(A) = \operatorname{tr}(B) = 8$, $\det(A) = \det(B) = 16$;
+- Geometric multiplicities via shifted matrices:
+  $$
+  N_A = A - 2I_4 = \begin{bmatrix} 0 & 1 & 0 & -1 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix}, \qquad N_B = B - 2I_4 = \begin{bmatrix} 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 0 & 0 \end{bmatrix}
+  $$
+  Clearly $\operatorname{rank}(N_A) = 2$ and $\operatorname{rank}(N_B) = 2$, so both have the exact same geometric multiplicity:
+  $$
+  \operatorname{GM}_A(2) = 4 - \operatorname{rank}(N_A) = 2, \qquad \operatorname{GM}_B(2) = 4 - \operatorname{rank}(N_B) = 2
+  $$
+
+**Part 2: Power ranks and Jordan Canonical Form.**
+
+Compute $N_A^2$, $N_A^3$, and $N_B^2$:
+$$
+N_A^2 = \begin{bmatrix} 0 & 1 & 0 & -1 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix} \begin{bmatrix} 0 & 1 & 0 & -1 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix} = \begin{bmatrix} 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix} \ne O, \qquad N_A^3 = O
+$$
+Meanwhile $N_B$ is block-diagonal with $2\times 2$ nilpotent blocks, so $N_B^2 = O$.
+Because $\operatorname{rank}(N_A^2) = 1 \ne 0 = \operatorname{rank}(N_B^2)$, **$A$ and $B$ are NOT similar** (Theorem 3)!
+
+For $A$, the rank sequence is $r_0 = 4$, $r_1 = 2$, $r_2 = 1$, $r_3 = 0$, $r_4 = 0$. Applying Theorem 4:
+- $\Delta_k = r_{k-1} - r_k$ (blocks of size $\ge k$): $\Delta_1 = 4 - 2 = 2$, $\Delta_2 = 2 - 1 = 1$, $\Delta_3 = 1 - 0 = 1$, $\Delta_4 = 0$;
+- $b_k(2) = \Delta_k - \Delta_{k+1}$ (blocks of size exactly $k$):
+  - $1\times 1$ blocks: $b_1(2) = 2 - 1 = 1$;
+  - $2\times 2$ blocks: $b_2(2) = 1 - 1 = 0$;
+  - $3\times 3$ blocks: $b_3(2) = 1 - 0 = 1$.
+
+Thus $J_A = \operatorname{diag}(J_3(2), J_1(2))$ (whereas $B$ itself is $J_2(2) \oplus J_2(2)$):
+$$
+J_A = \begin{bmatrix} 2 & 1 & 0 & 0 \\ 0 & 2 & 1 & 0 \\ 0 & 0 & 2 & 0 \\ 0 & 0 & 0 & 2 \end{bmatrix}
+$$
+
+**Part 3: Explicit generalized eigenvector basis $M$.**
+
+- **Length-3 chain $\{\mathbf{v}_1, \mathbf{v}_2, \mathbf{v}_3\}$**: Pick $\mathbf{v}_3$ such that $N_A^2 \mathbf{v}_3 \ne \mathbf{0}$. Since column 3 of $N_A^2$ is nonzero, take $\mathbf{v}_3 = \mathbf{e}_3 = [0, 0, 1, 0]^T$:
+  - $\mathbf{v}_2 = N_A \mathbf{v}_3 = [0, 1, 0, 0]^T = \mathbf{e}_2$;
+  - $\mathbf{v}_1 = N_A \mathbf{v}_2 = [1, 0, 0, 0]^T = \mathbf{e}_1$ (with $N_A \mathbf{v}_1 = \mathbf{0}$).
+- **Length-1 eigenvector $\mathbf{w}$**: Solve $N_A \mathbf{w} = \mathbf{0}$, giving $w_2 - w_4 = 0$ and $w_3 = 0$. Choose $\mathbf{w} = [0, 1, 0, 1]^T$, independent of $\mathbf{e}_1$.
+
+Assemble $M = [\mathbf{v}_1, \mathbf{v}_2, \mathbf{v}_3, \mathbf{w}]$:
+$$
+M = \begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 1 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}, \qquad M^{-1} = \begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & -1 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+Clearly $\det(M) = 1$ (invertible). Column-by-column check: $A\mathbf{v}_1 = 2\mathbf{v}_1$, $A\mathbf{v}_2 = \mathbf{v}_1 + 2\mathbf{v}_2$, $A\mathbf{v}_3 = \mathbf{v}_2 + 2\mathbf{v}_3$, and $A\mathbf{w} = [1-1, 2, 0, 2]^T = 2\mathbf{w}$, so $AM = M J_A \iff M^{-1} A M = J_A$!
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 4: Full SVD by Hand, Sign-Consistency Check, and Rank-1 Outer-Product Reconstruction (L3)
+
+<ExerciseCard
+  id="l33-ex4"
+  tier="L3"
+  tierLabel="L3 · Hand-Computed SVD, Sign Consistency & Low-Rank Approximation"
+  title="Full SVD by Hand, Sign Consistency, and Optimal Rank-1 Approximation"
+>
+
+Consider the $3 \times 2$ matrix:
+$$
+A = \begin{bmatrix} 6 & 2 \\ 3 & 5 \\ 0 & 4 \end{bmatrix}
+$$
+
+1. Compute the Gram matrix $A^T A \in \mathbb{R}^{2\times 2}$, find its eigenvalues, the nonzero singular values $\sigma_1 \gt \sigma_2 \gt 0$ of $A$, and the right singular matrix $V = [\mathbf{v}_1, \mathbf{v}_2]$.
+2. Use the sign-locking formula $\mathbf{u}_i = \frac{1}{\sigma_i} A \mathbf{v}_i$ to compute $\mathbf{u}_1$ and $\mathbf{u}_2$, find $\mathbf{u}_3 \in \operatorname{Null}(A^T)$ to complete $U$, and write the full SVD $A = U\Sigma V^T$ (also show what goes wrong if you find $\mathbf{u}_2$ separately from $AA^T$ and accidentally flip $\mathbf{u}_2 \mapsto -\mathbf{u}_2$).
+3. Write $A$ as a sum of rank-1 outer products $A = \sigma_1 \mathbf{u}_1 \mathbf{v}_1^T + \sigma_2 \mathbf{u}_2 \mathbf{v}_2^T$, give the optimal rank-1 approximation $A_1$, and compute the approximation errors $\|A - A_1\|_2$ and $\|A - A_1\|_F$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Computing $A^T A$ produces a $2\\times 2$ symmetric matrix with equal diagonal entries $45$ and off-diagonal entries $27$, so its eigenvalues are $45 \\pm 27$!",
+    "When computing $\\mathbf{u}_i = \\frac{1}{\\sigma_i}A\\mathbf{v}_i$, the $\\sqrt{2}$ factors cancel cleanly, leaving integer triples divided by $3$!",
+    "The residual $A - A_1$ of the optimal rank-1 approximation $A_1 = \\sigma_1 \\mathbf{u}_1 \\mathbf{v}_1^T$ is simply $\\sigma_2 \\mathbf{u}_2 \\mathbf{v}_2^T$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+The most important practical lesson in computing an SVD by hand is: **$U$ and $V$ are NOT two independent sets of eigenvectors—they are locked together in pairs by $A\mathbf{v}_i = \sigma_i \mathbf{u}_i$!**
+
+Diagonalize the smaller $2\times 2$ matrix $A^T A$ first to get $\mathbf{v}_1, \mathbf{v}_2$, then pass each $\mathbf{v}_i$ through $A$ and divide by $\sigma_i$. That hands you the uniquely sign-matched $\mathbf{u}_i$ automatically, avoids diagonalizing the larger $3\times 3$ matrix $A A^T$, and makes sign-mismatch errors impossible!
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**Part 1: Diagonalize $A^T A$ to find $\sigma_i$ and $V$.**
+
+Compute $A^T A$:
+$$
+A^T A = \begin{bmatrix} 6 & 3 & 0 \\ 2 & 5 & 4 \end{bmatrix} \begin{bmatrix} 6 & 2 \\ 3 & 5 \\ 0 & 4 \end{bmatrix} = \begin{bmatrix} 45 & 27 \\ 27 & 45 \end{bmatrix}
+$$
+Because the diagonal entries are equal:
+- $\lambda_1 = 45 + 27 = 72 \implies \sigma_1 = \sqrt{72} = 6\sqrt{2}$, with $\mathbf{v}_1 = \frac{1}{\sqrt{2}}[1, 1]^T$;
+- $\lambda_2 = 45 - 27 = 18 \implies \sigma_2 = \sqrt{18} = 3\sqrt{2}$, with $\mathbf{v}_2 = \frac{1}{\sqrt{2}}[1, -1]^T$.
+
+Thus
+$$
+V = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}.
+$$
+
+**Part 2: Lock $\mathbf{u}_1, \mathbf{u}_2$ and complete $\mathbf{u}_3 \in \operatorname{Null}(A^T)$.**
+
+Using $\mathbf{u}_i = \frac{1}{\sigma_i} A \mathbf{v}_i$:
+$$
+\mathbf{u}_1 = \frac{1}{6\sqrt{2}} \begin{bmatrix} 6 & 2 \\ 3 & 5 \\ 0 & 4 \end{bmatrix} \frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ 1 \end{bmatrix} = \frac{1}{12}\begin{bmatrix} 8 \\ 8 \\ 4 \end{bmatrix} = \frac{1}{3}\begin{bmatrix} 2 \\ 2 \\ 1 \end{bmatrix}
+$$
+$$
+\mathbf{u}_2 = \frac{1}{3\sqrt{2}} \begin{bmatrix} 6 & 2 \\ 3 & 5 \\ 0 & 4 \end{bmatrix} \frac{1}{\sqrt{2}}\begin{bmatrix} 1 \\ -1 \end{bmatrix} = \frac{1}{6}\begin{bmatrix} 4 \\ -2 \\ -4 \end{bmatrix} = \frac{1}{3}\begin{bmatrix} 2 \\ -1 \\ -2 \end{bmatrix}
+$$
+(Check: $\|\mathbf{u}_1\|_2 = \|\mathbf{u}_2\|_2 = 1$ and $\mathbf{u}_1^T \mathbf{u}_2 = \frac{4 - 2 - 2}{9} = 0$.)
+
+To find $\mathbf{u}_3 \in \operatorname{Null}(A^T) \subseteq \mathbb{R}^3$, solve $A^T \mathbf{u}_3 = \mathbf{0}$:
+$$
+\begin{cases} 6x_1 + 3x_2 = 0 \implies x_2 = -2x_1 \\ 2x_1 + 5x_2 + 4x_3 = 0 \implies -8x_1 + 4x_3 = 0 \implies x_3 = 2x_1 \end{cases}
+$$
+Normalizing $[1, -2, 2]^T$ gives $\mathbf{u}_3 = \frac{1}{3}[1, -2, 2]^T$. Therefore:
+$$
+A = U\Sigma V^T = \frac{1}{3}\begin{bmatrix} 2 & 2 & 1 \\ 2 & -1 & -2 \\ 1 & -2 & 2 \end{bmatrix} \begin{bmatrix} 6\sqrt{2} & 0 \\ 0 & 3\sqrt{2} \\ 0 & 0 \end{bmatrix} \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}
+$$
+**Sign-mismatch error**: If one solved $AA^T$ independently and picked $-\mathbf{u}_2$ instead of $\mathbf{u}_2$, the product would be
+$$
+\sigma_1 \mathbf{u}_1 \mathbf{v}_1^T - \sigma_2 \mathbf{u}_2 \mathbf{v}_2^T = \begin{bmatrix} 2 & 6 \\ 5 & 3 \\ 4 & 0 \end{bmatrix} \ne A,
+$$
+swapping the two columns of $A$!
+
+**Part 3: Outer-product expansion, optimal rank-1 approximation, and errors.**
+
+Compute the two rank-1 terms:
+$$
+A_1 = \sigma_1 \mathbf{u}_1 \mathbf{v}_1^T = 6\sqrt{2} \cdot \frac{1}{3}\begin{bmatrix} 2 \\ 2 \\ 1 \end{bmatrix} \cdot \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \end{bmatrix} = 2\begin{bmatrix} 2 & 2 \\ 2 & 2 \\ 1 & 1 \end{bmatrix} = \begin{bmatrix} 4 & 4 \\ 4 & 4 \\ 2 & 2 \end{bmatrix}
+$$
+$$
+\sigma_2 \mathbf{u}_2 \mathbf{v}_2^T = 3\sqrt{2} \cdot \frac{1}{3}\begin{bmatrix} 2 \\ -1 \\ -2 \end{bmatrix} \cdot \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & -1 \end{bmatrix} = \begin{bmatrix} 2 & -2 \\ -1 & 1 \\ -2 & 2 \end{bmatrix}
+$$
+Check:
+$$
+A_1 + \sigma_2 \mathbf{u}_2 \mathbf{v}_2^T = \begin{bmatrix} 6 & 2 \\ 3 & 5 \\ 0 & 4 \end{bmatrix} = A.
+$$
+By the Eckart-Young Theorem, the optimal rank-1 approximation is
+$$
+A_1 = \begin{bmatrix} 4 & 4 \\ 4 & 4 \\ 2 & 2 \end{bmatrix},
+$$
+and the residual $A - A_1 = \sigma_2 \mathbf{u}_2 \mathbf{v}_2^T$ has single nonzero singular value $\sigma_2$, so:
+$$
+\|A - A_1\|_2 = \sigma_2 = 3\sqrt{2}, \qquad \|A - A_1\|_F = \sigma_2 = 3\sqrt{2}
+$$
+(Direct check from the residual entries: $\sqrt{4+4+1+1+4+4} = \sqrt{18} = 3\sqrt{2}$.)
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 5: Coordinate-Free Linear Operator on $\mathcal{P}_2$ and Basis Change $M^{-1}AM$ (L3/L4)
+
+<ExerciseCard
+  id="l33-ex5"
+  tier="L4"
+  tierLabel="L3/L4 · Abstract Linear Operators & Change of Basis"
+  title="Polynomial-Space Operator Representation and Similarity M⁻¹AM"
+>
+
+Let $\mathcal{P}_2 = \{c_0 + c_1 t + c_2 t^2 \mid c_0, c_1, c_2 \in \mathbb{R}\}$ be the vector space of real polynomials of degree at most $2$. Define $T: \mathcal{P}_2 \to \mathcal{P}_2$ by:
+$$
+T(p)(t) = (t + 1)\,p'(t) - p(t)
+$$
+
+1. Prove that $T$ maps $\mathcal{P}_2$ into $\mathcal{P}_2$ and is linear; find the matrix $A = [T]_{\mathcal{B} \leftarrow \mathcal{B}}$ relative to the standard basis $\mathcal{B} = (1,\, t,\, t^2)$, and find bases and dimensions for $\ker(T)$ and $\operatorname{Im}(T)$.
+2. Consider the Taylor basis centered at $t = 1$: $\mathcal{B}'' = (1,\, t-1,\, (t-1)^2)$. Compute $B = [T]_{\mathcal{B}'' \leftarrow \mathcal{B}''}$ in two ways—**directly** from $T(\mathbf{b}''_j)$ and via the **change-of-basis formula** $B = M_1^{-1} A M_1$—and verify that they agree.
+3. Find a basis $\mathcal{B}'$ in which the matrix of $T$ is **diagonal**, write down the corresponding transition matrix $M_2$, verify $M_2^{-1} A M_2 = \operatorname{diag}(-1, 0, 1)$, and explain why we use $M^{-1}AM$ here rather than $\Sigma = U^T A V$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Apply $T(p) = (t+1)p'(t) - p(t)$ to $1, t, t^2$ and write the output coefficients in the basis $(1, t, t^2)$ as the three columns of $A$.",
+    "Expanding $\\mathcal{B}'' = (1, t-1, t^2-2t+1)$ in the old basis $\\mathcal{B}$ immediately gives the three columns of $M_1$!",
+    "Ask yourself: which polynomials satisfy $(t+1)p'(t) - p(t) = \\lambda p(t)$? Try $(t+1)^k$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Here is one of the deepest ideas in MIT 18.06: **a matrix is not the linear transformation itself—a basis is just a pair of glasses through which we view the operator!**
+
+In the standard basis $(1, t, t^2)$, $T$ looks like an ordinary upper-triangular matrix $A$. Shifting our glasses to $t = 1$ changes its numerical face to $B$. But if we stand at the operator's "natural center" $t = -1$ and use the basis $(1, t+1, (t+1)^2)$, then $T((t+1)^k) = k(t+1)^k - (t+1)^k = (k-1)(t+1)^k$, so the matrix decouples completely into $\operatorname{diag}(-1, 0, 1)$! The matrix changed three times, while the underlying calculus operator $T$ never changed at all.
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**Part 1: Linearity, standard matrix $A$, kernel, and image.**
+
+For any $p, q \in \mathcal{P}_2$ and $\alpha, \beta \in \mathbb{R}$, linearity of differentiation gives:
+$$
+T(\alpha p + \beta q) = (t+1)(\alpha p' + \beta q') - (\alpha p + \beta q) = \alpha T(p) + \beta T(q)
+$$
+And if $\deg(p) \le 2$, then $\deg((t+1)p') \le 2$, so $T(p) \in \mathcal{P}_2$. Computing $T$ on $\mathcal{B} = (1, t, t^2)$:
+- $T(1) = (t+1)\cdot 0 - 1 = -1 \implies [T(1)]_{\mathcal{B}} = [-1, 0, 0]^T$;
+- $T(t) = (t+1)\cdot 1 - t = 1 \implies [T(t)]_{\mathcal{B}} = [1, 0, 0]^T$;
+- $T(t^2) = (t+1)\cdot 2t - t^2 = t^2 + 2t \implies [T(t^2)]_{\mathcal{B}} = [0, 2, 1]^T$.
+
+Thus:
+$$
+A = [T]_{\mathcal{B} \leftarrow \mathcal{B}} = \begin{bmatrix} -1 & 1 & 0 \\ 0 & 0 & 2 \\ 0 & 0 & 1 \end{bmatrix}
+$$
+Columns 1 and 3 are independent while column 2 is $-1$ times column 1, so $\operatorname{rank}(A) = 2$:
+- $\operatorname{Null}(A) = \operatorname{span}\{[1, 1, 0]^T\}$, so $\ker(T) = \operatorname{span}\{t + 1\}$ and $\dim\ker(T) = 1$ (check: $T(t+1) = (t+1)(1)-(t+1) = 0$);
+- $\operatorname{Col}(A) = \operatorname{span}\{[1,0,0]^T, [0,2,1]^T\}$, so $\operatorname{Im}(T) = \operatorname{span}\{1,\, t^2 + 2t\}$ (equivalently $\operatorname{span}\{1, (t+1)^2\}$) and $\dim\operatorname{Im}(T) = 2$.
+
+**Part 2: Two methods for $B = [T]_{\mathcal{B}'' \leftarrow \mathcal{B}''}$.**
+
+- **Method 1 (Direct action of $T$)**:
+  - $T(1) = -1 = (-1)\cdot 1 \implies [-1, 0, 0]^T$;
+  - $T(t-1) = (t+1)(1) - (t-1) = 2 = 2\cdot 1 \implies [2, 0, 0]^T$;
+  - $T((t-1)^2) = (t+1)\cdot 2(t-1) - (t-1)^2 = (t-1)(t+3) = (t-1)((t-1)+4) = 4(t-1) + (t-1)^2 \implies [0, 4, 1]^T$.
+  Hence
+  $$
+  B = \begin{bmatrix} -1 & 2 & 0 \\ 0 & 0 & 4 \\ 0 & 0 & 1 \end{bmatrix}.
+  $$
+
+- **Method 2 (Similarity $M_1^{-1} A M_1$)**:
+  Writing $\mathcal{B}'' = (1, -1+t, 1-2t+t^2)$ in $\mathcal{B}$ gives the columns of $M_1$:
+  $$
+  M_1 = \begin{bmatrix} 1 & -1 & 1 \\ 0 & 1 & -2 \\ 0 & 0 & 1 \end{bmatrix}, \qquad M_1^{-1} = \begin{bmatrix} 1 & 1 & 1 \\ 0 & 1 & 2 \\ 0 & 0 & 1 \end{bmatrix}
+  $$
+  (since $1 = 1$, $t = 1 + (t-1)$, and $t^2 = 1 + 2(t-1) + (t-1)^2$). Multiplying out:
+  $$
+  M_1^{-1} A M_1 = \begin{bmatrix} 1 & 1 & 1 \\ 0 & 1 & 2 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} -1 & 1 & 0 \\ 0 & 0 & 2 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} 1 & -1 & 1 \\ 0 & 1 & -2 \\ 0 & 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 1 & 1 \\ 0 & 1 & 2 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} -1 & 2 & -3 \\ 0 & 0 & 2 \\ 0 & 0 & 1 \end{bmatrix} = \begin{bmatrix} -1 & 2 & 0 \\ 0 & 0 & 4 \\ 0 & 0 & 1 \end{bmatrix} = B
+  $$
+  Both methods match identically!
+
+**Part 3: Diagonalizing basis $\mathcal{B}'$ and why $M^{-1} A M$ is used instead of $U^T A V$.**
+
+Testing $(t+1)^k$ gives $T((t+1)^k) = (t+1)\cdot k(t+1)^{k-1} - (t+1)^k = (k-1)(t+1)^k$!
+So the Taylor basis centered at $t = -1$, $\mathcal{B}' = (1,\, t+1,\, (t+1)^2)$, consists of eigenfunctions with eigenvalues $-1, 0, 1$. Its transition matrix $M_2$ and inverse are:
+$$
+M_2 = \begin{bmatrix} 1 & 1 & 1 \\ 0 & 1 & 2 \\ 0 & 0 & 1 \end{bmatrix}, \qquad M_2^{-1} = \begin{bmatrix} 1 & -1 & 1 \\ 0 & 1 & -2 \\ 0 & 0 & 1 \end{bmatrix}
+$$
+Check:
+$$
+M_2^{-1} A M_2 = \begin{bmatrix} 1 & -1 & 1 \\ 0 & 1 & -2 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} -1 & 0 & 1 \\ 0 & 0 & 2 \\ 0 & 0 & 1 \end{bmatrix} = \begin{bmatrix} -1 & 0 & 0 \\ 0 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix} = \operatorname{diag}(-1, 0, 1)
+$$
+We use similarity $M^{-1} A M$ rather than SVD $\Sigma = U^T A V$ for two reasons: (1) $T: \mathcal{P}_2 \to \mathcal{P}_2$ maps the space to itself and we insist on using the **same basis** for both input and output (requiring $M^{-1}$ on the left to pair with $M$ on the right); (2) no inner product was specified on $\mathcal{P}_2$, so orthogonality is not even defined—and in coordinate space, $M_2^T \ne M_2^{-1}$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 6: Module IV Ultimate Conceptual True/False Gauntlet (L4)
+
+<ExerciseCard
+  id="l33-ex6"
+  tier="L4"
+  tierLabel="L4 · MIT 18.06 Exam Synthesis"
+  title="Module IV Ultimate Conceptual True/False Gauntlet"
+>
+
+Determine whether each of the following five statements across symmetric spectra, positive definiteness, Jordan similarity, and SVD is **True** or **False**. If true, give a rigorous proof; if false, construct the simplest counterexample and pinpoint what went wrong:
+
+1. **Statement 1**: If a square matrix $A \in \mathbb{R}^{n\times n}$ has all leading principal minors strictly positive ($\det(A_k) \gt 0$ for all $k$), then $\mathbf{x}^T A \mathbf{x} \gt 0$ for every nonzero $\mathbf{x} \in \mathbb{R}^n$.
+2. **Statement 2**: If $A \in \mathbb{C}^{n\times n}$ is Hermitian ($A^H = A$), then for every invertible matrix $M \in \mathbb{C}^{n\times n}$, the similar matrix $B = M^{-1} A M$ must also be Hermitian.
+3. **Statement 3**: If two $4\times 4$ matrices $A, B \in \mathbb{C}^{4\times 4}$ have the exact same characteristic polynomial and the exact same geometric multiplicity for every eigenvalue ($\operatorname{GM}_A(\lambda) = \operatorname{GM}_B(\lambda)$), then $A$ and $B$ must be similar.
+4. **Statement 4**: Let $A \in \mathbb{R}^{m\times n}$ have nonzero singular values $\sigma_1 \ge \dots \ge \sigma_r \gt 0$. Construct the $(m+n)\times(m+n)$ real symmetric block matrix
+   $$
+   H = \begin{bmatrix} O_{m\times m} & A \\ A^T & O_{n\times n} \end{bmatrix}.
+   $$
+   Then the nonzero eigenvalues of $H$ are precisely $\pm \sigma_1, \pm \sigma_2, \dots, \pm \sigma_r$.
+5. **Statement 5**: If $A, B \in \mathbb{R}^{n\times n}$ are both symmetric positive definite ($A \succ 0, B \succ 0$), then all eigenvalues of the product $AB$ (even though $AB$ is generally **not symmetric**) must be **strictly positive real numbers**.
+
+First test the most deceptive one—**Statement 5**—below:
+
+<TrueFalseInteractive
+  id="l33-tf2"
+  correct={true}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="True! Do not be fooled by '$AB$ is not symmetric, so $AB$ is not SPD.' Although $AB$ itself is generally not symmetric, $A \succ 0$ has an invertible symmetric square root $A^{1/2}$, so $AB = A^{1/2} (A^{1/2} B A^{1/2}) A^{-1/2}$ is similar to the SPD matrix $A^{1/2} B A^{1/2}$! Similar matrices have the exact same eigenvalues, so all eigenvalues of $AB$ are strictly positive real numbers!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Statements 1 and 2 hide counterexamples at the boundary of symmetry/Hermitianness and similarity vs. congruence: a $2\\times 2$ triangular matrix breaks both!",
+    "For Statement 3, recall the two $4\\times 4$ matrices from Exercise 3!",
+    "For Statement 4, multiply $H$ into the block vectors $[\\mathbf{u}_i^T, \\pm \\mathbf{v}_i^T]^T$; for Statement 5, use $A^{1/2}$ to show $AB$ is similar to $A^{1/2} B A^{1/2}$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+These five statements are the ultimate litmus test for MIT 18.06 Quiz 3:
+- Statements 1–3 punish dropped hypotheses: positive definiteness cannot leave symmetry behind (Statement 1); Hermitianness is preserved by **congruence** $M^H A M$ or **unitary similarity** $U^H A U$, not general similarity (Statement 2); and for $n \ge 4$, matching $\operatorname{AM}$ and $\operatorname{GM}$ still does not guarantee similarity (Statement 3).
+- Statement 4 (the Jordan–Wielandt symmetric embedding) turns the SVD of any rectangular matrix into paired real eigenvalues $\pm \sigma_i$ of a symmetric matrix, explaining why singular values are rock-solid.
+- Statement 5 showcases an algebraic gem powered by $A^{1/2}$: even when $AB$ loses symmetry, it is secretly **similar** to a genuine SPD matrix!
+
+</SolutionIntuition>
+
+<SolutionRigorous>
+
+**Statement 1: False.**
+
+*Counterexample*: Take the non-symmetric matrix
+$$
+A = \begin{bmatrix} 1 & 4 \\ 0 & 1 \end{bmatrix}.
+$$
+Its leading principal minors are $\det(A_1) = 1 \gt 0$ and $\det(A_2) = 1 \gt 0$, yet for $\mathbf{x} = [1, -1]^T \ne \mathbf{0}$:
+$$
+\mathbf{x}^T A \mathbf{x} = \begin{bmatrix} 1 & -1 \end{bmatrix} \begin{bmatrix} 1 & 4 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 1 \\ -1 \end{bmatrix} = 1 - 4 + 1 = -2 \lt 0
+$$
+(Why: the leading-minor test requires $A = A^T$; for a non-symmetric matrix, $\mathbf{x}^T A \mathbf{x}$ is governed by the symmetric part
+$$
+\frac{A+A^T}{2} = \begin{bmatrix} 1 & 2 \\ 2 & 1 \end{bmatrix},
+$$
+which has determinant $-3 \lt 0$.)
+
+---
+
+**Statement 2: False.**
+
+*Counterexample*: Take the Hermitian matrix $A = \operatorname{diag}(1, 2)$ ($A^H = A$) and the non-unitary invertible matrix
+$$
+M = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}.
+$$
+Then:
+$$
+M^{-1} A M = \begin{bmatrix} 1 & -1 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & -2 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & -1 \\ 0 & 2 \end{bmatrix}
+$$
+Clearly $(M^{-1} A M)^H \ne M^{-1} A M$. Hermitianness is preserved when $M$ is unitary (or under congruence $M^H A M$).
+
+---
+
+**Statement 3: False.**
+
+*Counterexample*: Take $A = J_3(2) \oplus J_1(2)$ and $B = J_2(2) \oplus J_2(2)$ from Exercise 3. Both have characteristic polynomial $(2 - \lambda)^4$ and $\operatorname{GM}_A(2) = \operatorname{GM}_B(2) = 2$, yet $\operatorname{rank}((A - 2I_4)^2) = 1 \ne 0 = \operatorname{rank}((B - 2I_4)^2)$, so they are not similar.
+
+---
+
+**Statement 4: True.**
+
+*Proof*: Let $A = U\Sigma V^T$ be a full SVD, where $A\mathbf{v}_i = \sigma_i \mathbf{u}_i$ and $A^T \mathbf{u}_i = \sigma_i \mathbf{v}_i$ ($1 \le i \le r$). For each $1 \le i \le r$, form the nonzero block vectors $\mathbf{w}_i^{\pm} = [\mathbf{u}_i^T,\, \pm \mathbf{v}_i^T]^T \in \mathbb{R}^{m+n}$ and compute:
+$$
+H \begin{bmatrix} \mathbf{u}_i \\ \pm \mathbf{v}_i \end{bmatrix} = \begin{bmatrix} O & A \\ A^T & O \end{bmatrix} \begin{bmatrix} \mathbf{u}_i \\ \pm \mathbf{v}_i \end{bmatrix} = \begin{bmatrix} \pm A\mathbf{v}_i \\ A^T \mathbf{u}_i \end{bmatrix} = \begin{bmatrix} \pm \sigma_i \mathbf{u}_i \\ \sigma_i \mathbf{v}_i \end{bmatrix} = (\pm \sigma_i) \begin{bmatrix} \mathbf{u}_i \\ \pm \mathbf{v}_i \end{bmatrix}
+$$
+This gives $2r$ mutually orthogonal eigenvectors for $\pm \sigma_1, \dots, \pm \sigma_r$ (indeed $(\mathbf{w}_i^+)^T \mathbf{w}_i^- = \|\mathbf{u}_i\|^2 - \|\mathbf{v}_i\|^2 = 1 - 1 = 0$). The remaining $(m-r) + (n-r)$ orthogonal vectors $[\mathbf{u}_j^T,\, \mathbf{0}^T]^T$ ($j \gt r$) and $[\mathbf{0}^T,\, \mathbf{v}_k^T]^T$ ($k \gt r$) all satisfy $H\mathbf{w} = \mathbf{0}$, accounting for the remaining $m+n-2r$ zero eigenvalues! Since we have found all $m+n$ independent eigenvectors, the nonzero eigenvalues of $H$ are precisely $\pm \sigma_1, \dots, \pm \sigma_r$.
+
+---
+
+**Statement 5: True.**
+
+*Proof*: Since $A \succ 0$, Theorem 2 provides its invertible symmetric positive definite square root $A^{1/2} = Q\sqrt{\Lambda}Q^T \succ 0$ ($(A^{1/2})^T = A^{1/2}$). Define:
+$$
+C := A^{1/2} B A^{1/2}
+$$
+Check the properties of $C$:
+1. Symmetry: $C^T = (A^{1/2})^T B^T (A^{1/2})^T = A^{1/2} B A^{1/2} = C$;
+2. Positive definiteness: For any $\mathbf{x} \in \mathbb{R}^n \setminus \{\mathbf{0}\}$, invertibility of $A^{1/2}$ gives $\mathbf{y} = A^{1/2}\mathbf{x} \ne \mathbf{0}$, so $B \succ 0$ yields:
+   $$
+   \mathbf{x}^T C \mathbf{x} = \mathbf{x}^T A^{1/2} B A^{1/2} \mathbf{x} = (A^{1/2}\mathbf{x})^T B (A^{1/2}\mathbf{x}) = \mathbf{y}^T B \mathbf{y} \gt 0
+   $$
+Thus $C$ is SPD, so all eigenvalues of $C$ are **strictly positive real numbers**. Finally, $AB$ is **similar** to $C$:
+$$
+A^{-1/2} (A B) A^{1/2} = A^{-1/2} (A^{1/2} A^{1/2}) B A^{1/2} = A^{1/2} B A^{1/2} = C
+$$
+Because similar matrices have identical eigenvalues (Theorem 3), all eigenvalues of $AB$ are strictly positive real numbers! (Note: $AB$ itself is symmetric only when $AB = BA$, yet it is always similar to the SPD matrix $C$.)
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>

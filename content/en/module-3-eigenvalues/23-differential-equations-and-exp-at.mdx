@@ -1,0 +1,1261 @@
+---
+title: "Lecture 23: Differential Equations and exp(At)"
+ocwId: "L23"
+videoEpisode: "P23"
+textbookRef: "§6.3"
+---
+
+# Lecture 23: Differential Equations and exp(At)
+
+In the previous two lectures, we built the algebraic machinery of eigenvalues and eigenvectors, and we saw how discrete difference equations $\mathbf{u}_{k+1} = A\mathbf{u}_k$ decouple completely through matrix powers $A^k = S\Lambda^k S^{-1}$.
+
+Now we step into the wide world of **continuous-time dynamical systems**. Whether you are analyzing RLC oscillations in an electrical circuit, damped spring-mass systems in classical mechanics, predator-prey populations in ecology, or State Space Models (SSMs / Mamba) for ultra-long sequences in modern deep learning, the underlying physics and mathematics come down to a first-order system of ordinary differential equations:
+
+$$
+\frac{d\mathbf{u}}{dt} = A\mathbf{u}, \quad \mathbf{u}(0) = \mathbf{u}_0
+$$
+
+We are about to see one of the most striking unifications in linear algebra: in the eigenbasis, the continuous differential operator $\frac{d}{dt}$ diagonalizes completely, breaking into $n$ independent scalar calculus equations. Meanwhile, the familiar scalar exponential $e^{at}$ blossoms in matrix space into the **matrix exponential** $e^{At}$.
+
+---
+
+## 1. Coupled Differential Equations and Eigenmode Decoupling
+
+### 1.1 From Scalar to Vector: The Exponential Ansatz
+
+For a single first-order scalar differential equation,
+
+$$
+\frac{du}{dt} = a u, \quad u(0) = u_0
+$$
+
+the fundamental theorem of calculus gives us pure exponential growth or decay: $u(t) = C e^{at} = u_0 e^{at}$.
+
+When we move up to an $n$-dimensional vector space, with a state vector $\mathbf{u}(t) \in \mathbb{R}^n$ and a constant coefficient matrix $A \in \mathbb{R}^{n\times n}$, we have:
+
+$$
+\frac{d\mathbf{u}}{dt} = A\mathbf{u} = \begin{bmatrix} a_{11} & a_{12} & \cdots & a_{1n} \\ a_{21} & a_{22} & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ a_{n1} & a_{n2} & \cdots & a_{nn} \end{bmatrix} \begin{bmatrix} u_1(t) \\ u_2(t) \\ \vdots \\ u_n(t) \end{bmatrix}
+$$
+
+This system is heavily **coupled**—the rate of change $\frac{du_i}{dt}$ of each variable depends on the current values of all the other variables.
+
+How do we break that coupling? We follow the scalar playbook and try a pure exponential guess (an ansatz):
+
+$$
+\mathbf{u}(t) = e^{\lambda t} \mathbf{x}
+$$
+
+where $\lambda$ is an unknown scalar and $\mathbf{x} \in \mathbb{C}^n$ is a constant vector that does not depend on time. Substitute this guess into the differential equation:
+
+- Differentiate the left-hand side (since $\mathbf{x}$ is constant):
+
+$$
+\frac{d\mathbf{u}}{dt} = \frac{d}{dt}\left(e^{\lambda t} \mathbf{x}\right) = \lambda e^{\lambda t} \mathbf{x}
+$$
+
+- Apply $A$ on the right-hand side:
+
+$$
+A\mathbf{u} = A\left(e^{\lambda t} \mathbf{x}\right) = e^{\lambda t} A\mathbf{x}
+$$
+
+Set the two sides equal:
+
+$$
+\lambda e^{\lambda t} \mathbf{x} = e^{\lambda t} A\mathbf{x}
+$$
+
+Because the scalar exponential $e^{\lambda t}$ is never zero for any real $t$ ($e^{\lambda t} \neq 0$), we can cancel $e^{\lambda t}$ from both sides to get:
+
+$$
+A\mathbf{x} = \lambda \mathbf{x}
+$$
+
+> **Key Insight**: Under the exponential ansatz, the continuous-time differential equation $\frac{d}{dt} \mathbf{u} = A\mathbf{u}$ collapses into the algebraic eigenvalue-eigenvector problem!
+>
+> - The growth or decay rate $\lambda$ of a pure solution is an **eigenvalue** of $A$;
+> - The fixed spatial amplitude profile $\mathbf{x}$ is the corresponding **eigenvector** of $A$. Each pure solution $e^{\lambda_i t}\mathbf{x}_i$ is called an **eigenmode** of the system.
+
+### 1.2 Superposition and the General Initial-Value Solution
+
+Because the differential operator is linear and homogeneous, if $A$ has $n$ linearly independent eigenvectors $\mathbf{x}_1, \dots, \mathbf{x}_n$ (with eigenvalues $\lambda_1, \dots, \lambda_n$), then any linear combination of eigenmodes is also a solution:
+
+$$
+\mathbf{u}(t) = c_1 e^{\lambda_1 t}\mathbf{x}_1 + c_2 e^{\lambda_2 t}\mathbf{x}_2 + \dots + c_n e^{\lambda_n t}\mathbf{x}_n = S e^{\Lambda t} \mathbf{c}
+$$
+
+Here:
+- $S = [\mathbf{x}_1 \ \mathbf{x}_2 \ \cdots \ \mathbf{x}_n]$ is the eigenvector matrix;
+- $e^{\Lambda t} = \operatorname{diag}(e^{\lambda_1 t}, e^{\lambda_2 t}, \dots, e^{\lambda_n t})$;
+- $\mathbf{c} = [c_1, c_2, \dots, c_n]^T$ is the vector of modal coefficients determined by the initial condition.
+
+Evaluate at $t = 0$ (noting $e^0 = 1$):
+
+$$
+\mathbf{u}(0) = c_1 \mathbf{x}_1 + c_2 \mathbf{x}_2 + \dots + c_n \mathbf{x}_n = S\mathbf{c}
+$$
+
+Because the eigenvectors are linearly independent, $S$ is invertible, so the coefficient vector $\mathbf{c}$ is uniquely fixed by the initial state:
+
+$$
+\mathbf{c} = S^{-1}\mathbf{u}(0)
+$$
+
+Substituting $\mathbf{c}$ back gives the exact closed-form solution:
+
+$$
+\mathbf{u}(t) = S e^{\Lambda t} S^{-1}\mathbf{u}(0)
+$$
+
+---
+
+### 1.3 Classic Worked Example: Two-Compartment Diffusion and Steady State
+
+Consider the classic two-compartment fluid diffusion / population migration system from Prof. Gilbert Strang's lecture:
+
+$$
+\frac{d\mathbf{u}}{dt} = \begin{bmatrix} -1 & 2 \\ 1 & -2 \end{bmatrix} \mathbf{u}, \quad \mathbf{u}(0) = \begin{bmatrix} 1 \\ 0 \end{bmatrix}
+$$
+
+where $u_1(t)$ and $u_2(t)$ represent the solute concentrations in two tanks or populations in two regions.
+
+#### Step 1: Characteristic Equation and Eigenvalues
+Compute the trace and determinant of $A$:
+- Trace: $\operatorname{tr}(A) = -1 + (-2) = -3$;
+- Determinant: $\det(A) = (-1)(-2) - (2)(1) = 2 - 2 = 0$.
+
+The characteristic polynomial is:
+
+$$
+p(\lambda) = \det(A - \lambda I) = \lambda^2 - \operatorname{tr}(A)\lambda + \det(A) = \lambda^2 + 3\lambda = \lambda(\lambda + 3) = 0
+$$
+
+This gives two real eigenvalues:
+
+$$
+\lambda_1 = 0, \quad \lambda_2 = -3
+$$
+
+#### Step 2: Find the Corresponding Eigenvectors
+1. For $\lambda_1 = 0$ (the nullspace eigenvector):
+
+$$
+(A - 0I)\mathbf{x}_1 = \begin{bmatrix} -1 & 2 \\ 1 & -2 \end{bmatrix} \begin{bmatrix} x_{11} \\ x_{12} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies -x_{11} + 2x_{12} = 0 \implies \mathbf{x}_1 = \begin{bmatrix} 2 \\ 1 \end{bmatrix}
+$$
+
+2. For $\lambda_2 = -3$:
+
+$$
+(A - (-3)I)\mathbf{x}_2 = (A + 3I)\mathbf{x}_2 = \begin{bmatrix} 2 & 2 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} x_{21} \\ x_{22} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_{21} + x_{22} = 0 \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+#### Step 3: Initial-Value Decomposition and Modal Coefficients
+The general solution is:
+
+$$
+\mathbf{u}(t) = c_1 e^{0\cdot t} \begin{bmatrix} 2 \\ 1 \end{bmatrix} + c_2 e^{-3t} \begin{bmatrix} 1 \\ -1 \end{bmatrix} = c_1 \begin{bmatrix} 2 \\ 1 \end{bmatrix} + c_2 e^{-3t} \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+Apply the initial condition:
+
+$$
+\mathbf{u}(0) = \begin{bmatrix} 1 \\ 0 \end{bmatrix}
+$$
+
+which gives:
+
+$$
+c_1 \begin{bmatrix} 2 \\ 1 \end{bmatrix} + c_2 \begin{bmatrix} 1 \\ -1 \end{bmatrix} = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \iff \begin{cases} 2c_1 + c_2 = 1 \\ c_1 - c_2 = 0 \end{cases} \implies c_1 = \frac{1}{3}, \quad c_2 = \frac{1}{3}
+$$
+
+Therefore, the exact trajectory for all $t \ge 0$ is:
+
+$$
+\mathbf{u}(t) = \frac{1}{3}\begin{bmatrix} 2 \\ 1 \end{bmatrix} + \frac{1}{3}e^{-3t}\begin{bmatrix} 1 \\ -1 \end{bmatrix} = \begin{bmatrix} \frac{2}{3} + \frac{1}{3}e^{-3t} \\ \frac{1}{3} - \frac{1}{3}e^{-3t} \end{bmatrix}
+$$
+
+#### Step 4: Conservation Law and Asymptotic Steady State
+Look at the sum of the two components:
+
+$$
+u_1(t) + u_2(t) = \left(\frac{2}{3} + \frac{1}{3}e^{-3t}\right) + \left(\frac{1}{3} - \frac{1}{3}e^{-3t}\right) = 1 \quad (\forall t \ge 0)
+$$
+
+This reveals an exact conservation law: the total mass or total population stays equal to $1$ forever. Why? Because every column of $A$ sums to $0$ ($\mathbf{1}^T A = \mathbf{0}^T$), so the total rate of change $\frac{d(u_1+u_2)}{dt} = [-1+1, \; 2-2]\mathbf{u} = 0$!
+
+As $t \to \infty$:
+- The transient decaying mode $e^{-3t} \to 0$ vanishes completely;
+- The permanent steady-state mode corresponding to $\lambda_1 = 0$ survives alone:
+
+$$
+\mathbf{u}(\infty) = \lim_{t\to\infty} \mathbf{u}(t) = \frac{1}{3}\begin{bmatrix} 2 \\ 1 \end{bmatrix} = \begin{bmatrix} 2/3 \\ 1/3 \end{bmatrix}
+$$
+
+The system naturally settles into a $2:1$ equilibrium ratio.
+
+---
+
+### 1.4 Converting Higher-Order ODEs to First-Order Systems
+
+In physics and engineering, we constantly encounter second-order or higher-order scalar equations (such as damped oscillators and wave equations). A major strength of the matrix approach is that **any higher-order linear ODE can be rewritten as an equivalent first-order system** by introducing extra state variables.
+
+Consider the classic damped mechanical oscillator:
+
+$$
+y'' + b y' + k y = 0, \quad (b \ge 0, k \gt 0)
+$$
+
+Define a 2D state vector $\mathbf{u}(t) \in \mathbb{R}^2$ storing position and velocity:
+
+$$
+\mathbf{u}(t) = \begin{bmatrix} u_1(t) \\ u_2(t) \end{bmatrix} = \begin{bmatrix} y(t) \\ y'(t) \end{bmatrix}
+$$
+
+Differentiate with respect to $t$:
+1. $u_1' = y' = u_2$
+2. $u_2' = y'' = -k y - b y' = -k u_1 - b u_2$
+
+In standard matrix form, this becomes:
+
+$$
+\frac{d\mathbf{u}}{dt} = \frac{d}{dt}\begin{bmatrix} u_1 \\ u_2 \end{bmatrix} = \begin{bmatrix} 0 & 1 \\ -k & -b \end{bmatrix} \begin{bmatrix} u_1 \\ u_2 \end{bmatrix} = A\mathbf{u}
+$$
+
+Now compute the characteristic polynomial of this companion matrix $A$:
+
+$$
+\det(A - \lambda I) = \det\begin{bmatrix} -\lambda & 1 \\ -k & -b-\lambda \end{bmatrix} = (-\lambda)(-b-\lambda) - (1)(-k) = \lambda^2 + b\lambda + k = 0
+$$
+
+The matrix eigenvalue equation matches the classical auxiliary equation obtained by plugging $y = e^{\lambda t}$ into the second-order ODE! Everything fits together seamlessly.
+
+---
+
+## 2. Rigorous Construction of the Matrix Exponential exp(At)
+
+For the scalar equation $\frac{du}{dt} = au$, the solution is $u(t) = e^{at}u(0)$. For the matrix equation $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$, can we define an operator $e^{At}$ so that the solution is simply:
+
+$$
+\mathbf{u}(t) = e^{At}\mathbf{u}(0)
+$$
+
+That operator is the **matrix exponential**.
+
+<DefinitionCard
+  label="Definition"
+  title="Matrix Exponential"
+>
+Let $A \in \mathbb{C}^{n\times n}$ be any square matrix and $t \in \mathbb{R}$. The matrix exponential is defined by the infinite matrix power series:
+
+$$
+e^{At} \equiv \exp(At) = \sum_{k=0}^{\infty} \frac{(At)^k}{k!} = I_n + At + \frac{1}{2!}A^2 t^2 + \frac{1}{3!}A^3 t^3 + \dots
+$$
+
+For every square matrix $A$ and every scalar $t$, this series converges **absolutely** in any induced matrix norm and **uniformly** on every compact interval of $t$.
+</DefinitionCard>
+
+<TheoremCard
+  label="Theorem"
+  title="Fundamental Differential and Algebraic Properties of exp(At)"
+>
+Let $A, B \in \mathbb{C}^{n\times n}$ and $t, s \in \mathbb{R}$. The matrix exponential satisfies:
+1. **Differentiation**:
+
+$$
+\frac{d}{dt}\left(e^{At}\right) = A e^{At} = e^{At} A
+$$
+
+2. **Initial Value**:
+
+$$
+\left. e^{At} \right|_{t=0} = I_n
+$$
+
+3. **Unique Solution to the IVP**: The unique solution to $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$ with $\mathbf{u}(0) = \mathbf{u}_0$ is $\mathbf{u}(t) = e^{At}\mathbf{u}_0$.
+4. **Diagonalizable Expansion**: If $A$ is diagonalizable, $A = S\Lambda S^{-1}$, then:
+
+$$
+e^{At} = S e^{\Lambda t} S^{-1} = S \begin{bmatrix} e^{\lambda_1 t} & & 0 \\ & \ddots & \\ 0 & & e^{\lambda_n t} \end{bmatrix} S^{-1}
+$$
+
+5. **Invertibility**: The matrix exponential $e^{At}$ is always invertible, with $(e^{At})^{-1} = e^{-At}$.
+6. **Jacobi's Formula**:
+
+$$
+\det\left(e^{At}\right) = e^{\operatorname{tr}(At)} = e^{t \cdot \operatorname{tr}(A)}
+$$
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Properties of the Matrix Exponential">
+
+**Proof 1: Term-by-Term Differentiation**
+
+Because $\sum_{k=0}^{\infty} \frac{(At)^k}{k!}$ converges uniformly on compact intervals, we can differentiate the power series term by term with respect to $t$:
+
+$$
+\begin{aligned}
+\frac{d}{dt}\left(e^{At}\right) &= \frac{d}{dt}\left( I_n + At + \frac{t^2}{2!}A^2 + \frac{t^3}{3!}A^3 + \dots \right) \\
+&= \mathbf{0} + A + \frac{2t}{2!}A^2 + \frac{3t^2}{3!}A^3 + \dots \\
+&= A + tA^2 + \frac{t^2}{2!}A^3 + \dots \\
+&= A \left( I_n + tA + \frac{t^2}{2!}A^2 + \dots \right) = A e^{At}
+\end{aligned}
+$$
+
+Factoring $A$ out on the right yields:
+
+$$
+A + tA^2 + \frac{t^2}{2!}A^3 + \dots = \left( I_n + tA + \frac{t^2}{2!}A^2 + \dots \right) A = e^{At} A
+$$
+
+Hence $A$ always commutes with its own exponential: $A e^{At} = e^{At} A$.
+
+**Proof 2: Simplification When $A$ Is Diagonalizable**
+
+If $A = S\Lambda S^{-1}$, then $(At)^k = (S\Lambda S^{-1} t)^k = S (\Lambda t)^k S^{-1}$. Substituting into the series gives:
+
+$$
+\begin{aligned}
+e^{At} &= \sum_{k=0}^{\infty} \frac{(At)^k}{k!} = \sum_{k=0}^{\infty} \frac{S (\Lambda t)^k S^{-1}}{k!} \\
+&= S \left( \sum_{k=0}^{\infty} \frac{(\Lambda t)^k}{k!} \right) S^{-1} = S e^{\Lambda t} S^{-1}
+\end{aligned}
+$$
+
+Since $\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n)$ is diagonal, its power series reduces to the scalar exponential on each diagonal entry:
+
+$$
+e^{\Lambda t} = \operatorname{diag}\left( \sum_{k=0}^{\infty} \frac{(\lambda_1 t)^k}{k!}, \dots, \sum_{k=0}^{\infty} \frac{(\lambda_n t)^k}{k!} \right) = \operatorname{diag}\left(e^{\lambda_1 t}, \dots, e^{\lambda_n t}\right)
+$$
+
+**Proof 3: Inverse and Determinant Formulas**
+
+Because $At$ and $-At$ commute ($At(-At) = (-At)At$), the commuting-matrix product rule gives:
+
+$$
+e^{At} e^{-At} = e^{At - At} = e^{\mathbf{0}} = I_n \implies (e^{At})^{-1} = e^{-At}
+$$
+
+When $A$ is diagonalizable, the eigenvalues of $e^{At}$ are $e^{\lambda_i t}$, and the determinant is the product of the eigenvalues:
+
+$$
+\det\left(e^{At}\right) = \prod_{i=1}^n e^{\lambda_i t} = e^{\sum_{i=1}^n \lambda_i t} = e^{t \sum_{i=1}^n \lambda_i} = e^{t \cdot \operatorname{tr}(A)}
+$$
+
+By continuity (since diagonalizable matrices are dense in $\mathbb{C}^{n\times n}$), Jacobi's formula holds for every square matrix $A$.
+</ProofCollapse>
+
+### 2.1 Defective Matrices and Finite Series Truncation for Nilpotent Parts
+
+What if $A$ does not have $n$ linearly independent eigenvectors—it is **defective** (non-diagonalizable)? Then the formula $e^{At} = S e^{\Lambda t} S^{-1}$ is unavailable. Are we stuck?
+
+Not at all! This is where the **power series definition** shines: **$e^{At}$ still converges absolutely for every matrix $A$**. In particular, for a Jordan block, we can split $A$ into a scalar multiple of $I$ plus a nilpotent matrix $N$.
+
+Consider a standard $2\times 2$ Jordan block:
+
+$$
+A = \begin{bmatrix} \lambda & 1 \\ 0 & \lambda \end{bmatrix} = \lambda I_2 + N, \quad \text{where } N = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}
+$$
+
+Compute $N^2$:
+
+$$
+N^2 = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}\begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} = \mathbf{0}
+$$
+
+Because $N^2 = \mathbf{0}$, every higher power $N^k = \mathbf{0}$ for $k \ge 2$! So the infinite series for $e^{Nt}$ **truncates** right after the linear term:
+
+$$
+e^{Nt} = I_2 + Nt + \frac{1}{2!}N^2 t^2 + \dots = I_2 + Nt = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} + \begin{bmatrix} 0 & t \\ 0 & 0 \end{bmatrix} = \begin{bmatrix} 1 & t \\ 0 & 1 \end{bmatrix}
+$$
+
+Furthermore, because $\lambda I_2$ commutes with every $2\times 2$ matrix ($(\lambda I_2)N = N(\lambda I_2) = \lambda N$), we are allowed to split the exponential:
+
+$$
+e^{At} = e^{(\lambda I_2 t + Nt)} = e^{\lambda I_2 t} e^{Nt} = (e^{\lambda t} I_2) \begin{bmatrix} 1 & t \\ 0 & 1 \end{bmatrix} = e^{\lambda t}\begin{bmatrix} 1 & t \\ 0 & 1 \end{bmatrix}
+$$
+
+> **The Geometry Behind Repeated Roots**: In introductory calculus, when a characteristic equation has a repeated root $\lambda$, a mysterious factor of $t$ appears in $t e^{\lambda t}$. That **secular term** is nothing more than the truncated power series $I + Nt$ of the nilpotent Jordan part!
+
+The diagram below contrasts the eigenbasis decoupling path with the power-series/Jordan-block path:
+
+<MatrixExponentialDecouplingDiagram caption="Two paths to exp(At): when A is diagonalizable, the eigenbasis S decouples the ODE into n independent scalar exponentials; when A is defective, splitting A = lambda*I + N truncates the nilpotent series e^(Nt) into polynomial factors like t." />
+
+---
+
+## 3. Continuous-Time Stability and the 2x2 Trace-Determinant Plane
+
+In discrete-time systems $\mathbf{u}_{k+1} = A\mathbf{u}_k$, stability is governed by $A^k$, which requires every eigenvalue to lie inside the unit disk: $|\lambda_i| \lt 1$. In continuous-time systems $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$, time evolution is governed by $e^{\lambda_i t}$, so the stability boundary shifts completely.
+
+### 3.1 Complex Eigenvalues and Euler's Formula
+
+Suppose $A$ has a complex conjugate pair of eigenvalues $\lambda = \alpha + i\omega$ ($\alpha, \omega \in \mathbb{R}$). By Euler's formula:
+
+$$
+e^{\lambda t} = e^{(\alpha + i\omega)t} = e^{\alpha t} e^{i\omega t} = e^{\alpha t} \left(\cos(\omega t) + i \sin(\omega t)\right)
+$$
+
+Taking the modulus (magnitude):
+
+$$
+\left| e^{\lambda t} \right| = \left| e^{\alpha t} \right| \cdot \left| \cos(\omega t) + i\sin(\omega t) \right| = e^{\alpha t} \cdot 1 = e^{\operatorname{Re}(\lambda) t}
+$$
+
+This gives the golden rule for continuous-time linear stability:
+- The imaginary part $\operatorname{Im}(\lambda) = \omega$ controls only the **oscillation frequency**;
+- The real part $\operatorname{Re}(\lambda) = \alpha$ completely controls **amplitude growth or decay**:
+  1. If $\operatorname{Re}(\lambda) \lt 0$: $e^{\alpha t} \to 0$ as $t \to \infty$, exponential decay to zero (**asymptotically stable**);
+  2. If $\operatorname{Re}(\lambda) = 0$: $|e^{\lambda t}| = 1$, constant-amplitude oscillation or steady constant (**neutrally / marginally stable**);
+  3. If $\operatorname{Re}(\lambda) \gt 0$: $e^{\alpha t} \to \infty$ as $t \to \infty$, exponential blow-up (**unstable**).
+
+<TheoremCard
+  label="Theorem"
+  title="Asymptotic Stability Criterion for Continuous LTI Systems"
+>
+For the linear autonomous system $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$ ($A \in \mathbb{R}^{n\times n}$), the equilibrium $\mathbf{u} = \mathbf{0}$ is **globally asymptotically stable** (meaning $\lim_{t\to\infty} \mathbf{u}(t) = \mathbf{0}$ for every initial state $\mathbf{u}(0)$) if and only if **every eigenvalue of $A$ has strictly negative real part**:
+
+$$
+\operatorname{Re}(\lambda_i) \lt 0, \quad \forall i \in \{1, 2, \dots, n\}
+$$
+
+Such a matrix $A$ is called a **Hurwitz matrix**.
+</TheoremCard>
+
+---
+
+### 3.2 Complete Trace-Determinant Criterion for 2x2 Real Matrices
+
+For a $2\times 2$ real system
+
+$$
+A = \begin{bmatrix} a & b \\ c & d \end{bmatrix} \in \mathbb{R}^{2\times 2}
+$$
+
+we do not even need to compute the eigenvalues explicitly to know whether $\mathbf{u}(t) \to \mathbf{0}$. Two scalar invariants—the **trace** and the **determinant**—tell the whole story!
+
+Let:
+
+$$
+T = \operatorname{tr}(A) = \lambda_1 + \lambda_2, \quad D = \det(A) = \lambda_1 \lambda_2
+$$
+
+The characteristic polynomial is:
+
+$$
+p(\lambda) = \lambda^2 - T\lambda + D = 0 \implies \lambda_{1, 2} = \frac{T \pm \sqrt{T^2 - 4D}}{2}
+$$
+
+Let us check the real parts of the roots:
+
+1. **Case 1: Complex conjugate eigenvalues (discriminant $\Delta = T^2 - 4D \lt 0$)**
+   - The eigenvalues are $\lambda_{1, 2} = \frac{T \pm i\sqrt{4D - T^2}}{2}$.
+   - Their common real part is $\operatorname{Re}(\lambda) = \frac{T}{2}$.
+   - Asymptotic stability requires $\operatorname{Re}(\lambda) \lt 0 \iff T \lt 0$.
+   - Note that $\Delta \lt 0 \implies 4D \gt T^2 \ge 0 \implies D \gt 0$ holds automatically.
+
+2. **Case 2: Real eigenvalues (discriminant $\Delta = T^2 - 4D \ge 0$)**
+   - If $D \lt 0$: since $D = \lambda_1 \lambda_2 \lt 0$, the two real eigenvalues have opposite signs ($\lambda_1 \lt 0 \lt \lambda_2$). One eigendirection contracts while the other expands, producing a classic **saddle point**—always unstable!
+   - If $D \gt 0$: both eigenvalues have the same sign. For both to be strictly negative, their sum must be negative, which requires $T = \lambda_1 + \lambda_2 \lt 0$.
+
+Combining both cases gives the celebrated $2\times 2$ stability condition:
+
+$$
+\operatorname{Re}(\lambda_1) \lt 0 \text{ and } \operatorname{Re}(\lambda_2) \lt 0 \iff \operatorname{tr}(A) \lt 0 \quad \text{and} \quad \det(A) \gt 0
+$$
+
+### 3.3 Regions of the Trace-Determinant Plane
+
+In the $(T, D)$ plane with horizontal axis $T = \operatorname{tr}(A)$ and vertical axis $D = \det(A)$, the discriminant boundary is the parabola:
+
+$$
+D = \frac{1}{4}T^2 \iff \Delta = T^2 - 4D = 0
+$$
+
+This parabola divides the upper half-plane ($D \gt 0$) into two distinct dynamical regimes:
+- Above the parabola ($D \gt \frac{1}{4}T^2$): complex conjugate eigenvalues produce **spirals (foci)**;
+- Below the parabola ($0 \lt D \le \frac{1}{4}T^2$): real eigenvalues of the same sign produce **nodes**;
+- The entire lower half-plane ($D \lt 0$): opposite-sign real eigenvalues always produce **saddle points**.
+
+<TraceDeterminantStabilityPlaneDiagram caption="The 2x2 trace-determinant (T, D) stability plane: asymptotic stability holds strictly in the open second quadrant (T < 0, D > 0), split by the parabola D = T^2/4 into stable spirals above and stable nodes below." />
+
+The full topological classification is summarized below:
+
+| Geometric Region | Algebraic Condition | Eigenvalue Spectrum | Phase-Plane Topology | Stability |
+| :--- | :--- | :--- | :--- | :--- |
+| **Quadrant II (above parabola)** | $T \lt 0, D \gt T^2/4$ | Complex conjugates $\lambda = \alpha \pm i\omega, \alpha \lt 0$ | Stable Spiral | **Asymptotically stable** (inward spiral to $\mathbf{0}$) |
+| **Quadrant II (between parabola & axis)** | $T \lt 0, 0 \lt D \le T^2/4$ | Two negative real roots $\lambda_2 \le \lambda_1 \lt 0$ | Stable Node | **Asymptotically stable** (monotone decay to $\mathbf{0}$) |
+| **Quadrant I (above parabola)** | $T \gt 0, D \gt T^2/4$ | Complex conjugates $\lambda = \alpha \pm i\omega, \alpha \gt 0$ | Unstable Spiral | **Unstable** (outward spiral) |
+| **Quadrant I (between parabola & axis)** | $T \gt 0, 0 \lt D \le T^2/4$ | Two positive real roots $0 \lt \lambda_1 \le \lambda_2$ | Unstable Node | **Unstable** (monotone blow-up) |
+| **Positive vertical axis** | $T = 0, D \gt 0$ | Purely imaginary pair $\lambda = \pm i\sqrt{D}$ | Neutral Center | **Neutrally stable** (closed elliptical orbits) |
+| **Lower half-plane** | $D \lt 0$ (any $T$) | Opposite-sign real roots $\lambda_1 \lt 0 \lt \lambda_2$ | Saddle Point | **Unstable** (hyperbolic escape) |
+| **Horizontal axis** | $D = 0$ (any $T$) | At least one zero root $\lambda_1 = 0$ | Line of Equilibria | **Not asymptotically stable** (nonzero steady states) |
+
+---
+
+## 4. Common Pitfalls & Warnings
+
+<PitfallAlert title="Three Classic Pitfalls with ODEs and the Matrix Exponential">
+
+### Pitfall 1: Assuming $e^{A+B} = e^A e^B$ (The Most Dangerous False Shortcut!)
+
+It is tempting to carry over the scalar rule $e^{a+b} = e^a e^b$ directly to matrices. **Do not do this!**
+
+**The truth**: $e^{A+B} = e^A e^B$ holds **if and only if** $A$ and $B$ commute ($AB = BA$).
+
+Expanding both sides to second order exposes the failure immediately:
+
+$$
+\begin{aligned}
+e^{A+B} &= I + (A+B) + \frac{1}{2}(A+B)^2 + \dots \\
+&= I + A + B + \frac{1}{2}\left(A^2 + AB + BA + B^2\right) + \dots
+\end{aligned}
+$$
+
+Meanwhile, multiplying the two series gives:
+
+$$
+\begin{aligned}
+e^A e^B &= \left(I + A + \frac{1}{2}A^2 + \dots\right)\left(I + B + \frac{1}{2}B^2 + \dots\right) \\
+&= I + A + B + \frac{1}{2}A^2 + AB + \frac{1}{2}B^2 + \dots
+\end{aligned}
+$$
+
+The difference at second order is:
+
+$$
+e^A e^B - e^{A+B} = \frac{1}{2}\left(AB - BA\right) + \dots = \frac{1}{2}[A, B] + \dots
+$$
+
+where $[A, B] \equiv AB - BA$ is the **commutator (Lie bracket)**. Only when $[A, B] = \mathbf{0}$ ($AB = BA$) do the two expressions match. In Lie theory and quantum mechanics, the general non-commuting product is given by the **Baker-Campbell-Hausdorff (BCH) formula**:
+
+$$
+e^A e^B = \exp\left( A + B + \frac{1}{2}[A, B] + \frac{1}{12}[A, [A, B]] + \frac{1}{12}[B, [B, A]] + \dots \right)
+$$
+
+### Pitfall 2: Entry-by-Entry Exponentiation
+
+Never compute $e^A$ by exponentiating each entry of $A$ individually:
+
+$$
+\left(e^A\right)_{ij} \neq e^{a_{ij}} \quad (\text{unless } A \text{ is diagonal})
+$$
+
+For example, take:
+
+$$
+A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}
+$$
+
+- **Wrong** (entrywise):
+
+$$
+\begin{bmatrix} e^0 & e^1 \\ e^0 & e^0 \end{bmatrix} = \begin{bmatrix} 1 & e \\ 1 & 1 \end{bmatrix}
+$$
+
+- **Correct** (power series):
+
+$$
+e^A = I + A + \mathbf{0} = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}
+$$
+
+Completely different matrices!
+
+### Pitfall 3: Mixing Up Continuous and Discrete Stability Criteria
+
+Keep the two stability domains clearly separated:
+- **Discrete time ($\mathbf{u}_{k+1} = A\mathbf{u}_k$)**: governed by $A^k$, so stability requires eigenvalues **inside the open unit disk**: $|\lambda_i| \lt 1$;
+- **Continuous time ($\frac{d\mathbf{u}}{dt} = A\mathbf{u}$)**: governed by $e^{At}$, so stability requires eigenvalues in the **open left half-plane**: $\operatorname{Re}(\lambda_i) \lt 0$.
+
+How do they connect? The discretization map $z = e^\lambda$ maps the open left half-plane $\operatorname{Re}(\lambda) \lt 0$ directly into the open unit disk $|z| = |e^\lambda| = e^{\operatorname{Re}(\lambda)} \lt 1$.
+</PitfallAlert>
+
+---
+
+## 5. Interactive Phase-Plane Sandbox
+
+<InteractiveCanvasSlot
+  id="l23-ode-phase-plane-sandbox"
+  title="2x2 Linear ODE Phase-Plane Sandbox"
+  description="Adjust the trace tr(A) and determinant det(A) of a 2x2 matrix A to observe in real time how the eigenvalues, the trace-determinant point, and the phase-plane trajectories (nodes, saddles, spirals, and centers) evolve."
+/>
+
+---
+
+## 6. Key Takeaways
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "To solve $\\frac{d\\mathbf{u}}{dt} = A\\mathbf{u}$, substitute the exponential ansatz $\\mathbf{u}(t) = e^{\\lambda t}\\mathbf{x}$, which converts the continuous differential operator into the algebraic eigenvalue problem $A\\mathbf{x} = \\lambda \\mathbf{x}$.",
+    "The matrix exponential $e^{At} = \\sum_{k=0}^{\\infty} \\frac{(At)^k}{k!}$ converges for every square matrix $A$ and satisfies $\\frac{d}{dt}(e^{At}) = A e^{At}$, making $\\mathbf{u}(t) = e^{At}\\mathbf{u}(0)$ the unique solution to the homogeneous initial-value problem.",
+    "When $A$ is diagonalizable ($A = S\\Lambda S^{-1}$), we get $e^{At} = S e^{\\Lambda t} S^{-1}$, decoupling the $n$-dimensional system into $n$ independent scalar exponentials along the eigenbasis.",
+    "Even when $A$ is defective, splitting a Jordan block as $A = \\lambda I + N$ with $N^k = 0$ truncates the series $e^{Nt}$ to a finite polynomial, naturally explaining secular terms like $t e^{\\lambda t}$.",
+    "The origin is asymptotically stable for $\\frac{d\\mathbf{u}}{dt} = A\\mathbf{u}$ if and only if $\\operatorname{Re}(\\lambda_i) \\lt 0$ for all eigenvalues; for $2\\times 2$ real matrices, this is equivalent to $\\operatorname{tr}(A) \\lt 0$ and $\\det(A) \\gt 0$.",
+    "The product rule $e^{A+B} = e^A e^B$ holds if and only if $AB = BA$; when $A$ and $B$ do not commute, the discrepancy is governed by the commutator $[A, B] = AB - BA$ via the Baker-Campbell-Hausdorff formula."
+  ]}
+/>
+
+---
+
+## 7. Intuition Problem Set
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+### Exercise 1 (L1 · Symmetric Coupled Decay & Steady State)
+
+<ExerciseCard
+  id="l23-ex1"
+  tier="L1"
+  tierLabel="L1 · Quick Geometric & Computational Check"
+  title="Solving a 2x2 Coupled ODE System and Finding Its Limit"
+>
+Consider the symmetric coupled decay system:
+
+$$
+\frac{d\mathbf{u}}{dt} = \begin{bmatrix} -2 & 1 \\ 1 & -2 \end{bmatrix}\mathbf{u}(t), \quad \mathbf{u}(0) = \begin{bmatrix} 3 \\ 1 \end{bmatrix}
+$$
+
+1. Find the eigenvalues and eigenvectors of $A$;
+2. Compute the matrix exponential $e^{At}$;
+3. Write the closed-form solution $\mathbf{u}(t)$ and evaluate $\lim_{t\to\infty}\mathbf{u}(t)$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "For this symmetric matrix, $\\operatorname{tr}(A) = -4$ and $\\det(A) = 3$, so the characteristic equation is $\\lambda^2 + 4\\lambda + 3 = 0$.",
+    "The eigenvalues are $\\lambda_1 = -1$ and $\\lambda_2 = -3$, with orthogonal eigenvectors $[1, 1]^T$ and $[1, -1]^T$.",
+    "Use $e^{At} = S e^{\\Lambda t} S^{-1}$, or decompose $\\mathbf{u}(0)$ into the eigenbasis to find $c_1$ and $c_2$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+The matrix
+
+$$
+A = \begin{bmatrix} -2 & 1 \\ 1 & -2 \end{bmatrix}
+$$
+
+is real and symmetric. Think of two identical damped masses coupled by a spring: the $-2$ on the diagonal represents self-damping plus coupling, and the $+1$ off the diagonal represents the symmetric interaction.
+- **In-phase mode** $\mathbf{x}_1 = [1, 1]^T$: both components move together, so the coupling spring does not stretch; the mode decays slowly at rate $\lambda_1 = -1$.
+- **Out-of-phase mode** $\mathbf{x}_2 = [1, -1]^T$: the two components move oppositely, stretching the coupling spring and decaying much faster at rate $\lambda_2 = -3$.
+
+Because both eigenvalues are negative, every initial state decays exponentially to $\mathbf{0}$.
+</SolutionIntuition>
+
+<SolutionRigorous>
+**Step 1: Eigenvalues and Eigenvectors**
+- $\operatorname{tr}(A) = -2 + (-2) = -4$
+- $\det(A) = (-2)(-2) - 1\times 1 = 3$
+
+The characteristic polynomial is $\lambda^2 + 4\lambda + 3 = (\lambda + 1)(\lambda + 3) = 0$, giving $\lambda_1 = -1$ and $\lambda_2 = -3$.
+
+Find the eigenvectors:
+- For $\lambda_1 = -1$:
+
+$$
+(A + I)\mathbf{x}_1 = \begin{bmatrix} -1 & 1 \\ 1 & -1 \end{bmatrix}\mathbf{x}_1 = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+$$
+
+- For $\lambda_2 = -3$:
+
+$$
+(A + 3I)\mathbf{x}_2 = \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix}\mathbf{x}_2 = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+**Step 2: Eigenvector Matrix and Matrix Exponential**
+Form $S$ and its inverse:
+
+$$
+S = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}, \quad S^{-1} = \frac{1}{-2}\begin{bmatrix} -1 & -1 \\ -1 & 1 \end{bmatrix} = \frac{1}{2}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}
+$$
+
+Thus:
+
+$$
+\begin{aligned}
+e^{At} &= S e^{\Lambda t} S^{-1} = \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} e^{-t} & 0 \\ 0 & e^{-3t} \end{bmatrix} \frac{1}{2}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \\
+&= \frac{1}{2}\begin{bmatrix} e^{-t} & e^{-3t} \\ e^{-t} & -e^{-3t} \end{bmatrix}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} = \frac{1}{2}\begin{bmatrix} e^{-t} + e^{-3t} & e^{-t} - e^{-3t} \\ e^{-t} - e^{-3t} & e^{-t} + e^{-3t} \end{bmatrix}
+\end{aligned}
+$$
+
+**Step 3: Initial-Value Solution and Limit**
+
+$$
+\begin{aligned}
+\mathbf{u}(t) &= e^{At}\begin{bmatrix} 3 \\ 1 \end{bmatrix} = \frac{1}{2}\begin{bmatrix} (e^{-t}+e^{-3t})\times 3 + (e^{-t}-e^{-3t})\times 1 \\ (e^{-t}-e^{-3t})\times 3 + (e^{-t}+e^{-3t})\times 1 \end{bmatrix} \\
+&= \frac{1}{2}\begin{bmatrix} 4e^{-t} + 2e^{-3t} \\ 4e^{-t} - 2e^{-3t} \end{bmatrix} = \begin{bmatrix} 2e^{-t} + e^{-3t} \\ 2e^{-t} - e^{-3t} \end{bmatrix} = 2e^{-t}\begin{bmatrix} 1 \\ 1 \end{bmatrix} + e^{-3t}\begin{bmatrix} 1 \\ -1 \end{bmatrix}
+\end{aligned}
+$$
+
+Since $\lambda_1 = -1 \lt 0$ and $\lambda_2 = -3 \lt 0$:
+
+$$
+\lim_{t\to\infty} \mathbf{u}(t) = \lim_{t\to\infty} \begin{bmatrix} 2e^{-t} + e^{-3t} \\ 2e^{-t} - e^{-3t} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix}
+$$
+
+The origin is an asymptotically stable node.
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 2 (L2 · Conceptual True/False: Exponential Product Rule)
+
+<ExerciseCard
+  id="l23-ex2"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Does exp(A + B) Always Equal exp(A)exp(B)?"
+>
+Determine whether the following statement is true or false:
+
+"For any two $n\times n$ real matrices $A, B \in \mathbb{R}^{n\times n}$, the identity $e^{A+B} = e^A e^B$ always holds."
+
+<TrueFalseInteractive
+  id="l23-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="The product rule $e^{A+B} = e^A e^B$ holds if and only if $A$ and $B$ commute ($AB = BA$). When $AB \neq BA$, the non-commuting second-order terms break the identity."
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+For scalars, $e^{a+b} = e^a e^b$ relies fundamentally on commutativity: $ab = ba$. In matrix algebra, multiplication generally does not commute ($AB \neq BA$). As soon as $AB \neq BA$, $(A+B)^2 = A^2 + AB + BA + B^2 \neq A^2 + 2AB + B^2$, so the power series for $e^{A+B}$ and $e^A e^B$ diverge right at the quadratic term.
+</SolutionIntuition>
+
+<SolutionRigorous>
+**Counterexample**:
+Choose the simplest non-commuting $2\times 2$ nilpotent matrices:
+
+$$
+A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}, \quad B = \begin{bmatrix} 0 & 0 \\ 1 & 0 \end{bmatrix}
+$$
+
+Since $A^2 = B^2 = \mathbf{0}$, their exponentials truncate at first order:
+
+$$
+e^A = I + A = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}, \quad e^B = I + B = \begin{bmatrix} 1 & 0 \\ 1 & 1 \end{bmatrix}
+$$
+
+Multiply them:
+
+$$
+e^A e^B = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}\begin{bmatrix} 1 & 0 \\ 1 & 1 \end{bmatrix} = \begin{bmatrix} 2 & 1 \\ 1 & 1 \end{bmatrix}
+$$
+
+Now compute the sum $A + B$:
+
+$$
+A + B = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+$$
+
+Because $(A+B)^2 = I$, the power series for $e^{A+B}$ splits into even and odd powers:
+
+$$
+e^{A+B} = \cosh(1) I + \sinh(1)(A+B) = \begin{bmatrix} \cosh(1) & \sinh(1) \\ \sinh(1) & \cosh(1) \end{bmatrix} \approx \begin{bmatrix} 1.543 & 1.175 \\ 1.175 & 1.543 \end{bmatrix}
+$$
+
+Clearly:
+
+$$
+e^{A+B} \neq e^A e^B
+$$
+
+Therefore, the statement is **false**.
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 3 (L2 · Conceptual True/False: Negative Trace vs. Stability)
+
+<ExerciseCard
+  id="l23-ex3"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Is Negative Trace Alone Enough for 2x2 Stability?"
+>
+Determine whether the following statement is true or false:
+
+"For a $2\times 2$ real linear system $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$, having negative trace $\operatorname{tr}(A) \lt 0$ guarantees that the equilibrium $\mathbf{u} = \mathbf{0}$ is asymptotically stable."
+
+<TrueFalseInteractive
+  id="l23-tf2"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! Asymptotic stability in 2x2 requires BOTH $\operatorname{tr}(A) \lt 0$ AND $\det(A) \gt 0$. If $\operatorname{tr}(A) \lt 0$ while $\det(A) \lt 0$, the eigenvalues have opposite signs, creating an unstable saddle point."
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+The trace is the sum of the two eigenvalues: $T = \lambda_1 + \lambda_2$. Knowing $T \lt 0$ only tells you that the *average* eigenvalue is negative—not that *both* eigenvalues have negative real parts. If $\lambda_1 = -5$ (strong contraction) and $\lambda_2 = +1$ (exponential growth), the sum is $-4 \lt 0$, yet trajectories along the $\lambda_2$ eigendirection still blow up to infinity (a saddle point).
+</SolutionIntuition>
+
+<SolutionRigorous>
+**Counterexample**:
+Consider the diagonal matrix:
+
+$$
+A = \begin{bmatrix} 1 & 0 \\ 0 & -3 \end{bmatrix}
+$$
+
+Its trace and determinant are:
+
+$$
+\operatorname{tr}(A) = 1 + (-3) = -2 \lt 0, \quad \det(A) = 1 \times (-3) = -3 \lt 0
+$$
+
+The general solution is:
+
+$$
+\mathbf{u}(t) = \begin{bmatrix} u_1(0) e^{t} \\ u_2(0) e^{-3t} \end{bmatrix}
+$$
+
+Choosing the initial condition
+
+$$
+\mathbf{u}(0) = \begin{bmatrix} 1 \\ 0 \end{bmatrix}
+$$
+
+gives:
+
+$$
+\mathbf{u}(t) = \begin{bmatrix} e^t \\ 0 \end{bmatrix} \implies \lim_{t\to\infty} \|\mathbf{u}(t)\| = \lim_{t\to\infty} e^t = +\infty
+$$
+
+The solution blows up exponentially, so the origin is an unstable saddle point. Both $\operatorname{tr}(A) \lt 0$ and $\det(A) \gt 0$ are required for asymptotic stability. The statement is **false**.
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 4 (L3 · Matrix Series Calculation: Exact Exponential of a Defective Jordan Block)
+
+<ExerciseCard
+  id="l23-ex4"
+  tier="L3"
+  tierLabel="L3 · Matrix Series & Jordan Block Calculation"
+  title="Exact exp(At) for a Non-Diagonalizable Defective Matrix"
+>
+Let $A \in \mathbb{R}^{2\times 2}$ be the defective matrix:
+
+$$
+A = \begin{bmatrix} 5 & 1 \\ 0 & 5 \end{bmatrix}
+$$
+
+1. Prove that $A$ is not diagonalizable;
+2. Compute $e^{At}$ exactly from the matrix power series definition;
+3. Verify directly that $\frac{d}{dt}\left(e^{At}\right) = A e^{At}$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Find the repeated eigenvalue $\\lambda = 5$ and solve $(A - 5I)\\mathbf{x} = \\mathbf{0}$ to see that the geometric multiplicity is only $1$.",
+    "Split $A = 5I_2 + N$, where $N = [0, 1; 0, 0]$ satisfies $N^2 = \\mathbf{0}$.",
+    "Since $5I_2$ and $N$ commute, $e^{At} = e^{5t I_2} e^{Nt}$, and the series for $e^{Nt}$ truncates at $I_2 + Nt$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+With a $1$ on the superdiagonal, $A$ is a classic $2\times 2$ Jordan block with only one independent eigenvector direction $[1, 0]^T$. We do not need any approximation to compute $e^{At}$: because the scalar part $5I_2$ commutes with the nilpotent shift $N$, we can pull out $e^{5t}$ and the remaining series for $e^{Nt}$ stops dead after two terms.
+</SolutionIntuition>
+
+<SolutionRigorous>
+**Part 1: $A$ is not diagonalizable**
+The characteristic polynomial is $\det(A - \lambda I) = (\lambda - 5)^2 = 0$, so $\lambda_1 = \lambda_2 = 5$ (algebraic multiplicity $2$).
+Solving for eigenvectors:
+
+$$
+(A - 5I)\mathbf{x} = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_2 = 0, \quad x_1 \text{ free}
+$$
+
+The eigenspace is one-dimensional:
+
+$$
+\operatorname{Null}(A - 5I) = \operatorname{span}\left(\begin{bmatrix} 1 \\ 0 \end{bmatrix}\right)
+$$
+
+Because the geometric multiplicity is $1 \lt 2$, $A$ lacks a full basis of eigenvectors and cannot be diagonalized.
+
+**Part 2: Exact series computation of $e^{At}$**
+Decompose $A$ as:
+
+$$
+A = 5I_2 + N, \quad N = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}
+$$
+
+Check commutativity:
+
+$$
+(5I_2) N = 5N = N (5I_2)
+$$
+
+Since they commute, the exponential splits cleanly:
+
+$$
+e^{At} = e^{(5I_2 t + Nt)} = e^{5t I_2} e^{Nt}
+$$
+
+Evaluate each factor:
+1. $e^{5t I_2} = \operatorname{diag}(e^{5t}, e^{5t}) = e^{5t} I_2$
+2. Since $N^2 = \mathbf{0}$ (so $N^k = \mathbf{0}$ for all $k \ge 2$):
+
+$$
+e^{Nt} = I_2 + Nt + \frac{1}{2!}N^2 t^2 + \dots = I_2 + Nt = \begin{bmatrix} 1 & t \\ 0 & 1 \end{bmatrix}
+$$
+
+Multiplying them together gives the exact closed form:
+
+$$
+e^{At} = e^{5t} \begin{bmatrix} 1 & t \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} e^{5t} & t e^{5t} \\ 0 & e^{5t} \end{bmatrix}
+$$
+
+**Part 3: Direct differentiation check**
+Differentiate entry by entry with respect to $t$:
+
+$$
+\frac{d}{dt}\left(e^{At}\right) = \begin{bmatrix} \frac{d}{dt}(e^{5t}) & \frac{d}{dt}(t e^{5t}) \\ 0 & \frac{d}{dt}(e^{5t}) \end{bmatrix} = \begin{bmatrix} 5e^{5t} & e^{5t} + 5te^{5t} \\ 0 & 5e^{5t} \end{bmatrix}
+$$
+
+Now compute $A e^{At}$:
+
+$$
+A e^{At} = \begin{bmatrix} 5 & 1 \\ 0 & 5 \end{bmatrix} \begin{bmatrix} e^{5t} & t e^{5t} \\ 0 & e^{5t} \end{bmatrix} = \begin{bmatrix} 5e^{5t} + 1\times 0 & 5te^{5t} + e^{5t} \\ 0 & 5e^{5t} \end{bmatrix} = \begin{bmatrix} 5e^{5t} & e^{5t} + 5te^{5t} \\ 0 & 5e^{5t} \end{bmatrix}
+$$
+
+Both matrices are identical, confirming the derivative identity!
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+---
+
+### Exercise 5 (L4 · MIT 18.06 Synthesis: Skew-Symmetric Matrices and Energy-Conserving Rotations)
+
+<ExerciseCard
+  id="l23-ex4"
+  tier="L4"
+  tierLabel="L4 · MIT 18.06 Exam Synthesis"
+  title="Skew-Symmetric Generators, Orthogonal exp(Kt), and Conservation of Energy"
+>
+Let $K \in \mathbb{R}^{n\times n}$ be a **skew-symmetric matrix**, meaning:
+
+$$
+K^T = -K
+$$
+
+Consider the autonomous differential equation:
+
+$$
+\frac{d\mathbf{u}}{dt} = K\mathbf{u}, \quad \mathbf{u}(0) = \mathbf{u}_0
+$$
+
+1. Prove that $Q(t) \equiv e^{Kt}$ is an **orthogonal matrix** for all $t \in \mathbb{R}$, i.e., $Q(t)^T Q(t) = I_n$;
+2. Prove that the Euclidean norm of the state vector is strictly conserved for all $t \ge 0$: $\|\mathbf{u}(t)\|^2 = \|\mathbf{u}_0\|^2$;
+3. For the $2\times 2$ skew-symmetric matrix below, compute $e^{Kt}$ explicitly and explain its geometric meaning:
+
+$$
+K = \begin{bmatrix} 0 & -\omega \\ \omega & 0 \end{bmatrix}
+$$
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Take the transpose of the power series: $(e^{Kt})^T = e^{K^T t} = e^{-Kt}$.",
+    "Since $Kt$ and $-Kt$ commute, compute $Q(t)^T Q(t) = e^{-Kt} e^{Kt}$.",
+    "Differentiate the energy $E(t) = \\|\\mathbf{u}(t)\\|^2 = \\mathbf{u}(t)^T \\mathbf{u}(t)$ with respect to $t$ and use $K^T + K = \\mathbf{0}$."
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+Among complex numbers, a purely imaginary number $i\omega$ exponentiates to $e^{i\omega t} = \cos(\omega t) + i\sin(\omega t)$, a unit-modulus rotation. In matrix algebra, **skew-symmetric matrices are the multidimensional analogue of purely imaginary numbers**!
+All eigenvalues of a real skew-symmetric matrix $K$ are purely imaginary ($\pm i\omega_j$). Consequently, $e^{Kt}$ never stretches or shrinks any vector—it performs a pure rigid rotation in $\mathbb{R}^n$, conserving energy with zero dissipation and zero blow-up.
+</SolutionIntuition>
+
+<SolutionRigorous>
+**Part 1: Proof that $e^{Kt}$ is orthogonal**
+Take the transpose of the power series term by term:
+
+$$
+\left(e^{Kt}\right)^T = \left(\sum_{m=0}^\infty \frac{(Kt)^m}{m!}\right)^T = \sum_{m=0}^\infty \frac{(K^T t)^m}{m!} = e^{K^T t}
+$$
+
+Using $K^T = -K$:
+
+$$
+\left(e^{Kt}\right)^T = e^{-Kt}
+$$
+
+Because $Kt$ and $-Kt$ commute:
+
+$$
+Q(t)^T Q(t) = \left(e^{Kt}\right)^T e^{Kt} = e^{-Kt} e^{Kt} = e^{(-K + K)t} = e^{\mathbf{0}} = I_n
+$$
+
+Hence $e^{Kt}$ is an orthogonal matrix for every $t \in \mathbb{R}$.
+
+**Part 2: Proof of norm (energy) conservation**
+*Method 1 (Orthogonal invariance)*:
+
+$$
+\|\mathbf{u}(t)\|^2 = \|e^{Kt}\mathbf{u}_0\|^2 = (e^{Kt}\mathbf{u}_0)^T (e^{Kt}\mathbf{u}_0) = \mathbf{u}_0^T (e^{Kt})^T e^{Kt} \mathbf{u}_0 = \mathbf{u}_0^T I_n \mathbf{u}_0 = \|\mathbf{u}_0\|^2
+$$
+
+*Method 2 (Energy derivative)*:
+Define $E(t) = \mathbf{u}(t)^T \mathbf{u}(t)$ and differentiate with respect to $t$:
+
+$$
+\begin{aligned}
+\frac{dE}{dt} &= \left(\frac{d\mathbf{u}}{dt}\right)^T \mathbf{u} + \mathbf{u}^T \left(\frac{d\mathbf{u}}{dt}\right) \\
+&= (K\mathbf{u})^T \mathbf{u} + \mathbf{u}^T (K\mathbf{u}) \\
+&= \mathbf{u}^T K^T \mathbf{u} + \mathbf{u}^T K \mathbf{u} = \mathbf{u}^T (K^T + K) \mathbf{u}
+\end{aligned}
+$$
+
+Since $K^T + K = \mathbf{0}$:
+
+$$
+\frac{dE}{dt} = \mathbf{u}^T \mathbf{0} \mathbf{u} = 0 \quad (\forall t) \implies E(t) \equiv E(0) = \|\mathbf{u}_0\|^2
+$$
+
+Energy is strictly conserved.
+
+**Part 3: Explicit computation in 2D**
+For
+
+$$
+K = \begin{bmatrix} 0 & -\omega \\ \omega & 0 \end{bmatrix}
+$$
+
+compute its powers:
+
+$$
+K^2 = \begin{bmatrix} 0 & -\omega \\ \omega & 0 \end{bmatrix}\begin{bmatrix} 0 & -\omega \\ \omega & 0 \end{bmatrix} = \begin{bmatrix} -\omega^2 & 0 \\ 0 & -\omega^2 \end{bmatrix} = -\omega^2 I_2
+$$
+
+and therefore $K^3 = -\omega^2 K$, $K^4 = \omega^4 I_2$, and so on. Grouping even and odd powers in the exponential series:
+
+$$
+\begin{aligned}
+e^{Kt} &= \sum_{m=0}^\infty \frac{(Kt)^m}{m!} = \left(\sum_{k=0}^\infty \frac{(-1)^k (\omega t)^{2k}}{(2k)!}\right) I_2 + \left(\sum_{k=0}^\infty \frac{(-1)^k (\omega t)^{2k+1}}{(2k+1)!}\right) \frac{K}{\omega} \\
+&= \cos(\omega t) I_2 + \sin(\omega t) \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix} \\
+&= \begin{bmatrix} \cos(\omega t) & -\sin(\omega t) \\ \sin(\omega t) & \cos(\omega t) \end{bmatrix}
+\end{aligned}
+$$
+
+Geometric meaning: $e^{Kt}$ is the standard counterclockwise rotation matrix $R(\omega t)$ with angular velocity $\omega$. All phase-plane trajectories are concentric circles—a neutral center with neither decay nor growth.
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>
+
+---
+
+## 8. Frontier AI Reading: Matrix Exponential Discretization in Structured State Space Models (SSM / S4 / Mamba)
+
+<FrontierAIReading
+  id="AI-10"
+  title="Structured State Space Models (SSM / S4 / Mamba): ODE Discretization Ā = exp(ΔA) and Complex Spectral Memory"
+  paperRef="Gu et al. (ICLR 2022) Efficiently Modeling Long Sequences with Structured State Spaces (S4) · Gu & Dao (2023) Mamba: Linear-Time Sequence Modeling with Selective State Spaces"
+>
+
+In the era of Transformer-based large language models, self-attention incurs an unavoidable quadratic cost $O(L^2)$ in sequence length $L$, creating a bottleneck for million-token contexts and high-rate audio/video streams.
+
+The **S4 (Structured State Space for Sequence Modeling)** architecture (Gu et al., 2022) and **Mamba** (Gu & Dao, 2023) opened a new paradigm for linear-time sequence modeling. Remarkably, **the entire mathematical foundation of S4 and Mamba is built directly on the first-order linear ODEs and matrix exponential discretization of this lecture!**
+
+### 1. Continuous-Time Physical Model: State Space Equations
+
+An SSM treats a sequence as samples of a continuous-time input signal $x(t) \in \mathbb{R}$. A latent state $\mathbf{h}(t) \in \mathbb{C}^N$ stores compressed history and maps to an output $y(t) \in \mathbb{R}$:
+
+$$
+\begin{aligned}
+\frac{d\mathbf{h}(t)}{dt} &= A \mathbf{h}(t) + B x(t) \\
+y(t) &= C \mathbf{h}(t) + D x(t)
+\end{aligned}
+$$
+
+Here:
+- $A \in \mathbb{C}^{N\times N}$ is the state transition matrix governing how memory decays or oscillates;
+- $B \in \mathbb{C}^{N\times 1}$ is the input projection vector;
+- $C \in \mathbb{C}^{1\times N}$ is the output readout vector.
+
+### 2. Zero-Order Hold (ZOH) Discretization and $\bar{A} = \exp(\Delta A)$
+
+Digital computers operate on discrete token sequences $(x_0, x_1, x_2, \dots)$. Given a step size $\Delta \gt 0$, we integrate the continuous ODE over one step.
+
+Assuming the input stays constant over $[t_k, t_{k+1}] = [k\Delta, (k+1)\Delta]$ (zero-order hold: $x(t) = x_k$), variation of parameters (Duhamel's principle) gives:
+
+$$
+\mathbf{h}(t_{k+1}) = e^{\Delta A} \mathbf{h}(t_k) + \left( \int_0^\Delta e^{\tau A} d\tau \right) B x_k
+$$
+
+This produces the exact discrete recurrence:
+
+$$
+\mathbf{h}_{k+1} = \bar{A} \mathbf{h}_k + \bar{B} x_k
+$$
+
+with discrete parameters:
+
+$$
+\bar{A} \equiv e^{\Delta A}, \quad \bar{B} \equiv (\Delta A)^{-1}\left(e^{\Delta A} - I_N\right) \Delta B = \left(\int_0^\Delta e^{\tau A} d\tau\right) B
+$$
+
+**The matrix exponential $e^{\Delta A}$ is literally the step-to-step memory transition operator!**
+
+### 3. S4D Complex Spectral Decoupling: Why Diagonalize?
+
+Multiplying a dense $N\times N$ matrix $A$ (typically $N = 64$ to $128$) at every token costs $O(N^2)$ per step and cannot be parallelized easily across sequence length $L$ during training.
+
+The breakthrough is **eigenbasis decoupling**: S4D (S4-Diagonal) parameterizes $A$ directly in diagonal complex form:
+
+$$
+A = \operatorname{diag}(\lambda_1, \lambda_2, \dots, \lambda_N), \quad \text{where } \lambda_n = -\alpha_n + i\omega_n \ (\alpha_n \gt 0)
+$$
+
+Then the matrix exponential collapses into $N$ independent scalar exponentials:
+
+$$
+\bar{A} = \operatorname{diag}\left(e^{\Delta \lambda_1}, e^{\Delta \lambda_2}, \dots, e^{\Delta \lambda_N}\right) = \operatorname{diag}\left(e^{-\Delta \alpha_n} e^{i\Delta \omega_n}\right)
+$$
+
+Three dynamical properties fall right out of this formula:
+1. **Stable memory decay**: Since $\alpha_n \gt 0$, the discrete modulus $|\bar{a}_n| = e^{-\Delta \alpha_n} \lt 1$. This guarantees **Hurwitz stability** in both continuous and discrete time, preventing hidden-state blow-up.
+2. **Multi-scale rotational memory (HiPPO)**: Different imaginary frequencies $\omega_n$ rotate components at different angular speeds in the complex plane, allowing the state to encode long-range history via orthogonal polynomials (Legendre polynomials).
+3. **Fast parallel convolution**: Unrolling the linear recurrence yields a discrete convolution $y = \mathbf{K} * x$. With diagonal $\bar{A}$, the kernel $\mathbf{K} = (C\bar{B}, C\bar{A}\bar{B}, C\bar{A}^2\bar{B}, \dots)$ can be computed in $O(L \log L)$ time via a 1D FFT!
+
+### 4. Toward Mamba: Selective State Spaces
+
+In S4, the parameters $\Delta, A, B, C$ are time-invariant—acting like a fixed linear filter.
+
+Mamba's key innovation is making the step size $\Delta_t$ and projections $B_t, C_t$ input-dependent functions of the current token $x_t$:
+
+$$
+\Delta_t = \operatorname{Softplus}\left(\text{Linear}(x_t)\right), \quad B_t = \text{Linear}(x_t), \quad C_t = \text{Linear}(x_t)
+$$
+
+This means **the model dynamically adjusts its own time step $\Delta_t$ based on content**:
+- On filler tokens or irrelevant punctuation, the network predicts a large $\Delta_t$, so $\bar{A}_t = e^{\Delta_t A}$ decays rapidly and forgets noise;
+- On key entities or causal anchors, the network predicts a tiny $\Delta_t \approx 0$, so $\bar{A}_t \approx I_N$ preserves critical memory across thousands of tokens.
+
+The self-contained PyTorch script below demonstrates ZOH discretization of a continuous state matrix and verifies that `torch.linalg.matrix_exp` matches the eigenbasis formula $S e^{\Lambda \Delta} S^{-1}$.
+
+<CollapsibleCode title="PyTorch ZOH Matrix Exponential Discretization & Spectral Equivalence Verification" language="python">
+```python
+import torch
+import math
+
+def demonstrate_ssm_discretization():
+    torch.manual_seed(42)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    # State dimension N = 4, sampling step size Delta
+    N = 4
+    delta = 0.05
+    
+    # Construct a stable continuous-time system matrix A (strictly negative real parts)
+    # Using damped oscillatory modes
+    alpha = torch.tensor([0.2, 0.5, 0.8, 1.2])   # Decay rates
+    omega = torch.tensor([1.0, 3.0, 6.0, 10.0])  # Angular frequencies
+    
+    # Diagonal complex eigenvalues Lambda
+    lambda_diag = -alpha + 1j * omega
+    Lambda = torch.diag(lambda_diag)
+    
+    # Random invertible eigenvector basis matrix S
+    S_real = torch.randn(N, N)
+    S_imag = torch.randn(N, N)
+    S = torch.complex(S_real, S_imag)
+    S_inv = torch.linalg.inv(S)
+    
+    # Continuous-time state matrix A = S Lambda S^{-1}
+    A_continuous = S @ Lambda @ S_inv
+    
+    print("=== 1. Spectrum of Continuous Matrix A ===")
+    eigenvalues = torch.linalg.eigvals(A_continuous)
+    for i, ev in enumerate(eigenvalues):
+        print(f"Eigenvalue lambda_{i+1}: Re = {ev.real.item():+.4f}, Im = {ev.imag.item():+.4f}")
+    assert (eigenvalues.real < 0).all(), "All eigenvalues must have negative real part (Hurwitz stable)"
+    
+    # === 2. Zero-Order Hold (ZOH) Matrix Exponential Discretization ===
+    # Method A: Direct dense matrix exponential via torch.linalg.matrix_exp
+    A_bar_dense = torch.linalg.matrix_exp(delta * A_continuous)
+    
+    # Method B: Spectral eigendecomposition formula S exp(Delta * Lambda) S^{-1}
+    exp_Lambda_delta = torch.diag(torch.exp(delta * lambda_diag))
+    A_bar_diagonalized = S @ exp_Lambda_delta @ S_inv
+    
+    # Compare numerical discrepancy between both methods
+    diff = torch.norm(A_bar_dense - A_bar_diagonalized).item()
+    print(f"\n=== 2. Discretized Matrix Exponential Comparison (Delta = {delta}) ===")
+    print(f"Frobenius norm diff between dense matrix_exp and S exp(Lambda*dt) S^-1: {diff:.2e}")
+    assert diff < 1e-5, "Both matrix exponential methods must agree within numerical precision"
+    
+    # Check discrete eigenvalue magnitudes (must all lie strictly inside the unit disk |mu| < 1)
+    disc_evals = torch.linalg.eigvals(A_bar_dense)
+    print("\n=== 3. Discrete-Time Stability Check (Inside Unit Disk) ===")
+    for i, mu in enumerate(disc_evals):
+        print(f"Discrete mode mu_{i+1} magnitude |mu| = {torch.abs(mu).item():.5f} < 1")
+    assert (torch.abs(disc_evals) < 1.0).all(), "All discrete eigenvalues must have magnitude < 1"
+    
+    # === 4. Simulate Continuous State-Space Impulse Response ===
+    # Unit impulse x_0 = 1, x_k = 0 for k >= 1
+    B = torch.ones(N, 1, dtype=torch.complex64)
+    # ZOH discrete B_bar = (Delta * A)^-1 (exp(Delta * A) - I) Delta B
+    I_N = torch.eye(N, dtype=torch.complex64)
+    B_bar = torch.linalg.solve(delta * A_continuous, (A_bar_dense - I_N)) @ (delta * B)
+    
+    # Roll out for 50 steps
+    steps = 50
+    h = torch.zeros(N, 1, dtype=torch.complex64)
+    h_norms = []
+    
+    for k in range(steps):
+        input_x = 1.0 if k == 0 else 0.0
+        h = A_bar_dense @ h + B_bar * input_x
+        h_norms.append(torch.norm(h).item())
+        
+    print(f"\n=== 4. Hidden-State Decay Trajectory (50 Steps) ===")
+    print(f"Step 1 norm:  {h_norms[0]:.4f}")
+    print(f"Step 10 norm: {h_norms[9]:.4f}")
+    print(f"Step 30 norm: {h_norms[29]:.4f}")
+    print(f"Step 50 norm: {h_norms[49]:.4f}")
+    assert h_norms[-1] < h_norms[0], "By Hurwitz stability, the hidden-state norm decays over time"
+    print("\nVerification passed! Linear ODE and matrix exponential theory underpins modern SSMs.")
+
+if __name__ == '__main__':
+    demonstrate_ssm_discretization()
+```
+</CollapsibleCode>
+
+</FrontierAIReading>

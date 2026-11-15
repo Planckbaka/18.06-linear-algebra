@@ -1,0 +1,563 @@
+---
+title: "Lecture 04: Factorization into A = LU"
+ocwId: "L04"
+videoEpisode: "P04"
+textbookRef: "§2.6"
+---
+
+At the end of Lecture 02, we expressed Gaussian elimination in matrix form as $E A = U$. In Lecture 03, we mastered the "shoes-and-socks reverse-order rule" for the inverse of a product: $(AB)^{-1} = B^{-1}A^{-1}$. Today, snapping these two puzzle pieces together gives birth to the most widely used, structurally cleanest matrix factorization in the history of scientific computing—**the $A = LU$ factorization**.
+
+In Lecture 04, Prof. Gilbert Strang asks a question that goes straight to the heart of numerical linear algebra: **Since $EA = U$ already describes elimination completely, why do mathematicians and numerical software packages (like LAPACK and MATLAB) insist on inverting $E$ and moving it to the right-hand side to write $A = LU$?** The answer lies in a remarkable phenomenon: **zero cross-pollution of multipliers**.
+
+---
+
+## 1. The Core Miracle: Why $L = E^{-1}$ Is Infinitely Cleaner Than $E$
+
+Let us warm up with a minimal $2\times 2$ example:
+
+$$
+A = \begin{bmatrix} 2 & 1 \\ 8 & 7 \end{bmatrix}
+\quad \xrightarrow{R_2 \leftarrow R_2 - 4R_1 \;(\ell_{21}=4)} \quad
+U = \begin{bmatrix} 2 & 1 \\ 0 & 3 \end{bmatrix}
+$$
+
+Writing the forward elimination step via an elementary matrix gives $E_{21} A = U$. Multiplying both sides on the left by $E_{21}^{-1}$ (which simply flips the sign of $-4$ to $+4$!) immediately yields $A = LU$:
+
+$$
+\underbrace{\begin{bmatrix} 1 & 0 \\ -4 & 1 \end{bmatrix}}_{E_{21}}
+\underbrace{\begin{bmatrix} 2 & 1 \\ 8 & 7 \end{bmatrix}}_{A}
+=
+\underbrace{\begin{bmatrix} 2 & 1 \\ 0 & 3 \end{bmatrix}}_{U}
+\quad \Longleftrightarrow \quad
+\underbrace{\begin{bmatrix} 2 & 1 \\ 8 & 7 \end{bmatrix}}_{A}
+=
+\underbrace{\begin{bmatrix} 1 & 0 \\ \mathbf{4} & 1 \end{bmatrix}}_{L = E_{21}^{-1}}
+\underbrace{\begin{bmatrix} 2 & 1 \\ 0 & 3 \end{bmatrix}}_{U}
+$$
+
+For a $2\times 2$ matrix, $E_{21}$ and $L$ differ by just a minus sign, which looks unremarkable. **The real magic happens at $3\times 3$ and $n\times n$!**
+
+Suppose we perform elimination on a $3\times 3$ matrix $A$ that requires no row exchanges:
+- In step 1, pivot $1$ eliminates entry $(2,1)$ using multiplier $\ell_{21} = 2$; meanwhile, entry $(3,1)$ is already $0$, so its multiplier is **$\ell_{31} = 0$** (no $E_{31}$ is needed);
+- In step 2, pivot $2$ eliminates entry $(3,2)$ using multiplier $\ell_{32} = 5$.
+
+Thus the forward elimination equation is $E_{32} E_{21} A = U$. Now compare the forward product $E = E_{32} E_{21}$ on the left with the inverse product $L = (E_{32} E_{21})^{-1} = E_{21}^{-1} E_{32}^{-1}$ on the right:
+
+<LUMultiplierNoFillDiagram caption="Forward product E = E₃₂E₂₁ suffers cross-pollution (+10 fill-in at position (3,1)), whereas the reverse-order inverse product L = E₂₁⁻¹E₃₂⁻¹ places every multiplier ℓᵢⱼ directly into position (i,j) with zero fill-in." />
+
+Do you see that?! This is the highlight moment that Prof. Strang circles heavily on the blackboard:
+
+- **In the forward order $E = E_{32} E_{21}$**: The later step $E_{32}$ subtracts $5$ times the *new* Row 2 from Row 3—but the new Row 2 already carries $-2$ times Row 1 inside it! As a result, even though we never touched position $(3,1)$ ($\ell_{31} = 0$), a spurious cross-pollution term $(-5)(-2) = \mathbf{+10}$ appears out of thin air in the bottom-left corner! In large-scale sparse matrices, this domino-like fill-in destroys sparsity completely.
+- **In the reverse-order inverse product $L = E_{21}^{-1} E_{32}^{-1}$**: Because taking the inverse reverses the multiplication order, $E_{32}^{-1}$ on the right acts first, adding $5$ times the **original unit basis row** $\mathbf{e}_2^T$ to Row 3 (at which point Row 2 is still the clean $[0, 1, 0]$, untouched by Row 1!). Next, $E_{21}^{-1}$ on the left modifies Row 2 without touching Row 3 at all! Consequently, **every elimination multiplier $\ell_{ij}$ drops directly into the $(i,j)$ entry of the unit lower triangular matrix $L$ untouched, with zero cross-product terms!**
+
+### 1.1 Pursuing Perfect Symmetry: From $A = LU$ to $A = LDU$
+
+If you look closely at $A = LU$, you will notice a slight asymmetry: $L$ is a **unit lower triangular matrix** with $1$s on its main diagonal, whereas $U$ carries the pivots $d_1, d_2, \dots, d_n$ along its diagonal. If we factor out the diagonal pivot from each row of $U$—splitting $U$ into a pure pivot **diagonal matrix** $D = \operatorname{diag}(d_1, \dots, d_n)$ times a unit upper triangular matrix $\tilde{U}$ with $1$s on its diagonal—we obtain the completely symmetric and elegant **$LDU$ factorization**:
+
+$$
+A = L U =
+\begin{bmatrix} 1 & 0 \\ 4 & 1 \end{bmatrix}
+\begin{bmatrix} 2 & 1 \\ 0 & 3 \end{bmatrix}
+=
+\underbrace{\begin{bmatrix} 1 & 0 \\ 4 & 1 \end{bmatrix}}_{L}
+\underbrace{\begin{bmatrix} 2 & 0 \\ 0 & 3 \end{bmatrix}}_{D}
+\underbrace{\begin{bmatrix} 1 & 1/2 \\ 0 & 1 \end{bmatrix}}_{\tilde{U}}
+$$
+
+<DefinitionCard
+  label="Definition 4.1"
+  title="LU and LDU Factorizations of a Square Matrix"
+>
+Suppose an invertible square matrix $A \in \mathbb{R}^{n\times n}$ produces $n$ nonzero pivots $d_1, d_2, \dots, d_n \neq 0$ during Gaussian elimination **without requiring any row exchanges**, and let $\ell_{ij} \in \mathbb{R}$ denote the multiplier used by the $j$-th pivot to eliminate the entry in row $i$ ($i \gt j$):
+
+1. **$A = LU$ Factorization**: $A$ factors into the product of a unit lower triangular matrix $L$ (with $1$s on the main diagonal and the multipliers $L_{ij} = \ell_{ij}$ stored directly in the strict lower triangle) and an upper triangular matrix $U$ (with the pivots $U_{kk} = d_k$ on the main diagonal).
+2. **$A = LDU$ Factorization**: Furthermore, letting $D = \operatorname{diag}(d_1, d_2, \dots, d_n)$ be the diagonal pivot matrix and $\tilde{U} = D^{-1}U$ be the unit upper triangular matrix with $1$s on its main diagonal gives $A = L D \tilde{U}$.
+</DefinitionCard>
+
+<TheoremCard
+  label="Theorem 4.1"
+  title="No Cross-Terms in L, Uniqueness of LDU, and PA = LU with Row Exchanges"
+>
+Let $A \in \mathbb{R}^{n\times n}$ be a real square matrix:
+
+1. **Direct Multiplier Placement Formula (No Cross-Terms)**: For the family of elementary elimination matrices constructed column by column, the product of their inverses in forward elimination order equals the **direct sum** of the off-diagonal multiplier offsets:
+
+$$
+L = \left(E_{n,n-1} \cdots E_{31} E_{21}\right)^{-1}
+= E_{21}^{-1} E_{31}^{-1} \cdots E_{n,n-1}^{-1}
+= I_n + \sum_{i \gt j} \ell_{ij} \mathbf{e}_i \mathbf{e}_j^T
+$$
+
+2. **Uniqueness of Factorization**: If an **invertible square matrix** $A \in \mathbb{R}^{n\times n}$ admits a factorization $A = LU$ without row exchanges (where $L$ is unit lower triangular and $U$ is upper triangular with nonzero diagonal entries), then the pair $(L, U)$ and the corresponding triple $(L, D, \tilde{U})$ are **uniquely determined**.
+3. **Universal Factorization with Row Exchanges ($PA = LU$)**: For **any invertible square matrix** $A \in \mathbb{R}^{n\times n}$ (even when zeros appear in pivot positions requiring row swaps), there always exists at least one **permutation matrix** $P \in \mathbb{R}^{n\times n}$ (obtained by reordering the rows of $I_n$) such that the row-reordered matrix $PA$ factors without any further row exchanges as:
+
+$$
+P A = L U
+$$
+</TheoremCard>
+
+<ProofCollapse title="Rigorous Proof: Why Outer-Product Orthogonality Eliminates Cross-Terms in L and Guarantees Uniqueness">
+1. **Algebraic Essence of Zero Cross-Terms**: Denote the inverse of the entire $j$-th column elimination operator by $L_j := \prod_{i=j+1}^n (I_n + \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T) = I_n + \mathbf{m}_j \mathbf{e}_j^T$, where the column vector $\mathbf{m}_j = (0, \dots, 0, \ell_{j+1,j}, \dots, \ell_{nj})^T$ has its first $j$ components **identically equal to $0$**!
+   Now examine the product of two column factors in order $j \lt k$ (for instance, $L_1 L_2$):
+
+$$
+(I_n + \mathbf{m}_j \mathbf{e}_j^T)(I_n + \mathbf{m}_k \mathbf{e}_k^T)
+= I_n + \mathbf{m}_j \mathbf{e}_j^T + \mathbf{m}_k \mathbf{e}_k^T + \mathbf{m}_j (\underbrace{\mathbf{e}_j^T \mathbf{m}_k}_{= 0 !}) \mathbf{e}_k^T
+$$
+
+   Why is the middle scalar inner product $\mathbf{e}_j^T \mathbf{m}_k$ strictly equal to $0$? Because $j \lt k$, and $\mathbf{m}_k$ only has nonzero entries from row $k+1$ downward, so its $j$-th component is guaranteed to be $0$! By induction, $L_1 L_2 \cdots L_{n-1} = I_n + \sum_{j=1}^{n-1} \mathbf{m}_j \mathbf{e}_j^T$, and every single cross-product term vanishes! (Conversely, multiplying in the forward order $E_k E_j$ encounters $\mathbf{e}_k^T \mathbf{m}_j = \ell_{kj} \neq 0$, which is the exact algebraic root of cross-pollution in $E$!)
+
+2. **Proof of Uniqueness**: Suppose an invertible matrix $A$ satisfies $A = L_1 U_1 = L_2 U_2$, where $L_1, L_2$ are unit lower triangular and $U_1, U_2$ are invertible upper triangular. Left-multiplying both sides by $L_2^{-1}$ and right-multiplying by $U_1^{-1}$ yields:
+
+$$
+L_2^{-1} L_1 = U_2 U_1^{-1}
+$$
+
+   The left-hand side is a product of two **unit lower triangular** matrices (which remains unit lower triangular, with $1$s on the main diagonal and $0$s above it); the right-hand side is a product of two **upper triangular** matrices (which remains upper triangular, with $0$s below the main diagonal). The only matrix that is simultaneously upper triangular and unit lower triangular is the identity matrix $I_n$! Hence $L_2^{-1}L_1 = I_n \implies L_1 = L_2$, and $U_2 U_1^{-1} = I_n \implies U_1 = U_2$.
+</ProofCollapse>
+
+---
+
+## 2. Once You Have $PA = LU$, You Can Throw the Original Matrix $A$ Away!
+
+In real-world engineering (such as power grid load-flow analysis, finite-element structural mechanics, and PDE solvers for weather forecasting), we frequently face **the exact same coefficient matrix $A$, but need to solve for hundreds or thousands of different right-hand side load vectors $\mathbf{b}^{(1)}, \mathbf{b}^{(2)}, \dots, \mathbf{b}^{(K)}$**!
+
+If you run Gaussian elimination on the augmented matrix $[A \mid \mathbf{b}^{(k)}]$ from scratch every single time, you are wasting a massive amount of compute. Once you have $PA = LU$, every bit of information about the original matrix $A$ is losslessly encoded inside the triangular factors $L, U$ and the row permutation $P$. Solving any new system $A\mathbf{x} = \mathbf{b}$ takes just two lightweight triangular substitutions (and the memory holding $A$ can even be overwritten directly):
+
+1. **Forward Substitution**: Set $\mathbf{c} = U\mathbf{x}$ and solve the lower triangular system from top to bottom:
+
+$$
+L \mathbf{c} = P \mathbf{b}
+$$
+
+2. **Back Substitution**: Solve the upper triangular system from bottom to top:
+
+$$
+U \mathbf{x} = \mathbf{c}
+$$
+
+Verification is immediate: $A\mathbf{x} = P^{-1}(LU\mathbf{x}) = P^{-1}(L\mathbf{c}) = P^{-1}(P\mathbf{b}) = \mathbf{b}$!
+
+---
+
+## 3. The Golden Divide of Complexity: Why Factoring Costs $\frac{1}{3}n^3$ While Solving Costs Only $n^2$
+
+In the second half of Lecture 04, Prof. Strang works out an operation-count budget that every science and engineering student should know by heart (counting "1 multiplication + 1 subtraction" as 1 basic multiply-subtract operation, or flop pair):
+
+1. **How many operations does it take to factor $A \in \mathbb{R}^{n\times n}$ into $LU$?**
+   - When eliminating below the 1st pivot, we update the entire bottom-right $(n-1)\times(n-1)$ submatrix (about $n^2$ operations, with leading term $(n-1)^2$ multiply-subtracts);
+   - When eliminating below the 2nd pivot, the active submatrix shrinks to $(n-2)\times(n-2)$, costing about $(n-2)^2$ operations;
+   - ...and so on down to $1^2$ at the very end. The total operation count is the sum of squares (analogous to the integral $\int_0^n x^2\,dx = \frac{1}{3}n^3$):
+
+$$
+\text{Cost}(A \to LU) = \sum_{k=1}^{n-1} k^2 \approx \sum_{k=1}^{n} k^2 = \frac{n(n+1)(2n+1)}{6} \approx \frac{1}{3} n^3
+$$
+
+2. **How many operations does it take to run forward substitution $L\mathbf{c}=P\mathbf{b}$ + back substitution $U\mathbf{x}=\mathbf{c}$ for a single right-hand side $\mathbf{b} \in \mathbb{R}^n$?**
+   - Solving $L\mathbf{c} = P\mathbf{b}$: Row 1 takes $0$ operations, Row 2 takes $1$, ..., Row $n$ takes $n-1$, totaling $1 + 2 + \cdots + (n-1) \approx \frac{1}{2}n^2$;
+   - Solving $U\mathbf{x} = \mathbf{c}$: By symmetry, this takes another $\frac{1}{2}n^2$ operations. Together they add up to **exactly $n^2$**!
+
+<LUComplexityPyramidDiagram caption="Geometric visualization of operation counts: factoring A = LU sweeps through shrinking k × k active submatrices to form a pyramid of volume ≈ ⅓n³, whereas each forward/back substitution sweeps two flat triangles of total area n²." />
+
+<InteractiveCanvasSlot
+  id="l04-lu-pyramid-cost"
+  title="PA = LU Zero-Fill Factorization & ⅓n³ Pyramid Complexity Explorer"
+  description="Interactive sandbox: input custom or banded sparse matrices, watch step-by-step how multipliers $\ell_{ij}$ drop into $L$ without cross-interference, and drag the dimension slider $n \in [10, 2000]$ to compare the one-time $\frac{1}{3}n^3$ factorization cost against the $n^2$ solve cost across multiple right-hand sides."
+/>
+
+Let us feel the staggering gap when $n = 1000$:
+- Factoring $A = LU$ once requires roughly $\frac{1}{3}(1000)^3 \approx 3.33 \times 10^8$ (**333 million**) operations;
+- Thereafter, each new right-hand side vector $\mathbf{b}$ costs only $(1000)^2 = 10^6$ (**1 million**) operations—**a full 333 times faster!**
+- By the way, if you are tempted to compute the explicit inverse $A^{-1}$ first (which is equivalent to running back substitution on all $n$ columns of the identity matrix, costing $\frac{1}{3}n^3 + n\cdot(\text{triangular solves}) = n^3$, **3 times as expensive** as $LU$ factorization!) and then multiply $A^{-1}\mathbf{b}$, you not only waste triple the time, you also turn a clean sparse banded matrix into a completely dense inverse and amplify floating-point roundoff errors! This is the First Commandment of numerical linear algebra: **Always solve $A\mathbf{x}=\mathbf{b}$ via `LU` factorization and triangular substitution; never form $A^{-1}$ explicitly just to multiply by $\mathbf{b}$!**
+
+<PitfallAlert title="Common Pitfalls & Transcript Errata">
+1. **Pitfall 1: Accidentally putting a minus sign on the multipliers in $L$, writing $-\ell_{ij}$!**
+   Remember the most common sign confusion: when performing the elimination step $R_2 \leftarrow R_2 - 3R_1$, the elementary matrix $E_{21}$ on the left holds **$-3$**; when inverted and moved to the right to form $A = LU$, the minus sign flips to plus, so entry $(2,1)$ of $L$ is **positive $+3$**! Rule of thumb: **"Whatever multiple of Row $j$ you subtract from Row $i$, copy that exact multiplier $\ell_{ij}$ directly into $L_{ij}$!"**
+2. **Pitfall 2: Forgetting the "invertible" hypothesis and claiming that "$LU$ factorization is unique for every square matrix"**
+   The uniqueness in Theorem 4.1 strictly requires the diagonal pivots of $U$ to be nonzero (i.e., $A$ must be invertible)! If $A$ is singular—for example, the $2\times 2$ zero matrix $A = O_2$—then for **any** real number $c \in \mathbb{R}$:
+
+$$
+\begin{bmatrix} 1 & 0 \\ c & 1 \end{bmatrix}\begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}
+$$
+
+   so there are infinitely many unit lower triangular factors $L$!
+3. **Pitfall 3: Habitually calling `inv(A) * b` to solve $A\mathbf{x} = \mathbf{b}$**
+   Computing the explicit inverse $A^{-1}$ costs $\approx n^3$ operations (3 times the $\frac{1}{3}n^3$ cost of $LU$), and for a tridiagonal matrix (where $LU$ takes only $O(n)$ time and memory!), the inverse $A^{-1}$ is a completely dense $n\times n$ matrix! In engineering and research, always use triangular factorization solvers (`A \ b` or `scipy.linalg.lu_solve`).
+</PitfallAlert>
+
+<KeyTakeaways
+  title="Key Takeaways"
+  items={[
+    "When no row exchanges are needed, Gaussian elimination is directly equivalent to the matrix factorization $A = LU = L D \\tilde{U}$, where the unit lower triangular matrix $L = E^{-1}$ stores each elimination multiplier $+\\ell_{ij}$ **untouched in entry $L_{ij}$ with zero cross-pollution**.",
+    "When a zero appears in a pivot position and row exchanges are required, every invertible square matrix $A$ admits a permutation matrix $P$ such that $PA = LU$ (out of $n!$ possible row reorderings).",
+    "Once $PA = LU$ is computed, solving $A\\mathbf{x} = \\mathbf{b}$ requires only two triangular sweeps: forward substitution $L\\mathbf{c} = P\\mathbf{b}$ followed by back substitution $U\\mathbf{x} = \\mathbf{c}$.",
+    "Complexity law: factoring $A \\to LU$ costs the pyramid volume $\\approx \\frac{1}{3}n^3$, whereas solving for each right-hand side $\\mathbf{b}$ costs only the flat slice area $n^2$; never compute $A^{-1}\\mathbf{b}$ explicitly."
+  ]}
+/>
+
+<ProblemSet
+  title="Intuition Problem Set"
+  description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs."
+>
+
+<ExerciseCard
+  id="l04-ex1"
+  tier="L1"
+  tierLabel="L1 · Quick Geometric Check"
+  title="Zero-Rework Hand Calculation: Write A = LU and LDU on the Fly and Solve via Two-Step Substitution"
+>
+Given a $3\times 3$ symmetric matrix $A$ (requiring no row exchanges) and right-hand side vector $\mathbf{b}$:
+
+$$
+A = \begin{bmatrix}
+2 & 4 & -2 \\
+4 & 9 & -3 \\
+-2 & -3 & 7
+\end{bmatrix}, \qquad
+\mathbf{b} = \begin{bmatrix}
+2 \\ 8 \\ 10
+\end{bmatrix}
+$$
+
+1. While reducing $A$ to $U$ by elimination, record the three multipliers $\ell_{21}, \ell_{31}, \ell_{32}$ directly into the unit lower triangular matrix $L$, and write down both $A = LU$ and $A = L D \tilde{U}$ (observe the striking relationship between $\tilde{U}$ and $L^T$ for this symmetric matrix!);
+2. **Without touching the original matrix $A$ again**, solve for $\mathbf{x}$ using only $L\mathbf{c} = \mathbf{b}$ and $U\mathbf{x} = \mathbf{c}$.
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "The 1st column pivot is $2$: eliminating $4$ at $(2,1)$ uses multiplier $\\ell_{21} = 4/2 = 2$; eliminating $-2$ at $(3,1)$ uses multiplier $\\ell_{31} = (-2)/2 = -1$ (i.e., $R_3 - (-1)R_1 = R_3 + R_1$, so the entry placed in $L_{31}$ is $-1$!).",
+    "Next, look at the new 2nd pivot at $(2,2)$, which is $9 - 2(4) = 1$, while entry $(3,2)$ becomes $-3 + 4 = 1$, so $\\ell_{32} = 1/1 = 1$!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. Simply copy the multipliers into $L$ as you eliminate—no matrix inversion needed:
+   - Row 2 minus **$2$** times Row 1 $\implies L_{21} = 2$;
+   - Row 3 minus **$-1$** times Row 1 (i.e., plus 1 times Row 1) $\implies L_{31} = -1$;
+   - New Row 3 minus **$1$** times new Row 2 $\implies L_{32} = 1$!
+   Better yet, once we factor out the pivots $D = \operatorname{diag}(2, 1, 4)$, the remaining unit upper triangular matrix $\tilde{U}$ on the right is **literally $L^T$**! A symmetric matrix $A = A^T$ automatically produces a symmetric factorization $A = L D L^T$ (we will see why in Lecture 05)!
+2. Forward substitution $L\mathbf{c} = \mathbf{b}$ and back substitution $U\mathbf{x} = \mathbf{c}$ reduce to single-variable mental arithmetic, taking you straight to $\mathbf{x} = (-1, 2, 2)^T$ in ten seconds!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **Computing $L, U$, and $L D \tilde{U}$**:
+   - $\ell_{21} = 2,\; \ell_{31} = -1$: Applying $R_2 - 2R_1$ and $R_3 - (-1)R_1$ gives the intermediate matrix:
+
+$$
+\begin{bmatrix} 2 & 4 & -2 \\ 0 & 1 & 1 \\ 0 & 1 & 5 \end{bmatrix}
+$$
+
+   - $\ell_{32} = 1$: Applying $R_3 - 1R_2$ gives $U$, and the multipliers drop directly into $L$:
+
+$$
+L = \begin{bmatrix}
+1 & 0 & 0 \\
+2 & 1 & 0 \\
+-1 & 1 & 1
+\end{bmatrix}, \quad
+U = \begin{bmatrix}
+2 & 4 & -2 \\
+0 & 1 & 1 \\
+0 & 0 & 4
+\end{bmatrix}
+$$
+
+   Factoring out the diagonal pivot matrix $D = \operatorname{diag}(2, 1, 4)$ yields:
+
+$$
+A = L D \tilde{U} =
+\begin{bmatrix}
+1 & 0 & 0 \\
+2 & 1 & 0 \\
+-1 & 1 & 1
+\end{bmatrix}
+\begin{bmatrix}
+2 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & 0 & 4
+\end{bmatrix}
+\begin{bmatrix}
+1 & 2 & -1 \\
+0 & 1 & 1 \\
+0 & 0 & 1
+\end{bmatrix}
+= L D L^T
+$$
+
+2. **Two-Step Triangular Solve**:
+   - Forward substitution $L\mathbf{c} = \mathbf{b}$:
+     - $c_1 = 2$
+     - $2c_1 + c_2 = 8 \implies c_2 = 4$
+     - $-c_1 + c_2 + c_3 = 10 \implies -2 + 4 + c_3 = 10 \implies c_3 = 8$, so $\mathbf{c} = (2, 4, 8)^T$.
+   - Back substitution $U\mathbf{x} = \mathbf{c}$:
+     - $4x_3 = 8 \implies x_3 = 2$
+     - $x_2 + x_3 = 4 \implies x_2 = 2$
+     - $2x_1 + 4x_2 - 2x_3 = 2 \implies 2x_1 + 8 - 4 = 2 \implies x_1 = -1$.
+   The unique solution is $\mathbf{x} = (-1, 2, 2)^T$.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l04-ex2"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Conceptual Check: Can Every Invertible Matrix Be Factored as A = LU Without Row Exchanges?"
+>
+Determine whether the following statement is true or false:
+
+> **Statement**: As long as a real square matrix $A \in \mathbb{R}^{n\times n}$ is invertible (nonsingular), there must exist a lower triangular matrix $L$ and an upper triangular matrix $U$ such that $A = LU$ (without introducing a permutation matrix $P$).
+
+<TrueFalseInteractive
+  id="l04-tf1"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! The simplest 2×2 row-exchange matrix A with rows [0, 1] and [1, 0] is clearly invertible, but the top-left (1,1) entry of any lower-times-upper product LU is L₁₁U₁₁. If L₁₁U₁₁ = 0, then either L or U has a zero on its diagonal and is singular, so their product LU can never equal the invertible matrix A!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Test the $2\\times 2$ permutation matrix $A$ whose first row is $[0, 1]$ and second row is $[1, 0]$! Write $A = LU$ with lower triangular $L$ and upper triangular $U$, and inspect what the $(1,1)$ entry equation $l_{11} u_{11} = 0$ forces upon the first row or first column!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+Row 1 of a lower triangular matrix $L$ is $[l_{11}, 0]$, and Column 1 of an upper triangular matrix $U$ is $[u_{11}, 0]^T$, so the top-left $(1,1)$ entry of the product $LU$ is simply the single product $l_{11} u_{11}$! If an invertible matrix $A$ happens to have a $0$ in its top-left corner, that forces either $l_{11}=0$ or $u_{11}=0$. But a triangular matrix with a $0$ on its diagonal (a missing pivot) is immediately singular, and the product of singular matrices can never recover an invertible matrix $A$! That is why the universal theorem must be written $PA = LU$.
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+Construct a minimal $2\times 2$ counterexample: take the invertible permutation matrix $A$ and suppose there exist a lower triangular matrix $L$ and an upper triangular matrix $U$ such that $A = LU$:
+
+$$
+\begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+=
+\begin{bmatrix} l_{11} & 0 \\ l_{21} & l_{22} \end{bmatrix}
+\begin{bmatrix} u_{11} & u_{12} \\ 0 & u_{22} \end{bmatrix}
+=
+\begin{bmatrix}
+l_{11} u_{11} & l_{11} u_{12} \\
+l_{21} u_{11} & l_{21} u_{12} + l_{22} u_{22}
+\end{bmatrix}
+$$
+
+Comparing the $(1,1)$ entry gives $l_{11} u_{11} = 0$:
+- If $l_{11} = 0$, then the $(1,2)$ entry becomes $l_{11} u_{12} = 0 \neq 1$, a contradiction!
+- If $u_{11} = 0$, then the $(2,1)$ entry becomes $l_{21} u_{11} = 0 \neq 1$, also a contradiction!
+
+Therefore, this invertible matrix $A$ admits no unpermuted $LU$ factorization (even without requiring $L$ to have $1$s on its diagonal).
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l04-ex3"
+  tier="L2"
+  tierLabel="L2 · Conceptual True/False"
+  title="Conceptual Check: Do the Forward Product E = E₃₂E₂₁ and Inverse Product L = E₂₁⁻¹E₃₂⁻¹ Share the Same Sparsity Pattern?"
+>
+Determine whether the following statement is true or false:
+
+> **Statement**: When performing elimination on a $4\times 4$ tridiagonal matrix (nonzero only on the main diagonal and the two adjacent sub-/super-diagonals) without row exchanges, the unit lower triangular factor $L$ is nonzero only on the subdiagonal immediately below the main diagonal (bidiagonal and sparse), and the forward combined elimination matrix $E = L^{-1}$ preserves this exact same bidiagonal sparsity pattern in its lower triangle.
+
+<TrueFalseInteractive
+  id="l04-tf2"
+  correct={false}
+  trueLabel="True"
+  falseLabel="False (Counterexample Exists)"
+  quickFeedback="False! This is the exact core advantage of A = LU: for a tridiagonal matrix, L indeed has nonzeros only on its first subdiagonal ℓ₂₁, ℓ₃₂, ℓ₄₃ (zero fill-in!), whereas the forward matrix E = L⁻¹ = E₄₃E₃₂E₂₁ cascades cross-products from row to row and fills the entire lower triangle with nonzeros!"
+/>
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Recall the diagram in Section 1 or Exercise `l03-ex4` from Lecture 03! When $L$ has nonzeros $a, b, c$ only on its first subdiagonal, doesn't its inverse $E = L^{-1}$ sprout products $ab, bc, abc$ across every single entry in the lower triangle?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+In a tridiagonal matrix, Row $i$ is directly coupled only to Row $i-1$ (so $L$ is ultra-sparse, containing just $n-1$ nonzero multipliers). However, the forward total elimination matrix $E = L^{-1}$ records "how much of the original Row 1 has accumulated inside the final Row $n$"—like a game of telephone cascading along $1 \to 2 \to 3 \to \cdots \to n$, the bottom row picks up traces of every preceding row, turning the lower triangle of $E$ completely dense! This is the fundamental reason why large-scale scientific computing stores $L$ and never $E = L^{-1}$!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+Construct a concrete $3\times 3$ tridiagonal elimination counterexample: suppose each subdiagonal multiplier is $1$ (with $\ell_{31} = 0$). Then $L$ is a sparse bidiagonal matrix:
+
+$$
+L = E_{21}^{-1} E_{32}^{-1} = \begin{bmatrix}
+1 & 0 & 0 \\
+1 & 1 & 0 \\
+0 & 1 & 1
+\end{bmatrix} \quad (\text{entry }(3,1)\text{ is strictly }0)
+$$
+
+Meanwhile, the forward combined elimination matrix $E = L^{-1} = E_{32} E_{21}$ is:
+
+$$
+E = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & -1 & 1 \end{bmatrix}
+\begin{bmatrix} 1 & 0 & 0 \\ -1 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}
+= \begin{bmatrix}
+1 & 0 & 0 \\
+-1 & 1 & 0 \\
+\mathbf{1} & -1 & 1
+\end{bmatrix}
+$$
+
+Position $(3,1)$, which was $0$ in $L$, becomes the nonzero entry $+1$ in $E$ (and in the $n\times n$ case all $\frac{n(n-1)}{2}$ entries below the diagonal become nonzero). Thus the statement is false.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l04-ex4"
+  tier="L3"
+  tierLabel="L3 · Zero-Calculation Subspace Reasoning"
+  title="Complexity Scaling Intuition: Grid Doubling and Multi-Load Solve Times"
+>
+A large-scale structural simulation code running on a supercomputer performs a full $PA = LU$ factorization on a dense invertible $n \times n$ stiffness matrix $A$, clocking **exactly $8$ seconds for the factorization alone** (ignoring memory-communication overhead and assuming runtime scales strictly with the leading floating-point operation count):
+1. If an engineer doubles the spatial sampling resolution so that the number of unknowns doubles (producing a $2n \times 2n$ dense matrix), approximately how many seconds will the new $LU$ factorization take?
+2. Returning to the original $n \times n$ matrix (where factoring took $8$ seconds), suppose $P, L, U$ are now stored in memory and we need to solve $A\mathbf{x}^{(j)} = \mathbf{b}^{(j)}$ for **$k = \frac{n}{3}$ completely different wind-load vectors** $\mathbf{b}^{(1)}, \dots, \mathbf{b}^{(k)}$. Approximately how many seconds will all $k$ forward/back substitutions take in total?
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1: The $LU$ factorization complexity scales as $\\frac{1}{3}n^3$! When $n \\to 2n$, by what factor does $(2n)^3 / n^3$ grow?",
+    "Part 2: Factoring once corresponds to $\\frac{1}{3}n^3$ operations ($= 8$ seconds), whereas a single forward/back substitution solve costs $n^2$ operations. So solving for $k = \\frac{n}{3}$ right-hand sides takes $k \\cdot n^2 = \\frac{1}{3}n^3$ total operations—how does that compare to the single factorization?"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. The power (and curse) of cubic scaling: when the dimension merely doubles, the length, width, and height of the complexity pyramid all double simultaneously, expanding its volume by a factor of $2^3 = 8$! So the factorization time jumps from $8$ seconds to **$64$ seconds**!
+2. The dividend of quadratic back-substitution: solving for **one** right-hand side takes only $n^2$ operations, so solving for **$\frac{n}{3}$** distinct right-hand sides takes a combined $\frac{n}{3} \cdot n^2 = \frac{1}{3}n^3$ operations—which is **literally identical to the work of that single $LU$ factorization**! Therefore, solving all $\frac{n}{3}$ systems combined takes just **$8$ seconds**! (Imagine re-running elimination from scratch each time: that would cost $\frac{n}{3} \times 8$ seconds—for $n = 3000$, that is $8000$ seconds versus $8$ seconds!)
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+Let the machine execute $C$ basic multiply-subtract operations per second, given that $\frac{1}{3C} n^3 \approx 8\text{ s}$:
+
+1. When the matrix order doubles to $N = 2n$:
+
+$$
+T_{\text{decomp}}(2n) \approx \frac{1}{3C}(2n)^3 = 8 \cdot \left(\frac{1}{3C} n^3\right) \approx 8 \times 8 = 64\text{ seconds}
+$$
+
+2. For the already-factored $n\times n$ matrix, a single solve of $L\mathbf{c} = P\mathbf{b}$ and $U\mathbf{x} = \mathbf{c}$ requires $n^2$ basic operations, so solving for $k = \frac{n}{3}$ right-hand sides sequentially takes:
+
+$$
+T_{\text{solve}}\!\left(k = \frac{n}{3}\right) \approx \frac{1}{C} \left(\frac{n}{3} \cdot n^2\right) = \frac{1}{3C} n^3 \approx 8\text{ seconds}
+$$
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+<ExerciseCard
+  id="l04-ex5"
+  tier="L4"
+  tierLabel="L4 · MIT 18.06 Exam Synthesis"
+  title="MIT 18.06 Exam Challenge: Outer-Product Peeling of LU and Reverse-Engineering PA = LU"
+>
+This problem combines two classic MIT 18.06 midterm themes that illuminate each other:
+1. **Viewing $LU$ via Rank-1 Outer Products (echoing Way 4 of Lecture 03)**: Suppose a $4\times 4$ matrix satisfies $A = LU$, where Column 1 of $L$ is $(1, 2, 0, -1)^T$ and Row 1 of $U$ is $[3, 0, -2, 1]$. If we subtract only the first rank-1 outer product $\mathbf{l}_1 \mathbf{u}_1^T$ (Column 1 of $L$ times Row 1 of $U$) from $A$, prove that **Row 1 and Column 1 of the remainder $A - \mathbf{l}_1 \mathbf{u}_1^T$ must be identically $0$**! What does this reveal about the outer-product essence of the first step of Gaussian elimination?
+2. **Decoding $PA = LU$**: Suppose a $3\times 3$ invertible matrix $A$ has the permuted $LU$ factorization
+
+$$
+P A = L U =
+\begin{bmatrix}
+1 & 0 & 0 \\
+2 & 1 & 0 \\
+-1 & 3 & 1
+\end{bmatrix}
+\begin{bmatrix}
+1 & 1 & 2 \\
+0 & 2 & -1 \\
+0 & 0 & 5
+\end{bmatrix}, \qquad
+\text{and Column 1 of the original matrix } A \text{ is }
+\begin{bmatrix} -1 \\ 1 \\ 2 \end{bmatrix}
+$$
+
+**Without multiplying out the full matrix $LU$**, uniquely determine the permutation matrix $P$ using only Column 1, and find the three pivots of the permuted matrix $PA$!
+
+<ProgressiveHint
+  buttonPrefix="Unlock Hint"
+  hints={[
+    "Part 1: Expand $LU = \\mathbf{l}_1\\mathbf{u}_1^T + \\mathbf{l}_2\\mathbf{u}_2^T + \\mathbf{l}_3\\mathbf{u}_3^T + \\mathbf{l}_4\\mathbf{u}_4^T$ using Way 4 (column-times-row outer products) from Lecture 03! Notice that for $k \\ge 2$, the 1st entry of $\\mathbf{l}_k$ and the 1st entry of $\\mathbf{u}_k^T$ are all $0$!",
+    "Part 2: Use the column view of matrix multiplication to find Column 1 of $LU$: $(LU)\\mathbf{e}_1 = L(U\\mathbf{e}_1) = L(1, 0, 0)^T$, which is just Column 1 of $L$, namely $(1, 2, -1)^T$! Compare Column 1 of $PA$, $(1, 2, -1)^T$, with Column 1 of $A$, $(-1, 1, 2)^T$, to see how the rows were reordered!"
+  ]}
+/>
+
+<DualSolution
+  triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)"
+  intuitionLabel="Geometric Intuition"
+  rigorousLabel="Rigorous Proof / Construction"
+>
+<SolutionIntuition>
+
+1. **The Outer-Product Soul of Gaussian Elimination**: Write $LU$ as the sum of 4 rank-1 slices $\sum_{k=1}^4 \mathbf{l}_k \mathbf{u}_k^T$. Because $L$ is lower triangular and $U$ is upper triangular, the last three slices ($k=2,3,4$) never touch Row 1 or Column 1! Thus Row 1 and Column 1 of $A$ are 100% accounted for by the very first slice $\mathbf{l}_1\mathbf{u}_1^T$ alone—**algebraically, the first step of Gaussian elimination is simply peeling off the first rank-1 outer-product slice $\mathbf{l}_1\mathbf{u}_1^T$ from $A$!**
+2. **Spotting $P$ at a Glance**: Because Column 1 of $U$ is $(1, 0, 0)^T$, Column 1 of $LU$ is simply $1$ times Column 1 of $L$, namely $(1, 2, -1)^T$! Since Column 1 of $PA$ is $(1, 2, -1)^T$ while Column 1 of $A$ was originally $(-1, 1, 2)^T$, $P$ must have moved original Row 2 into Row 1, original Row 3 into Row 2, and original Row 1 into Row 3! Meanwhile, the three pivots sit right on the main diagonal of $U$: **$1, 2, 5$**!
+
+</SolutionIntuition>
+<SolutionRigorous>
+
+1. **Proof of the Outer-Product Peeling Property**: Expanding $A = LU$ by columns times rows (Way 4 from Lecture 03) gives $A = LU = \sum_{k=1}^4 \mathbf{l}_k \mathbf{u}_k^T$. Subtracting $\mathbf{l}_1 \mathbf{u}_1^T$ from both sides yields:
+
+$$
+A - \mathbf{l}_1 \mathbf{u}_1^T = \sum_{k=2}^4 \mathbf{l}_k \mathbf{u}_k^T
+$$
+
+   For every $k \in \{2, 3, 4\}$, because $L$ is lower triangular, the first component of column vector $\mathbf{l}_k$ is $(\mathbf{l}_k)_1 = L_{1k} = 0$; because $U$ is upper triangular, the first component of row vector $\mathbf{u}_k^T$ is $(\mathbf{u}_k^T)_1 = U_{k1} = 0$. Hence Row 1 and Column 1 of each outer-product slice $\mathbf{l}_k \mathbf{u}_k^T$ ($k \ge 2$) are identically $0$, and summing them leaves Row 1 and Column 1 of $A - \mathbf{l}_1\mathbf{u}_1^T$ identically $0$ (its bottom-right $3\times 3$ nonzero block is precisely the reduced submatrix / Schur complement after the first elimination step!).
+
+2. **Uniquely Determining $P$ and the Pivots**: Extracting Column 1 on both sides of $PA = LU$ (by right-multiplying by $\mathbf{e}_1$) gives:
+
+$$
+P (A\mathbf{e}_1) = L (U\mathbf{e}_1) = L \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \\ -1 \end{bmatrix}
+$$
+
+   Given $A\mathbf{e}_1 = (-1, 1, 2)^T$ (whose three components are distinct), the equation $P(-1, 1, 2)^T = (1, 2, -1)^T$ uniquely determines the permutation matrix $P$:
+
+$$
+P = \begin{bmatrix}
+0 & 1 & 0 \\
+0 & 0 & 1 \\
+1 & 0 & 0
+\end{bmatrix}
+$$
+
+   Under the row ordering $PA$, the three pivots are directly the main diagonal entries of $U$: **$1, 2, 5$**.
+
+</SolutionRigorous>
+</DualSolution>
+</ExerciseCard>
+
+</ProblemSet>
