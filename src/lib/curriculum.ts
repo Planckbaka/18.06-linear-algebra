@@ -281,7 +281,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
     titleZh: '图、网络与关联矩阵',
     titleEn: 'Graphs, Networks, Incidence Matrices',
     focusZh: '有向图关联矩阵的四子空间物理意义（电势差、环路与基尔霍夫电流定律 Aᵀy = 0）及欧拉公式纯线代证明。',
-    focusEn: 'Graph incidence matrices, potentials, loops in Null(Aᵀ), Kirchhoff’s law, and proving Euler’s formula v - e + f = 1.',
+    focusEn: 'Graph incidence matrices, potentials, loops in Null(Aᵀ), Kirchhoff’s law, and proving Euler’s formula v - e + f = 2 (or v - e + f_bounded = 1).',
     statusZh: 'published',
     statusEn: 'published',
     aiBridge: {
@@ -697,7 +697,7 @@ export const LECTURE_SESSIONS: LectureSession[] = [
       titleZh: '过参数化模型的隐式偏置（Implicit Bias）：为什么无正则梯度下降自动收敛到最小范数伪逆解 A⁺b',
       titleEn: 'Implicit Bias of Gradient Descent: Why Overparameterized Training Finds the Pseudoinverse Solution A⁺b',
       domain: 'Representation & Optimization',
-      mathAnchorLatex: '\\mathbf{w}_{\\text{GD}}(\\infty) = A^+ \\mathbf{y} = \\arg\\min_{\\mathbf{w}: A\\mathbf{w}=\\mathbf{y}} \\|\\mathbf{w}\\|_2',
+      mathAnchorLatex: '\\mathbf{w}(0)=\\mathbf{0},\\; A\\mathbf{w}=\\mathbf{y} \\implies \\mathbf{w}_{\\text{GD}}(\\infty) = A^+ \\mathbf{y} = \\arg\\min_{\\mathbf{w}: A\\mathbf{w}=\\mathbf{y}} \\|\\mathbf{w}\\|_2',
       summaryZh: '用第 14 讲行空间/零空间正交性（梯度更新 ∇L = Aᵀ(Aw-y) 始终留在 Row(A) 中，零空间分量为零）三行证明现代深度学习理论最核心的隐式正则化定理！',
       summaryEn: 'Uses Row(A) ⊥ Null(A) to prove in three lines why zero-initialized gradient descent converges strictly to w* = A⁺y.',
       paperRef: 'Zhang et al. (ICLR 2017) Rethinking Generalization · Soudry et al. (JMLR 2018) Implicit Bias',

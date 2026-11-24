@@ -429,7 +429,7 @@ export function ComplexInnerProductAndUnitaryCircleDiagram({
             strokeWidth="1"
           />
           <text x="514" y="344" className="fill-blue-700 dark:fill-blue-300 text-xs font-mono font-semibold">
-            几何级数抵消：∑ₖ₌₀ⁿ⁻¹ (wᵐ)ᵏ = (1 − wⁿᵐ)/(1 − wᵐ) = 0
+            wᵐ ≠ 1 时：∑ₖ₌₀ⁿ⁻¹ (wᵐ)ᵏ = (1 − wⁿᵐ)/(1 − wᵐ) = 0
           </text>
           <text x="514" y="364" className="fill-foreground text-[11px]">
             • 圆周对称矢量首尾相接闭合归零 ⇒ 不同列内积 cⱼᴴcₖ = 0
@@ -438,7 +438,7 @@ export function ComplexInnerProductAndUnitaryCircleDiagram({
             • 归一化推论：FₙᴴFₙ = nIₙ ⇒ (1/√n)Fₙ 为酉矩阵，Fₙ⁻¹ = (1/n)Fₙᴴ
           </text>
           <text x="514" y="401" className="fill-muted-foreground text-[10.5px]">
-            • 警示：若不取共轭，F₄ 第 1 与第 3 列实点积 c₁ᵀc₃ = 1+1+1+1 = 4 ≠ 0
+            • 警示：若不取共轭，F₄ 第 1 与第 3 列（从 0 编号）的无共轭乘积 c₁ᵀc₃ = 1+1+1+1 = 4 ≠ 0
           </text>
         </g>
       </svg>
@@ -505,7 +505,7 @@ export function FastFourierButterflyFactorizationDiagram({
             ③ Dₙ/₂ 蝶形合流
           </text>
           <text x="786" y="60" className="fill-muted-foreground text-[10.5px]">
-            仅 n/2 次旋转乘法
+            每层计 n/2 次乘法
           </text>
         </g>
 
@@ -818,11 +818,6 @@ export function FastFourierButterflyFactorizationDiagram({
           <circle cx="720" cy="144" r="3" className="fill-blue-600 dark:fill-blue-400" />
           <circle cx="720" cy="187" r="3" className="fill-amber-600 dark:fill-amber-400" />
 
-          {/* -1 标记 */}
-          <text x="765" y="182" className="fill-rose-600 dark:fill-rose-400 text-[10px] font-mono font-bold">
-            −1
-          </text>
-
           <circle cx="792" cy="144" r="6.5" className="fill-emerald-500/15 stroke-emerald-600 dark:stroke-emerald-400" strokeWidth="1.2" />
           <text x="792" y="147.5" textAnchor="middle" className="fill-emerald-700 dark:fill-emerald-300 text-[10px] font-mono font-bold">
             +
@@ -845,7 +840,7 @@ export function FastFourierButterflyFactorizationDiagram({
 
           {/* 下半部分：复杂度对比 */}
           <text x="632" y="238" className="fill-foreground font-semibold text-xs">
-            复杂度降维：M(n) = 2M(n/2) + n/2
+            乘法计数（含 ×1）：M(n) = 2M(n/2) + n/2
           </text>
           <text x="632" y="255" className="fill-emerald-600 dark:fill-emerald-400 text-xs font-mono font-bold">
             ⇒ M(n) = ½ n log₂ n  (对比直接乘法 n²)
@@ -873,7 +868,7 @@ export function FastFourierButterflyFactorizationDiagram({
             FFT (½n log₂n)
           </text>
           <text x="856" y="280" className="fill-blue-600 dark:fill-blue-400 text-[10px] font-semibold">
-            加速
+            次数比
           </text>
 
           {/* 行 1: n=8 */}

@@ -10,9 +10,9 @@ textbookRef: "§5.1"
 In the previous two chapters, we worked with general rectangular matrices $A \in \mathbb{R}^{m \times n}$, exploring the four fundamental subspaces, projection matrices, and least squares. Starting with this lecture, we enter one of the most elegant core areas of linear algebra—**determinants and eigenvalues of square matrices**.
 
 For an $n \times n$ square matrix $A$, the determinant is a map $\det: \mathbb{R}^{n \times n} \to \mathbb{R}$ (often written $\det(A)$ or $|A|$) that compresses all $n^2$ entries of the matrix into a single scalar number. It fulfills three irreplaceable mathematical and geometric roles:
-1. **Invertibility Criterion**: $\det(A) \ne 0 \iff A$ is invertible (nonsingular). This is the sharpest scalar indicator for testing whether the linear system $A\mathbf{x} = \mathbf{b}$ has a unique solution.
-2. **Geometric Volume and Orientation**: $|\det(A)|$ measures the $n$-dimensional hypervolume of the parallelepiped spanned by the rows (or columns) of $A$, while its sign $\operatorname{sgn}(\det(A))$ tracks whether the orientation of space is preserved or reversed.
-3. **Key to Eigenvalues**: In upcoming chapters, the universal algebraic route to solving the eigenvalue problem $A\mathbf{x} = \lambda \mathbf{x}$ is through the characteristic polynomial equation $\det(A - \lambda I) = 0$.
+1. **Invertibility Criterion**: $\det(A) \ne 0 \iff A$ is invertible (nonsingular). This is the sharpest scalar indicator for testing whether $A\mathbf{x} = \mathbf{b}$ has a unique solution for every $\mathbf{b} \in \mathbb{R}^n$.
+2. **Geometric Volume and Orientation**: $|\det(A)|$ measures the $n$-dimensional hypervolume of the parallelepiped spanned by the rows (or columns) of $A$, while for invertible $A$, a positive determinant preserves orientation and a negative determinant reverses it.
+3. **Key to Eigenvalues**: In upcoming chapters, the characteristic equation for the eigenvalue problem $A\mathbf{x} = \lambda \mathbf{x}$ is $\det(A - \lambda I) = 0$.
 
 Traditional linear algebra textbooks often open with a massive $n!$-term alternating sum or a tedious recursive cofactor expansion. In MIT 18.06, however, we adopt the modern axiomatic viewpoint pioneered by Weierstrass: **just three remarkably natural and concise axioms are enough to uniquely determine the determinant function!**
 
@@ -20,7 +20,7 @@ Traditional linear algebra textbooks often open with a massive $n!$-term alterna
 
 ## Core Axioms: The Three Cornerstones Defining the Determinant
 
-Let $M_{n}(\mathbb{R})$ denote the space of $n \times n$ square matrices over the real numbers. We view a matrix $A$ as a vertical stack of $n$ row vectors:
+Fix an integer $n \ge 1$. Let $M_{n}(\mathbb{R})$ denote the space of $n \times n$ square matrices over the real numbers. We view a matrix $A$ as a vertical stack of $n$ row vectors:
 
 $$
 A = \begin{pmatrix} \mathbf{r}_1 \\ \mathbf{r}_2 \\ \vdots \\ \mathbf{r}_n \end{pmatrix}, \quad \mathbf{r}_i \in \mathbb{R}^{1 \times n}
@@ -28,7 +28,7 @@ $$
 
 <DefinitionCard title="The Three Defining Axioms of the Determinant">
 
-A map $\det: M_{n}(\mathbb{R}) \to \mathbb{R}$ is called the **determinant** if, for all square matrices, it satisfies the following three axioms:
+A map $\det: M_{n}(\mathbb{R}) \to \mathbb{R}$ is called the **determinant** if, for all matrices in $M_n(\mathbb{R})$, it satisfies the following three axioms:
 
 1. **Normalization of the Identity Matrix**:
    The determinant of the identity matrix is always 1:
@@ -64,13 +64,17 @@ A map $\det: M_{n}(\mathbb{R}) \to \mathbb{R}$ is called the **determinant** if,
 
 </DefinitionCard>
 
-<DeterminantRowLinearityDiagram caption="Geometric illustration of single-row linearity: scaling one row scales the signed area by c, while adding two vectors in one row sums the signed areas of the two parallelograms." />
+<DeterminantRowLinearityDiagram caption="Geometric illustration of single-row linearity: adding two vectors in one row adds their signed areas with the other row fixed. Doubling one row doubles the area, and doubling both rows quadruples it." />
 
 We must keep one crucial distinction in mind: **linearity in each row separately is not linearity of the whole matrix!** If we multiply every entry of an $n \times n$ matrix by $c$, Axiom 3 pulls out a factor of $c$ from each of the $n$ rows one by one, yielding $n$ factors in total:
 
 $$
-\det(cA) = c^n \det(A) \ne c \det(A) \quad (n \ge 2)
+\det(cA) = c^n \det(A)
 $$
+
+For $n \ge 2$, the example $A=I_n$, $c=2$ rules out linearity on the whole matrix space. For $n=1$, the determinant is linear.
+
+To see uniqueness, expand each row in standard basis rows and apply Axiom 3. Terms with equal basis rows vanish by Axiom 2 over $\mathbb{R}$. Every remaining term has the standard basis rows in some order, so Axioms 1 and 2 determine its sign and value. Lecture 19 gives the explicit formula. The same algebraic arguments apply over $\mathbb{C}$ with complex scalars.
 
 ---
 
@@ -105,7 +109,7 @@ Over any field of characteristic different from 2 (including $\mathbb{R}$ and $\
 
 <TheoremCard title="Property 5: Elimination Steps Preserve the Determinant">
 
-Subtracting a scalar multiple of one row from another row (an elementary row operation $r_i \to r_i - \ell r_k$ with $i \ne k$) leaves the determinant strictly unchanged:
+For $A \in \mathbb{R}^{n \times n}$ and $\ell \in \mathbb{R}$, subtracting a scalar multiple of one row from another row (an elementary row operation $r_i \to r_i - \ell r_k$ with $i \ne k$) leaves the determinant strictly unchanged:
 
 $$
 \det \begin{pmatrix} \vdots \\ \mathbf{r}_i - \ell \mathbf{r}_k \\ \vdots \\ \mathbf{r}_k \\ \vdots \end{pmatrix} = \det \begin{pmatrix} \vdots \\ \mathbf{r}_i \\ \vdots \\ \mathbf{r}_k \\ \vdots \end{pmatrix} = \det(A)
@@ -133,7 +137,7 @@ This also shows that an elementary elimination matrix $E_{ik}$ satisfies $\det(E
 
 <TheoremCard title="Property 6: A Row of Zeros Implies Zero Determinant">
 
-If a square matrix $A$ contains a row of all zeros (that is, $\mathbf{r}_i = \mathbf{0}^T$ for some $i$), then:
+If $A \in \mathbb{R}^{n \times n}$ contains a row of all zeros (that is, $\mathbf{r}_i = \mathbf{0}^T$ for some $i$), then:
 
 $$
 \det(A) = 0
@@ -155,17 +159,17 @@ Q.E.D.
 
 <TheoremCard title="Property 7: Determinant of a Triangular Matrix">
 
-If $U \in \mathbb{R}^{n \times n}$ is an upper-triangular matrix (or a lower-triangular matrix $L$, or a diagonal matrix $D$) with diagonal entries $d_1, d_2, \dots, d_n$, then:
+If $T \in \mathbb{R}^{n \times n}$ is upper or lower triangular with diagonal entries $d_1, d_2, \dots, d_n$, then:
 
 $$
-\det(U) = \prod_{i=1}^n d_i = d_1 d_2 \cdots d_n
+\det(T) = \prod_{i=1}^n d_i = d_1 d_2 \cdots d_n
 $$
 
 </TheoremCard>
 
 <ProofCollapse title="Rigorous Proof: Property 7 from the Axioms">
 
-We consider two cases:
+First take $T=U$ upper triangular. We consider two cases:
 - **Case 1: All diagonal entries are nonzero ($d_i \ne 0$ for all $i$)**.
   Since every pivot is nonzero, we can work from bottom to top using elementary elimination steps (Property 5) to eliminate all nonzero entries above the main diagonal. By Property 5, this elimination does not change the determinant:
 
@@ -182,7 +186,9 @@ We consider two cases:
   Finally, substitute **Axiom 1** ($\det(I_n) = 1$) to obtain $\det(U) = \prod_{i=1}^n d_i$.
 
 - **Case 2: At least one diagonal entry is zero ($d_k = 0$ for some $k$)**.
-  If a diagonal entry is zero, the columns of the matrix are linearly dependent, and elimination reduces the bottom row to a row of zeros. By **Property 6**, the determinant is 0. Meanwhile, the product $\prod d_i$ also equals 0 because one of its factors is 0, so the formula holds in this case as well. Q.E.D.
+  If $d_k=0$, the first $k$ columns of the upper-triangular matrix are supported in the first $k-1$ rows. They are linearly dependent, so elimination using row additions and swaps produces a zero row. By Property 6 and the sign rule for swaps, $\det(U)=0=\prod_{i=1}^n d_i$.
+
+For a lower-triangular matrix, eliminate below the diagonal from top to bottom when all $d_i$ are nonzero. If $d_k=0$, the last $n-k+1$ columns are supported in the last $n-k$ rows, and the same dependence argument applies.
 
 </ProofCollapse>
 
@@ -206,9 +212,9 @@ $$
 \det(A) = (-1)^k \det(U)
 $$
 
-where $k$ is the total number of row exchanges performed during elimination. By Property 7, $\det(U) = \prod_{i=1}^n d_i$:
+where no rows are rescaled and $k$ is the total number of row exchanges performed during elimination. By Property 7, $\det(U) = \prod_{i=1}^n d_i$:
 1. **If $A$ is invertible**: $A$ has a full set of $n$ nonzero pivots ($\operatorname{rank}(A) = n$), so every $d_i \ne 0$. Hence $\det(U) \ne 0$, and therefore $\det(A) = (-1)^k \prod d_i \ne 0$.
-2. **If $A$ is singular**: $A$ has fewer than $n$ pivots ($\operatorname{rank}(A) \lt n$), so elimination inevitably produces at least one zero pivot (and a row of zeros). By Property 6, $\det(U) = 0$, and therefore $\det(A) = 0$. Q.E.D.
+2. **If $A$ is singular**: $A$ has fewer than $n$ pivots ($\operatorname{rank}(A) \lt n$), so elimination produces at least one zero row. By Property 6, $\det(U) = 0$, and therefore $\det(A) = 0$. Q.E.D.
 
 </ProofCollapse>
 
@@ -255,7 +261,7 @@ We split the proof according to whether $B$ is singular or invertible:
      $$
 
   3. **Verify Axiom 3**: Notice that row $i$ of the product $AB$ is given by $\mathbf{r}_i(AB) = \mathbf{r}_i(A) B$.
-     - If row $i$ of $A$ is multiplied by a scalar $c$, then row $i$ of $AB$ becomes $(c\mathbf{r}_i(A))B = c(\mathbf{r}_i(A)B)$ while all other rows remain unchanged. By single-row scaling of $\det$ in the numerator, $D(cA) = c D(A)$.
+     - If row $i$ of $A$ is multiplied by a scalar $c$, then row $i$ of $AB$ becomes $(c\mathbf{r}_i(A))B = c(\mathbf{r}_i(A)B)$ while all other rows remain unchanged. By single-row scaling of $\det$ in the numerator, $D(A_c) = cD(A)$ for $A_c$ obtained by scaling only row $i$.
      - If row $i$ of $A$ is split as $\mathbf{a} + \mathbf{a}'$, then row $i$ of $AB$ becomes $(\mathbf{a} + \mathbf{a}')B = \mathbf{a}B + \mathbf{a}'B$. By single-row additivity of $\det$ in the numerator, $D$ is additive in row $i$.
 
   Because the three axioms **uniquely determine** the determinant function, $D(A)$ must be identical to $\det(A)$:
@@ -320,7 +326,7 @@ Now inspect each factor on both sides:
    \det(L) = \det(L^T) = 1
    $$
 
-2. **Upper-triangular matrix $U$ and $U^T$**: Transposition leaves every diagonal entry in place ($u_{ii}^T = u_{ii}$). By Property 7, $U$ and $U^T$ have the exact same product of diagonal entries:
+2. **Upper-triangular matrix $U$ and $U^T$**: Transposition leaves every diagonal entry in place ($(U^T)_{ii} = u_{ii}$). By Property 7, $U$ and $U^T$ have the exact same product of diagonal entries:
 
    $$
    \det(U^T) = \prod_{i=1}^n u_{ii} = \det(U)
@@ -367,27 +373,27 @@ $$
 
 <PitfallAlert title="Four Frequent Pitfalls in Determinant Calculations and Concepts">
 
-1. **The Additivity Trap: $\det(A + B) \ne \det(A) + \det(B)$**
-   Single-row additivity never applies across all rows at once!
+1. **The Additivity Trap for $n\ge 2$**
+   Single-row additivity does not imply additivity on the whole matrix space.
    Consider the simplest counterexample: take $A = I_2$ and $B = I_2$. Then:
 
    $$
    \det(A) = 1, \quad \det(B) = 1, \quad \det(A + B) = \det(2I_2) = 2^2 \cdot 1 = 4 \ne 1 + 1 = 2
    $$
 
-   Geometrically, the volume of the parallelepiped spanned by sums of edge vectors is never the sum of the individual volumes.
+   Geometrically, the volume of the parallelepiped spanned by sums of edge vectors need not be the sum of the individual volumes.
 
 2. **The Global Scaling Trap: $\det(cA) = c^n \det(A)$**
-   For an $n \times n$ matrix, every row vector is scaled by $c$. Factoring out $c$ row by row pulls out $c^n$. Forgetting the exponent $n$ when $n = 4$ and $c = 2$ causes a $16$-fold error!
+   For an $n \times n$ matrix, every row vector is scaled by $c$. Factoring out $c$ row by row pulls out $c^n$. Forgetting the exponent $n$ when $n = 4$ and $c = 2$ uses a factor of $2$ where the correct factor is $16$.
 
 3. **Missing Sign Flips and Confusing Row Scaling with Elimination**
-   When computing determinants by elimination, the formula is $\det(A) = (-1)^k \prod d_i$. You must carefully track the **total number of row exchanges $k$**.
+   When elimination uses only row additions and swaps, the formula is $\det(A) = (-1)^k \prod d_i$. You must carefully track the **total number of row exchanges $k$**.
    In addition, an elementary shear $r_i \to r_i - \ell r_k$ preserves the determinant, whereas scaling a row $r_i \to c r_i$ **multiplies the determinant by $c$**—never confuse the two!
 
 4. **The Gap Between Theoretical Invertibility and Numerical Conditioning**
    In pure mathematics, $\det(A) = 0$ characterizes singularity;
    however, in floating-point engineering computation, **you must never use $\det(A) \approx 0$ to test whether a matrix is ill-conditioned or singular**!
-   For example, $A = 0.1 \cdot I_{100} \in \mathbb{R}^{100 \times 100}$ has $\det(A) = (0.1)^{100} = 10^{-100}$ (which underflows to 0 in standard IEEE 754 double precision), yet its condition number is $\kappa(A) = 1$—it is perfectly well-conditioned with inverse $10 I_{100}$! Numerical near-singularity is measured by the condition number $\kappa(A) = \sigma_{\max} / \sigma_{\min}$.
+   For example, $A = 0.1 \cdot I_{100} \in \mathbb{R}^{100 \times 100}$ has $\det(A) = (0.1)^{100} = 10^{-100}$, yet its condition number is $\kappa_2(A) = 1$—it is perfectly well-conditioned with inverse $10 I_{100}$! Relative sensitivity for invertible matrices is measured by the spectral condition number $\kappa_2(A) = \sigma_{\max} / \sigma_{\min}$.
 
 </PitfallAlert>
 
@@ -398,7 +404,7 @@ $$
 <InteractiveCanvasSlot
   id="l18-determinant-axioms-sandbox"
   title="Axiomatic Geometry Sandbox: Parallelogram Area & Single-Row Linearity"
-  description="Drag the vertices to explore single-row linearity, the c^2 area scaling of a 2x2 matrix, and the conservation of signed area under shear transformations."
+  description="Use the sliders to scale one row or shear the parallelogram. Swap rows to reverse the sign of the determinant."
 />
 
 ---
@@ -408,12 +414,12 @@ $$
 <KeyTakeaways
   title="Key Takeaways"
   items={[
-    "Three foundational axioms: \\det(I_n) = 1, sign reversal under row exchange, and single-row linearity uniquely determine the entire determinant function.",
-    "Single-row linearity vs. matrix nonlinearity: the determinant is not a linear functional on matrices; \\det(cA) = c^n \\det(A), and in general \\det(A+B) \\ne \\det(A) + \\det(B).",
-    "Elimination is the computational workhorse: reducing to upper-triangular form via row shears gives \\det(A) = (-1)^k \\prod_{i=1}^n d_i in O(n^3) operations, vastly faster than O(n!) formulas.",
-    "Invertibility criterion: \\det(A) = 0 \\iff A is singular (linearly dependent columns); however, in floating-point arithmetic, never use a small determinant to judge ill-conditioning.",
-    "Product rule: \\det(AB) = \\det(A)\\det(B), proved via the ratio method, immediately implies \\det(A^{-1}) = 1/\\det(A) and \\det(Q) = \\pm 1 for orthogonal matrices.",
-    "Transpose invariance and row-column duality: \\det(A^T) = \\det(A), proved via PA = LU, guarantees that every row property of determinants holds identically for columns."
+    "Three axioms determine the determinant: $\\det(I_n)=1$, a row swap reverses the sign, and each row enters linearly.",
+    "Scaling every row gives $\\det(cA)=c^n\\det(A)$. For $n\\ge 2$, taking $A=B=I_n$ shows that $\\det(A+B)$ need not equal $\\det(A)+\\det(B)$.",
+    "Elimination with row additions and $k$ swaps gives $\\det(A)=(-1)^k\\prod_{i=1}^n d_i$ in $O(n^3)$ operations.",
+    "$\\det(A)=0$ exactly when $A$ is singular. A small determinant alone gives no bound on the condition number.",
+    "The product rule $\\det(AB)=\\det(A)\\det(B)$ gives $\\det(A^{-1})=1/\\det(A)$ for invertible $A$.",
+    "Transpose invariance $\\det(A^T)=\\det(A)$ transfers the determinant's row properties to columns. It also gives $\\det(Q)^2=1$ for orthogonal $Q$."
   ]}
 />
 
@@ -439,7 +445,7 @@ $$
   hints={[
     "The (1,1) entry is 0, so it cannot serve as a pivot; start with a row exchange to bring a nonzero pivot into the top-left position.",
     "Swap row 1 and row 2 (introducing a sign factor of -1), then subtract a multiple of row 1 from row 3 to clear the first column.",
-    "Track the total number of row exchanges k and the diagonal pivots; the answer is \\det(A) = (-1)^k \\prod d_i."
+    "Track the total number of row exchanges k and the diagonal pivots; the answer is $\\det(A) = (-1)^k \\prod_i d_i$."
   ]}
 />
 
@@ -491,12 +497,14 @@ $$
 
 Suppose $A \in \mathbb{R}^{4 \times 4}$ satisfies $\det(A) = 3$.
 
+True or false? $\det(2A)=2\det(A)=6$.
+
 <TrueFalseInteractive
   id="l18-tf1"
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! For a 4×4 matrix, each of the four rows is multiplied by 2. By single-row scaling, we factor out four 2s, giving det(2A) = 2^4 det(A) = 16 × 3 = 48, not 6!"
+  quickFeedback={"False. Scaling each row gives $\\det(2A)=2^4\\det(A)=48$."}
 />
 
 Compute the exact determinants of the following matrices:
@@ -508,9 +516,9 @@ Compute the exact determinants of the following matrices:
 <ProgressiveHint
   buttonPrefix="Unlock Hint"
   hints={[
-    "Pay attention to the dimension n = 4: factoring out a scalar c gives \\det(cA) = c^4 \\det(A).",
+    "Pay attention to the dimension n = 4: factoring out a scalar c gives $\\det(cA) = c^4 \\det(A)$.",
     "A minus sign corresponds to scaling by c = -1; evaluate (-1)^4.",
-    "Use the inverse rule \\det(A^{-1}) = 1/\\det(A) and transpose invariance \\det(A^T) = \\det(A)."
+    "Use the inverse rule $\\det(A^{-1}) = 1/\\det(A)$ and transpose invariance $\\det(A^T) = \\det(A)$."
   ]}
 />
 
@@ -559,21 +567,21 @@ Given $A \in \mathbb{R}^{n \times n}$ with $n = 4$ and $\det(A) = 3$:
 
 <ExerciseCard id="l18-ex3" tier="L2" tierLabel="L2 · Conceptual True/False & Nullspace" title="Singularity of Matrices with Zero Row Sums">
 
+Let $A \in \mathbb{R}^{n \times n}$ with $n\ge 1$. If the sum of the entries in every row of $A$ is 0, prove that $\det(A) = 0$.
+
 <TrueFalseInteractive
   id="l18-tf2"
   correct={true}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="True! If every row of A sums to 0, then the all-ones vector satisfies Ax = 0. The nullspace contains a nonzero vector, so A is singular and det(A) = 0."
+  quickFeedback={"True. The nonzero all-ones vector $\\mathbf{e}$ satisfies $A\\mathbf{e}=\\mathbf{0}$, so $A$ is singular and $\\det(A)=0$."}
 />
-
-Let $A \in \mathbb{R}^{n \times n}$. If the sum of the entries in every row of $A$ is 0, prove that $\det(A) = 0$.
 
 <ProgressiveHint
   buttonPrefix="Unlock Hint"
   hints={[
-    "How can you express 'every row sums to 0' as a matrix-vector product A\\mathbf{x}?",
-    "Consider the all-ones column vector \\mathbf{x} = (1, 1, \\dots, 1)^T and compute A\\mathbf{x}.",
+    "How can you express 'every row sums to 0' as a matrix-vector product $A\\mathbf{x}$?",
+    "Consider the all-ones column vector $\\mathbf{x} = (1, 1, \\dots, 1)^T$ and compute $A\\mathbf{x}$.",
     "What does a nontrivial nullspace imply about invertibility, and how does Property 8 determine the determinant?"
   ]}
 />
@@ -623,8 +631,8 @@ Using the axioms together with Properties 9 and 10, prove the following two clas
 <ProgressiveHint
   buttonPrefix="Unlock Hint"
   hints={[
-    "Take the determinant of both sides of A^T = -A, using Property 10 and \\det(-A) = (-1)^n \\det(A).",
-    "When n is odd, what is (-1)^n? Solve the resulting equation for \\det(A).",
+    "Take the determinant of both sides of A^T = -A, using Property 10 and $\\det(-A) = (-1)^n \\det(A)$.",
+    "When n is odd, what is (-1)^n? Solve the resulting equation for $\\det(A)$.",
     "Take the determinant of both sides of Q^T Q = I_n and combine Property 9, Property 10, and Axiom 1."
   ]}
 />
@@ -695,7 +703,7 @@ Transposing a skew-symmetric matrix negates it: transposition leaves volume unch
    (\det(Q))^2 = 1 \implies \det(Q) = \pm 1
    $$
 
-   Here $\det(Q) = 1$ corresponds to a pure rotation (orientation-preserving), while $\det(Q) = -1$ includes a reflection (orientation-reversing). Q.E.D.
+   The sign identifies whether $Q$ preserves orientation ($+1$) or reverses it ($-1$).
 </SolutionRigorous>
 </DualSolution>
 
@@ -709,7 +717,7 @@ $$
 M = \begin{pmatrix} A & B \\ 0 & D \end{pmatrix}
 $$
 
-where $A \in \mathbb{R}^{k \times k}$ and $D \in \mathbb{R}^{(n-k) \times (n-k)}$ are square blocks, $B \in \mathbb{R}^{k \times (n-k)}$, and $0$ is the $(n-k) \times k$ zero matrix.
+where $1 \le k \lt n$, $A \in \mathbb{R}^{k \times k}$ and $D \in \mathbb{R}^{(n-k) \times (n-k)}$ are square blocks, $B \in \mathbb{R}^{k \times (n-k)}$, and $0$ is the $(n-k) \times k$ zero matrix.
 
 1. Using elementary row elimination or block factorization, prove that:
 
@@ -726,9 +734,9 @@ where $A \in \mathbb{R}^{k \times k}$ and $D \in \mathbb{R}^{(n-k) \times (n-k)}
 <ProgressiveHint
   buttonPrefix="Unlock Hint"
   hints={[
-    "Factor the block upper-triangular matrix as a product of two simpler block matrices:\n\n$$\\begin{pmatrix} A & B \\\\\\\\ 0 & D \\end{pmatrix} = \\begin{pmatrix} I & 0 \\\\\\\\ 0 & D \\end{pmatrix} \\begin{pmatrix} A & B \\\\\\\\ 0 & I \\end{pmatrix}$$",
-    "Alternatively, think about elimination: because the bottom-left block is all zeros, eliminating within A never affects D, and eliminating within D never affects A, so the pivots of M are simply the pivots of A together with the pivots of D.",
-    "In part 2, partition M into four 2×2 blocks and apply the block product formula directly."
+    "If a diagonal block is singular, look for a null vector of $M$ supported on the first block or of $M^T$ supported on the second block.",
+    "If both blocks are invertible, eliminate within each diagonal block and track row swaps separately.",
+    "In part 2, partition $M$ into four $2\\times 2$ blocks and use the block product formula."
   ]}
 />
 
@@ -738,7 +746,7 @@ where $A \in \mathbb{R}^{k \times k}$ and $D \in \mathbb{R}^{(n-k) \times (n-k)}
   rigorousLabel="Rigorous Proof / Construction"
 >
 <SolutionIntuition>
-Just like an ordinary triangular matrix, the off-diagonal block $B$ does not interfere with the pivots produced inside $A$ and $D$ during elimination. Hence the pivots of $M$ are precisely the pivots of $A$ combined with the pivots of $D$, so their product is $\det(A)\det(D)$.
+Eliminate the two diagonal blocks separately. The zero block below $A$ stays zero, and elimination within either diagonal block leaves the other block unchanged.
 </SolutionIntuition>
 <SolutionRigorous>
 1. **Proof of the block determinant formula**:
@@ -749,13 +757,13 @@ Just like an ordinary triangular matrix, the off-diagonal block $B$ does not int
      M\mathbf{x} = \begin{pmatrix} A & B \\ 0 & D \end{pmatrix} \begin{pmatrix} \mathbf{u} \\ \mathbf{0} \end{pmatrix} = \begin{pmatrix} A\mathbf{u} \\ \mathbf{0} \end{pmatrix} = \mathbf{0}
      $$
 
-     Thus $M$ is singular, so $\det(M) = 0 = \det(A)\det(D)$. If $\det(D) = 0$, the same argument applied to $M^T$ together with $\det(M^T) = \det(M)$ yields $\det(M) = 0 = \det(A)\det(D)$.
+     Thus $M$ is singular, so $\det(M) = 0 = \det(A)\det(D)$. If $\det(D)=0$, then $\det(D^T)=0$, so choose $\mathbf{v}\in\mathbb{R}^{n-k}\setminus\{\mathbf{0}\}$ with $D^T\mathbf{v}=\mathbf{0}$. Then $M^T(\mathbf{0}^T,\mathbf{v}^T)^T=\mathbf{0}$, and transpose invariance gives $\det(M)=0$.
 
    - **Case 2: Both $A$ and $D$ are invertible**.
      Factor $M$ using block matrix multiplication:
 
      $$
-     \begin{pmatrix} A & B \\ 0 & D \end{pmatrix} = \begin{pmatrix} A & 0 \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & A^{-1}B \\ 0 & D \end{pmatrix} = \begin{pmatrix} A & 0 \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & A^{-1}B \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & 0 \\ 0 & D \end{pmatrix}
+     \begin{pmatrix} A & B \\ 0 & D \end{pmatrix} = \begin{pmatrix} A & 0 \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & A^{-1}B \\ 0 & D \end{pmatrix} = \begin{pmatrix} A & 0 \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & A^{-1}BD^{-1} \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & 0 \\ 0 & D \end{pmatrix}
      $$
 
      Evaluate the determinant of each of the three factors:

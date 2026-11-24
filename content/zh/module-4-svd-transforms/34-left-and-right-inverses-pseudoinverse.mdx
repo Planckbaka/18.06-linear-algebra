@@ -69,7 +69,7 @@ $$
 
 #### 为什么左逆不唯一？一个极简 $3 \times 2$ 数值反例
 
-当 $n \lt m$ 时，左零空间 $\operatorname{Null}(A^T)$ 的维数为 $m - n \ge 1$，非平凡！如果我们在标准左逆上叠加任意一个矩阵 $D \in \mathbb{R}^{n \times m}$，只要 $D$ 的**每一行都落在 $\operatorname{Null}(A^T)$ 中**（等价于 $D A = O_{n \times n}$），就有：
+当 $n \lt m$ 时，左零空间 $\operatorname{Null}(A^T)$ 的维数为 $m - n \ge 1$，非平凡！如果我们在标准左逆上叠加任意一个矩阵 $D \in \mathbb{R}^{n \times m}$，只要 $D$ 的**每一行的转置都落在 $\operatorname{Null}(A^T)$ 中**（等价于 $D A = O_{n \times n}$），就有：
 
 $$
 (A_{\text{left}}^{-1} + D) A = A_{\text{left}}^{-1} A + D A = I_n + O_{n \times n} = I_n
@@ -245,7 +245,7 @@ A = U \Sigma V^T = U_r \Sigma_r V_r^T = \sum_{i=1}^r \sigma_i \mathbf{u}_i \math
 $$
 
 其中：
-- $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ 恰好构成 $\operatorname{Row}(A)$ 的标准正交基，矩阵 $A$ 把它**一一映射**到 $\operatorname{Col}(A)$ 的标准正交基 $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ 上：
+- $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ 恰好构成 $\operatorname{Row}(A)$ 的标准正交基，矩阵 $A$ 将这些向量分别映到下列向量的正倍数，其中下列向量组成 $\operatorname{Col}(A)$ 的标准正交基 $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ 上：
   $$
   A \mathbf{v}_i = \sigma_i \mathbf{u}_i \quad (\sigma_i \gt 0, \; 1 \le i \le r)
   $$
@@ -268,6 +268,7 @@ $$
    $$
    \Sigma^+ := \begin{bmatrix} \Sigma_r^{-1} & O_{r \times (m-r)} \\ O_{(n-r) \times r} & O_{(n-r) \times (m-r)} \end{bmatrix} \in \mathbb{R}^{n \times m}, \qquad \Sigma_r^{-1} = \operatorname{diag}\!\left(\frac{1}{\sigma_1}, \dots, \frac{1}{\sigma_r}\right)
    $$
+   当 $r=0$ 时，$\Sigma^+$ 与 $A^+$ 都是相应尺寸的零矩阵，求和按空和处理。
 2. **Moore-Penrose 伪逆 $A^+ \in \mathbb{R}^{n \times m}$**：
    $$
    A^+ := V \Sigma^+ U^T = V_r \Sigma_r^{-1} U_r^T = \sum_{i=1}^r \frac{1}{\sigma_i} \mathbf{v}_i \mathbf{u}_i^T
@@ -588,7 +589,7 @@ $$
 <TrueFalseInteractive
   id="l34-tf1"
   correct={false}
-  quickFeedback={"命题错误！首先当 $n \\lt m$ 时，$\\dim \\operatorname{Null}(A^T) = m - n \\ge 1$，将任意行落在 $\\operatorname{Null}(A^T)$ 中的非零矩阵 $D$ 加到标准左逆上仍满足 $(A^+ + D)A = I_n$，故左逆有无穷多个；其次即使 $A$ 列满秩（一般并不要求列正交），$(AB)^+ = B^+ A^+$ 依然可能严重失效！"}
+  quickFeedback={"命题错误！首先当 $n \\lt m$ 时，$\\dim \\operatorname{Null}(A^T) = m - n \\ge 1$，将任意行的转置落在 $\\operatorname{Null}(A^T)$ 中的非零矩阵 $D$ 加到标准左逆上仍满足 $(A^+ + D)A = I_n$，故左逆有无穷多个；其次即使 $A$ 列满秩（一般并不要求列正交），$(AB)^+ = B^+ A^+$ 依然可能严重失效！"}
 />
 
 <ProgressiveHint hints={[
@@ -700,7 +701,7 @@ $$
 
 1. **对合律与转置交换律**：$(A^+)^+ = A$，且 $(A^T)^+ = (A^+)^T$；
 2. **正规矩阵伪逆公式**：$(A^T A)^+ = A^+ (A^+)^T$；
-3. **无条件通用左逆公式**：无论 $A^T A$ 是否可逆，恒有：
+3. **通用 Gram 公式**：无论 $A^T A$ 是否可逆，恒有：
    $$
    A^+ = (A^T A)^+ A^T
    $$
@@ -881,99 +882,39 @@ $$
 <FrontierAIReading
   id="AI-15"
   title="过参数化模型的隐式偏置（Implicit Bias）：为什么无正则梯度下降自动收敛到最小范数伪逆解 A⁺b"
-  paperRef="Zhang et al. (ICLR 2017) Rethinking Generalization · Soudry et al. (JMLR 2018) Implicit Bias"
+  paperRef="Gunasekar et al. (ICML 2018) Characterizing Implicit Bias in Terms of Optimization Geometry"
 >
 
-### 1. 现代深度学习的头号谜题：无穷多个零误差解，优化器到底偏爱哪一个？
+### 1. 梯度下降如何选出一个最小二乘解？
 
-在经典统计学（以及本讲的第 2 种"瘦高"情形 $N \gt d$）中，我们用少量参数拟合大量样本，方程组是超定的。但在当今的大语言模型与过参数化（Overparameterized）神经网络中，形势彻底反转：参数维度 $d$ 远远超过训练样本数 $N$（$d \gg N$），这恰好对应本讲的第 3 种（**扁宽行满秩 $r = N \lt d$**）甚至第 4 种（**特征高度相关的秩亏缺 $r \lt N \lt d$**）矩阵情形！
-
-考察过参数化线性回归（或神经切线核 NTK 线性化区间的网络训练）：给定数据矩阵 $A \in \mathbb{R}^{N \times d}$ 与标签 $\mathbf{y} \in \mathbb{R}^N$，其中 $d \gg N$。满足零训练误差 $A\mathbf{w} = \mathbf{y}$ 的权重参数向量 $\mathbf{w} \in \mathbb{R}^d$ 构成一个维数高达 $d - r \gg 1$ 的仿射子空间：
+考虑固定的实特征矩阵 $A\in\mathbb{R}^{N\times d}$、目标 $\mathbf{y}\in\mathbb{R}^N$，以及全批量梯度下降（Full-Batch Gradient Descent）所优化的平方损失：
 
 $$
-\mathcal{S}_{\text{interp}} = \mathbf{w}^+ + \operatorname{Null}(A)
+L(\mathbf{w})=\frac12\|A\mathbf{w}-\mathbf{y}\|_2^2,\qquad
+\mathbf{w}_{t+1}=\mathbf{w}_t-\eta A^T(A\mathbf{w}_t-\mathbf{y}).
 $$
 
-其中藏着无数个能**把训练集背得一字不差（Loss $= 0$）**的坏解——只需在 $\mathbf{w}^+$ 上叠加一个巨大的零空间分量 $\mathbf{w}_n \in \operatorname{Null}(A)$，它在训练样本 $A\mathbf{w}_n = \mathbf{0}$ 上完全隐身，却会在遇到未知测试样本 $\mathbf{a}_{\text{test}} \notin \operatorname{Row}(A)$ 时产生灾难性预测爆炸！
+当 $\operatorname{rank}(A)\lt d$ 时，最小二乘解集合为 $A^+\mathbf{y}+\operatorname{Null}(A)$。若 $\mathbf{y}\in\operatorname{Col}(A)$，这些解也都是精确插值解。选出哪个解取决于更新方向与初始化，这就是这里的隐式偏置（Implicit Bias）。
 
-然而令人震惊的实验事实（Zhang et al., ICLR 2017）是：**即使完全不加任何显式的 $\ell_2$ 权重衰减（Weight Decay）正则化，只要从零或极小权重出发运行标准梯度下降（Gradient Descent, GD），算法居然总能避开那些泛化极差的恶意插值解，收敛到泛化表现优异的解！**
+### 2. 用 SVD 证明收敛
 
-为什么没有正则项的梯度下降，仿佛自带了一双"隐形的手"？这正是深度学习理论的核心定理——**隐式偏置（Implicit Bias / Implicit Regularization）**。而它的本质，竟只需要**三行纯线性代数**就能彻底看穿！
-
----
-
-### 2. 三行纯线性代数证明：梯度下降永不踏入零空间
-
-考虑均方误差损失函数：
+令 $\mathbf{w}^+=A^+\mathbf{y}$。它满足正规方程组（Normal Equations）$A^T(A\mathbf{w}^+-\mathbf{y})=\mathbf{0}$。两式相减，得到误差递推：
 
 $$
-L(\mathbf{w}) = \frac{1}{2} \|A\mathbf{w} - \mathbf{y}\|_2^2
+\mathbf{w}_{t+1}-\mathbf{w}^+=(I_d-\eta A^T A)(\mathbf{w}_t-\mathbf{w}^+).
 $$
 
-#### 第 1 行：每一步梯度都严格锁死在行空间 $\operatorname{Row}(A)$ 内部
-对 $\mathbf{w}$ 求梯度：
+在右奇异向量 $\mathbf{v}_i$ 的方向上，正奇异值对应的误差每步乘以 $1-\eta\sigma_i^2$。若 $A\ne O$ 且 $0\lt\eta\lt 2/\sigma_1(A)^2$，这些因子的绝对值都小于 $1$。零空间方向上的因子等于 $1$，该分量保持初始值。因此
 
 $$
-\nabla_{\mathbf{w}} L(\mathbf{w}_t) = A^T (A\mathbf{w}_t - \mathbf{y})
+\lim_{t\to\infty}\mathbf{w}_t=A^+\mathbf{y}+P_{\operatorname{Null}(A)}\mathbf{w}_0.
 $$
 
-请注意：无论括号里的残差向量 $\mathbf{r}_t := A\mathbf{w}_t - \mathbf{y} \in \mathbb{R}^N$ 是什么，左乘 $A^T$ 得到的向量永远是 $A^T$ 各列的线性组合！也就是：
+当 $A=O$ 时，梯度恒为 $\mathbf{0}$，上述极限对任意 $\eta\gt 0$ 仍成立。零初始化给出唯一的最小范数最小二乘解 $A^+\mathbf{y}$。一般初始化下，极限是离 $\mathbf{w}_0$ 最近的最小二乘解，因为该仿射解集沿零空间平移。
 
-$$
-\nabla_{\mathbf{w}} L(\mathbf{w}_t) \in \operatorname{Col}(A^T) = \operatorname{Row}(A) \qquad (\forall t \ge 0)
-$$
+### 3. 零空间分量怎样影响新输入？
 
-因为 $\operatorname{Row}(A) \perp \operatorname{Null}(A)$，梯度下降在**整个训练过程中对 $\operatorname{Null}(A)$ 方向上的投影分量永远严格为零**！
-
-#### 第 2 行：零初始化归纳法——参数轨迹永远无法离开 $\operatorname{Row}(A)$
-假设我们从原点 $\mathbf{w}_0 = \mathbf{0} \in \operatorname{Row}(A)$ 出发，执行学习率为 $\eta \gt 0$ 的梯度下降迭代：
-
-$$
-\mathbf{w}_{t+1} = \mathbf{w}_t - \eta \nabla_{\mathbf{w}} L(\mathbf{w}_t) = \mathbf{w}_t - \eta A^T (A\mathbf{w}_t - \mathbf{y})
-$$
-
-由数学归纳法：由于 $\mathbf{w}_0 = \mathbf{0} \in \operatorname{Row}(A)$，且每一步增量 $-\eta A^T(A\mathbf{w}_t - \mathbf{y}) \in \operatorname{Row}(A)$，子空间对加法封闭，从而：
-
-$$
-\mathbf{w}_t \in \operatorname{Row}(A) \qquad (\forall t = 0, 1, 2, \dots)
-$$
-
-也就是说，在整个优化轨迹上，参数向量的零空间分量 $P_{\operatorname{Null}(A)}\mathbf{w}_t$ 始终死死保持为 $\mathbf{0}$！
-
-#### 第 3 行：双射定理锁定唯一终点——Moore-Penrose 伪逆解 $A^+ \mathbf{y}$
-当步长满足收敛条件 $0 \lt \eta \lt \frac{2}{\sigma_1^2(A)}$ 时，凸优化迭代必收敛至某一个全局最小二乘极小值点 $\mathbf{w}_\infty \in \mathcal{S}_{\text{LS}}$（对于相容插值情形即 $A\mathbf{w}_\infty = \mathbf{y}$；哪怕数据含噪声不相容，亦有 $A\mathbf{w}_\infty = P_{\operatorname{Col}(A)}\mathbf{y}$）。由于有限维线性子空间 $\operatorname{Row}(A)$ 是闭集，极限点同样满足：
-
-$$
-\mathbf{w}_\infty \in \operatorname{Row}(A) \cap \mathcal{S}_{\text{LS}}
-$$
-
-由本讲的**行空间到列空间双射定理**与**唯一最小范数最小二乘定理**：在全部最小二乘解集 $\mathcal{S}_{\text{LS}} = \mathbf{w}^+ + \operatorname{Null}(A)$ 中，**有且仅有唯一的一个向量落在 $\operatorname{Row}(A)$ 里**——那就是：
-
-$$
-\mathbf{w}_\infty = A^+ \mathbf{y} = \arg\min_{\mathbf{w} \in \mathcal{S}_{\text{LS}}} \|\mathbf{w}\|_2
-$$
-
-**证毕！** 梯度下降之所以不用显式加 $\lambda \|\mathbf{w}\|_2^2$ 正则项也能找到最小范数解，是因为**算法每一步的更新轨迹本身就被几何锁死在零空间的正交补 $\operatorname{Row}(A)$ 上**！
-
----
-
-### 3. 推广到非零初始化 $\mathbf{w}_0 \neq \mathbf{0}$：为什么初始化尺度直接影响泛化？
-
-如果实际训练中采用随机非零初始化 $\mathbf{w}_0 \neq \mathbf{0}$，结论又如何？将初始权重做正交分解：
-
-$$
-\mathbf{w}_0 = \mathbf{w}_{0,\text{row}} + \mathbf{w}_{0,\text{null}}, \qquad \mathbf{w}_{0,\text{row}} = P_{\operatorname{Row}(A)}\mathbf{w}_0, \quad \mathbf{w}_{0,\text{null}} = P_{\operatorname{Null}(A)}\mathbf{w}_0
-$$
-
-由于全部梯度增量 $\nabla_{\mathbf{w}} L(\mathbf{w}_t) \in \operatorname{Row}(A)$ 与 $\operatorname{Null}(A)$ 正交，梯度下降**根本看不到、也永远改不动**参数里自带的零空间分量 $\mathbf{w}_{0,\text{null}}$！于是对于任意 $t \ge 0$，$P_{\operatorname{Null}(A)}\mathbf{w}_t \equiv \mathbf{w}_{0,\text{null}}$，最终收敛点精确等于：
-
-$$
-\mathbf{w}_\infty = A^+ \mathbf{y} + P_{\operatorname{Null}(A)} \mathbf{w}_0 = \arg\min_{\mathbf{w} \in \mathcal{S}_{\text{LS}}} \|\mathbf{w} - \mathbf{w}_0\|_2
-$$
-
-这直接给出了一项在深度学习实践中被反复验证的黄金原则：
-1. 随机初始化 $\mathbf{w}_0$ 残留的零空间噪音 $P_{\operatorname{Null}(A)}\mathbf{w}_0$ 会**永久冻结**在最终模型里；
-2. 采用**小方差初始化**（使 $\|\mathbf{w}_0\|_2$ 尽量小）或加入微弱的 Weight Decay（把被冻结的 $\operatorname{Null}(A)$ 分量按 $(1 - \eta \lambda)^t$ 指数衰减回零），能使参数重返最小范数流形 $\operatorname{Row}(A)$，从而大幅抑制过拟合、解释“良性过拟合（Benign Overfitting）”与“双下降（Double Descent）”现象！
+若测试特征为 $\mathbf{a}$，零空间分量给预测带来的改变量为 $\mathbf{a}^T P_{\operatorname{Null}(A)}\mathbf{w}_0$，其绝对值至多为 $\|\mathbf{a}\|_2\|P_{\operatorname{Null}(A)}\mathbf{w}_0\|_2$。当 $\mathbf{a}\in\operatorname{Row}(A)$ 时，改变量为零。该结论描述固定线性模型的解选择，测试误差还取决于数据分布。
 
 <CollapsibleCode language="python" title="implicit_bias_gd_pseudoinverse.py">
 ```python
@@ -1044,8 +985,12 @@ def verify_implicit_bias_pseudoinverse():
     print("   结论：无正则 GD 隐式找到了距离初始化最近的最小二乘解！")
 
     # 3. 不相容（含左零空间正交噪声）情形检验
-    y_noisy = y + 0.5 * (torch.randn(N, dtype=torch.float64) - U_sub @ (U_sub.T @ torch.randn(N, dtype=torch.float64)))
+    noise = torch.randn(N, dtype=torch.float64)
+    orthogonal_noise = noise - U_sub @ (U_sub.T @ noise)
+    y_noisy = y + 0.5 * orthogonal_noise
     w_pinv_noisy = torch.linalg.pinv(A) @ y_noisy
+    assert torch.allclose(A.T @ orthogonal_noise, torch.zeros_like(w_pinv), atol=1e-12)
+    assert torch.allclose(w_pinv_noisy, w_pinv, atol=1e-12)
     w_gd_noisy = torch.zeros(d, dtype=torch.float64)
     for _ in range(3000):
         w_gd_noisy = w_gd_noisy - eta * (A.T @ (A @ w_gd_noisy - y_noisy))

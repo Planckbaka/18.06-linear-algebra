@@ -558,7 +558,7 @@ export function SylvesterInertiaSignMatchDiagram({
             D = L⁻¹ A (L⁻¹)ᵀ,   det(L) = 1 （单位下三角，Lᵀ ≠ L⁻¹）
           </text>
           <text x="48" y="95" className="fill-muted-foreground text-[11px]">
-            计算极快 O(n³/3)，直接暴露消元主元 d₁, ..., dₙ
+            对称消元 O(n³)，直接求出主元 d₁, ..., dₙ
           </text>
 
           {/* 数值例 */}
@@ -636,7 +636,7 @@ export function SylvesterInertiaSignMatchDiagram({
             Λ = Qᵀ A Q = Q⁻¹ A Q （正交矩阵，Qᵀ = Q⁻¹）
           </text>
           <text x="510" y="95" className="fill-muted-foreground text-[11px]">
-            既保特征值又保几何长度，暴露矩阵真实主轴伸缩 λ₁, ..., λₙ
+            正交换基保持向量长度，Λ 给出主轴伸缩量 λ₁, ..., λₙ
           </text>
 
           {/* 数值例 */}
@@ -676,9 +676,9 @@ export function SylvesterInertiaSignMatchDiagram({
             strokeWidth="1.5"
           />
 
-          {/* 底部左半部分：连续同伦不跨零轨迹图 */}
+          {/* 底部左半部分：等间距采样的特征值轨迹，纵坐标 y = 365 − 4λ */}
           <text x="34" y="282" className="fill-foreground text-xs font-semibold">
-            连续同伦机制：L_t = (1-t)I + tL 保持 det(L_t) = 1，故 A(t) 特征值永不跨过 0！
+            矩阵 B 的同伦路径：Lₜ = (1−t)I + tL，B(t) = Lₜ⁻¹ B (Lₜ⁻¹)ᵀ
           </text>
 
           {/* 坐标框 */}
@@ -692,25 +692,25 @@ export function SylvesterInertiaSignMatchDiagram({
             strokeWidth="1"
           />
 
-          {/* 零点禁区线 y = 374 */}
+          {/* 零特征值基准线 */}
           <line
             x1="54"
-            y1="374"
+            y1="365"
             x2="444"
-            y2="374"
+            y2="365"
             className="stroke-rose-500/70 dark:stroke-rose-400/70"
             strokeWidth="1.5"
             strokeDasharray="5 3"
           />
-          <text x="206" y="368" className="fill-rose-600 dark:fill-rose-400 text-[10px] font-medium">
-            λ = 0 禁区（秩不变 ⇒ 不可穿越）
+          <text x="183" y="388" className="fill-rose-600 dark:fill-rose-400 text-[10px] font-medium">
+            λ = 0（秩不变，非零特征值不跨零）
           </text>
 
           {/* 左右竖轴 t=0 与 t=1 */}
           <line x1="92" y1="302" x2="92" y2="393" className="stroke-foreground/40" strokeWidth="1.2" />
           <line x1="406" y1="302" x2="406" y2="393" className="stroke-foreground/40" strokeWidth="1.2" />
           <text x="92" y="404" textAnchor="middle" className="fill-muted-foreground text-[10px] font-mono">
-            t=0 (Λ)
+            t=0 (B)
           </text>
           <text x="406" y="404" textAnchor="middle" className="fill-muted-foreground text-[10px] font-mono">
             t=1 (D)
@@ -718,49 +718,49 @@ export function SylvesterInertiaSignMatchDiagram({
 
           {/* 正特征值轨迹 1: +5 -> +15 */}
           <path
-            d="M 92 322 C 190 316, 300 311, 406 307"
+            d="M 92.00 345.00 L 101.81 347.99 L 111.62 349.49 L 121.44 347.55 L 131.25 345.34 L 141.06 342.95 L 150.88 340.40 L 160.69 337.71 L 170.50 334.92 L 180.31 332.08 L 190.12 329.21 L 199.94 326.36 L 209.75 323.57 L 219.56 320.87 L 229.38 318.30 L 239.19 315.90 L 249.00 313.68 L 258.81 311.66 L 268.62 309.87 L 278.44 308.32 L 288.25 307.01 L 298.06 305.94 L 307.88 305.11 L 317.69 304.51 L 327.50 304.13 L 337.31 303.94 L 347.12 303.91 L 356.94 304.02 L 366.75 304.22 L 376.56 304.47 L 386.38 304.72 L 396.19 304.92 L 406.00 305.00"
             fill="none"
             className="stroke-emerald-600 dark:stroke-emerald-400"
             strokeWidth="2.2"
           />
-          <circle cx="92" cy="322" r="3.5" className="fill-emerald-600 dark:fill-emerald-400" />
-          <circle cx="406" cy="307" r="3.5" className="fill-emerald-600 dark:fill-emerald-400" />
-          <text x="58" y="325" className="fill-emerald-700 dark:fill-emerald-300 text-[10px] font-mono font-bold">
+          <circle cx="92" cy="345" r="3.5" className="fill-emerald-600 dark:fill-emerald-400" />
+          <circle cx="406" cy="305" r="3.5" className="fill-emerald-600 dark:fill-emerald-400" />
+          <text x="58" y="343" className="fill-emerald-700 dark:fill-emerald-300 text-[10px] font-mono font-bold">
             +5
           </text>
-          <text x="414" y="310" className="fill-emerald-700 dark:fill-emerald-300 text-[10px] font-mono font-bold">
+          <text x="414" y="308" className="fill-emerald-700 dark:fill-emerald-300 text-[10px] font-mono font-bold">
             +15
           </text>
 
           {/* 正特征值轨迹 2: +3 -> +1 */}
           <path
-            d="M 92 342 C 190 345, 300 350, 406 353"
+            d="M 92.00 353.00 L 101.81 351.41 L 111.62 350.52 L 121.44 352.38 L 131.25 353.93 L 141.06 355.18 L 150.88 356.20 L 160.69 357.02 L 170.50 357.70 L 180.31 358.26 L 190.12 358.73 L 199.94 359.12 L 209.75 359.45 L 219.56 359.72 L 229.38 359.96 L 239.19 360.16 L 249.00 360.32 L 258.81 360.47 L 268.62 360.59 L 278.44 360.69 L 288.25 360.77 L 298.06 360.84 L 307.88 360.89 L 317.69 360.93 L 327.50 360.96 L 337.31 360.99 L 347.12 361.00 L 356.94 361.01 L 366.75 361.01 L 376.56 361.01 L 386.38 361.01 L 396.19 361.00 L 406.00 361.00"
             fill="none"
             className="stroke-emerald-500 dark:stroke-emerald-300"
             strokeWidth="2.2"
           />
-          <circle cx="92" cy="342" r="3.5" className="fill-emerald-500 dark:fill-emerald-300" />
-          <circle cx="406" cy="353" r="3.5" className="fill-emerald-500 dark:fill-emerald-300" />
-          <text x="58" y="345" className="fill-emerald-700 dark:fill-emerald-300 text-[10px] font-mono font-bold">
+          <circle cx="92" cy="353" r="3.5" className="fill-emerald-500 dark:fill-emerald-300" />
+          <circle cx="406" cy="361" r="3.5" className="fill-emerald-500 dark:fill-emerald-300" />
+          <text x="58" y="356" className="fill-emerald-700 dark:fill-emerald-300 text-[10px] font-mono font-bold">
             +3
           </text>
-          <text x="414" y="356" className="fill-emerald-700 dark:fill-emerald-300 text-[10px] font-mono font-bold">
+          <text x="414" y="358" className="fill-emerald-700 dark:fill-emerald-300 text-[10px] font-mono font-bold">
             +1
           </text>
 
           {/* 负特征值轨迹 3: -1 -> -1 */}
           <path
-            d="M 92 385 C 190 391, 300 389, 406 385"
+            d="M 92.00 369.00 L 101.81 369.15 L 111.62 369.27 L 121.44 369.36 L 131.25 369.41 L 141.06 369.44 L 150.88 369.43 L 160.69 369.41 L 170.50 369.37 L 180.31 369.33 L 190.12 369.28 L 199.94 369.22 L 209.75 369.17 L 219.56 369.12 L 229.38 369.08 L 239.19 369.04 L 249.00 369.00 L 258.81 368.97 L 268.62 368.94 L 278.44 368.93 L 288.25 368.91 L 298.06 368.90 L 307.88 368.90 L 317.69 368.90 L 327.50 368.91 L 337.31 368.92 L 347.12 368.93 L 356.94 368.94 L 366.75 368.96 L 376.56 368.97 L 386.38 368.99 L 396.19 369.00 L 406.00 369.00"
             fill="none"
             className="stroke-rose-600 dark:stroke-rose-400"
             strokeWidth="2.2"
           />
-          <circle cx="92" cy="385" r="3.5" className="fill-rose-600 dark:fill-rose-400" />
-          <circle cx="406" cy="385" r="3.5" className="fill-rose-600 dark:fill-rose-400" />
-          <text x="58" y="388" className="fill-rose-600 dark:fill-rose-400 text-[10px] font-mono font-bold">
+          <circle cx="92" cy="369" r="3.5" className="fill-rose-600 dark:fill-rose-400" />
+          <circle cx="406" cy="369" r="3.5" className="fill-rose-600 dark:fill-rose-400" />
+          <text x="58" y="373" className="fill-rose-600 dark:fill-rose-400 text-[10px] font-mono font-bold">
             -1
           </text>
-          <text x="414" y="388" className="fill-rose-600 dark:fill-rose-400 text-[10px] font-mono font-bold">
+          <text x="414" y="375" className="fill-rose-600 dark:fill-rose-400 text-[10px] font-mono font-bold">
             -1
           </text>
 

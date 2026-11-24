@@ -2,7 +2,7 @@ import * as React from 'react';
 import { MathDiagram } from './math-diagram';
 
 export function LineAndSubspaceProjectionDiagram({
-  caption = '从一维到高维的正交投影统一几何图景：**左图**展示向一维直线 $\\operatorname{span}\\{\\mathbf{a}\\}$ 的投影，垂足 $\\mathbf{p} = \\hat{x}\\mathbf{a}$ 与误差 $\\mathbf{e} = \\mathbf{b} - \\mathbf{p} \\perp \\mathbf{a}$ 给出秩 1 投影矩阵 $P = \\frac{\\mathbf{a}\\mathbf{a}^T}{\\mathbf{a}^T\\mathbf{a}}$；**右图**跃升为向 $n$ 维子空间 $\\operatorname{Col}(A)$ 的投影，垂足 $\\mathbf{p} = A\\hat{\\mathbf{x}} = P\\mathbf{b}$ 与正交残差 $\\mathbf{e} = (I-P)\\mathbf{b} \\in \\operatorname{Null}(A^T)$ 形成直角互补拆分 $\\mathbf{b} = P\\mathbf{b} + (I-P)\\mathbf{b}$，导出正规方程组 $A^TA\\hat{\\mathbf{x}} = A^T\\mathbf{b}$ 与投影矩阵 $P = A(A^TA)^{-1}A^T$。',
+  caption = '从一维到高维的正交投影统一几何图景：**左图**展示向一维直线 $\\operatorname{span}\\{\\mathbf{a}\\}$ 的投影，垂足 $\\mathbf{p} = \\hat{x}\\mathbf{a}$ 与误差 $\\mathbf{e} = \\mathbf{b} - \\mathbf{p} \\perp \\mathbf{a}$ 给出秩 1 投影矩阵 $P = \\frac{\\mathbf{a}\\mathbf{a}^T}{\\mathbf{a}^T\\mathbf{a}}$；**右图**展示向 $\\mathbb{R}^3$ 中的列空间 $\\operatorname{Col}(A)$ 投影，其中 $A\\in\\mathbb{R}^{3\\times 2}$ 满列秩，垂足 $\\mathbf{p} = A\\hat{\\mathbf{x}} = P\\mathbf{b}$ 与正交残差 $\\mathbf{e} = (I-P)\\mathbf{b} \\in \\operatorname{Null}(A^T)$ 形成直角互补拆分 $\\mathbf{b} = P\\mathbf{b} + (I-P)\\mathbf{b}$，导出正规方程组 $A^TA\\hat{\\mathbf{x}} = A^T\\mathbf{b}$ 与投影矩阵 $P = A(A^TA)^{-1}A^T$。',
 }: {
   caption?: string;
 }) {
@@ -98,7 +98,7 @@ export function LineAndSubspaceProjectionDiagram({
 
           {/* Extended Line L = span{a} */}
           <line
-            x1="45"
+            x1="44"
             y1="232"
             x2="335"
             y2="135"
@@ -144,13 +144,13 @@ export function LineAndSubspaceProjectionDiagram({
           <line
             x1="65"
             y1="225"
-            x2="185"
-            y2="45"
+            x2="187"
+            y2="51"
             className="stroke-indigo-600 dark:stroke-indigo-400"
             strokeWidth="2.6"
             markerEnd="url(#l15-arrow-indigo)"
           />
-          <circle cx="185" cy="45" r="3.5" className="fill-indigo-600 dark:fill-indigo-400" />
+          <circle cx="187" cy="51" r="3.5" className="fill-indigo-600 dark:fill-indigo-400" />
           <text x="120" y="125" className="fill-indigo-700 dark:fill-indigo-300 font-mono text-[12px] font-bold">
             b (目标向量)
           </text>
@@ -159,8 +159,8 @@ export function LineAndSubspaceProjectionDiagram({
           <line
             x1="227"
             y1="171"
-            x2="185"
-            y2="45"
+            x2="187"
+            y2="51"
             className="stroke-rose-600 dark:stroke-rose-400"
             strokeWidth="2.2"
             strokeDasharray="4 3"
@@ -226,7 +226,7 @@ export function LineAndSubspaceProjectionDiagram({
             高维子空间投影：p = Ax̂ ∈ Col(A)
           </text>
           <text x="197" y="44" textAnchor="middle" className="fill-muted-foreground text-[11px]">
-            目标：求误差 e = b − Ax̂ 垂直于整张平面 Col(A) 的最近点
+            两列线性无关 · e = b − Ax̂ 垂直于 Col(A)
           </text>
 
           {/* Perspective Plane for Col(A) */}
@@ -236,10 +236,10 @@ export function LineAndSubspaceProjectionDiagram({
             strokeWidth="1.6"
           />
           <text x="305" y="174" className="fill-blue-700 dark:fill-blue-300 font-mono text-[11.5px] font-bold">
-            Col(A) ⊂ ℝᵐ
+            Col(A) ⊂ ℝ³
           </text>
           <text x="305" y="189" className="fill-muted-foreground text-[10px]">
-            (dim = n, rank = n)
+            (dim = rank(A) = 2)
           </text>
 
           {/* Vertical axis: Left Nullspace Null(A^T) = Col(A) perp */}
@@ -332,7 +332,7 @@ export function LineAndSubspaceProjectionDiagram({
 
           {/* Right-angle symbol on plane */}
           <polyline
-            points="233,184 233,172 245,170"
+            points="231.5,184.3 231.5,172.3 245,170"
             fill="none"
             stroke="currentColor"
             strokeOpacity="0.7"
@@ -356,14 +356,14 @@ export function LineAndSubspaceProjectionDiagram({
               className="fill-background/80 stroke-border/70"
             />
             <text x="12" y="22" className="fill-current text-[11px] font-semibold">
-              正规方程组：<tspan className="font-mono text-rose-600 dark:text-rose-400">Aᵀ(b − Ax̂) = 0 ⟺ AᵀAx̂ = Aᵀb</tspan>
+              正规方程组：<tspan className="font-mono text-rose-600 dark:text-rose-400">Aᵀ(b − Ax̂) = 𝟎 ⟺ AᵀAx̂ = Aᵀb</tspan>
             </text>
             <text x="12" y="44" className="fill-current text-[11px]">
               最优系数：<tspan className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">x̂ = (AᵀA)⁻¹ Aᵀb</tspan>
             </text>
             <text x="12" y="66" className="fill-current text-[11px]">
               投影矩阵：<tspan className="font-mono text-blue-600 dark:stroke-blue-400 font-bold">P = A(AᵀA)⁻¹Aᵀ</tspan>
-              <tspan className="text-[10px] text-muted-foreground ml-2"> (rank = n)</tspan>
+              <tspan className="text-[10px] text-muted-foreground ml-2"> (rank = 2)</tspan>
             </text>
           </g>
         </g>
@@ -436,7 +436,7 @@ export function ProjectionComplementarySplitDiagram({
           markerEnd="url(#l15-arrow-p-blue)"
         />
         <text x="390" y="199" className="fill-blue-700 dark:fill-blue-300 font-mono text-[12px] font-bold">
-          Col(A) (dim = n)
+          Col(A) (dim = rank(A))
         </text>
 
         {/* Vertical Subspace: Null(A^T) */}
@@ -450,7 +450,7 @@ export function ProjectionComplementarySplitDiagram({
           markerEnd="url(#l15-arrow-p-rose)"
         />
         <text x="160" y="20" textAnchor="middle" className="fill-rose-700 dark:fill-rose-300 font-mono text-[12px] font-bold">
-          Null(Aᵀ) = Col(A)⟂ (dim = m − n)
+          Null(Aᵀ) = Col(A)⊥
         </text>
 
         {/* Right-angle square at origin */}

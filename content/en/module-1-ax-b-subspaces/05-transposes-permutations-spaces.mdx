@@ -9,7 +9,7 @@ MIT 18.06 Lecture 05 is a watershed bridge in the course: the first half conclud
 
 ---
 
-## 1. Permutation Matrices: The Orthogonal Group of Row Reorderings
+## 1. Permutation Matrices: An Orthogonal Subgroup for Row Reordering
 
 In Lecture 04, to handle zero entries appearing in pivot positions, we upgraded our complete elimination factorization to $PA = LU$. What exactly do the **permutation matrices** $P$ that multiply $A$ on the left look like? How many of them are there? And what special property do their inverses obey?
 
@@ -48,7 +48,7 @@ A = \begin{bmatrix} 1 & 3 \\ 2 & 3 \\ 4 & 1 \end{bmatrix} \in \mathbb{R}^{3\time
 A^T = \begin{bmatrix} 1 & 2 & 4 \\ 3 & 3 & 1 \end{bmatrix} \in \mathbb{R}^{2\times 3}
 $$
 
-If a **square matrix** coincides with itself after being flipped across its main diagonal—meaning $S^T = S$—we call it a **symmetric matrix**.
+If a **real square matrix** coincides with itself after being flipped across its main diagonal—meaning $S^T = S$—we call it a **symmetric matrix**.
 
 Across applied mathematics, statistics (covariance matrices), least-squares regression, and graph theory, symmetric matrices are the undisputed stars. **Even when your raw data matrix $R \in \mathbb{R}^{m\times n}$ is tall, wide, and completely asymmetric, how can you instantly manufacture a handsome symmetric square matrix out of it?**
 
@@ -86,7 +86,7 @@ $$
   label="Theorem 5.1"
   title="Transpose Laws, Orthogonal Permutation Inverse P⁻¹ = Pᵀ, and Symmetric LDLᵀ Factorization"
 >
-1. **Reverse-Order Law for Products and Commutativity with Inversion**: For any conformable real matrices $A \in \mathbb{R}^{m\times n},\; B \in \mathbb{R}^{n\times p}$ and any invertible square matrix $M \in \mathbb{R}^{n\times n}$:
+1. **Transpose laws**: Let $A,C\in\mathbb{R}^{m\times n}$ and $B\in\mathbb{R}^{n\times p}$, and let $M\in\mathbb{R}^{n\times n}$ be invertible. Then
 
 $$
 (A + C)^T = A^T + C^T, \qquad (AB)^T = B^T A^T, \qquad (M^{-1})^T = (M^T)^{-1}
@@ -94,7 +94,7 @@ $$
 
 2. **Permutation Group Properties**: The product $P_1 P_2$ of any two $n \times n$ permutation matrices $P_1, P_2$ is again a permutation matrix; moreover, every permutation matrix $P \in \mathbb{R}^{n\times n}$ satisfies **$P^T P = P P^T = I_n$**, so $P^{-1} = P^T$.
 3. **Universal Symmetric Construction**: For **any rectangular real matrix** $R \in \mathbb{R}^{m\times n}$, both $R^T R \in \mathbb{R}^{n\times n}$ and $R R^T \in \mathbb{R}^{m\times m}$ are guaranteed to be real symmetric square matrices.
-4. **$LDL^T$ Factorization of Symmetric Matrices**: If an **invertible real symmetric matrix** $A = A^T \in \mathbb{R}^{n\times n}$ admits a row-exchange-free factorization $A = L D \tilde{U}$, then necessarily $\tilde{U} = L^T$, so the factorization automatically simplifies to the symmetric form (cutting the elimination work in half to $\approx \frac{1}{6}n^3$):
+4. **Symmetric factorization**: Let $A=A^T\in\mathbb{R}^{n\times n}$ admit $A=L D \tilde{U}$ without row exchanges, where $L$ and $\tilde U$ are unit lower and unit upper triangular, respectively, and $D$ is an invertible diagonal matrix. Then $\tilde{U}=L^T$. A dense implementation that updates just one triangle of each symmetric trailing block uses $\frac16n^3+\mathcal{O}(n^2)$ multiply-subtract pairs.
 
 $$
 A = L D L^T
@@ -111,13 +111,15 @@ $$
 = B^T A^T
 $$
 
-2. **Proof that a symmetric matrix satisfies $\tilde{U} = L^T$**: Suppose $A = A^T$ is invertible and $A = L D \tilde{U}$ (where $L$ is unit lower-triangular, $D$ is a nonzero diagonal matrix, and $\tilde{U}$ is unit upper-triangular). Applying the reverse-order transpose law twice via $(XYZ)^T = Z^T Y^T X^T$:
+2. **Proof that $\tilde{U}=L^T$ under the hypotheses of Part 4**: Apply the reverse-order transpose law to $A=L D \tilde{U}$:
 
 $$
 A = A^T = (L D \tilde{U})^T = \tilde{U}^T D^T L^T = (\tilde{U}^T) D (L^T)
 $$
 
-   Notice that $\tilde{U}^T$ is unit lower-triangular, $L^T$ is unit upper-triangular, and $D^T = D$! By **Theorem 4.1, Part 2 (Uniqueness of the $LDU$ Factorization for Invertible Matrices)** from Lecture 04, comparing $L D \tilde{U} = (\tilde{U}^T) D (L^T)$ uniquely locks in $\tilde{U} = L^T$. Q.E.D.! (This also explains the miracle you computed by hand in Exercise `l04-ex1` of Lecture 04!)
+   Since $\tilde{U}^T$ is unit lower triangular, $L^T$ is unit upper triangular, and $D^T=D$, uniqueness from Theorem 4.1 gives $\tilde{U}=L^T$. This also explains the factors in Exercise `l04-ex1` of Lecture 04.
+
+   At a symmetric elimination step with pivot $d\neq0$ and entries $\mathbf{r}$ below it, the trailing block $C$ becomes $C-\mathbf{r}\mathbf{r}^T/d$, which is symmetric. With $k$ trailing rows, updating only one triangle, including the diagonal, takes $k(k+1)/2$ multiply-subtract pairs. The total over all steps is $\sum_{k=1}^{n-1}k(k+1)/2=(n^3-n)/6$ pairs, with $\mathcal{O}(n^2)$ additional divisions for the multipliers.
 </ProofCollapse>
 
 ---
@@ -138,12 +140,12 @@ Suppose a set $S \subseteq \mathbb{R}^2$ is a shifted line that **misses the ori
 - For $S$ to qualify as a valid subspace, multiplying $\mathbf{v}$ by **any real scalar $c \in \mathbb{R}$** must keep the result inside $S$;
 - Now simply choose the scalar **$c = 0$**! Computing $0 \cdot \mathbf{v} = \mathbf{0} = (0, 0)^T$ drops us right onto the origin, which lies outside the line—so $0\mathbf{v} \notin S$, and $S$ is disqualified on the spot!
 
-Now examine another famous "impostor"—the **first quadrant** of the 2D plane, $Q_1 = \{(x, y)^T \in \mathbb{R}^2 : x \ge 0,\; y \ge 0\}$:
+Consider the **closed first quadrant** $Q_1=\{(x,y)^T\in\mathbb{R}^2:x\ge0,\;y\ge0\}$, including both nonnegative coordinate rays:
 - Does it contain the origin $(0,0)^T$? Yes!
 - If you add any two vectors in the first quadrant, does $\mathbf{v} + \mathbf{w}$ stay in the first quadrant? Yes! (It is closed under addition!)
 - **Is it a subspace? Absolutely not!** Pick $\mathbf{v} = (2, 1)^T \in Q_1$ and multiply by the negative scalar $c = -1$: $(-1)\mathbf{v} = (-2, -1)^T$ flies straight into the third quadrant! (It fails closure under multiplication by negative scalars!)
 
-<SubspacesOfR2AndImpostorsDiagram caption="True subspaces of ℝ² (lines through the origin) versus classic impostors: a shifted line misses the origin under c = 0, the first quadrant fails under negative scalar multiplication c < 0, and a union of two lines fails under vector addition." />
+<SubspacesOfR2AndImpostorsDiagram caption="A line through the origin is a subspace of $\mathbb{R}^2$. The shifted line $x+2y=3$ fails closure under multiplication by $0$. The closed first quadrant fails closure under multiplication by $-1$." />
 
 <InteractiveCanvasSlot
   id="l05-subspace-closure-tester"
@@ -179,7 +181,7 @@ Under the magnifying glass of Definition 5.2, the complete list of valid subspac
   3. **Any infinite flat plane $P$ passing through the origin** ($2$-dimensional);
   4. **The entire 3D space $\mathbb{R}^3$ itself** ($3$-dimensional).
 
-Finally, let us return to our old friend, an $m\times n$ matrix $A \in \mathbb{R}^{m\times n}$: starting from a matrix, how do we build a genuine subspace of $\mathbb{R}^m$ in one second? The answer is the **column space $\operatorname{Col}(A)$** seeded back in Lecture 01—take **all possible linear combinations** of the columns of $A$! Because $\operatorname{Col}(A)$ is by definition the set of all linear combinations of the columns, taking any two combinations $A\mathbf{x}_1$ and $A\mathbf{x}_2$ inside it and forming a new linear combination $c(A\mathbf{x}_1) + d(A\mathbf{x}_2) = A(c\mathbf{x}_1 + d\mathbf{x}_2)$ automatically produces another linear combination of the columns of $A$! In the next lecture (Lecture 06), we will bring the column space and its twin brother, the **nullspace $\operatorname{Null}(A)$**, onto the stage together.
+For $A\in\mathbb{R}^{m\times n}$, the column space $\operatorname{Col}(A)$ (Strang's $C(A)$) contains $A\mathbf{0}=\mathbf{0}$. If $A\mathbf{x}_1$ and $A\mathbf{x}_2$ are in it, then $c(A\mathbf{x}_1)+d(A\mathbf{x}_2)=A(c\mathbf{x}_1+d\mathbf{x}_2)$ is in it as well. Thus the column space is a subspace of $\mathbb{R}^m$. Lecture 06 introduces the nullspace $\operatorname{Null}(A)$, also denoted $N(A)$.
 
 <PitfallAlert title="Common Pitfalls & Transcript Errata">
 1. **Pitfall 1: "The empty set $\varnothing$ is the smallest zero-dimensional subspace" (Conceptual confusion!)**
@@ -187,7 +189,7 @@ Finally, let us return to our old friend, an $m\times n$ matrix $A \in \mathbb{R
 2. **Pitfall 2: "Checking $\mathbf{0} \in S$ is enough to prove $S$ is a subspace" (Confusing a necessary condition with a sufficient one!)**
    Having $\mathbf{0} \in S$ is only a **necessary condition** (useful for instantly disqualifying shifted sets that miss the origin: $\mathbf{0} \notin S \implies$ definitely not a subspace), never a sufficient condition! For instance, the parabola $\{(x, y)^T : y = x^2\}$, the first quadrant, and the union of the two coordinate axes all pass through the origin $\mathbf{0}$, yet every one of them breaks closure under addition or scalar multiplication, so none of them is a subspace!
 3. **Pitfall 3: "The product $AB$ of two symmetric matrices $A$ and $B$ is also symmetric"**
-   One line with the reverse-order transpose law reveals the truth: $(AB)^T = B^T A^T = BA$! Thus **$AB$ is symmetric if and only if $A$ and $B$ commute ($AB = BA$)**! Multiplying almost any two non-commuting $2\times 2$ symmetric matrices produces a non-symmetric matrix.
+   One line with the reverse-order transpose law reveals the truth: $(AB)^T = B^T A^T = BA$! Thus **$AB$ is symmetric if and only if $A$ and $B$ commute ($AB = BA$)**! Multiplying two non-commuting $2\times 2$ symmetric matrices produces a non-symmetric matrix.
 4. **Pitfall 4: Treating $R^T R$ and $R R^T$ of a rectangular matrix as having the same size**
    If $R \in \mathbb{R}^{3\times 2}$, then $R^T R$ is a $2\times 2$ symmetric matrix, whereas $R R^T$ is a $3\times 3$ symmetric matrix (not only do their sizes differ, the latter is a singular symmetric matrix of rank at most $2$!).
 </PitfallAlert>
@@ -328,7 +330,7 @@ Thus $AB$ is not symmetric. (Necessary and sufficient condition: for symmetric $
   id="l05-ex3"
   tier="L2"
   tierLabel="L2 · Conceptual True/False"
-  title="Conceptual Check: Is the Origin-Centered Double Cone b₁² + b₂² − b₃² = 0 a Subspace?"
+  title="Conceptual Check: Is the Origin-Centered Double Cone x² + y² − z² = 0 a Subspace?"
 >
 Determine whether the following statement is true or false:
 
@@ -339,7 +341,7 @@ Determine whether the following statement is true or false:
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! This is the classic litmus test for whether you forgot to check closure under addition: although $S$ contains the origin and is closed under all scalar multiples $c\mathbf{v}$ (being a bundle of infinitely many lines through the origin), adding two vectors from different sides of the cone gives $(1, 0, 1)^T + (0, 1, 1)^T = (1, 1, 2)^T$, where $1^2 + 1^2 - 2^2 = -2 \neq 0$—addition jumps right off the cone!"
+  quickFeedback="False. Both $(1,0,1)^T$ and $(-1,0,1)^T$ lie on the cone. Their sum is $(0,0,2)^T$, for which $0^2+0^2-2^2=-4$, so addition is not closed."
 />
 
 <ProgressiveHint
@@ -357,7 +359,7 @@ Determine whether the following statement is true or false:
 >
 <SolutionIntuition>
 
-This problem teaches a vital geometric lesson! Many students think "contains the origin + closed under positive and negative stretching $c\mathbf{v}$" is enough to make a subspace—wrong! That only guarantees the set is a "starburst bundle" of lines through the origin (the ruling lines of the cone). The moment you add two vectors lying on different ruling lines tip-to-tail, their sum dives into the hollow interior of the cone! In $\mathbb{R}^3$, a genuine 2D subspace must be a **flat plane**, with zero quadratic curvature allowed!
+The double cone is a union of lines through the origin, so scalar multiples stay in the set. Two vectors on different lines can have a sum outside the cone. For instance, the chosen vectors cancel horizontally and add vertically, sending their sum onto the axis away from the apex.
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -417,9 +419,9 @@ In $\mathbb{R}^3$, determine whether each of the following four sets is a subspa
 <SolutionRigorous>
 
 1. **$S_1$ is a subspace**: Clearly $\mathbf{0} \in S_1$. For any $\mathbf{u}, \mathbf{v} \in S_1$ and $\alpha, \beta \in \mathbb{R}$, let $\mathbf{n} = (1, 2, -3)^T$. Then $\mathbf{n}^T(\alpha\mathbf{u} + \beta\mathbf{v}) = \alpha(\mathbf{n}^T\mathbf{u}) + \beta(\mathbf{n}^T\mathbf{v}) = \alpha\cdot 0 + \beta\cdot 0 = 0 \implies \alpha\mathbf{u} + \beta\mathbf{v} \in S_1$ (a 2D plane through the origin).
-2. **$S_2$ is not a subspace**: Testing the zero vector gives $0 + 2(0) - 3(0) = 0 \neq 1 \implies \mathbf{0} \notin S_2$, violating the necessary condition for a subspace.
+2. **$S_2$ fails closure**: Take $\mathbf{u}=(1,0,0)^T\in S_2$. Its zero multiple lies outside $S_2$, and $\mathbf{u}+\mathbf{u}$ also lies outside since its left-hand side is $2$.
 3. **$S_3$ is not a subspace**: Take $\mathbf{u} = (1, 0, 0)^T \in S_3$ and $\mathbf{v} = (0, 1, 0)^T \in S_3$; their sum $\mathbf{u} + \mathbf{v} = (1, 1, 0)^T$ has $1 \cdot 1 = 1 \neq 0 \implies \mathbf{u} + \mathbf{v} \notin S_3$, violating closure under addition.
-4. **$S_4$ is a subspace**: Let $A = \begin{bmatrix} 1 & 0 \\ 1 & 2 \\ 0 & -1 \end{bmatrix}$; then $S_4 = \{A\mathbf{x} : \mathbf{x} \in \mathbb{R}^2\} = \operatorname{Col}(A)$. For any $A\mathbf{x}_1, A\mathbf{x}_2 \in S_4$ and $\alpha, \beta \in \mathbb{R}$, we have $\alpha(A\mathbf{x}_1) + \beta(A\mathbf{x}_2) = A(\alpha\mathbf{x}_1 + \beta\mathbf{x}_2) \in S_4$ (a 2D plane through the origin).
+4. **$S_4$ is a subspace**: It is the column space of $\begin{bmatrix}1&0\\1&2\\0&-1\end{bmatrix}$ and contains $\mathbf{0}$ at $c=d=0$. The first and third coordinates of a zero combination give $c=0$ and $-d=0$, so the two columns are independent. The column space is a two-dimensional plane through the origin.
 
 </SolutionRigorous>
 </DualSolution>
@@ -441,7 +443,7 @@ In $\mathbb{R}^3$, determine whether each of the following four sets is a subspa
   buttonPrefix="Unlock Hint"
   hints={[
     "Part 1: Track $(1, 2, 3, 4) \\to (4, 1, 2, 3)$—how many adjacent swaps does it take to bubble row 4 all the way up to row 1? One full cycle takes 4 steps, so $P^4 = I_4$; multiplying both sides by $P^{-1} = P^T$ immediately gives $P^T = P^3$!",
-    "Part 2: Analogous to splitting any function into an even part $\\frac{f(x)+f(-x)}{2}$ plus an odd part $\\frac{f(x)-f(-x)}{2}$! Write $M = S + K$ and transpose both sides to get $M^T = S^T + K^T = S - K$; adding and subtracting the two equations solves for $S$ and $K$ immediately!"
+    "Part 2: Analogous to splitting a function on $\\mathbb{R}$ into an even part $\\frac{f(x)+f(-x)}{2}$ plus an odd part $\\frac{f(x)-f(-x)}{2}$! Write $M = S + K$ and transpose both sides to get $M^T = S^T + K^T = S - K$; adding and subtracting the two equations solves for $S$ and $K$ immediately!"
   ]}
 />
 
@@ -469,8 +471,8 @@ P = \begin{bmatrix}
 \end{bmatrix} = P_{12} P_{23} P_{34}
 $$
 
-   - Each single row exchange can increase the length of a connected cycle by at most $1$, so a single cycle of length $4$ requires a minimum of $4 - 1 = \mathbf{3}$ **row exchanges** (an odd permutation).
-   - For general $\mathbf{x} \in \mathbb{R}^4$, none of $P\mathbf{x}, P^2\mathbf{x}, P^3\mathbf{x}$ is identically $\mathbf{x}$, whereas $P^4\mathbf{x} = \mathbf{x}$, so the smallest positive period is $k = \mathbf{4}$.
+   - All four rows move. One swap moves only two rows. Two swaps with disjoint row pairs produce two separate transpositions, while two swaps sharing a row affect at most three rows. Neither gives this four-cycle, so the displayed three-swap product is minimal.
+   - The vectors $P^j\mathbf{e}_1$ for $j=0,1,2,3$ are the four distinct standard basis vectors in order, and four shifts fix every component. Hence the matrix has order $k=4$.
    - From $P^4 = I_4$ and Theorem 5.1 Part 2 ($P^{-1} = P^T$), left-multiplying both sides by $P^T$ gives $P^T = P^3$, so the smallest positive integer is $m = \mathbf{3}$.
 
 2. **Skew-symmetric properties and unique decomposition $M = S + K$**:

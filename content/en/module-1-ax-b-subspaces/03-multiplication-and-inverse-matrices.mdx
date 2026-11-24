@@ -5,15 +5,15 @@ videoEpisode: "P03"
 textbookRef: "§2.4–2.5"
 ---
 
-If you memorize matrix multiplication $C = AB$ merely as the mechanical chant "row times column, sum the products," you miss more than half the insight in linear algebra. In MIT 18.06 Lecture 03, Professor Gilbert Strang reveals **five equivalent geometric and algebraic views of the exact same matrix product $AB$**—among which "combinations of columns," "combinations of rows," and "sums of rank-one outer products" immediately expose which subspaces the product matrix lives in. From there, using the nullspace and block elimination, we build the rigorous theory of the inverse matrix $A^{-1}$ for square matrices.
+If you memorize matrix multiplication $C = AB$ merely as the mechanical chant "row times column, sum the products," you miss more than half the insight in linear algebra. In MIT 18.06 Lecture 03, Professor Gilbert Strang reveals **five equivalent geometric and algebraic views of the exact same matrix product $AB$**—among which "combinations of columns," "combinations of rows," and "sums of outer products of rank at most one" immediately expose which subspaces the product matrix lives in. From there, using the nullspace and block elimination, we build the rigorous theory of the inverse matrix $A^{-1}$ for square matrices.
 
 ---
 
 ## 1. Five Golden Structural Views of Matrix Multiplication $C = AB$
 
-First, lock down the shape requirement: let $A \in \mathbb{R}^{m\times n}$ and $B \in \mathbb{R}^{n\times p}$. **If and only if the number of columns of $A$ equals the number of rows of $B$ (both equal to $n$)** is the product $C = AB$ defined, and the resulting matrix has dimensions $C \in \mathbb{R}^{m\times p}$.
+Let $A \in \mathbb{R}^{m\times n}$ and $B \in \mathbb{R}^{s\times p}$. The product $AB$ is defined exactly when $s=n$, and in that case $C=AB\in\mathbb{R}^{m\times p}$. All five views below use $s=n$.
 
-<MatrixMultFiveViewsDiagram caption="Five structural views of C = AB: (1) row-column dot product for single entries, (2) column combinations in Col(A), (3) row combinations in Row(B), (4) sum of n rank-1 outer product slices, and (5) block matrix multiplication." />
+<MatrixMultFiveViewsDiagram caption="Five structural views of C = AB: (1) row-column dot product for single entries, (2) column combinations in Col(A), (3) row combinations in Row(B), (4) sum of outer products of rank at most one, and (5) block matrix multiplication." />
 
 Below we unpack these five views layer by layer along with their structural corollaries:
 
@@ -49,7 +49,7 @@ $$
 
 Every row $\mathbf{a}_i^T B = a_{i1}(\text{row } 1 \text{ of } B) + \cdots + a_{in}(\text{row } n \text{ of } B)$ is a **linear combination of the rows of $B$**!
 
-### View ④: The Column-Times-Row Outer Product View (Sum of $n$ Rank-One Matrices!)
+### View ④: The Column-Times-Row View (Sum of Outer Products)
 
 This is the view least familiar to beginners, yet the most powerful in advanced matrix factorizations ($LU$, spectral decomposition, and Singular Value Decomposition SVD)!
 
@@ -77,7 +77,7 @@ $$
 \begin{bmatrix} 2 & 12 \\ 3 & 18 \\ 4 & 24 \end{bmatrix}
 $$
 
-Look closely at the resulting matrix $\begin{bmatrix} 2 & 12 \\ 3 & 18 \\ 4 & 24 \end{bmatrix}$: all of its columns are scalar multiples of $(2, 3, 4)^T$ (its column space is a single line), and all of its rows are scalar multiples of $[1 \;\; 6]$ (its row space is also a single line). Any matrix of the form $\mathbf{c}\mathbf{r}^T$ (a nonzero column times a nonzero row) is called a **rank-one matrix**.
+The first outer product has rank one. Its column space is the line spanned by $(2,3,4)^T$ and its row space is the line spanned by $(1,6)^T$, identifying rows with their transposes. An outer product $\mathbf{c}\mathbf{r}^T$ has rank one when both vectors are nonzero and rank zero when either is zero.
 
 ### View ⑤: Block Matrix Multiplication
 
@@ -108,11 +108,7 @@ For any conformable real matrices $A \in \mathbb{R}^{m\times n}$ and $B \in \mat
 
 <ProofCollapse title="Rigorous Proof: Three-Line Subspace Inclusion Derivation">
 1. Take any $\mathbf{y} \in \operatorname{Col}(AB)$. By the definition of column space, there exists $\mathbf{x} \in \mathbb{R}^p$ such that $\mathbf{y} = (AB)\mathbf{x}$. By associativity of matrix multiplication, $\mathbf{y} = A(B\mathbf{x})$. Setting $\mathbf{w} = B\mathbf{x} \in \mathbb{R}^n$ gives $\mathbf{y} = A\mathbf{w} \in \operatorname{Col}(A)$, so $\operatorname{Col}(AB) \subseteq \operatorname{Col}(A)$.
-2. Using the transpose reversal rule $(AB)^T = B^T A^T$, apply Part 1 directly to $B^T$ and $A^T$:
-
-$$
-\operatorname{Row}(AB) = \operatorname{Col}((AB)^T) = \operatorname{Col}(B^T A^T) \subseteq \operatorname{Col}(B^T) = \operatorname{Row}(B)
-$$
+2. By View ③, every row of $AB$ is a linear combination of the rows of $B$. The same holds for their transposes, so $\operatorname{Row}(AB)\subseteq\operatorname{Row}(B)$.
 
 3. If $\mathbf{x} \in \mathbb{R}^p$ satisfies $B\mathbf{x} = \mathbf{0}$, then $(AB)\mathbf{x} = A(B\mathbf{x}) = A\mathbf{0} = \mathbf{0}$.
 </ProofCollapse>
@@ -120,7 +116,7 @@ $$
 <InteractiveCanvasSlot
   id="l03-rank1-outer-slicer"
   title="Rank-1 Outer Product Slice Accumulator (AB = ∑ c_k r_kᵀ)"
-  description="Interactive exploration: toggle each rank-1 outer product slice $\mathbf{c}_k \mathbf{r}_k^T$ for $k = 1, \dots, n$ to see how simple rank-1 grids stack entrywise to reconstruct any matrix product $AB$."
+  description="Toggle each outer-product term $\mathbf{c}_k \mathbf{r}_k^T$. Each term has rank at most one, and their entrywise sum gives $AB$."
 />
 
 ---
@@ -156,7 +152,7 @@ which directly contradicts $\mathbf{x} \neq \mathbf{0}$! Intuitively: **if $A$ f
 >
 Let $A, B \in \mathbb{R}^{n\times n}$ be $n\times n$ **square matrices**:
 
-1. **A one-sided inverse automatically upgrades to a two-sided inverse**: If there exists $X \in \mathbb{R}^{n\times n}$ such that $XA = I_n$ (left inverse), then necessarily $AX = I_n$, so $X = A^{-1}$; similarly, if $AY = I_n$ (right inverse), then necessarily $YA = I_n$.
+1. **One-sided inverses**: For $X,Y\in\mathbb{R}^{n\times n}$, $XA=I_n$ implies $AX=I_n$, and $AY=I_n$ implies $YA=I_n$. Either identity gives the inverse of $A$.
 2. **Nullspace criterion**: A square matrix $A$ is invertible $\iff$ the homogeneous equation $A\mathbf{x} = \mathbf{0}$ has only the trivial solution $\mathbf{x} = \mathbf{0}$ $\iff$ Gaussian elimination (with row exchanges allowed) produces a full set of $n$ nonzero pivots.
 3. **Reverse order law for the inverse of a product**: If $A$ and $B$ are both invertible, then $AB$ is also invertible, and
 
@@ -173,7 +169,9 @@ Suppose $X \in \mathbb{R}^{n\times n}$ satisfies $XA = I_n$:
 2. By Theorem 1.1, the columns of $A$ span all of $\mathbb{R}^n$. Thus for each standard basis vector $\mathbf{e}_j \in \mathbb{R}^n$ (column $j$ of $I_n$), the equation $A\mathbf{y}_j = \mathbf{e}_j$ has a solution $\mathbf{y}_j \in \mathbb{R}^n$.
 3. Assemble these $n$ solution vectors as columns of a square matrix $Y = \begin{bmatrix} \mathbf{y}_1 & \cdots & \mathbf{y}_n \end{bmatrix} \in \mathbb{R}^{n\times n}$. By **View ② (the column view)** of matrix multiplication, we immediately obtain $AY = \begin{bmatrix} A\mathbf{y}_1 & \cdots & A\mathbf{y}_n \end{bmatrix} = \begin{bmatrix} \mathbf{e}_1 & \cdots & \mathbf{e}_n \end{bmatrix} = I_n$!
 4. Finally, link the left and right inverses via associativity: $X = X I_n = X(AY) = (XA)Y = I_n Y = Y$. Since $X = Y$, we automatically have $AX = AY = I_n$!
+The nullspace criterion follows from Theorem 1.1 and the pivot test in Lecture 02.
 
+A right inverse gives a left inverse by applying the result just proved to $Y^T A^T=I_n$ and transposing. Also, $(A^T)(A^{-1})^T=(A^{-1}A)^T=I_n$, which gives the transpose-inverse identity.
 (We also verify the reverse order law: $(AB)(B^{-1}A^{-1}) = A(BB^{-1})A^{-1} = A I_n A^{-1} = I_n$, and left multiplication similarly yields $I_n$.)
 </ProofCollapse>
 
@@ -190,7 +188,7 @@ A \begin{bmatrix} \mathbf{x}_1 & \mathbf{x}_2 & \cdots & \mathbf{x}_n \end{bmatr
 A\mathbf{x}_j = \mathbf{e}_j \;\; (j = 1, \dots, n)
 $$
 
-Rather than repeating the same elimination steps $n$ separate times, Gauss and Jordan devised an extraordinarily elegant all-in-one procedure: form the $n\times 2n$ block-augmented matrix $\begin{bmatrix} A \mid I_n \end{bmatrix}$ and apply elementary row operations (first eliminating downward to upper triangular $U$, then **eliminating upward** to clear all nonzero entries above the pivots, and finally dividing each row by its pivot to reach $I_n$).
+For invertible $A$, form the $n\times 2n$ augmented matrix $[A\mid I_n]$. Apply each row operation to both blocks. Allow row exchanges as needed, eliminate below and above the pivots in the coefficient block, and divide the pivot rows by their nonzero pivots to obtain $I_n$ on the left. A missing pivot in the coefficient block certifies that $A$ is singular.
 
 Using View ⑤ (block multiplication), you can see at a glance why $A^{-1}$ magically emerges on the right-hand side: let $E \in \mathbb{R}^{n\times n}$ be the combined product of all elementary row-operation matrices, and multiply the block-augmented matrix on the left by $E$:
 
@@ -223,7 +221,7 @@ We read off $A^{-1} = \begin{bmatrix} 7 & -3 \\ -2 & 1 \end{bmatrix}$, and a qui
 1. **Pitfall 1: Falsely applying "$XA = I \implies AX = I$" to rectangular matrices! (Extremely common trap)**
    The automatic symmetry between one-sided inverses in Theorem 3.2 **holds only for square matrices**! For rectangular matrices, take $X = \begin{bmatrix} 1 & 0 \end{bmatrix} \in \mathbb{R}^{1\times 2}$ and $A = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \in \mathbb{R}^{2\times 1}$. Even though $XA = [1] = I_1$, reversing the order gives $AX = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix} \neq I_2$ (which has rank $1$ and is certainly not invertible)! Left and right one-sided inverses for rectangular matrices will be thoroughly dissected in Lecture 34.
 2. **Pitfall 2: Blindly extrapolating "$AB = 0 \implies A = 0$ or $B = 0$" from scalar arithmetic**
-   In the world of matrices, two nonzero matrices can easily multiply to the zero matrix—as long as every column of $B$ falls inside the nullspace of $A$! For instance, $\begin{bmatrix} 1 & -1 \\ 1 & -1 \end{bmatrix}\begin{bmatrix} 1 & 2 \\ 1 & 2 \end{bmatrix} = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}$. Likewise, from $AB = AC$ with $A \neq 0$, **you can never cancel $A$** unless you know for sure that $A$ is **invertible**!
+   The product $AB$ is the zero matrix exactly when every column of $B$ lies in $\operatorname{Null}(A)$. For instance, $\begin{bmatrix}1&-1\\1&-1\end{bmatrix}\begin{bmatrix}1&2\\1&2\end{bmatrix}=\begin{bmatrix}0&0\\0&0\end{bmatrix}$. More generally, $AB=AC$ gives $A(B-C)=0$. Cancellation for all compatible $B,C$ is valid when $\operatorname{Null}(A)=\{\mathbf{0}\}$, which includes rectangular matrices with independent columns. If $\operatorname{Null}(A)$ contains a nonzero vector, using it as a column of $B-C$ yields unequal matrices with the same product.
 3. **Pitfall 3: Writing $(AB)^{-1} = A^{-1}B^{-1}$ in the wrong order, or inventing $(A+B)^{-1} = A^{-1} + B^{-1}$**
    Remember Professor Strang's "shoes and socks rule": in the morning you put on your socks first (multiply by $B$) and then put on your shoes (multiply by $A$); at night, to undo this, you must **take off your shoes first (multiply by $A^{-1}$) and then take off your socks (multiply by $B^{-1}$)**, so $(AB)^{-1} = B^{-1}A^{-1}$. As for matrix addition, $(I + I)^{-1} = \frac{1}{2}I \neq I + I$—there is no simple formula splitting the inverse of a sum.
 </PitfallAlert>
@@ -231,9 +229,9 @@ We read off $A^{-1} = \begin{bmatrix} 7 & -3 \\ -2 & 1 \end{bmatrix}$, and a qui
 <KeyTakeaways
   title="Key Takeaways"
   items={[
-    "Each of the five views of matrix multiplication serves a distinct purpose: use **row-column inner products** for single entries, **column combinations** for $\\operatorname{Col}(AB)\\subseteq\\operatorname{Col}(A)$, **row combinations** for $\\operatorname{Row}(AB)\\subseteq\\operatorname{Row}(B)$, and **column-times-row rank-1 outer product sums $\\sum \\mathbf{c}_k \\mathbf{r}_k^T$** for low-rank decompositions.",
+    "Each of the five views of matrix multiplication serves a distinct purpose: use **row-column inner products** for single entries, **column combinations** for $\\operatorname{Col}(AB)\\subseteq\\operatorname{Col}(A)$, **row combinations** for $\\operatorname{Row}(AB)\\subseteq\\operatorname{Row}(B)$, and **column-times-row outer product sums $\\sum \\mathbf{c}_k \\mathbf{r}_k^T$** for low-rank decompositions.",
     "A square matrix $A \\in \\mathbb{R}^{n\\times n}$ is invertible $\\iff A\\mathbf{x}=\\mathbf{0}$ has only the zero solution $\\iff$ a left (or right) inverse exists; rectangular matrices never possess a two-sided inverse.",
-    "Always reverse the order when inverting a product, $(AB)^{-1} = B^{-1}A^{-1}$, whereas transposition and inversion commute freely: $(A^T)^{-1} = (A^{-1})^T$.",
+    "For invertible square matrices $A$ and $B$, $(AB)^{-1} = B^{-1}A^{-1}$, whereas transposition and inversion commute freely: $(A^T)^{-1} = (A^{-1})^T$.",
     "Gauss-Jordan elimination $\\begin{bmatrix} A \\mid I_n \\end{bmatrix} \\to \\begin{bmatrix} I_n \\mid A^{-1} \\end{bmatrix}$ works by block-multiplying on the left by the total elimination matrix $E = A^{-1}$."
   ]}
 />
@@ -315,7 +313,7 @@ C = AB = \mathbf{c}_1 \mathbf{r}_1^T + \mathbf{c}_2 \mathbf{r}_2^T =
 \end{bmatrix}
 $$
 
-**Rigorous proof of non-invertibility**: For the right factor $B \in \mathbb{R}^{2\times 3}$, take the nonzero vector $\mathbf{x}_0 = (3, -1, 3)^T \neq \mathbf{0}$; one readily checks that $B\mathbf{x}_0 = (6 - 6,\; 3 - 3)^T = \mathbf{0}$. By Part 3 of Theorem 3.1, $C\mathbf{x}_0 = A(B\mathbf{x}_0) = \mathbf{0}$, and by Part 2 of Theorem 3.2 the square matrix $C$ is not invertible.
+**Singularity** follows from Theorem 3.1 since $\dim\operatorname{Col}(C)\le\dim\operatorname{Col}(A)\le2$. As a check, $\mathbf{x}_0=(3,-1,3)^T\neq\mathbf{0}$ satisfies $B\mathbf{x}_0=(6-6,3-3)^T=\mathbf{0}$, so $C\mathbf{x}_0=\mathbf{0}$ as well.
 
 </SolutionRigorous>
 </DualSolution>
@@ -438,7 +436,7 @@ N = \begin{bmatrix}
 \end{bmatrix} \quad (a, b, c \in \mathbb{R})
 $$
 
-1. Using the row/column views of matrix multiplication, explain why $N^2$ has only a single nonzero entry $ac$ in the top-right corner, and why $N^3 = 0$ (the all-zero matrix).
+1. Explain why the only possibly nonzero entry of $N^2$ is $(N^2)_{13}=ac$, and why $N^3$ is the zero matrix.
 2. By analogy with the high-school geometric series identity $(1 - x)(1 + x + x^2) = 1 - x^3$, **without doing any Gauss-Jordan elimination**, derive in a single line the exact inverse $A^{-1}$ of the unit upper triangular matrix:
 
 $$
@@ -464,7 +462,7 @@ $$
 >
 <SolutionIntuition>
 
-Every multiplication by the strictly upper triangular matrix $N$ pushes the nonzero diagonal one step further toward the top-right corner: the first power sits on the superdiagonal, the second power is pushed to the $(1, 3)$ corner (with value $ac$), and the third power is pushed right off the edge of the matrix into the all-zero matrix $0$! Consequently, the infinite geometric series $(1-x)^{-1} = 1 + x + x^2 + x^3 + \cdots$ applied to $N$ **truncates naturally and exactly** after the quadratic term—without needing any infinite limits at all!
+A nonzero summand in an entry of $N^k$ must follow $k$ strictly increasing index steps. For $N^2$ the only possible path is $1\to2\to3$, with weight $ac$. There is no path of length three. The finite geometric identity therefore gives the inverse directly.
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -516,7 +514,7 @@ A & B \\
 \end{bmatrix}
 $$
 
-1. Many beginners intuitively guess the top-right block of $M^{-1}$ to be $-B$ or $-B^{-1}$ (note that $B$ isn't even square, so $B^{-1}$ doesn't exist!). Write the unknown block inverse as $M^{-1} = \begin{bmatrix} X & Y \\ Z & W \end{bmatrix}$ and use block matrix multiplication to solve directly for the exact expressions of $X, Y, Z, W$, paying strict attention to the left-to-right order of multiplication!
+1. Use block multiplication to find a matrix $\begin{bmatrix}X&Y\\ Z&W\end{bmatrix}$ that satisfies $M\begin{bmatrix}X&Y\\ Z&W\end{bmatrix}=I_{m+n}$. Derive the four blocks and give $M^{-1}$.
 2. When $m = n = 1$ with $A = [1]$ and $D = [1]$, verify that your formula reduces to the scalar elimination matrix inverse $\begin{bmatrix} 1 & b \\ 0 & 1 \end{bmatrix}^{-1} = \begin{bmatrix} 1 & -b \\ 0 & 1 \end{bmatrix}$.
 
 <ProgressiveHint
@@ -586,7 +584,7 @@ $$
 
 <FrontierAIReading
   id="AI-01"
-  title="Four Matrix-Geometric Views of Transformer Self-Attention QKᵀV, the Incremental Essence of KV Cache, and Block-Tiled FlashAttention"
+  title="Scaled Dot-Product Attention, KV Cache, and FlashAttention"
   paperRef="Vaswani et al. (NeurIPS 2017) Attention Is All You Need · Dao et al. (NeurIPS 2022) FlashAttention"
 >
 
@@ -617,17 +615,17 @@ $$
    Do not look at $PV$ entry by entry! Invoke **View ③ (the row-combination view)** directly: row $i$ of the output matrix $O$ is a **convex combination of the rows of $V$** weighted by row $i$ of $P$:
 
 $$
-\mathbf{o}_i^T = \mathbf{p}_i^T V = \sum_{j=1}^{L} p_{ij} \mathbf{v}_j^T \in \operatorname{Row}(V)
+\mathbf{o}_i = \sum_{j=1}^{L} p_{ij}\mathbf{v}_j \in \operatorname{Row}(V)\subseteq\mathbb{R}^{d_v}
 $$
 
-   By **Part 2 of Theorem 3.1**, we immediately deduce a profound geometric fact: $\operatorname{Row}(PV) \subseteq \operatorname{Row}(V)$—the self-attention mechanism itself never creates new feature dimensions outside the row space of $V$; instead, it dynamically remixes token representations within the convex hull spanned by $\operatorname{Row}(V)$!
-   Meanwhile, if we rewrite $PV = \sum_{j=1}^{L} \mathbf{p}_{:, j} \mathbf{v}_j^T$ using **View ④ (the column-times-row outer product view)**, we see that the value row vector $\mathbf{v}_j^T$ of token $j$ is broadcast across the entire sequence as a rank-1 outer product slice, weighted by the column vector $\mathbf{p}_{:, j} \in \mathbb{R}^{L\times 1}$ of attention paid to token $j$ by all tokens!
+   Each $\mathbf{o}_i$ lies in the convex hull of the individual value vectors $\{\mathbf{v}_1,\dots,\mathbf{v}_L\}$. Their linear span is $\operatorname{Row}(V)$, so Part 2 of Theorem 3.1 gives $\operatorname{Row}(PV)\subseteq\operatorname{Row}(V)$ for this single-head aggregation.
+   The outer-product view gives $PV=\sum_{j=1}^L\mathbf{p}_{:,j}\mathbf{v}_j^T$, where $\mathbf{p}_{:,j}\in\mathbb{R}^L$ is column $j$ of $P$. Each term distributes value $j$ across the query positions and has rank at most one.
 
 ---
 
 ### 2. Understanding Why LLM Inference Needs a KV Cache at a Glance via View ⑤ (Block Matrix Multiplication)
 
-In GPT-style causal autoregressive generation, suppose the first $t$ tokens have already been generated, and we now feed in the $(t+1)$-st token to predict the next token. Each matrix naturally acquires one new row at the bottom, forming a **$2\times 1$ block structure**:
+In GPT-style causal autoregressive generation, suppose the first $t$ tokens have already been processed and their keys and values are cached. We now process token $t+1$ to predict token $t+2$. Each matrix naturally acquires one new row at the bottom, forming a **$2\times 1$ block structure**:
 
 $$
 Q_{t+1} = \begin{bmatrix} Q_t \\ \mathbf{q}_{t+1}^T \end{bmatrix}, \quad
@@ -643,10 +641,10 @@ Q_{t+1} K_{t+1}^T =
 \begin{bmatrix} K_t^T & \mathbf{k}_{t+1} \end{bmatrix}
 =
 \begin{bmatrix}
-Q_t K_t^T & Q_t \mathbf{k}_{t+1} \;\text{(zeroed by causal mask!)} \\
+Q_t K_t^T & Q_t \mathbf{k}_{t+1} \\
 \mathbf{q}_{t+1}^T K_t^T & \mathbf{q}_{t+1}^T \mathbf{k}_{t+1}
 \end{bmatrix}
-\xrightarrow{\text{Causal Softmax}}
+\xrightarrow{\text{scale, mask, row-wise softmax}}
 P_{t+1} =
 \begin{bmatrix}
 P_t & \mathbf{0} \\
@@ -654,7 +652,7 @@ P_t & \mathbf{0} \\
 \end{bmatrix}
 $$
 
-Now multiply by the block-partitioned $V_{t+1}$ (the lower-triangular dual of our block upper-triangular matrix in Exercise `l03-ex5`!):
+Now multiply by the block-partitioned $V_{t+1}$ (the lower-triangular factor plays the same block-multiplication role as the upper-triangular matrix in Exercise `l03-ex5`!):
 
 $$
 O_{t+1} = P_{t+1} V_{t+1} =
@@ -675,19 +673,26 @@ O_t \\
 \end{bmatrix}
 $$
 
-The block result makes everything crystal clear:
+Here $P_t$ uses the same scale and causal mask on the prefix. The upper-right zero block is a column in $\mathbb{R}^{t}$, and the bottom-left block is a row of length $t$.
 1. The upper block of historical outputs $O_t = P_t V_t$ **remains completely unchanged** and never needs to be recomputed;
-2. The only output row needed for the new token, $\mathbf{o}_{t+1}^T$, involves multiplying **a single row vector** $\mathbf{q}_{t+1}^T$ against the cached historical matrices $K_t$ and $V_t$! This is the entire linear-algebraic truth behind how the **KV Cache** slashes per-step decoding complexity from $O(t^2 d)$ down to $O(t d)$.
+2. The new query $\mathbf{q}_{t+1}^T$ scores the cached keys and the new key, then combines the cached values and the new value. The per-head attention work for this token is $\mathcal{O}(t(d_k+d_v))$, compared with $\mathcal{O}(t^2(d_k+d_v))$ for recomputing attention on the whole prefix. The cache stores $\mathcal{O}(t(d_k+d_v))$ numbers per head.
 
 ---
 
-### 3. Using View ⑤ (Block Tiling) Again to Understand FlashAttention's Zero-Memory-Explosion Trick
+### 3. Block Tiling and Online Softmax in FlashAttention
 
-When the context length reaches $L = 128\text{K}$, the intermediate matrix $S = QK^T \in \mathbb{R}^{L\times L}$ contains tens of billions of floating-point numbers; materializing it in GPU High Bandwidth Memory (HBM) immediately saturates memory bandwidth. The core insight of **FlashAttention** is a direct marriage of **Views ④ and ⑤** from this lecture:
+At $L=131072$, one dense $L\times L$ score matrix alone has $2^{34}$ entries (32 GiB at two bytes per entry). FlashAttention tiles the computation to reduce transfers between GPU high-bandwidth memory (HBM) and on-chip SRAM.
 
-Partition $K$ and $V$ along the sequence dimension into small blocks $K^{(b)}, V^{(b)} \in \mathbb{R}^{B_c \times d}$. Without the softmax, the block outer-product sum $\sum_b (Q_i K^{(b)T}) V^{(b)}$ could be accumulated tile-by-tile directly inside fast on-chip SRAM without ever storing the full $L\times L$ matrix. The only obstacle to block associativity is the normalizer denominator $\ell_i = \sum_j e^{s_{ij}}$; by tracking a running block maximum $m_i$ and dynamic rescaling factor $e^{m_i^{\text{old}} - m_i^{\text{new}}}$ (Online Softmax), block matrix multiplication streams out the exact $O = PV$ **with zero mathematical approximation error** while never materializing the full matrix $P$ in HBM!
+For a block of $B$ keys and values, the shapes are $B\times d_k$ and $B\times d_v$. For one query row, let $s_j$ denote the scaled scores after masking. For each block $J$ with a finite score, keep the running maximum $m$ of processed scores, the shifted sum $\ell$ and the shifted weighted value sum $\mathbf{u}$. Start from $m=-\infty$, $\ell=0$ and $\mathbf{u}=\mathbf{0}$. Set $m'=\max(m,\max_{j\in J}s_j)$ and let $\rho=e^{m-m'}$ (use $\rho=0$ on the first block). Update
 
-<CollapsibleCode title="Expand PyTorch Tensor Verification (Confirming Exact Equivalence of Row View, Rank-1 Outer-Product Sum, and Incremental KV Cache)">
+$$
+\ell'=\rho\ell+\sum_{j\in J}e^{s_j-m'},\qquad
+\mathbf{u}'=\rho\mathbf{u}+\sum_{j\in J}e^{s_j-m'}\mathbf{v}_j
+$$
+
+and carry forward $(m',\ell',\mathbf{u}')$ to the next block. With at least one finite score, the output is $\mathbf{o}=\mathbf{u}/\ell$. The recurrence computes the same softmax attention in exact arithmetic without storing the full scores or probabilities in HBM. Floating-point results can differ by rounding, and the arithmetic for dense attention is still quadratic in $L$.
+
+<CollapsibleCode title="PyTorch check of outer-product aggregation and the last causal attention row">
 
 ```python
 import torch
@@ -705,17 +710,19 @@ scores = (Q @ K.T) / (d_k ** 0.5)
 P = F.softmax(scores.masked_fill(~mask, float('-inf')), dim=-1)  # (L, L)
 O_standard = P @ V                                               # (L, d_v)
 
-# 2. Lecture 03 View 4 check: sum of column-times-row rank-1 outer product slices ∑ p_{:, j} v_j^T
+# 2. Lecture 03 View 4 check: sum of column-times-row outer products of rank at most 1 ∑ p_{:, j} v_j^T
 O_rank1_sum = sum(P[:, j:j+1] @ V[j:j+1, :] for j in range(L))
 
-# 3. Lecture 03 View 5 check: KV Cache using only the last row q_L^T and cached [K_{1:L}, V_{1:L}] to compute o_L^T
-q_last = Q[-1:, :]                                               # (1, d_k)
-p_last = F.softmax((q_last @ K.T) / (d_k ** 0.5), dim=-1)        # (1, L)
-o_last_cached = p_last @ V                                       # (1, d_v)
+# 3. Model a decode step: use prefix keys/values plus the new token, then query only the final row.
+q_last = Q[-1:, :]                                             # (1, d_k)
+K_cached = torch.cat((K[:-1], K[-1:]), dim=0)                   # (L, d_k)
+V_cached = torch.cat((V[:-1], V[-1:]), dim=0)                   # (L, d_v)
+p_last = F.softmax((q_last @ K_cached.T) / (d_k ** 0.5), dim=-1)  # (1, L)
+o_last_cached = p_last @ V_cached                               # (1, d_v)
 
-assert torch.allclose(O_standard, O_rank1_sum, atol=1e-6)
-assert torch.allclose(O_standard[-1:, :], o_last_cached, atol=1e-6)
-print("All matrix multiplication views match within 1e-6!")
+torch.testing.assert_close(O_standard, O_rank1_sum, rtol=0, atol=1e-6)
+torch.testing.assert_close(O_standard[-1:, :], o_last_cached, rtol=0, atol=1e-6)
+print("Both attention checks pass with absolute tolerance 1e-6.")
 ```
 
 </CollapsibleCode>

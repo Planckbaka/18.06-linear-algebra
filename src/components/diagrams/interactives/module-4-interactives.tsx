@@ -41,11 +41,30 @@ function ControlSlider({
         max={max}
         step={step}
         value={value}
+        disabled={min === max}
         onChange={(e) => onChange(parseFloat(e.target.value))}
         className="h-1.5 w-full cursor-pointer accent-primary"
       />
     </label>
   );
+}
+
+function symmetricSpectrum(a: number, b: number, c: number) {
+  const det = a * c - b * b;
+  const mean = (a + c) / 2;
+  const radius = Math.hypot((a - c) / 2, b);
+  // Get the smaller-magnitude root from the product to avoid subtracting nearly equal values.
+  const dominant = mean >= 0 ? mean + radius : mean - radius;
+  const other = dominant === 0 ? 0 : det / dominant;
+  const [hi, lo] = mean >= 0 ? [dominant, other] : [other, dominant];
+  const theta = radius === 0 ? 0 : Math.atan2(b, (a - c) / 2) / 2;
+  return { det, hi, lo, theta, repeated: radius === 0 };
+}
+
+function inertia(values: readonly number[]) {
+  const positive = values.filter((v) => v > 0).length;
+  const negative = values.filter((v) => v < 0).length;
+  return { positive, negative, label: `正 ${positive} · 负 ${negative} · 零 ${values.length - positive - negative}` };
 }
 
 // ============================================================================
@@ -56,21 +75,20 @@ function L26SpectralInertiaSandbox() {
   const [b, setB] = React.useState(2);
   const [c, setC] = React.useState(3);
 
-  const tr = a + c;
-  const det = a * c - b * b;
-  const disc = Math.sqrt(Math.max(0, (a - c) * (a - c) + 4 * b * b));
-  const lam1 = (tr + disc) / 2;
-  const lam2 = (tr - disc) / 2;
+  const { det, hi, lo, theta, repeated } = symmetricSpectrum(a, b, c);
+  const eig = inertia([hi, lo]);
+  const kind = eig.positive === 2 ? '正定 SPD'
+    : eig.negative === 2 ? '负定'
+    : eig.positive && eig.negative ? '不定'
+    : eig.positive ? '半正定（秩 1）'
+    : eig.negative ? '半负定（秩 1）'
+    : '零矩阵';
 
-  const d1 = a;
-  const d2 = Math.abs(a) > 1e-6 ? c - (b * b) / a : c;
-
-  const posEig = (lam1 > 1e-5 ? 1 : 0) + (lam2 > 1e-5 ? 1 : 0);
-  const negEig = (lam1 < -1e-5 ? 1 : 0) + (lam2 < -1e-5 ? 1 : 0);
-  const posPiv = (d1 > 1e-5 ? 1 : 0) + (d2 > 1e-5 ? 1 : 0);
-  const negPiv = (d1 < -1e-5 ? 1 : 0) + (d2 < -1e-5 ? 1 : 0);
-
-  const theta = 0.5 * Math.atan2(2 * b, a - c);
+  // Symmetric elimination is a congruence; an off-diagonal pivot requires a block.
+  const pivot = a !== 0 ? a : c;
+  const block = pivot === 0 && b !== 0;
+  const diagonal = pivot === 0 ? [0, 0] : [pivot, det / pivot];
+  const pivots = inertia(block ? [Math.abs(b), -Math.abs(b)] : diagonal);
 
   return (
     <div className="space-y-3">
@@ -78,8 +96,8 @@ function L26SpectralInertiaSandbox() {
         <div className="space-y-2 rounded-lg border bg-background/70 p-3">
           <div className="flex items-center justify-between text-xs font-semibold">
             <span>实对称矩阵 S = [a, b; b, c]</span>
-            <Badge variant={posEig === 2 ? 'emerald' : negEig === 1 && posEig === 1 ? 'amber' : 'blue'} className="font-mono text-[10px]">
-              {posEig === 2 ? '正定 SPD' : posEig === 1 && negEig === 1 ? '不定鞍点' : '半正/负定'}
+            <Badge variant={eig.positive === 2 ? 'emerald' : eig.positive && eig.negative ? 'amber' : 'blue'} className="font-mono text-[10px]">
+              {kind}
             </Badge>
           </div>
           <ControlSlider label="对角元素 a = s₁₁" value={a} min={-4} max={5} step={0.5} onChange={setA} />
@@ -88,14 +106,17 @@ function L26SpectralInertiaSandbox() {
         </div>
 
         <div className="flex flex-col justify-center space-y-2 rounded-lg border bg-background/70 p-3 font-mono text-[11px]">
-          <div className="font-sans text-xs font-semibold">惯性定理验证 (主元符号数 ≡ 特征值符号数)</div>
+          <div className="font-sans text-xs font-semibold">Sylvester 惯性定理（对称消元为合同变换）</div>
           <div className="rounded border bg-muted/30 p-2 space-y-1">
-            <div>特征值: λ₁ = {fmt(lam1)}, λ₂ = {fmt(lam2)} (正 {posEig} · 负 {negEig})</div>
-            <div>消元主元: d₁ = {fmt(d1)}, d₂ = {fmt(d2)} {Math.abs(a) < 1e-6 ? '(需行交换)' : `(正 ${posPiv} · 负 ${negPiv})`}</div>
-            <div>正交主轴倾角 θ = {fmt((theta * 180) / Math.PI, 1)}° (q₁ ⊥ q₂)</div>
+            <div>λ₁ ≈ {fmt(hi)}，λ₂ ≈ {fmt(lo)}（{eig.label}）</div>
+            <div>{block
+              ? `2×2 主元块 D = [0, ${b}; ${b}, 0]，块特征值为 ±${Math.abs(b)}`
+              : `${a === 0 && c !== 0 ? '同时交换行与列后，' : ''}D ≈ diag(${fmt(diagonal[0])}, ${fmt(diagonal[1])})`}（{pivots.label}）</div>
+            <div>{repeated ? '重根：任意标准正交基均可，本例取 Q = I₂。'
+              : `q₁ 与 x 轴夹角约 ${fmt((theta * 180) / Math.PI, 1)}°，q₂ 为与 q₁ 正交的单位向量。`}</div>
           </div>
           <p className="mb-0 font-sans text-[11px] text-muted-foreground">
-            谱定理 S = QΛQᵀ 保证任意实对称阵都可正交对角化，且在正交旋转后交叉项消失，只剩纯平方项 λ₁y₁² + λ₂y₂²。
+            谱定理 S = QΛQᵀ 保证任意实对称矩阵都可正交对角化。令 x = Qy，二次型变为 λ₁y₁² + λ₂y₂²。
           </p>
         </div>
       </div>
@@ -106,35 +127,64 @@ function L26SpectralInertiaSandbox() {
 // ============================================================================
 // L27: Complex Numbers, Fourier Matrix & Roots of Unity Sandbox
 // ============================================================================
+type Complex = readonly [real: number, imaginary: number];
+
+function multiplyComplex([ar, ai]: Complex, [br, bi]: Complex): Complex {
+  return [ar * br - ai * bi, ar * bi + ai * br];
+}
+
+function radix2Fft(signal: Complex[], roots: Complex[]): Complex[] {
+  const n = signal.length;
+  if (n === 1) return signal;
+  const even = radix2Fft(signal.filter((_, i) => i % 2 === 0), roots);
+  const odd = radix2Fft(signal.filter((_, i) => i % 2 === 1), roots);
+  const combined: Complex[] = [];
+  for (let k = 0; k < n / 2; k++) {
+    const twiddle = roots[k * (roots.length / n)];
+    const [r, i] = multiplyComplex(odd[k], twiddle);
+    combined[k] = [even[k][0] + r, even[k][1] + i];
+    combined[k + n / 2] = [even[k][0] - r, even[k][1] - i];
+  }
+  return combined;
+}
+
 function L27ComplexFftSandbox() {
-  const [n, setN] = React.useState<4 | 8>(8);
+  const sizes = [2, 4, 8, 16] as const;
+  const [n, setN] = React.useState<(typeof sizes)[number]>(8);
   const [freqK, setFreqK] = React.useState(1);
 
-  const pts = Array.from({ length: n }, (_, j) => {
-    const angle = (2 * Math.PI * freqK * j) / n;
-    return {
-      j,
-      x: Math.cos(angle),
-      y: Math.sin(angle),
-      cx: 110 + 72 * Math.cos(angle),
-      cy: 110 - 72 * Math.sin(angle),
-    };
+  const roots = Array.from({ length: n }, (_, j): Complex => {
+    const angle = (2 * Math.PI * j) / n;
+    return [Math.cos(angle), Math.sin(angle)];
   });
-
+  const indices = Array.from({ length: n }, (_, j) => (freqK * j) % n);
+  const signal = indices.map((j) => roots[j]);
+  const pts = signal.map(([x, y], j) => ({ j, cx: 110 + 72 * x, cy: 110 - 72 * y }));
+  const firstVisits = pts.filter(({ j }) => indices.indexOf(indices[j]) === j);
+  const copiesPerRoot = n / firstVisits.length;
+  const direct = roots.map((_, k) =>
+    signal.reduce<Complex>(([sumR, sumI], value, j) => {
+      const [r, i] = multiplyComplex(value, roots[(k * j) % n]);
+      return [sumR + r, sumI + i];
+    }, [0, 0])
+  );
+  const fft = radix2Fft(signal, roots);
+  const peakBin = (n - freqK) % n;
+  const maxError = Math.max(...fft.map(([r, i], k) => Math.hypot(r - direct[k][0], i - direct[k][1])));
   const dftOps = n * n;
-  const fftOps = Math.round((n * Math.log2(n)) / 2);
+  const fftOps = (n * Math.log2(n)) / 2;
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-1.5">
-        <Button size="sm" variant={n === 4 ? 'default' : 'outline'} className="h-7 text-[11px]" onClick={() => { setN(4); setFreqK((k) => k % 4); }}>
-          N = 4 傅里叶矩阵 F₄
-        </Button>
-        <Button size="sm" variant={n === 8 ? 'default' : 'outline'} className="h-7 text-[11px]" onClick={() => setN(8)}>
-          N = 8 傅里叶矩阵 F₈ (Radix-2 FFT)
-        </Button>
+        {sizes.map((size) => (
+          <Button key={size} size="sm" variant={n === size ? 'default' : 'outline'} className="h-7 text-[11px]"
+            aria-pressed={n === size} onClick={() => { setN(size); setFreqK((k) => k % size); }}>
+            N = {size}
+          </Button>
+        ))}
         <Badge variant="purple" className="ml-auto font-mono text-[10px]">
-          复单位根 ωₙ = e^(i 2π/{n}) · FFT 蝶形乘法数 ~ {fftOps} vs DFT {dftOps}
+          复单位根 ωₙ = exp(2πi/{n})
         </Badge>
       </div>
 
@@ -150,12 +200,12 @@ function L27ComplexFftSandbox() {
               strokeWidth="1.8"
               points={[...pts, pts[0]].map((p) => `${p.cx},${p.cy}`).join(' ')}
             />
-            {pts.map((p) => (
+            {firstVisits.map((p) => (
               <g key={p.j}>
                 <line x1="110" y1="110" x2={p.cx} y2={p.cy} className="stroke-primary/35" strokeWidth="1" />
                 <circle cx={p.cx} cy={p.cy} r="5" className={p.j === 1 ? 'fill-amber-500' : 'fill-blue-600 dark:fill-blue-400'} />
                 <text x={p.cx + 7} y={p.cy + 3} className="fill-current font-mono text-[9px]">
-                  j={p.j}
+                  {copiesPerRoot > 1 ? `×${copiesPerRoot}` : `j=${p.j}`}
                 </text>
               </g>
             ))}
@@ -163,13 +213,13 @@ function L27ComplexFftSandbox() {
         </div>
 
         <div className="flex flex-col justify-center space-y-2.5 rounded-lg border bg-background/70 p-3">
-          <ControlSlider label={`频率列索引 k (F 的第 k 列 ω^(k·j))`} value={freqK} min={0} max={n - 1} step={1} onChange={setFreqK} />
+          <ControlSlider label="输入频率 k（样本 x[j] = ωₙ^(kj)）" value={freqK} min={0} max={n - 1} step={1} onChange={setFreqK} />
           <div className="rounded border bg-muted/30 p-2.5 font-mono text-[11px] space-y-1">
-            <div>第 k={freqK} 步进角 = {fmt((360 * freqK) / n, 1)}°</div>
-            <div>共轭内积 Fₕᴴ Fₘ = {n}·δₕₘ (各列严格酉正交！)</div>
-            <div className="text-muted-foreground font-sans">
-              当 k &gt; 0 时，单位根向量在复平面绕圆对称分布，矢量总和恰好为 0 (直流分量正交抵消)。
-            </div>
+            <div>X = Fₙx，X[m] = Σⱼ x[j] ωₙ^(mj) = Σⱼ ωₙ^((k+m)j)</div>
+            <div>FᴴF = {n}I，F/√{n} 为酉矩阵</div>
+            <div>FFT：m ≡ −k (mod N) 时，|X[{peakBin}]| = {fmt(Math.hypot(...fft[peakBin]))}；其余频点的单位根之和为 0。</div>
+            <div>maxₘ |X<sub>FFT</sub>[m] − X<sub>DFT</sub>[m]|（数值差）= {maxError.toExponential(2)}</div>
+            <div className="text-muted-foreground">复数乘法次数（含平凡因子）：FFT {fftOps}，直接 DFT {dftOps}</div>
           </div>
         </div>
       </div>
@@ -185,26 +235,22 @@ function L28SpdEllipsoidExplorer() {
   const [b, setB] = React.useState(1);
   const [c, setC] = React.useState(2);
 
-  const det = a * c - b * b;
+  const { det, hi, lo, theta } = symmetricSpectrum(a, b, c);
   const isSpd = a > 0 && det > 0;
+  const levelSet = hi <= 0 ? '等值集为空：二次型始终 ≤ 0。'
+    : lo === 0 ? '半正定（秩 1）：等值集为两条平行直线。'
+    : '不定：等值集为双曲线。';
 
-  // Parametric points for x^T S x = 1 if SPD
-  const tr = a + c;
-  const disc = Math.sqrt(Math.max(0, (a - c) * (a - c) + 4 * b * b));
-  const lam1 = (tr + disc) / 2;
-  const lam2 = (tr - disc) / 2;
-  const theta = 0.5 * Math.atan2(2 * b, a - c);
-
-  const contourPts = isSpd
-    ? Array.from({ length: 49 }, (_, i) => {
-        const t = (i / 48) * 2 * Math.PI;
-        const y1 = Math.cos(t) / Math.sqrt(lam1);
-        const y2 = Math.sin(t) / Math.sqrt(lam2);
-        const x1 = y1 * Math.cos(theta) - y2 * Math.sin(theta);
-        const x2 = y1 * Math.sin(theta) + y2 * Math.cos(theta);
-        return [110 + x1 * 55, 100 - x2 * 55];
-      })
-    : [];
+  const axes = isSpd ? [1 / Math.sqrt(hi), 1 / Math.sqrt(lo)] : null;
+  const scale = axes ? Math.min(55, 67 / axes[1]) : 55;
+  const cos = Math.cos(theta);
+  const sin = Math.sin(theta);
+  const toSvg = (y1: number, y2: number): [number, number] =>
+    [110 + (y1 * cos - y2 * sin) * scale, 110 - (y1 * sin + y2 * cos) * scale];
+  const contourPts = axes ? Array.from({ length: 64 }, (_, i) => {
+    const t = (i / 64) * 2 * Math.PI;
+    return toSvg(axes[0] * Math.cos(t), axes[1] * Math.sin(t)).join(',');
+  }) : [];
 
   return (
     <div className="space-y-3">
@@ -212,37 +258,38 @@ function L28SpdEllipsoidExplorer() {
         <div className="rounded-lg border bg-background/70 p-2.5">
           <svg viewBox="0 0 220 200" className="w-full max-h-52 text-foreground">
             <rect x="12" y="12" width="196" height="176" rx="4" className="fill-muted/20 stroke-border" />
-            <line x1="12" y1="100" x2="208" y2="100" className="stroke-border" strokeDasharray="3 3" />
+            <line x1="12" y1="110" x2="208" y2="110" className="stroke-border" strokeDasharray="3 3" />
             <line x1="110" y1="12" x2="110" y2="188" className="stroke-border" strokeDasharray="3 3" />
-            {isSpd ? (
-              <polygon
-                points={contourPts.map((p) => p.join(',')).join(' ')}
-                className="fill-emerald-500/20 stroke-emerald-600 dark:stroke-emerald-400"
-                strokeWidth="2.5"
-              />
-            ) : (
-              <text x="110" y="104" textAnchor="middle" className="fill-rose-500 font-semibold text-xs">
-                非正定：等高面坍塌为双曲鞍面！
-              </text>
+            {axes && (
+              <>
+                <polygon points={contourPts.join(' ')}
+                  className="fill-emerald-500/20 stroke-emerald-600 dark:stroke-emerald-400" strokeWidth="2.5" />
+                {axes.map((axis, i) => {
+                  const [x1, y1] = i === 0 ? toSvg(-axis, 0) : toSvg(0, -axis);
+                  const [x2, y2] = i === 0 ? toSvg(axis, 0) : toSvg(0, axis);
+                  return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} strokeWidth="2"
+                    className={i === 0 ? 'stroke-blue-500' : 'stroke-amber-500'} />;
+                })}
+              </>
             )}
             <text x="18" y="26" className="fill-current font-mono text-[10px]">
-              等能量椭圆 xᵀ S x = 1 (长短半轴 1/√λᵢ)
+              {axes ? '椭圆 xᵀSx = 1' : '正定时绘制等值椭圆'}
             </text>
           </svg>
         </div>
 
         <div className="flex flex-col justify-center space-y-2 rounded-lg border bg-background/70 p-3">
-          <ControlSlider label="s₁₁ = a" value={a} min={0.5} max={4} step={0.5} onChange={setA} />
+          <ControlSlider label="s₁₁ = a" value={a} min={-4} max={4} step={0.5} onChange={setA} />
           <ControlSlider label="耦合项 s₁₂ = b" value={b} min={-2.5} max={2.5} step={0.5} onChange={setB} />
-          <ControlSlider label="s₂₂ = c" value={c} min={0.5} max={4} step={0.5} onChange={setC} />
+          <ControlSlider label="s₂₂ = c" value={c} min={-4} max={4} step={0.5} onChange={setC} />
           <div className="flex flex-wrap gap-1 font-mono text-[10px]">
-            <Badge variant={a > 0 && c - (b * b) / a > 0 ? 'emerald' : 'destructive'}>
-              主元 &gt; 0: {a > 0 && det > 0 ? '✓' : '✗'}
-            </Badge>
-            <Badge variant={det > 0 ? 'emerald' : 'destructive'}>det = {fmt(det)}</Badge>
-            <Badge variant={lam2 > 0 ? 'emerald' : 'destructive'}>
-              λ = ({fmt(lam1)}, {fmt(lam2)})
-            </Badge>
+            <Badge variant={isSpd ? 'emerald' : 'destructive'}>顺序主子式：a = {fmt(a)}，det(S) = {fmt(det)}</Badge>
+            <Badge variant={lo > 0 ? 'emerald' : 'destructive'}>λ ≈ ({fmt(hi)}, {fmt(lo)})</Badge>
+          </div>
+          <div className="font-mono text-[11px] text-muted-foreground">
+            {axes
+              ? `半轴 1/√λ₁ ≈ ${fmt(axes[0])}，1/√λ₂ ≈ ${fmt(axes[1])}（沿 q₁、q₂）。`
+              : levelSet}
           </div>
         </div>
       </div>
@@ -257,40 +304,14 @@ function L29SimilarityJordanSandbox() {
   const [mShear, setMShear] = React.useState(1);
   const [blockType, setBlockType] = React.useState<'diag' | 'jordan'>('jordan');
 
-  // A = [[3, 0], [0, 3]] if diag, [[3, 1], [0, 3]] if jordan
-  // M = [[1, mShear], [0, 1]], M^-1 = [[1, -mShear], [0, 1]]
-  // B = M^-1 A M
-  const b12 = blockType === 'diag' ? 0 : 1; // Notice M^-1 J M for upper tri M keeps trace=6, det=9, Jordan off-diag=1!
-  const B =
-    blockType === 'diag'
-      ? [
-          [3, 0],
-          [0, 3],
-        ]
-      : [
-          [3, 1],
-          [0, 3],
-        ];
-  // Use general scaling M = [[1, mShear], [mShear*0.2, 1]] when mShear != 0 to show entries change while trace & det remain invariant!
-  const detM = 1 - 0.2 * mShear * mShear;
-  const A = blockType === 'diag' ? [3, 0, 0, 3] : [3, 1, 0, 3];
-  // Compute AM then M^-1(AM)
-  const am00 = A[0] * 1 + A[1] * (0.2 * mShear);
-  const am01 = A[0] * mShear + A[1] * 1;
-  const am10 = A[2] * 1 + A[3] * (0.2 * mShear);
-  const am11 = A[2] * mShear + A[3] * 1;
-  const inv00 = 1 / detM;
-  const inv01 = -mShear / detM;
-  const inv10 = (-0.2 * mShear) / detM;
-  const inv11 = 1 / detM;
-
-  const res00 = inv00 * am00 + inv01 * am10;
-  const res01 = inv00 * am01 + inv01 * am11;
-  const res10 = inv10 * am00 + inv11 * am10;
-  const res11 = inv10 * am01 + inv11 * am11;
-
-  void b12;
-  void B;
+  // B = 3I + M⁻¹ N M, with N = e₁e₂ᵀ for the Jordan block.
+  const lower = mShear / 5;
+  const detM = 1 - mShear * lower; // At least 0.55 over the slider range.
+  const weight = blockType === 'jordan' ? 1 / detM : 0;
+  const res00 = 3 + weight * lower;
+  const res01 = weight;
+  const res10 = -weight * lower * lower;
+  const res11 = 3 - weight * lower;
 
   return (
     <div className="space-y-3">
@@ -308,9 +329,12 @@ function L29SimilarityJordanSandbox() {
 
       <div className="grid gap-3 md:grid-cols-2 rounded-lg border bg-background/70 p-3">
         <div className="space-y-2">
-          <ControlSlider label="相似变换基底参数 M(s)" value={mShear} min={-1.5} max={1.5} step={0.25} onChange={setMShear} />
+          <ControlSlider label="换基参数 s" value={mShear} min={-1.5} max={1.5} step={0.25} onChange={setMShear} />
+          <div className="font-mono text-[11px]">M = [1, {fmt(mShear)}; {fmt(lower)}, 1]，det(M) = {fmt(detM, 4)} &gt; 0</div>
           <p className="text-[11px] text-muted-foreground mb-0">
-            无论基底 M 如何倾斜，相似矩阵 B = M⁻¹ A M 永远锁定同一套特征值 λ = 3, 3、迹 = 6 与行列式 = 9；且 Jordan 块的超对角“1”无法通过任何相似变换消去！
+            λ = 3 的代数重数为 2。rank(B − 3I) = {blockType === 'jordan' ? 1 : 0}，
+            rank((B − 3I)ᵏ) = 0（k ≥ 2），与 A 的对应幂秩相同。
+            {blockType === 'jordan' ? ' 几何重数为 1，因此无法对角化。' : ' B = 3I，几何重数为 2，每个非零向量都是特征向量。'}
           </p>
         </div>
 
@@ -331,33 +355,41 @@ function L29SimilarityJordanSandbox() {
 // ============================================================================
 function L30SvdCircleEllipse() {
   const [sig1, setSig1] = React.useState(2.2);
-  const [sig2, setSig2] = React.useState(0.9);
+  const [second, setSig2] = React.useState(0.9);
   const [thetaV, setThetaV] = React.useState(25);
   const [thetaU, setThetaU] = React.useState(35);
   const [probeDeg, setProbeDeg] = React.useState(45);
+  const [reflected, setReflected] = React.useState(false);
+  const sig2 = Math.min(sig1, second);
 
   const rv = (thetaV * Math.PI) / 180;
   const ru = (thetaU * Math.PI) / 180;
   const rp = (probeDeg * Math.PI) / 180;
-
-  // Input right singular basis v1, v2 and probe x on unit circle
+  const sign = reflected ? -1 : 1;
   const v1: [number, number] = [Math.cos(rv), Math.sin(rv)];
-  const v2: [number, number] = [-Math.sin(rv), Math.cos(rv)];
-  const xPt: [number, number] = [Math.cos(rp), Math.sin(rp)];
-
-  // Coordinates of x in V basis
-  const c1 = xPt[0] * v1[0] + xPt[1] * v1[1];
-  const c2 = xPt[0] * v2[0] + xPt[1] * v2[1];
-
-  // Output left singular basis u1, u2 and mapped point A x = sig1*c1*u1 + sig2*c2*u2
+  const v2: [number, number] = [-v1[1], v1[0]];
   const u1: [number, number] = [Math.cos(ru), Math.sin(ru)];
-  const u2: [number, number] = [-Math.sin(ru), Math.cos(ru)];
-  const axPt: [number, number] = [sig1 * c1 * u1[0] + sig2 * c2 * u2[0], sig1 * c1 * u1[1] + sig2 * c2 * u2[1]];
+  const u2: [number, number] = [-sign * u1[1], sign * u1[0]];
+
+  // Build A and the signed axes from the same paired singular vectors.
+  const A = u1.map((value, i) =>
+    v1.map((component, j) => sig1 * value * component + sig2 * u2[i] * v2[j])
+  );
+  const apply = ([x, y]: [number, number]): [number, number] =>
+    [A[0][0] * x + A[0][1] * y, A[1][0] * x + A[1][1] * y];
+  const xPt: [number, number] = [Math.cos(rp), Math.sin(rp)];
+  const axPt = apply(xPt);
+  const aV1 = apply(v1);
+  const aV2 = apply(v2);
+  const pairingError = Math.max(
+    Math.hypot(aV1[0] - sig1 * u1[0], aV1[1] - sig1 * u1[1]),
+    Math.hypot(aV2[0] - sig2 * u2[0], aV2[1] - sig2 * u2[1]),
+  );
+  const rank = Number(sig1 > 0) + Number(sig2 > 0);
 
   const ellipsePts = Array.from({ length: 49 }, (_, i) => {
     const a = (i / 48) * 2 * Math.PI;
-    const px = sig1 * Math.cos(a) * u1[0] + sig2 * Math.sin(a) * u2[0];
-    const py = sig1 * Math.cos(a) * u1[1] + sig2 * Math.sin(a) * u2[1];
+    const [px, py] = apply([Math.cos(a), Math.sin(a)]);
     return [95 + px * 28, 95 - py * 28];
   });
 
@@ -394,16 +426,25 @@ function L30SvdCircleEllipse() {
       </div>
 
       <div className="grid gap-3 rounded-lg border bg-background/60 p-3 sm:grid-cols-4">
-        <ControlSlider label="最大奇异值 σ₁" value={sig1} min={0.5} max={3} step={0.1} onChange={setSig1} />
-        <ControlSlider label="第二奇异值 σ₂" value={sig2} min={0} max={2.5} step={0.1} onChange={setSig2} />
-        <ControlSlider label="输入旋转 Vᵀ" value={thetaV} min={0} max={180} step={5} onChange={setThetaV} unit="°" />
-        <ControlSlider label="探针角度 φ" value={probeDeg} min={0} max={360} step={10} onChange={setProbeDeg} unit="°" />
+        <ControlSlider label="最大奇异值 σ₁" value={sig1} min={0} max={3} step={0.1} onChange={(value) => { setSig1(value); setSig2(Math.min(value, sig2)); }} />
+        <ControlSlider label="第二奇异值 σ₂" value={sig2} min={0} max={sig1} step={0.1} onChange={setSig2} />
+        <ControlSlider label="右奇异基 V 的角度" value={thetaV} min={0} max={180} step={5} onChange={setThetaV} unit="°" />
+        <ControlSlider label="探针角度 φ" value={probeDeg} min={0} max={360} step={5} onChange={setProbeDeg} unit="°" />
       </div>
-      <div className="flex flex-wrap justify-between text-[11px] font-mono text-muted-foreground">
-        <span>输出旋转 U 角度: {thetaU}° (可调节奇异值观察 rank-1 压扁)</span>
-        <span>条件数 κ(A) = σ₁ / σ₂ = {sig2 > 0.05 ? fmt(sig1 / sig2) : '∞ (奇异！)'}</span>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ControlSlider label="左奇异向量 u₁ 的角度" value={thetaU} min={0} max={180} step={5} onChange={setThetaU} unit="°" />
+        <Button size="sm" variant={reflected ? 'default' : 'outline'} aria-pressed={reflected} onClick={() => setReflected(!reflected)}>
+          反转第二输出方向（σ₂ &gt; 0 时改变 A）
+        </Button>
       </div>
-      <ControlSlider label="输出主轴旋转 U" value={thetaU} min={0} max={180} step={5} onChange={setThetaU} unit="°" />
+      <div className="space-y-1 font-mono text-[11px] text-muted-foreground">
+        <div>A = UΣVᵀ ≈ [{A.map((row) => row.map((v) => fmt(v)).join(', ')).join('; ')}]</div>
+        <div>maxᵢ ‖Avᵢ − σᵢuᵢ‖₂ = {pairingError.toExponential(2)} · rank(A) = {rank} · det(A) ≈ {fmt(sign * sig1 * sig2)}</div>
+        <div>{rank === 2 ? `条件数 κ₂(A) = σ₁ / σ₂ = ${fmt(sig1 / sig2)}` : 'κ₂(A) = ∞（A 奇异）'} · {
+          rank === 0 ? '单位圆映为原点' : rank === 1 ? '单位圆映为线段' : sig1 === sig2 ? '等奇异值：像为圆，奇异基可成对旋转' : '单位圆映为椭圆'
+        }</div>
+        <div>最优秩至多 1 的截断 A₁ = σ₁u₁v₁ᵀ：‖A − A₁‖₂ = ‖A − A₁‖_F = σ₂ = {fmt(sig2)}</div>
+      </div>
     </div>
   );
 }
@@ -424,7 +465,7 @@ function L31LinearTransformBases() {
     <div className="space-y-3">
       <div className="grid gap-3 md:grid-cols-2">
         <div className="space-y-2 rounded-lg border bg-background/70 p-3">
-          <div className="text-xs font-semibold">选定基组 B = &#123;1, x, x², x³&#125; 上的多项式输入</div>
+          <div className="text-xs font-semibold">有序基 B = (1, x, x², x³) 下的多项式坐标</div>
           <div className="grid grid-cols-2 gap-2">
             <ControlSlider label="常数项 c₀" value={c0} min={-4} max={4} step={1} onChange={setC0} />
             <ControlSlider label="一次项 c₁" value={c1} min={-4} max={4} step={1} onChange={setC1} />
@@ -434,7 +475,7 @@ function L31LinearTransformBases() {
         </div>
 
         <div className="flex flex-col justify-center space-y-2 rounded-lg border bg-background/70 p-3 font-mono text-[11px]">
-          <div className="font-sans text-xs font-semibold">求导算子 T = d/dx 的基坐标矩阵 [D] (4×4 幂零阵)</div>
+          <div className="font-sans text-xs font-semibold">求导算子 T = d/dx 的矩阵 D = [T]<sub>B</sub>（4×4 幂零阵）</div>
           <div className="grid grid-cols-2 gap-2 items-center">
             <div className="rounded border bg-muted/30 p-2 text-center">
               <div>[ 0, 1, 0, 0 ]</div>
@@ -448,7 +489,7 @@ function L31LinearTransformBases() {
                 导数坐标: [{out.join(', ')}]ᵀ
               </div>
               <div className="text-muted-foreground font-sans">
-                即 {out[0]} + {out[1]}x + {out[2]}x²；常数项被“零空间”消灭 (c₀ 不影响导数)！
+                即 {out[0]} + {out[1]}x + {out[2]}x²。常数多项式张成 Null(T)，所以 c₀ 不影响导数。
               </div>
             </div>
           </div>
@@ -467,27 +508,31 @@ function L32BasisCompressionSandbox() {
   const totalEnergy = sigmas.reduce((s, v) => s + v * v, 0);
   const keptEnergy = sigmas.slice(0, keepK).reduce((s, v) => s + v * v, 0);
   const ratio = (keptEnergy / totalEnergy) * 100;
-  const frobErr = Math.sqrt(totalEnergy - keptEnergy);
+  const discarded = sigmas.slice(keepK);
+  const spectralErr = discarded[0] ?? 0;
+  const frobErr = Math.hypot(...discarded);
+  const storedEntries = keepK * (100 + 100 + 1);
 
   return (
     <div className="space-y-3">
       <div className="grid gap-3 md:grid-cols-2 rounded-lg border bg-background/70 p-3">
         <div className="space-y-2.5">
           <div className="flex items-center justify-between text-xs font-semibold">
-            <span>Eckart-Young 低秩奇异值截断压缩</span>
+            <span>Eckart–Young–Mirsky 低秩近似</span>
             <Badge variant="emerald" className="font-mono text-[10px]">
               能量保留 {fmt(ratio, 1)}%
             </Badge>
           </div>
-          <ControlSlider label="保留奇异分量个数 k (秩-k 逼近)" value={keepK} min={1} max={6} step={1} onChange={setKeepK} />
+          <ControlSlider label="保留奇异分量个数 k (秩-k 逼近)" value={keepK} min={0} max={6} step={1} onChange={setKeepK} />
           <div className="rounded border bg-muted/30 p-2 font-mono text-[11px] space-y-1">
-            <div>Frobenius 截断误差 ‖A − Aₖ‖_F = {fmt(frobErr)}</div>
-            <div>若为 100×100 矩阵，存储仅需 {keepK}×(100+100) = {keepK * 200} 数 ({fmt((keepK * 200) / 100, 1)}%)</div>
+            <div>谱范数误差 ‖A − Aₖ‖₂ = {fmt(spectralErr)}</div>
+            <div>Frobenius 范数误差 ‖A − Aₖ‖_F ≈ {fmt(frobErr)}</div>
+            <div>若为 100×100 矩阵，存储 Uₖ、保留的奇异值与 Vₖ 共 {keepK}×(100+1+100) = {storedEntries} 个数 ({fmt(storedEntries / 100, 2)}%)</div>
           </div>
         </div>
 
         <div className="flex flex-col justify-center">
-          <div className="mb-1 text-[11px] font-semibold">奇异值谱衰减 σ₁ … σ₆</div>
+          <div className="mb-1 text-[11px] font-semibold">六个正奇异值 σ₁ … σ₆（其余为 0）</div>
           <svg viewBox="0 0 240 120" className="w-full max-h-36 text-foreground">
             <line x1="15" y1="100" x2="225" y2="100" className="stroke-border" />
             {sigmas.map((s, idx) => {
@@ -519,35 +564,35 @@ function L33Quiz3SynthesisSandbox() {
 
   const items: Record<
     FactId,
-    { title: string; formula: string; domain: string; cost: string; aiBridge: string }
+    { title: string; formula: string; domain: string; cost: string; property: string }
   > = {
     lu: {
       title: 'Gaussian 消元 LU',
       formula: 'PA = L U',
-      domain: '可逆方阵或一般消元',
-      cost: 'O(⅔ n³)',
-      aiBridge: '线性求解器、数值微分方程隐式步进',
+      domain: '带行主元的方阵消元',
+      cost: 'O(n³)，主项 ⅔ n³ flops',
+      property: 'P 为置换矩阵，L 为单位下三角，U 为上三角。',
     },
     qr: {
       title: 'Gram-Schmidt 正交分解 QR',
       formula: 'A = Q R',
-      domain: '列满秩 m ≥ n 矩阵',
-      cost: 'O(2 m n²)',
-      aiBridge: 'RoPE / Householder 正交参数化、稳定正交初始化',
+      domain: '实矩阵 A ∈ ℝᵐˣⁿ，m ≥ n；列满秩时可直接逐列归一化',
+      cost: 'O(mn²)',
+      property: '薄 QR 满足 QᵀQ = Iₙ，R 为上三角。遇到零残差列时，可逐列补入与已有列正交的单位向量。',
     },
     eig: {
       title: '谱定理 / 特征分解',
       formula: 'S = Q Λ Qᵀ  (一般 A = X Λ X⁻¹)',
-      domain: '实对称阵 S 或可对角化方阵',
+      domain: '实对称阵 S；一般式要求 A 在所选数域上有完整的特征基',
       cost: 'O(n³)',
-      aiBridge: 'Mamba 状态空间稳态分析、GNN 图拉普拉斯频域滤波',
+      property: '实对称矩阵的特征基可取为标准正交基。',
     },
     svd: {
       title: '奇异值分解 SVD (大一统分解)',
-      formula: 'A = U Σ Vᵀ',
-      domain: '任意实/复 m×n 矩阵（无任何前提限制！）',
-      cost: 'O(m n²)',
-      aiBridge: 'LoRA 低秩微调、K-V Cache 压缩、光谱归一化与条件数调控',
+      formula: 'A = UΣVᵀ（实） / A = UΣVᴴ（复）',
+      domain: '任意 m×n 实或复矩阵',
+      cost: 'O(mn min(m,n))（薄 SVD）',
+      property: 'Σ 的正对角元个数等于 rank(A)。',
     },
   };
 
@@ -571,7 +616,7 @@ function L33Quiz3SynthesisSandbox() {
           <strong className="text-foreground">适用范围：</strong>{cur.domain}
         </div>
         <div className="text-xs text-muted-foreground">
-          <strong className="text-foreground">前沿 AI 同构：</strong>{cur.aiBridge}
+          <strong className="text-foreground">结构：</strong>{cur.property}
         </div>
       </div>
     </div>
@@ -586,27 +631,26 @@ function L34PseudoinverseSandbox() {
   const [tau, setTau] = React.useState(0.1);
 
   const sig1 = 2.0;
-  // Compare exact 1/sig2 vs Tikhonov sig2/(sig2^2 + tau^2) vs hard truncation
-  const exactInv2 = sig2 > 1e-4 ? 1 / sig2 : 0;
-  const hardTrunc2 = sig2 >= tau ? 1 / sig2 : 0;
+  const exactInv2 = sig2 > 0 ? 1 / sig2 : 0;
+  const hardTrunc2 = sig2 >= tau ? exactInv2 : 0;
   const ridgeInv2 = sig2 / (sig2 * sig2 + tau * tau);
 
   return (
     <div className="space-y-3">
       <div className="grid gap-3 md:grid-cols-2 rounded-lg border bg-background/70 p-3">
         <div className="space-y-2.5">
-          <div className="text-xs font-semibold">病态矩阵逆的噪声放大 vs 伪逆正则化</div>
-          <ControlSlider label="微小奇异值 σ₂ (σ₁=2.0 固定)" value={sig2} min={0.01} max={1.0} step={0.02} onChange={setSig2} />
-          <ControlSlider label="截断/正则化阈值 τ" value={tau} min={0.01} max={0.5} step={0.02} onChange={setTau} />
+          <div className="text-xs font-semibold">奇异方向上的伪逆与正则化增益</div>
+          <ControlSlider label="微小奇异值 σ₂ (σ₁=2.0 固定)" value={sig2} min={0} max={1} step={0.01} onChange={setSig2} />
+          <ControlSlider label="截断阈值 τ（Tikhonov 惩罚系数为 τ²）" value={tau} min={0.01} max={0.5} step={0.01} onChange={setTau} />
         </div>
 
         <div className="flex flex-col justify-center space-y-1.5 font-mono text-[11px]">
           <div className="flex justify-between rounded border bg-rose-500/10 px-2.5 py-1.5 text-rose-600 dark:text-rose-400">
-            <span>直接倒数 1 / σ₂ (噪声放大倍数)</span>
+            <span>Moore–Penrose 伪逆（σ₂ &gt; 0 时取 1/σ₂，σ₂ = 0 时取 0）</span>
             <span className="font-bold">{fmt(exactInv2)}×</span>
           </div>
           <div className="flex justify-between rounded border bg-blue-500/10 px-2.5 py-1.5 text-blue-600 dark:text-blue-400">
-            <span>硬截断伪逆 A⁺ (σ₂ ≥ τ ? 1/σ₂ : 0)</span>
+            <span>截断 SVD（σ₂ ≥ τ 时保留倒数）</span>
             <span className="font-bold">{fmt(hardTrunc2)}×</span>
           </div>
           <div className="flex justify-between rounded border bg-emerald-500/10 px-2.5 py-1.5 text-emerald-600 dark:text-emerald-400">
@@ -614,7 +658,9 @@ function L34PseudoinverseSandbox() {
             <span className="font-bold">{fmt(ridgeInv2)}×</span>
           </div>
           <p className="mb-0 pt-1 font-sans text-[11px] text-muted-foreground">
-            条件数 κ = σ₁/σ₂ = {fmt(sig1 / sig2)}。当 σ₂ → 0 时直接求逆把测量误差放大上百倍，而截断伪逆与脊回归平滑抑制高频噪声！
+            A = diag({sig1}, σ₂)，A⁺ ≈ diag({1 / sig1}, {fmt(exactInv2)})。
+            {sig2 === 0 ? ' A 奇异，无普通逆。' : ` κ₂(A) = ${fmt(sig1 / sig2)}。`}
+            截断在 τ 处切换增益，Tikhonov 连续抑制小奇异值方向。
           </p>
         </div>
       </div>
@@ -639,7 +685,7 @@ function L35GrandFinaleExplorer() {
       m: 3,
       n: 3,
       r: 3,
-      inv: '双边逆 A⁻¹ 存在，A = LU = QR',
+      inv: '双边逆 A⁻¹ 存在，PA = LU 且 A = QR',
       bestSol: '唯一精确解 x = A⁻¹ b，残差 e = 0',
       svdSummary: '3 个正奇异值 σ₁≥σ₂≥σ₃>0，A⁺ = A⁻¹',
     },
@@ -650,8 +696,8 @@ function L35GrandFinaleExplorer() {
       n: 2,
       r: 2,
       inv: '左逆 (AᵀA)⁻¹Aᵀ 存在，零空间 {0}',
-      bestSol: '最小二乘解 x̂ = (AᵀA)⁻¹Aᵀ b (投影到 C(A))',
-      svdSummary: '2 个正奇异值，σ₁,σ₂>0，A⁺ 即左逆',
+      bestSol: '唯一最小二乘解 x̂ = (AᵀA)⁻¹Aᵀb，A x̂ 是 b 在 Col(A) 上的正交投影',
+      svdSummary: '2 个正奇异值，A⁺ 是一个左逆',
     },
     underdet: {
       label: '矮胖欠定 (r = m < n)',
@@ -659,9 +705,9 @@ function L35GrandFinaleExplorer() {
       m: 2,
       n: 4,
       r: 2,
-      inv: '右逆 Aᵀ(AAᵀ)⁻¹ 存在，无穷多解',
-      bestSol: '最短范数特解 x⁺ ∈ C(Aᵀ) (零空间分量=0)',
-      svdSummary: 'dim N(A)=2，A⁺ 从仿射解平面挑选离原点最近点',
+      inv: '右逆 Aᵀ(AAᵀ)⁻¹ 存在，对每个 b 有无穷多解',
+      bestSol: '最小范数解 x⁺ = A⁺b ∈ Row(A)，其零空间分量为 0',
+      svdSummary: 'dim Null(A) = 2，A⁺b 是仿射解平面上离原点最近的点',
     },
     singular: {
       label: '一般秩亏 (r < m 且 r < n)',
@@ -669,9 +715,9 @@ function L35GrandFinaleExplorer() {
       m: 3,
       n: 4,
       r: 2,
-      inv: '无单边逆，唯有 Moore-Penrose 伪逆 A⁺',
-      bestSol: '既最小化 ‖Ax − b‖₂ 又最小化 ‖x‖₂',
-      svdSummary: 'r=2 个正奇异值，完整联通四基本子空间！',
+      inv: '无左逆或右逆，Moore–Penrose 伪逆 A⁺ 始终存在',
+      bestSol: 'x⁺ = A⁺b 是所有最小二乘解中唯一的最小范数解',
+      svdSummary: '在完整 SVD 中，U 的前 r 列张成 Col(A)，其余列张成 Null(Aᵀ)。V 的前 r 列张成 Row(A)，其余列张成 Null(A)。每组列分别构成对应子空间的标准正交基。',
     },
   };
 
@@ -689,10 +735,10 @@ function L35GrandFinaleExplorer() {
 
       <div className="grid gap-3 md:grid-cols-2 rounded-lg border bg-background/70 p-3 text-xs">
         <div className="space-y-1.5 font-mono text-[11px]">
-          <div className="font-sans text-xs font-semibold text-foreground">四基本子空间全貌 ({d.shape})</div>
-          <div>dim C(Aᵀ) = dim C(A) = r = {d.r}</div>
-          <div>dim N(A) = n − r = {d.n - d.r}</div>
-          <div>dim N(Aᵀ) = m − r = {d.m - d.r}</div>
+          <div className="font-sans text-xs font-semibold text-foreground">实矩阵的四个基本子空间 ({d.shape})</div>
+          <div>dim Row(A) = dim Col(A) = r = {d.r}</div>
+          <div>dim Null(A) = n − r = {d.n - d.r}</div>
+          <div>dim Null(Aᵀ) = m − r = {d.m - d.r}</div>
         </div>
         <div className="space-y-1.5 text-xs">
           <div><strong className="text-foreground">可逆性：</strong>{d.inv}</div>

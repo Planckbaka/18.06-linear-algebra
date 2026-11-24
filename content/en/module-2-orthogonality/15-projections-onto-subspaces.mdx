@@ -5,9 +5,9 @@ videoEpisode: "P15"
 textbookRef: "§4.2"
 ---
 
-In real-world engineering measurements, statistical regression, and machine learning, we almost inevitably face an **overdetermined system** $A\mathbf{x} = \mathbf{b}$ contaminated by noise and massive observations. Here, the matrix $A \in \mathbb{R}^{m\times n}$ is typically a "tall and skinny" rectangular matrix (far more equations $m$ than unknowns $n$, so $m \gt n$). When the target vector $\mathbf{b}$ does not lie inside the column space $\operatorname{Col}(A)$, the equation $A\mathbf{x} = \mathbf{b}$ has no exact solution at all.
+In real-world engineering measurements and statistical regression, we almost inevitably face an **overdetermined system** $A\mathbf{x} = \mathbf{b}$ contaminated by noise and massive observations. Here, the matrix $A \in \mathbb{R}^{m\times n}$ is typically a "tall and skinny" rectangular matrix (more equations $m$ than unknowns $n$, so $m \gt n$). When the target vector $\mathbf{b}$ does not lie inside the column space $\operatorname{Col}(A)$, the equation $A\mathbf{x} = \mathbf{b}$ has no exact solution at all.
 
-Science and engineering cannot simply give up because "no exact solution exists"—within the subspace $\operatorname{Col}(A)$ spanned by the columns of $A$, we must find the best approximating vector $\mathbf{p} = A\hat{\mathbf{x}}$ that is closest to $\mathbf{b}$ in Euclidean distance. Geometrically, the closest point is precisely the foot of the perpendicular, and the perpendicular segment dropping from the target point onto the subspace is the orthogonal error (or residual). In this lecture, Professor Gilbert Strang leads us on an elegant ascent from **projection onto a 1D line (a rank-one projection matrix)** to **projection onto a higher-dimensional subspace via $P = A(A^TA)^{-1}A^T$**, uncovering the algebraic soul of projection operators: symmetry, idempotence, and orthogonal complementary decomposition.
+Science and engineering cannot simply give up because "no exact solution exists"—within the subspace $\operatorname{Col}(A)$ spanned by the columns of $A$, we must find the best approximating vector $\mathbf{p} = A\hat{\mathbf{x}}$ that is closest to $\mathbf{b}$ in Euclidean distance. Geometrically, the closest point is precisely the foot of the perpendicular, and the perpendicular segment dropping from the target point onto the subspace is the orthogonal error (or residual). In this lecture, Professor Gilbert Strang leads us on an elegant ascent from **projection onto a 1D line (a rank-one projection matrix)** to **projection onto a column space of a full-column-rank matrix via $P = A(A^TA)^{-1}A^T$**, uncovering the algebraic soul of projection operators: symmetry, idempotence, and orthogonal complementary decomposition.
 
 ---
 
@@ -118,15 +118,15 @@ $$
 $$
 
 $$
-\|\mathbf{b}\|^2 = 3^2 + 3^2 + 0^2 = 18
+\|\mathbf{b}\|_2^2 = 3^2 + 3^2 + 0^2 = 18
 $$
 
 $$
-\|\mathbf{p}\|^2 = 1^2 + 2^2 + 2^2 = 9, \quad \|\mathbf{e}\|^2 = 2^2 + 1^2 + (-2)^2 = 9
+\|\mathbf{p}\|_2^2 = 1^2 + 2^2 + 2^2 = 9, \quad \|\mathbf{e}\|_2^2 = 2^2 + 1^2 + (-2)^2 = 9
 $$
 
 $$
-\|\mathbf{p}\|^2 + \|\mathbf{e}\|^2 = 9 + 9 = 18 = \|\mathbf{b}\|^2 \quad (\text{Pythagorean theorem holds exactly!})
+\|\mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2 = 9 + 9 = 18 = \|\mathbf{b}\|_2^2 \quad (\text{Pythagorean theorem holds exactly!})
 $$
 
 <DefinitionCard
@@ -193,10 +193,10 @@ $$
 
 <TheoremCard
   label="Theorem 15.1"
-  title="Orthogonal Error Lives in the Left Nullspace"
+  title="Closest Point and the Left Nullspace"
 >
 
-Saying that the error vector $\mathbf{e} = \mathbf{b} - A\hat{\mathbf{x}}$ is orthogonal to the column space $\operatorname{Col}(A)$ is completely equivalent to:
+Let $A\in\mathbb{R}^{m\times n}$, $\mathbf{b}\in\mathbb{R}^m$, and $\hat{\mathbf{x}}\in\mathbb{R}^n$. The point $\mathbf{p}=A\hat{\mathbf{x}}$ is the unique closest point to $\mathbf{b}$ in $\operatorname{Col}(A)$ if and only if its residual $\mathbf{e}=\mathbf{b}-\mathbf{p}$ satisfies
 
 $$
 \mathbf{e} \in \operatorname{Col}(A)^\perp = \operatorname{Null}(A^T)
@@ -206,9 +206,21 @@ This is a direct triumph of the **Fundamental Theorem of Linear Algebra, Part II
 
 </TheoremCard>
 
+<ProofCollapse title="Why the orthogonal projection is the unique closest point">
+
+By the orthogonal direct sum from Lecture 14, there is a unique decomposition $\mathbf{b}=\mathbf{p}_*+\mathbf{e}_*$ with $\mathbf{p}_*\in\operatorname{Col}(A)$ and $\mathbf{e}_*\in\operatorname{Null}(A^T)$. For every $\mathbf{y}\in\operatorname{Col}(A)$, the difference $\mathbf{p}_*-\mathbf{y}$ is orthogonal to $\mathbf{e}_*$. Therefore
+
+$$
+\|\mathbf{b}-\mathbf{y}\|_2^2=\|\mathbf{e}_*\|_2^2+\|\mathbf{p}_*-\mathbf{y}\|_2^2.
+$$
+
+Equality with the minimum $\|\mathbf{e}_*\|_2^2$ holds exactly when $\mathbf{y}=\mathbf{p}_*$. The uniqueness of the decomposition also gives $\mathbf{b}-\mathbf{p}\in\operatorname{Null}(A^T)$ exactly when $\mathbf{p}=\mathbf{p}_*$.
+
+</ProofCollapse>
+
 ### 3.2 Closed-Form Subspace Projection Matrix $P = A(A^TA)^{-1}A^T$
 
-When $A$ has full column rank ($\operatorname{rank}(A) = n$), the symmetric square matrix $A^TA \in \mathbb{R}^{n\times n}$ is guaranteed to be **invertible** (we will prove this algebraic closure in full detail in Lecture 16: if $A^TA\mathbf{x} = \mathbf{0}$, then $\mathbf{x}^TA^TA\mathbf{x} = \|A\mathbf{x}\|^2 = 0 \implies A\mathbf{x}=\mathbf{0}$; since the columns of $A$ are independent, $\mathbf{x}=\mathbf{0}$, so the nullspace contains only the zero vector and the square matrix $A^TA$ is invertible!).
+When $A$ has full column rank ($\operatorname{rank}(A) = n$), the symmetric square matrix $A^TA \in \mathbb{R}^{n\times n}$ is guaranteed to be **invertible** (we will prove this algebraic closure in full detail in Lecture 16: if $A^TA\mathbf{x} = \mathbf{0}$, then $\mathbf{x}^TA^TA\mathbf{x} = \|A\mathbf{x}\|_2^2 = 0 \implies A\mathbf{x}=\mathbf{0}$; since the columns of $A$ are independent, $\mathbf{x}=\mathbf{0}$, so the nullspace contains only the zero vector and the square matrix $A^TA$ is invertible!).
 
 Multiplying both sides of the normal equations on the left by $(A^TA)^{-1}$ solves for the unique coordinate vector:
 
@@ -228,9 +240,11 @@ $$
 P = A (A^T A)^{-1} A^T \in \mathbb{R}^{m\times m}
 $$
 
+For dependent columns, the projected point $\mathbf{p}$ is still unique, while its coefficient vector is not. Use a basis of $\operatorname{Col}(A)$ in the formula above, or write $P=AA^+$ using the Moore-Penrose pseudoinverse. If $A=0$, the projection sends every vector to $\mathbf{0}$.
+
 #### Seamless Unification of the 1D and Subspace Formulas
-When $n = 1$, the matrix $A$ consists of a single column $\mathbf{a}$. Then:
-- $A^TA = \mathbf{a}^T\mathbf{a}$ is a pure $1\times 1$ scalar;
+When $n = 1$, full column rank means that $A$ consists of a single nonzero column $\mathbf{a}$. Then:
+- $A^TA$ is the $1\times 1$ matrix with entry $\mathbf{a}^T\mathbf{a}$;
 - Matrix inversion $(A^TA)^{-1}$ reduces to the scalar reciprocal $\frac{1}{\mathbf{a}^T\mathbf{a}}$;
 - $P = A(A^TA)^{-1}A^T = \mathbf{a} \left(\frac{1}{\mathbf{a}^T\mathbf{a}}\right) \mathbf{a}^T = \frac{\mathbf{a}\mathbf{a}^T}{\mathbf{a}^T\mathbf{a}}$.
 
@@ -254,7 +268,7 @@ Let $A \in \mathbb{R}^{m\times n}$ have full column rank. Its orthogonal project
 1. **Symmetry**: $P^T = P$;
 2. **Idempotence**: $P^2 = P$;
 3. **Complementary Projection**: The matrix $I_m - P$ is the orthogonal projection matrix onto the orthogonal complement $\operatorname{Col}(A)^\perp = \operatorname{Null}(A^T)$, satisfying $(I - P)^T = I - P$ and $(I - P)^2 = I - P$;
-4. **Orthogonal Decoupling & Pythagorean Conservation**: $P(I - P) = (I - P)P = 0$. Every $\mathbf{b} \in \mathbb{R}^m$ admits the unique orthogonal decomposition $\mathbf{b} = P\mathbf{b} + (I - P)\mathbf{b}$ with norm conservation $\|\mathbf{b}\|^2 = \|P\mathbf{b}\|^2 + \|(I - P)\mathbf{b}\|^2$.
+4. **Orthogonal Decoupling & Pythagorean Conservation**: $P(I - P) = (I - P)P = 0$. Every $\mathbf{b} \in \mathbb{R}^m$ admits the unique orthogonal decomposition $\mathbf{b} = P\mathbf{b} + (I - P)\mathbf{b}$ with norm conservation $\|\mathbf{b}\|_2^2 = \|P\mathbf{b}\|_2^2 + \|(I - P)\mathbf{b}\|_2^2$.
 
 </TheoremCard>
 
@@ -280,13 +294,13 @@ $$
 Applying the matrix multiplication twice in succession:
 
 $$
-P^2 = \left[ A (A^TA)^{-1} A^T \right] \left[ A (A^TA)^{-1} A^T \right] = A (A^TA)^{-1} \underbrace{\left[ A^T A \right] (A^TA)^{-1}}_{I_n} A^T
+P^2 = \left[ A (A^TA)^{-1} A^T \right] \left[ A (A^TA)^{-1} A^T \right] = A (A^TA)^{-1} \underbrace{(A^TA)(A^TA)^{-1}}_{I_n} A^T
 $$
 
 The middle factors $(A^TA)(A^TA)^{-1} = I_n$ cancel cleanly to the $n\times n$ identity matrix, leaving:
 
 $$
-P^2 = A I_n (A^TA)^{-1} A^T = A(A^TA)^{-1} A^T = P
+P^2 = A (A^TA)^{-1} I_n A^T = A(A^TA)^{-1} A^T = P
 $$
 
 Geometric intuition: Once you have projected a vector onto the subspace plane (landing at $\mathbf{p} = P\mathbf{b}$), projecting it a second time does nothing because it already lies inside the plane: $P\mathbf{p} = P(P\mathbf{b}) = P\mathbf{b} = \mathbf{p}$.
@@ -305,7 +319,7 @@ $$
 (I - P)^2 = I - 2P + P^2
 $$
 
-Since $P^2 = P$, this simplifies to $I - 2P + P = I - P$.
+Since $P^2 = P$, this simplifies to $I - 2P + P = I - P$. By Theorem 15.1, every $(I_m-P)\mathbf{b}=\mathbf{b}-P\mathbf{b}$ lies in $\operatorname{Null}(A^T)$. Conversely, $I_m-P$ fixes every vector in $\operatorname{Null}(A^T)$ because $P$ sends those vectors to $\mathbf{0}$.
 
 **4. Proof of Orthogonal Decoupling & Pythagorean Energy Conservation**:
 
@@ -324,7 +338,7 @@ $$
 Because their inner product vanishes, the Pythagorean theorem follows immediately:
 
 $$
-\|\mathbf{b}\|^2 = \|\mathbf{p} + \mathbf{e}\|^2 = \|\mathbf{p}\|^2 + 2\mathbf{p}^T\mathbf{e} + \|\mathbf{e}\|^2 = \|\mathbf{p}\|^2 + \|\mathbf{e}\|^2
+\|\mathbf{b}\|_2^2 = \|\mathbf{p} + \mathbf{e}\|_2^2 = \|\mathbf{p}\|_2^2 + 2\mathbf{p}^T\mathbf{e} + \|\mathbf{e}\|_2^2 = \|\mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2
 $$
 
 </ProofCollapse>
@@ -340,9 +354,15 @@ $$
 P^2 = P \quad \text{and} \quad P^T = P
 $$
 
-If a square matrix satisfies idempotence ($P^2 = P$) but fails symmetry ($P^T \neq P$), it represents an **oblique projection** that casts shadows onto a subspace along a non-orthogonal angle; its residual vector is not perpendicular to the target subspace.
+If a square matrix satisfies idempotence ($P^2 = P$) but fails symmetry ($P^T \neq P$), it represents an **oblique projection** that casts shadows onto a subspace along a non-orthogonal angle; for some inputs, its residual fails to be perpendicular to the target subspace.
 
 </DefinitionCard>
+
+<ProofCollapse title="Proof of the symmetric-idempotent criterion">
+
+For each $\mathbf{b}\in\mathbb{R}^m$, idempotence puts $(I_m-P)\mathbf{b}$ in $\operatorname{Null}(P)$, while $P\mathbf{b}\in\operatorname{Col}(P)$. If $P^T=P$, then $(P\mathbf{u})^T\mathbf{v}=\mathbf{u}^TP\mathbf{v}=0$ for every $\mathbf{u}\in\mathbb{R}^m$ and $\mathbf{v}\in\operatorname{Null}(P)$. This is therefore the orthogonal decomposition for $\operatorname{Col}(P)$. Conversely, in an orthonormal basis formed from bases of the target subspace and its orthogonal complement, the orthogonal projector has diagonal matrix $\operatorname{diag}(I_r,0)$, where $r$ is the target dimension. It stays symmetric and idempotent after the orthogonal change of basis.
+
+</ProofCollapse>
 
 ---
 
@@ -365,7 +385,7 @@ This simplification is a catastrophic algebraic blunder!
 1. **$A$ Is Not Square**: Our premise is an overdetermined system $A \in \mathbb{R}^{m\times n}$ with $m \gt n$ (a tall, skinny rectangular matrix). **A rectangular matrix never has a two-sided inverse $A^{-1}$!**
 2. **Prerequisite of the Shoe-Sock Rule**: The identity $(BC)^{-1} = C^{-1}B^{-1}$ holds if and only if **both factors $B$ and $C$ are individually invertible square matrices of the same size!** Since $A$ and $A^T$ are not even square, pulling $(A^TA)^{-1}$ apart into $A^{-1}(A^T)^{-1}$ is illegal.
 3. **When Does the Single Exception Occur?**
-   Only when $m = n$ and $A$ is a full-rank invertible square matrix does $A^{-1}$ actually exist. In that case, the $n$ columns of $A$ already span the entire space $\mathbb{R}^n$ ($\operatorname{Col}(A) = \mathbb{R}^n$). Every vector $\mathbf{b} \in \mathbb{R}^n$ already lies inside $\operatorname{Col}(A)$, so projecting it onto the whole space leaves it untouched! Thus $P = I_n$ is geometrically and algebraically consistent in—and only in—the square invertible case.
+   Only when $m = n$ and $A$ is a full-rank invertible square matrix does $A^{-1}$ actually exist. In that case, the $n$ columns of $A$ already span the entire space $\mathbb{R}^n$ ($\operatorname{Col}(A) = \mathbb{R}^n$). Every vector $\mathbf{b} \in \mathbb{R}^n$ already lies inside $\operatorname{Col}(A)$, so projecting it onto the whole space leaves it untouched! Thus, under the full-column-rank assumption, $P=I_m$ exactly when $m=n$.
 
 </PitfallAlert>
 
@@ -382,8 +402,8 @@ This simplification is a catastrophic algebraic blunder!
 
 <InteractiveCanvasSlot
   id="l15-interactive-subspace-projection"
-  title="Interactive Lab: 3D Subspace Orthogonal Projection & Residual Decomposition"
-  description="Drag the target vector $\mathbf{b}$ or adjust the plane basis vectors $\mathbf{a}_1, \mathbf{a}_2$ to observe in real time how the projection $\mathbf{p} = P\mathbf{b}$ and orthogonal residual $\mathbf{e} = (I-P)\mathbf{b} \in \operatorname{Null}(A^T)$ separate, verifying the right-angle constraint and Pythagorean energy conservation $\|\mathbf{b}\|^2 = \|\mathbf{p}\|^2 + \|\mathbf{e}\|^2$."
+  title="Interactive Lab: Line and Plane Projection"
+  description="Use the sliders to adjust $\mathbf{b}$ and the angle of the unit direction $\mathbf{u}$. Compare projection onto the line along $\mathbf{u}$ in $\mathbb{R}^2$ with projection onto the plane spanned by $\mathbf{u}$ and $\mathbf{e}_3$ in $\mathbb{R}^3$. Check that the residual is orthogonal to the spanning directions."
 />
 
 ---
@@ -394,9 +414,9 @@ This simplification is a catastrophic algebraic blunder!
   title="Key Takeaways"
   items={[
     "When projecting onto a 1D line $\\operatorname{span}\\{\\mathbf{a}\\}$, the projection coefficient is $\\hat{x} = \\frac{\\mathbf{a}^T\\mathbf{b}}{\\mathbf{a}^T\\mathbf{a}}$, and the rank-1 projection matrix is $P = \\frac{\\mathbf{a}\\mathbf{a}^T}{\\mathbf{a}^T\\mathbf{a}}$.",
-    "When projecting onto a multi-dimensional subspace $\\operatorname{Col}(A)$, forcing the residual $\\mathbf{e} = \\mathbf{b} - A\\hat{\\mathbf{x}}$ to be perpendicular to every column yields the normal equations $A^TA\\hat{\\mathbf{x}} = A^T\\mathbf{b}$ and the optimal projection matrix $P = A(A^TA)^{-1}A^T$.",
+    "When projecting onto a multi-dimensional subspace $\\operatorname{Col}(A)$, forcing the residual $\\mathbf{e} = \\mathbf{b} - A\\hat{\\mathbf{x}}$ to be perpendicular to every column yields the normal equations $A^TA\\hat{\\mathbf{x}} = A^T\\mathbf{b}$ and, when $A$ has full column rank, the projection matrix $P = A(A^TA)^{-1}A^T$.",
     "Two defining signatures of an orthogonal projection matrix: symmetry $P^T = P$ and idempotence $P^2 = P$ (projecting a second time leaves the point unchanged).",
-    "The complementary projection matrix $I_m - P$ projects onto the left nullspace $\\operatorname{Null}(A^T) = \\operatorname{Col}(A)^\\perp$, and $P(I - P) = 0$ guarantees strict Pythagorean energy conservation $\\|\\mathbf{b}\\|^2 = \\|P\\mathbf{b}\\|^2 + \\|(I-P)\\mathbf{b}\\|^2$.",
+    "The complementary projection matrix $I_m - P$ projects onto the left nullspace $\\operatorname{Null}(A^T) = \\operatorname{Col}(A)^\\perp$, and $P(I - P) = 0$ guarantees strict Pythagorean energy conservation $\\|\\mathbf{b}\\|_2^2 = \\|P\\mathbf{b}\\|_2^2 + \\|(I-P)\\mathbf{b}\\|_2^2$.",
     "A rectangular matrix $A \\in \\mathbb{R}^{m\\times n}$ ($m \\gt n$) never has an inverse $A^{-1}$; never split $(A^TA)^{-1}$ into $A^{-1}A^{-T}$ to falsely conclude $P = I$!"
   ]}
 />
@@ -421,7 +441,7 @@ In $\mathbb{R}^3$, let the line direction vector be $\mathbf{a} = \begin{bmatrix
 
 1. Compute the line projection matrix $P_1$ and the complementary projection matrix $I_3 - P_1$;
 2. Compute the projection vector $\mathbf{p} = P_1\mathbf{b}$ and the error vector $\mathbf{e} = (I_3 - P_1)\mathbf{b}$;
-3. Verify that $\mathbf{a}^T\mathbf{e} = 0$ and that Pythagorean energy conservation $\|\mathbf{b}\|^2 = \|\mathbf{p}\|^2 + \|\mathbf{e}\|^2$ holds.
+3. Verify that $\mathbf{a}^T\mathbf{e} = 0$ and that Pythagorean energy conservation $\|\mathbf{b}\|_2^2 = \|\mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2$ holds.
 
 <ProgressiveHint
   buttonPrefix="Unlock Hint"
@@ -486,19 +506,19 @@ $$
 $$
 
 $$
-\|\mathbf{b}\|^2 = 3^2 + 0^2 + 6^2 = 9 + 36 = 45
+\|\mathbf{b}\|_2^2 = 3^2 + 0^2 + 6^2 = 9 + 36 = 45
 $$
 
 $$
-\|\mathbf{p}\|^2 = 4^2 + (-2)^2 + 4^2 = 16 + 4 + 16 = 36
+\|\mathbf{p}\|_2^2 = 4^2 + (-2)^2 + 4^2 = 16 + 4 + 16 = 36
 $$
 
 $$
-\|\mathbf{e}\|^2 = (-1)^2 + 2^2 + 2^2 = 1 + 4 + 4 = 9
+\|\mathbf{e}\|_2^2 = (-1)^2 + 2^2 + 2^2 = 1 + 4 + 4 = 9
 $$
 
 $$
-\|\mathbf{p}\|^2 + \|\mathbf{e}\|^2 = 36 + 9 = 45 = \|\mathbf{b}\|^2
+\|\mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2 = 36 + 9 = 45 = \|\mathbf{b}\|_2^2
 $$
 
 </SolutionRigorous>
@@ -568,7 +588,7 @@ $$
 
 Counterexample: Take $m = 2$ and $P_1 = P_2 = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}$ (projection onto the $x$-axis). Then $P_1 + P_2 = \begin{bmatrix} 2 & 0 \\ 0 & 0 \end{bmatrix}$, whose square is $\begin{bmatrix} 4 & 0 \\ 0 & 0 \end{bmatrix} \neq P_1 + P_2$. Hence the statement is false in general.
 
-In fact, one can rigorously prove that $P_1 + P_2$ is an orthogonal projection matrix if and only if $P_1 P_2 = P_2 P_1 = 0 \iff V_1 \perp V_2$.
+More generally, if $P^2=P$, then every $\mathbf{v}\in V_1$ satisfies $\mathbf{v}^T(P_1P_2+P_2P_1)\mathbf{v}=2\mathbf{v}^TP_2\mathbf{v}=2\|P_2\mathbf{v}\|_2^2=0$. Thus $V_1\subseteq\operatorname{Null}(P_2)=V_2^\perp$. Conversely, if $V_1\perp V_2$, both cross products vanish and $P$ is the orthogonal projection onto $V_1\oplus V_2$.
 
 </SolutionRigorous>
 </DualSolution>
@@ -590,7 +610,7 @@ Let $P \in \mathbb{R}^{m\times m}$ be an orthogonal projection matrix on $\mathb
   correct={true}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="True! Because $P(I - P) = 0$, if $P \neq I$, there exists a nonzero vector $\mathbf{v} \in \operatorname{Null}(A^T)$ such that $P\mathbf{v} = \mathbf{0}$. Since the nullspace is nontrivial, $\det(P) = 0$ and $P$ is never invertible!"
+  quickFeedback="True. Since $P\neq I_m$, some $\mathbf{u}=(I_m-P)\mathbf{v}$ is nonzero. The identity $P(I_m-P)=0$ gives $P\mathbf{u}=\mathbf{0}$, so $P$ is singular."
 />
 
 <ProgressiveHint
@@ -625,7 +645,7 @@ $$
 P\mathbf{u} = P(I_m - P)\mathbf{v} = 0 \mathbf{v} = \mathbf{0}
 $$
 
-Since there exists a nonzero vector $\mathbf{u} \neq \mathbf{0}$ satisfying $P\mathbf{u} = \mathbf{0}$, the matrix $P$ has a nontrivial nullspace ($\operatorname{dim}(\operatorname{Null}(P)) \ge 1$). By the invertible matrix theorem, $\det(P) = 0$ and $P$ is singular.
+Since there exists a nonzero vector $\mathbf{u} \neq \mathbf{0}$ satisfying $P\mathbf{u} = \mathbf{0}$, the matrix $P$ has a nontrivial nullspace ($\dim(\operatorname{Null}(P)) \ge 1$). By the invertible matrix theorem, $\det(P) = 0$ and $P$ is singular.
 
 **Method 2 (Eigenvalue Argument)**:
 
@@ -653,7 +673,7 @@ If $P$ were invertible, all of its eigenvalues would be nonzero, forcing every e
 Let $A \in \mathbb{R}^{m\times n}$ have full column rank ($\operatorname{rank}(A) = n \lt m$), with corresponding projection matrix $P = A(A^TA)^{-1}A^T \in \mathbb{R}^{m\times m}$.
 
 1. Using the cyclic property of the matrix trace, $\operatorname{tr}(XY) = \operatorname{tr}(YX)$, deduce the exact value of $\operatorname{tr}(P)$ **without computing a single entry of $P$**;
-2. Combining this with the eigenvalue characterization from Exercise `l15-ex3`, explain why every orthogonal projection matrix satisfies:
+2. Combining this with the eigenvalue characterization from Exercise `l15-ex3`, explain why any orthogonal projector $P$ onto $\operatorname{Col}(A)$ satisfies the identity below, even if the columns of $A$ are dependent.
 
 $$
 \operatorname{tr}(P) = \operatorname{rank}(P) = \dim(\operatorname{Col}(A))
@@ -674,7 +694,7 @@ $$
 >
 <SolutionIntuition>
 
-The trace of a matrix equals the sum of all its eigenvalues. For a projection matrix, any vector lying inside the target subspace stays unchanged (eigenvalue $\lambda = 1$), while any vector perpendicular to the subspace gets crushed to zero (eigenvalue $\lambda = 0$). Therefore, the number of $1$s among the eigenvalues is literally the dimension (degrees of freedom) of the subspace! Summing the diagonal entries of the $m\times m$ matrix $P$ counts exactly how many independent orthogonal directions live inside the subspace.
+The trace of a matrix equals the sum of all its eigenvalues. For an orthogonal projection matrix, every nonzero vector lying inside the target subspace stays unchanged (eigenvalue $\lambda = 1$), while every nonzero vector in the orthogonal complement is sent to zero (eigenvalue $\lambda = 0$). Therefore, the number of $1$s among the eigenvalues is literally the dimension (degrees of freedom) of the subspace! Summing the diagonal entries of the $m\times m$ matrix $P$ counts exactly how many independent orthogonal directions live inside the subspace.
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -713,11 +733,13 @@ $$
 \operatorname{tr}(P) = \sum_{i=1}^{m} \lambda_i = n \times 1 + (m-n) \times 0 = n
 $$
 
-At the same time, the rank of a diagonalizable matrix equals the number of nonzero eigenvalues, so:
+The rank equals the number of nonzero eigenvalues counted with multiplicity, so
 
 $$
-\operatorname{rank}(P) = n = \operatorname{dim}(\operatorname{Col}(A)) = \operatorname{tr}(P)
+\operatorname{rank}(P) = n = \dim(\operatorname{Col}(A)) = \operatorname{tr}(P)
 $$
+
+The same argument applies to a projector onto any subspace by replacing $n$ with the dimension of that subspace.
 
 </SolutionRigorous>
 </DualSolution>
@@ -827,15 +849,15 @@ $$
 Pythagorean conservation check:
 
 $$
-\|\mathbf{b}\|^2 = 3^2 + 3^2 + 3^2 = 27
+\|\mathbf{b}\|_2^2 = 3^2 + 3^2 + 3^2 = 27
 $$
 
 $$
-\|\mathbf{p}\|^2 = 2^2 + 4^2 + 2^2 = 24, \quad \|\mathbf{e}\|^2 = 3
+\|\mathbf{p}\|_2^2 = 2^2 + 4^2 + 2^2 = 24, \quad \|\mathbf{e}\|_2^2 = 3
 $$
 
 $$
-\|\mathbf{p}\|^2 + \|\mathbf{e}\|^2 = 24 + 3 = 27 = \|\mathbf{b}\|^2 \quad (\text{holds perfectly!})
+\|\mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2 = 24 + 3 = 27 = \|\mathbf{b}\|_2^2 \quad (\text{holds perfectly!})
 $$
 
 </SolutionRigorous>
@@ -848,17 +870,15 @@ $$
 
 <FrontierAIReading
   id="AI-06"
-  title="Representation Engineering & Concept Erasure: Surgically Removing Latent Concepts via Complementary Projection I − P"
+  title="Concept Erasure: From Probe Nullspaces to LEACE"
   paperRef="Ravfogel et al. (ACL 2020) Null It Out (INLP) · Belrose et al. (NeurIPS 2023) LEACE"
 >
 
-### 1. Modern Frontier Mapping: "Concept Contamination" and Surgical Removal in LLM Hidden States
+### 1. Removing Selected Probe Directions from Activations
 
-In representation engineering and safety alignment for modern large language models (such as the LLaMA, GPT, and DeepSeek families), a central challenge is that a model's hidden-layer activation vector $\mathbf{h} \in \mathbb{R}^d$ (e.g., $d = 4096$) often entangles **sensitive attributes we do not want the model to exploit or leak** (such as gender stereotypes, private user demographics, copyright watermarks, or specific harmful trigger concepts).
+Let $\mathbf{h}\in\mathbb{R}^d$ be a model activation. Given a set of linear probe weight directions, the complementary projector $I_d-P_C$ removes the activation's components along their span and keeps its orthogonal component.
 
-Naively fine-tuning the entire network is not only computationally expensive but also prone to catastrophic forgetting. Representation engineering offers a surgical geometric solution: **apply the linear complementary orthogonal projection matrix $I_d - P$ to project out the sensitive concept subspace completely, while preserving the useful semantics of the original representation as faithfully as possible!**
-
-### 2. Mathematical Formulation: Concept Subspace & Zero Linear Leakage
+### 2. Orthogonal Projection for a Fixed Probe Subspace
 
 Suppose we train one or more **linear probes** on the model's activations and extract direction vectors $\mathbf{c}_1, \dots, \mathbf{c}_k \in \mathbb{R}^d$ representing a sensitive concept (typically $k \ll d$, such as $k = 1$ or $k = 4$). Stacking these concept directions as columns forms the matrix:
 
@@ -866,9 +886,9 @@ $$
 C = \begin{bmatrix} \mathbf{c}_1 & \mathbf{c}_2 & \cdots & \mathbf{c}_k \end{bmatrix} \in \mathbb{R}^{d\times k}
 $$
 
-Assuming the probe directions are linearly independent, $C$ has full column rank, and the subspace spanned by the sensitive concept is the column space $\operatorname{Col}(C) \subset \mathbb{R}^d$.
+Assuming the probe directions are linearly independent, $C$ has full column rank, and the subspace spanned by the sensitive concept is the column space $\operatorname{Col}(C) \subseteq \mathbb{R}^d$.
 
-By Theorem 15.1, the orthogonal projection matrix onto the concept subspace is immediately:
+By the full-column-rank formula in Section 3.2, the orthogonal projector onto the probe-weight span is
 
 $$
 P_C = C(C^T C)^{-1} C^T \in \mathbb{R}^{d\times d}
@@ -886,18 +906,18 @@ $$
 \mathbf{h}_\perp = (I_d - P_C)\mathbf{h}
 $$
 
-This deceptively simple linear algebra operation comes with two ironclad mathematical guarantees in machine learning theory:
+The projector gives the following two guarantees.
 
-#### Guarantee 1: Zero Linear Leakage
-For any linear probe classifier $\mathbf{w} \in \operatorname{Col}(C)$ inside the concept subspace, since $\mathbf{w} = C\boldsymbol{\alpha}$ for some $\boldsymbol{\alpha} \in \mathbb{R}^k$, the probe's prediction on the scrubbed representation $\mathbf{h}_\perp$ is identically zero:
+#### 1. Zero Scores Along the Specified Probe Directions
+For any probe weight $\mathbf{w}=C\boldsymbol{\alpha}$ with $\boldsymbol{\alpha}\in\mathbb{R}^k$, its linear score after projection is
 
 $$
 \mathbf{w}^T \mathbf{h}_\perp = (C\boldsymbol{\alpha})^T (I_d - P_C)\mathbf{h} = \boldsymbol{\alpha}^T \left( C^T - \underbrace{C^T C(C^T C)^{-1}}_{I_k} C^T \right) \mathbf{h} = \boldsymbol{\alpha}^T (C^T - C^T)\mathbf{h} = 0
 $$
 
-Regardless of how the classification threshold is tuned, no linear probe in $\operatorname{Col}(C)$ can **extract even a single bit of linear information about the concept from $\mathbf{h}_\perp$**!
+An affine probe with such a weight outputs only its constant bias. This guarantee covers weights in the specified span. Other linear or nonlinear probes may still recover concept information.
 
-#### Guarantee 2: Minimal Semantic Distortion (Best Approximation)
+#### 2. Minimum Euclidean Change to the Specified Nullspace
 Among all candidate scrubbed vectors $\mathbf{z}$ that are completely orthogonal to the concept subspace ($C^T\mathbf{z} = \mathbf{0}$), $\mathbf{h}_\perp$ is the **unique closest point** minimizing the Euclidean distortion $\|\mathbf{h} - \mathbf{z}\|_2$:
 
 $$
@@ -922,14 +942,21 @@ $$
 
 Equality holds if and only if the second term vanishes, i.e., $\mathbf{z} = \mathbf{h}_\perp$!
 
-### 3. Algorithmic Evolution: INLP and LEACE
+### 3. Iterative Nullspace Projection and LEACE
 
-1. **INLP (Iterative Null-space Projection, Ravfogel et al., ACL 2020)**:
-   Iteratively trains linear classifiers to find the most discriminative concept normal vector $\mathbf{w}_i$ at each round, multiplying the activation space by $I - \mathbf{w}_i\mathbf{w}_i^T / \|\mathbf{w}_i\|^2$. Across multiple rounds, this progressively projects activations onto the intersection of the nullspaces of all probes.
-2. **LEACE (Least-squares Concept Erasure, Belrose et al., NeurIPS 2023)**:
-   In one of the NeurIPS 2023 Best Papers, Belrose et al. combined geometric orthogonal projection with data covariance whitening to derive a closed-form affine projection operator that simultaneously neutralizes class means and zeroes out feature-concept cross-covariance—now a standard baseline for concept erasure in LLM interpretability and alignment.
+**INLP (Iterative Null-space Projection)** repeatedly fits a classifier to the projected representations. Let $P_{i-1}\in\mathbb{R}^{d\times d}$ be the orthogonal projector onto the surviving space, starting with $P_0=I_d$. Let $W_i\in\mathbb{R}^{k_i\times d}$ be the new probe weight matrix with $k_i$ outputs. The effective weights are $B_i=W_iP_{i-1}$. Their rows lie in the surviving space, so $P_i=P_{i-1}-B_i^+B_i$ projects onto its intersection with $\operatorname{Null}(B_i)$. For a single nonzero effective weight $\mathbf{w}_i$, the removed rank-one term is $\mathbf{w}_i\mathbf{w}_i^T/\|\mathbf{w}_i\|_2^2$. A product of arbitrary orthogonal projectors need not project orthogonally onto their intersection.
 
-<CollapsibleCode title="Expand PyTorch Verification Script: Projection Axioms & Zero-Leakage Concept Erasure">
+**LEACE (Least-squares Concept Erasure)** constrains feature-label cross-covariance directly. Let random column vectors $\mathbf{h}\in\mathbb{R}^d$ and $\mathbf{z}\in\mathbb{R}^k$ have finite second moments. Write $\boldsymbol{\mu}=\mathbb{E}[\mathbf{h}]$, $\Sigma_{hh}=\operatorname{Cov}(\mathbf{h},\mathbf{h})$, and $\Sigma_{hz}=\operatorname{Cov}(\mathbf{h},\mathbf{z})$. Put $W=(\Sigma_{hh}^{1/2})^+$, $B=W\Sigma_{hz}$, and $P_B=BB^+$, the orthogonal projector onto $\operatorname{Col}(B)$. Here $^+$ denotes the Moore-Penrose pseudoinverse. LEACE applies the affine map
+
+$$
+f(\mathbf{h})=\boldsymbol{\mu}+(I_d-W^+P_BW)(\mathbf{h}-\boldsymbol{\mu}).
+$$
+
+Since $\operatorname{Col}(\Sigma_{hz})\subseteq\operatorname{Col}(\Sigma_{hh})$ and $P_BB=B$, we have $W^+P_BW\Sigma_{hz}=W^+W\Sigma_{hz}=\Sigma_{hz}$. Hence $\operatorname{Cov}(f(\mathbf{h}),\mathbf{z})=0$. For one-hot labels with positive class probabilities, this is equivalent to equality of the class-conditional means. For losses convex in the prediction, Jensen’s inequality within each class shows that any affine probe has risk at least that of its constant prediction at the common mean. The infimum of the risk is therefore the same for affine and constant predictors. Higher-order class statistics can still differ.
+
+LEACE minimizes $\mathbb{E}\|f(\mathbf{h})-\mathbf{h}\|_2^2$ among affine maps satisfying the cross-covariance constraint. Its linear part is generally an oblique projector in the original coordinates. The pointwise closest-point problem above fixes the output subspace, whereas this constraint specifies the directions to annihilate.
+
+<CollapsibleCode title="PyTorch Check: Complementary Projection and Specified Probe Scores">
 
 ```python
 import torch
@@ -940,15 +967,14 @@ def verify_concept_erasure():
     d, k, batch_size = 256, 3, 10
     
     # Simulate probe weight matrix C: d x k (full column rank)
-    C = torch.randn(d, k)
+    C = torch.randn(d, k, dtype=torch.float64)
     
     # 1. Construct subspace orthogonal projection matrix P_C = C (C^T C)^{-1} C^T
     CtC = C.T @ C  # k x k symmetric square matrix
-    CtC_inv = torch.inverse(CtC)
-    P_C = C @ CtC_inv @ C.T  # d x d projection matrix
+    P_C = C @ torch.linalg.solve(CtC, C.T)  # d x d
     
     # 2. Construct complementary projection matrix I - P_C
-    I_d = torch.eye(d)
+    I_d = torch.eye(d, dtype=C.dtype)
     P_perp = I_d - P_C
     
     # Verify core algebraic axioms
@@ -965,13 +991,13 @@ def verify_concept_erasure():
     assert orth_decouple_error < 1e-5, f"Decoupling failed: {orth_decouple_error}"
     
     # 3. Simulate hidden-layer representations h: batch_size x d
-    h = torch.randn(batch_size, d)
+    h = torch.randn(batch_size, d, dtype=C.dtype)
     
     # 4. Surgical concept erasure: h_perp = h @ (I - P_C)^T = h @ P_perp
     h_perp = h @ P_perp.T  # batch_size x d
     h_parallel = h @ P_C.T  # concept component
     
-    # 5. Verify zero linear leakage: any concept probe evaluated on h_perp is 0
+    # 5. Verify that the specified probe scores C.T @ h_perp.T are near zero
     # i.e., C^T @ (h_perp)^T = 0  => shape: k x batch_size
     leakage = C.T @ h_perp.T
     max_leakage = torch.max(torch.abs(leakage)).item()
@@ -983,10 +1009,10 @@ def verify_concept_erasure():
     energy_diff = torch.max(torch.abs(norm_h_sq - norm_parts_sq)).item()
     assert energy_diff < 1e-4, f"Pythagorean theorem mismatch: {energy_diff}"
     
-    print("✅ All PyTorch projection axioms and zero-leakage concept erasure checks passed!")
+    print("Complementary projection checks passed for the specified probes.")
     print(f"  - Projection symmetry residual:   {sym_error:.2e}")
     print(f"  - Projection idempotence residual: {idemp_error:.2e}")
-    print(f"  - Max linear probe leakage:        {max_leakage:.2e}")
+    print(f"  - Max absolute probe score:        {max_leakage:.2e}")
     print(f"  - Max Pythagorean energy error:    {energy_diff:.2e}")
 
 if __name__ == "__main__":

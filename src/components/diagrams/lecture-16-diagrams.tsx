@@ -2,7 +2,7 @@ import * as React from 'react';
 import { MathDiagram } from './math-diagram';
 
 export function LeastSquaresDualGeometryDiagram({
-  caption = '最小二乘法（Least Squares Fitting）的**双重几何对偶世界**：左侧为**数据拟合空间（Data Space，$\\mathbb{R}^2$ 中的 $t$-$b$ 平面）**，展示三个观测点 $(1, 1)$、$(2, 2)$、$(3, 2)$ 与最优拟合直线 $\\hat{b}(t) = \\frac{2}{3} + \\frac{1}{2}t$，三条红色虚线为**竖直误差线段**（$e_1 = -\\frac{1}{6}$、$e_2 = +\\frac{1}{3}$、$e_3 = -\\frac{1}{6}$，端点恰为投影坐标 $p_1, p_2, p_3$）；右侧为**高维子空间几何（Subspace Space，$\\mathbb{R}^3$）**，观测向量 $\\mathbf{b} = (1, 2, 2)^T$ 垂直投影到二维列空间 $\\operatorname{Col}(A) = \\operatorname{span}\\{\\mathbf{1}, \\mathbf{t}\\}$ 产生垂足 $\\mathbf{p} = A\\hat{\\mathbf{x}}$，垂直误差 $\\mathbf{e} \\in \\operatorname{Null}(A^T)$ 垂直于列平面上的任意向量，对任意其他参数 $\\mathbf{x}$ 均满足直角三角形勾股关系 $\\|A\\mathbf{x} - \\mathbf{b}\\|_2^2 = \\|A\\mathbf{x} - \\mathbf{p}\\|_2^2 + \\|\\mathbf{e}\\|_2^2 \\ge \\|\\mathbf{e}\\|_2^2$！',
+  caption = '最小二乘法（Least Squares Fitting）的**双重几何对偶世界**：左侧为**数据拟合空间（Data Space，$\\mathbb{R}^2$ 中的 $t$-$b$ 平面）**，展示三个观测点 $(1, 1)$、$(2, 2)$、$(3, 2)$ 与最优拟合直线 $\\hat{b}(t) = \\frac{2}{3} + \\frac{1}{2}t$，三条红色虚线为**竖直误差线段**（$e_1 = -\\frac{1}{6}$、$e_2 = +\\frac{1}{3}$、$e_3 = -\\frac{1}{6}$，端点恰为投影坐标 $p_1, p_2, p_3$）；右侧为**高维子空间几何（Subspace Geometry，$\\mathbb{R}^3$）**，观测向量 $\\mathbf{b} = (1, 2, 2)^T$ 垂直投影到二维列空间 $\\operatorname{Col}(A) = \\operatorname{span}\\{\\mathbf{1}, \\mathbf{t}\\}$ 产生垂足 $\\mathbf{p} = A\\hat{\\mathbf{x}}$，垂直误差 $\\mathbf{e} \\in \\operatorname{Null}(A^T)$ 垂直于列平面上的任意向量，对任意其他参数 $\\mathbf{x}$ 均满足直角三角形勾股关系 $\\|A\\mathbf{x} - \\mathbf{b}\\|_2^2 = \\|A\\mathbf{x} - \\mathbf{p}\\|_2^2 + \\|\\mathbf{e}\\|_2^2 \\ge \\|\\mathbf{e}\\|_2^2$！',
 }: {
   caption?: string;
 }) {
@@ -200,12 +200,12 @@ export function LeastSquaresDualGeometryDiagram({
 
           {/* Fitted Line: b_hat = 2/3 + 1/2 t */}
           {/* At t=0.2 (x=83): y = 320 - 85 * (2/3 + 0.1) = 320 - 65.17 = 254.83 */}
-          {/* At t=3.6 (x=338): y = 320 - 85 * (2/3 + 1.8) = 320 - 209.67 = 110.33 */}
+          {/* At x=348, t=56/15 and y=320 − 85(2/3 + 28/15) ≈ 104.67 */}
           <line
             x1="83"
-            y1="254.8"
+            y1="254.833"
             x2="348"
-            y2="104.5"
+            y2="104.667"
             className="stroke-blue-600 dark:stroke-blue-400"
             strokeWidth="2.4"
           />
@@ -327,153 +327,154 @@ export function LeastSquaresDualGeometryDiagram({
 
           {/* Column space plane (parallelogram) */}
           <polygon
-            points="468,230 750,195 720,345 438,380"
+            points="38,230 320,195 290,345 8,380"
             className="fill-blue-500/10 stroke-blue-500/40 dark:fill-blue-500/15 dark:stroke-blue-400/40"
             strokeWidth="1.8"
           />
 
           {/* Subspace Plane Label */}
           <text
-            x="456"
+            x="26"
             y="262"
             className="fill-blue-700 dark:fill-blue-300 font-mono text-[11px] font-bold"
           >
             Col(A) = span&#123;1, t&#125; (2维平面)
           </text>
 
-          {/* Origin 0 in R^3 at (505, 335) */}
-          <circle cx="505" cy="335" r="3.5" className="fill-foreground" />
-          <text x="492" y="342" className="fill-foreground font-mono text-[11px] font-bold">
+          {/* Origin 0 in R^3 at (75, 335) */}
+          <circle cx="75" cy="335" r="3.5" className="fill-foreground" />
+          <text x="62" y="342" className="fill-foreground font-mono text-[11px] font-bold">
             0
           </text>
 
           {/* Basis vector a1 = (1, 1, 1)^T */}
           <line
-            x1="505"
+            x1="75"
             y1="335"
-            x2="590"
-            y2="310"
+            x2="165"
+            y2="305"
             className="stroke-blue-600/70 dark:stroke-blue-400/70"
             strokeWidth="1.8"
             markerEnd="url(#l16-arrow-blue)"
           />
-          <text x="592" y="322" className="fill-blue-700 dark:fill-blue-300 font-mono text-[10px]">
+          <text x="167" y="317" className="fill-blue-700 dark:fill-blue-300 font-mono text-[10px]">
             a₁=(1,1,1)ᵀ
           </text>
 
           {/* Basis vector a2 = (1, 2, 3)^T */}
           <line
-            x1="505"
+            x1="75"
             y1="335"
-            x2="570"
-            y2="260"
+            x2="215"
+            y2="255"
             className="stroke-blue-600/70 dark:stroke-blue-400/70"
             strokeWidth="1.8"
             markerEnd="url(#l16-arrow-blue)"
           />
-          <text x="575" y="256" className="fill-blue-700 dark:fill-blue-300 font-mono text-[10px]">
+          <text x="220" y="252" className="fill-blue-700 dark:fill-blue-300 font-mono text-[10px]">
             a₂=(1,2,3)ᵀ
           </text>
 
           {/* Left Nullspace line: Null(A^T) normal to Col(A) */}
           <line
-            x1="505"
+            x1="75"
             y1="140"
-            x2="505"
+            x2="75"
             y2="375"
             className="stroke-purple-500/70 dark:stroke-purple-400/70"
             strokeWidth="1.6"
             strokeDasharray="4 3"
           />
           <text
-            x="512"
+            x="82"
             y="152"
             className="fill-purple-700 dark:fill-purple-300 font-mono text-[10px] font-bold"
           >
             Null(Aᵀ) = span&#123;(-1, 2, -1)ᵀ&#125;
           </text>
 
-          {/* Projection vector p = Ax_hat at (650, 275) */}
+          {/* p − O = (2/3)(a₁ − O) + (1/2)(a₂ − O) in screen coordinates. */}
+          {/* Projection vector p = Ax_hat at (205, 275) */}
           <line
-            x1="505"
+            x1="75"
             y1="335"
-            x2="650"
+            x2="205"
             y2="275"
             className="stroke-emerald-600 dark:stroke-emerald-400"
             strokeWidth="2.5"
             markerEnd="url(#l16-arrow-emerald)"
           />
           <text
-            x="600"
-            y="298"
+            x="96"
+            y="325"
             className="fill-emerald-700 dark:fill-emerald-300 font-mono text-[11px] font-bold"
           >
             p = Ax̂ = (7/6, 5/3, 13/6)ᵀ
           </text>
 
-          {/* Target vector b = (1, 2, 2)^T at (650, 135) */}
+          {/* Target vector b = (1, 2, 2)^T at (205, 135) */}
           <line
-            x1="505"
+            x1="75"
             y1="335"
-            x2="650"
+            x2="205"
             y2="135"
             className="stroke-amber-600 dark:stroke-amber-400"
             strokeWidth="2.5"
             markerEnd="url(#l16-arrow-amber)"
           />
           <text
-            x="615"
+            x="215"
             y="125"
             className="fill-amber-700 dark:fill-amber-300 font-mono text-[11px] font-bold"
           >
             b = (1, 2, 2)ᵀ ∉ Col(A)
           </text>
 
-          {/* Error vector e = b - p (vertical from p(650, 275) to b(650, 135)) */}
+          {/* Error vector e = b - p (vertical from p(205, 275) to b(205, 135)) */}
           <line
-            x1="650"
+            x1="205"
             y1="275"
-            x2="650"
-            y2="138"
+            x2="205"
+            y2="135"
             className="stroke-rose-600 dark:stroke-rose-400"
             strokeWidth="2.4"
             markerEnd="url(#l16-arrow-rose)"
           />
           <text
-            x="658"
+            x="228"
             y="205"
             className="fill-rose-600 dark:fill-rose-400 font-mono text-[10.5px] font-bold"
           >
             e = b − p ∈ Null(Aᵀ)
           </text>
           <text
-            x="658"
+            x="228"
             y="220"
             className="fill-rose-600 dark:fill-rose-400 font-mono text-[9px]"
           >
             (−1/6, 1/3, −1/6)ᵀ
           </text>
 
-          {/* 3D Right Angle Symbol at p(650, 275) */}
+          {/* 3D Right Angle Symbol at p(205, 275) */}
           <polyline
-            points="650,260 638,264 638,279"
+            points="205,261 218,267 218,281"
             fill="none"
             stroke="currentColor"
             strokeOpacity="0.65"
             strokeWidth="1.4"
           />
 
-          {/* Another arbitrary point Ax in Col(A) at (715, 305) */}
-          <circle cx="715" cy="305" r="3.5" className="fill-blue-500" />
-          <text x="722" y="316" className="fill-blue-600 dark:fill-blue-300 font-mono text-[9.5px]">
-            Ax (任意其他解)
+          {/* Another arbitrary point Ax in Col(A) at (270, 305) */}
+          <circle cx="270" cy="305" r="3.5" className="fill-blue-500" />
+          <text x="277" y="316" className="fill-blue-600 dark:fill-blue-300 font-mono text-[9.5px]">
+            Ax (另一预测向量)
           </text>
 
           {/* Leg: p to Ax */}
           <line
-            x1="650"
+            x1="205"
             y1="275"
-            x2="715"
+            x2="270"
             y2="305"
             className="stroke-emerald-600/70 dark:stroke-emerald-400/70"
             strokeWidth="1.5"
@@ -482,9 +483,9 @@ export function LeastSquaresDualGeometryDiagram({
 
           {/* Hypotenuse: Ax to b */}
           <line
-            x1="715"
+            x1="270"
             y1="305"
-            x2="650"
+            x2="205"
             y2="135"
             className="stroke-amber-600/60 dark:stroke-amber-400/60"
             strokeWidth="1.6"
@@ -493,15 +494,15 @@ export function LeastSquaresDualGeometryDiagram({
 
           {/* Right Angle Symbol at p for triangle (Ax, p, b) */}
           <text
-            x="664"
-            y="288"
+            x="222"
+            y="284"
             className="fill-muted-foreground font-mono text-[8.5px] opacity-75"
           >
             90°
           </text>
 
           {/* Pythagorean inequality pill */}
-          <g transform="translate(460, 354)">
+          <g transform="translate(30, 354)">
             <rect
               x="0"
               y="0"
@@ -522,7 +523,7 @@ export function LeastSquaresDualGeometryDiagram({
 }
 
 export function OrthogonalDecompositionPythagorasDiagram({
-  caption = '正交分解与正交投影矩阵 $P = A(A^TA)^{-1}A^T$ 的**代数与几何五大黄金法则**：在全空间 $\\mathbb{R}^m$ 中，任意向量 $\\mathbf{b}$ 均被唯一且正交地剖分为落在列空间的可解分量 $\\mathbf{p} = P\\mathbf{b} \\in \\operatorname{Col}(A)$ 与落在左零空间的误差分量 $\\mathbf{e} = (I-P)\\mathbf{b} \\in \\operatorname{Null}(A^T)$。幂等性 $P^2 = P$ 保证再次投影无位移，对称性 $P^T = P$ 保证投影方向垂直无倾斜，二者完美闭环！',
+  caption = '设 $P$ 是到 $\\operatorname{Col}(A)$ 的正交投影矩阵。在 $\\mathbb{R}^m$ 中，任意向量 $\\mathbf{b}$ 均被唯一且正交地剖分为落在列空间的可解分量 $\\mathbf{p} = P\\mathbf{b} \\in \\operatorname{Col}(A)$ 与落在左零空间的误差分量 $\\mathbf{e} = (I-P)\\mathbf{b} \\in \\operatorname{Null}(A^T)$。幂等性 $P^2=P$ 表明投影点保持不变。由对称性 $P^T=P$，投影分量与残差正交。',
 }: {
   caption?: string;
 }) {
@@ -607,7 +608,7 @@ export function OrthogonalDecompositionPythagorasDiagram({
         />
         <rect x="200" y="52" width="105" height="22" rx="5" className="fill-background stroke-blue-500/40" strokeWidth="1" />
         <text x="252" y="67" textAnchor="middle" className="fill-blue-700 dark:fill-blue-300 font-mono text-[10px] font-bold">
-          投影 P = A(AᵀA)⁻¹Aᵀ
+          按 P 投影至 Col(A)
         </text>
 
         {/* Bottom Branch Arrow: (I - P) -> Null(A^T) */}
@@ -641,7 +642,7 @@ export function OrthogonalDecompositionPythagorasDiagram({
             • 幂等性: P² = P（已落入列空间后，再次投影保持不动）
           </text>
           <text x="16" y="64" className="fill-foreground font-mono text-[10.5px]">
-            • 对称性: Pᵀ = P（充要条件：保证投影是垂足正交投影）
+            • 对称性: Pᵀ = P（在幂等性下，等价于正交投影）
           </text>
           <text x="270" y="24" className="fill-muted-foreground font-mono text-[10px]">
             tr(P) = rank(A) = r
@@ -666,7 +667,7 @@ export function OrthogonalDecompositionPythagorasDiagram({
             • 垂直性: pᵀ e = 0（勾股定理: ‖b‖² = ‖p‖² + ‖e‖²）
           </text>
           <text x="16" y="64" className="fill-foreground font-mono text-[10.5px]">
-            • 零吸收: Aᵀ e = 0（正规方程 AᵀAx̂ = Aᵀb 过滤掉全部误差分量）
+            • 零吸收: Aᵀe = 𝟎，因此 AᵀAx̂ = Aᵀb
           </text>
           <text x="260" y="24" className="fill-muted-foreground font-mono text-[10px]">
             tr(I − P) = m − r

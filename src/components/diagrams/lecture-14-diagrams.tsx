@@ -122,7 +122,7 @@ export function OrthogonalFourSubspacesCrossDiagram({
 
           {/* Right Angle 90° Square at Origin (exact dot product = 0) */}
           <polyline
-            points="134,147 126,158 137,166"
+            points="133,146 124,158 136,167"
             fill="none"
             stroke="currentColor"
             strokeOpacity="0.75"
@@ -303,7 +303,7 @@ export function OrthogonalFourSubspacesCrossDiagram({
 
           {/* Bottom Collapse Arrow: Null(A) -> 0 */}
           <path
-            d="M 215 220 C 315 240, 430 225, 538 178"
+            d="M 185 220 C 310 250, 486 228, 615 167"
             fill="none"
             className="stroke-emerald-600 dark:stroke-emerald-400"
             strokeWidth="2.2"
@@ -386,7 +386,7 @@ export function OrthogonalFourSubspacesCrossDiagram({
 
           {/* Right Angle 90° Square at Origin O' */}
           <polyline
-            points="156,147 164,158 153,166"
+            points="157,146 166,158 154,167"
             fill="none"
             stroke="currentColor"
             strokeOpacity="0.75"
@@ -517,7 +517,7 @@ export function OrthogonalFourSubspacesCrossDiagram({
 }
 
 export function SubspaceOrthogonalityContrastDiagram({
-  caption = '空间正交直觉辨析：**(a) 常见错误直觉**——空间中两个相互垂直的平面（如 $xy$ 平面与 $xz$ 平面）绝不是正交子空间！它们相交于整条 $x$ 轴（交集非零），交线上的非零向量与自身点积大于 0；**(b) 严密正交补**——只有二维平面与其一维法线（或更一般的 $r$ 维与 $n-r$ 维互补空间），交集严格为 $\\{\\mathbf{0}\\}$ 且两两正交，才能构成真正的正交补（Orthogonal Complement）！',
+  caption = '空间正交直觉辨析：左图中，$xy$ 平面与 $yz$ 平面相交于 $y$ 轴。交线上的非零向量同时属于两个平面，且与自身的点积为正。右图中，平面与过原点的法线互为正交补。法线方向与平面内每个方向都正交，二者的维数之和为 3。',
 }: {
   caption?: string;
 }) {
@@ -593,7 +593,7 @@ export function SubspaceOrthogonalityContrastDiagram({
             textAnchor="middle"
             className="fill-muted-foreground text-[10.5px]"
           >
-            例如 ℝ³ 中的 xy 平面 (z=0) 与 xz 平面 (y=0)
+            ℝ³ 中的 xy 平面 (z=0) 与 yz 平面 (x=0)
           </text>
 
           {/* 3D Isometric Projection */}
@@ -611,49 +611,49 @@ export function SubspaceOrthogonalityContrastDiagram({
             平面 V₁: z = 0
           </text>
 
-          {/* Plane 2 (Vertical xz-plane, y=0) */}
+          {/* Plane 2 (Vertical yz-plane, x=0) */}
           <polygon
-            points="55,160 170,125 170,55 55,90"
+            points="112.5,211 227.5,176 227.5,104 112.5,139"
             className="fill-amber-500/15 stroke-amber-500/60"
             strokeWidth="1.5"
           />
           <text
-            x="95"
-            y="72"
+            x="119"
+            y="132"
             className="fill-amber-800 dark:fill-amber-300 font-mono text-[10px] font-semibold"
           >
-            平面 V₂: y = 0
+            平面 V₂: x = 0
           </text>
 
-          {/* Intersection Line (the x-axis): Points (170, 125) to (55, 160) */}
+          {/* Intersection line (the y-axis), through both plane centers */}
           <line
-            x1="170"
-            y1="125"
-            x2="55"
-            y2="160"
+            x1="112.5"
+            y1="175"
+            x2="227.5"
+            y2="140"
             className="stroke-rose-600 dark:stroke-rose-400"
             strokeWidth="3.2"
           />
 
           {/* Origin 0 */}
-          <circle cx="170" cy="125" r="4" className="fill-current" />
-          <text x="178" y="128" className="fill-current font-mono text-[10px] font-bold">
+          <circle cx="170" cy="157.5" r="4" className="fill-current" />
+          <text x="178" y="170" className="fill-current font-mono text-[10px] font-bold">
             0
           </text>
 
           {/* Nonzero Vector v on the intersection line */}
           <line
             x1="170"
-            y1="125"
-            x2="105"
-            y2="145"
+            y1="157.5"
+            x2="124"
+            y2="171.5"
             className="stroke-rose-600 dark:stroke-rose-400"
             strokeWidth="2.4"
             markerEnd="url(#l14-contrast-rose)"
           />
           <text
-            x="110"
-            y="138"
+            x="132"
+            y="158"
             className="fill-rose-700 dark:fill-rose-300 font-mono text-[11px] font-bold"
           >
             v ≠ 0
@@ -674,7 +674,7 @@ export function SubspaceOrthogonalityContrastDiagram({
             textAnchor="middle"
             className="fill-rose-700 dark:fill-rose-300 font-mono text-[10.5px] font-bold"
           >
-            V₁ ∩ V₂ = x 轴（整条交线 ≠ {'{0}'}）
+            V₁ ∩ V₂ = y 轴（整条交线 ≠ {'{0}'}）
           </text>
           <text
             x="171"
@@ -728,10 +728,10 @@ export function SubspaceOrthogonalityContrastDiagram({
             平面 V (dim = 2)
           </text>
 
-          {/* Normal Line L (Vertical z-axis through origin 171, 135) */}
+          {/* Normal Line L (Vertical z-axis through origin 171, 165) */}
           <line
             x1="171"
-            y1="135"
+            y1="165"
             x2="171"
             y2="55"
             className="stroke-blue-600 dark:stroke-blue-400"
@@ -740,7 +740,7 @@ export function SubspaceOrthogonalityContrastDiagram({
           />
           <line
             x1="171"
-            y1="135"
+            y1="165"
             x2="171"
             y2="195"
             className="stroke-blue-600/40 dark:stroke-blue-400/40"
@@ -752,12 +752,12 @@ export function SubspaceOrthogonalityContrastDiagram({
             y="65"
             className="fill-blue-700 dark:fill-blue-300 font-mono text-[10px] font-bold"
           >
-            法线 L = V^⟂ (dim = 1)
+            法线 L = V^⊥ (dim = 1)
           </text>
 
           {/* Right Angle Marker between Vertical Line and Plane Surface */}
           <polyline
-            points="171,120 181,123 181,138"
+            points="171,150 183,153 183,168"
             fill="none"
             stroke="currentColor"
             strokeOpacity="0.75"
@@ -767,16 +767,16 @@ export function SubspaceOrthogonalityContrastDiagram({
           {/* Vector v on Plane V */}
           <line
             x1="171"
-            y1="135"
+            y1="165"
             x2="225"
-            y2="152"
+            y2="178.5"
             className="stroke-emerald-600 dark:stroke-emerald-400"
             strokeWidth="2.2"
             markerEnd="url(#l14-contrast-emerald)"
           />
           <text
             x="230"
-            y="148"
+            y="176"
             className="fill-emerald-700 dark:fill-emerald-300 font-mono text-[10.5px] font-bold"
           >
             v ∈ V
@@ -785,7 +785,7 @@ export function SubspaceOrthogonalityContrastDiagram({
           {/* Vector w on Normal Line L */}
           <line
             x1="171"
-            y1="135"
+            y1="165"
             x2="171"
             y2="85"
             className="stroke-blue-600 dark:stroke-blue-400"
@@ -801,8 +801,8 @@ export function SubspaceOrthogonalityContrastDiagram({
           </text>
 
           {/* Origin 0 */}
-          <circle cx="171" cy="135" r="4" className="fill-current" />
-          <text x="156" y="142" className="fill-current font-mono text-[10px] font-bold">
+          <circle cx="171" cy="165" r="4" className="fill-current" />
+          <text x="156" y="175" className="fill-current font-mono text-[10px] font-bold">
             0
           </text>
 
@@ -829,7 +829,7 @@ export function SubspaceOrthogonalityContrastDiagram({
             textAnchor="middle"
             className="fill-foreground text-[10px]"
           >
-            dim(V) + dim(L) = 2 + 1 = 3 · 双向正交补 L = V^⟂ 且 V = (V^⟂)^⟂
+            dim(V) + dim(L) = 2 + 1 = 3 · 双向正交补 L = V^⊥ 且 V = (V^⊥)^⟂
           </text>
         </g>
       </svg>

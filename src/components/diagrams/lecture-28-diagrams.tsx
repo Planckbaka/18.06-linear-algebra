@@ -204,7 +204,7 @@ export function QuadraticBowlAndEllipsoidAxesDiagram({
           • xᵀAx &gt; 0  (∀ x ≠ 0)
         </text>
         <text x="218" y="160" className="fill-foreground text-xs">
-          • Hessian H ≻ 0 ⇒ 严格极小
+          • 驻点处 H ≻ 0 ⇒ 严格局部极小
         </text>
         <text x="218" y="185" className="fill-muted-foreground text-[11px] font-mono">
           例：f = 2(x₁+3x₂)² + 2x₂²
@@ -289,10 +289,10 @@ export function QuadraticBowlAndEllipsoidAxesDiagram({
           不定 (Indefinite): λ₁&gt;0, λ₂&lt;0
         </text>
         <text x="218" y="296" className="fill-foreground text-xs">
-          • 沿 q₁ 向上弯（局部极小）
+          • 沿 q₁ 截线在原点取极小
         </text>
         <text x="218" y="317" className="fill-foreground text-xs">
-          • 沿 q₂ 向下弯（局部极大）
+          • 沿 q₂ 截线在原点取极大
         </text>
         <text x="218" y="338" className="fill-rose-600 dark:fill-rose-400 text-xs">
           • 驻点 ∇f = 0 仅为鞍点，非极值
@@ -480,13 +480,13 @@ export function QuadraticBowlAndEllipsoidAxesDiagram({
 
         {/* 等高线标签 */}
         <text x="752" y="274" className="fill-blue-600 dark:fill-blue-400 text-xs font-mono font-semibold">
-          等高线：xᵀAx = 1
+          外椭圆：xᵀAx = 1
         </text>
         <line
           x1="752"
           y1="262"
-          x2="740"
-          y2="246"
+          x2="751.3"
+          y2="240.8"
           className="stroke-blue-600/70 dark:stroke-blue-400/70"
           strokeWidth="1.1"
           strokeDasharray="2 2"
@@ -780,7 +780,7 @@ export function SpdFiveTestsEquivalenceWebDiagram({
           textAnchor="middle"
           className="fill-muted-foreground text-[10px]"
         >
-          代数本质：二次型配方法 xᵀAx = ∑ dᵢ (yᵢ)² 的系数全正
+          代数本质：xᵀAx = ∑ dᵢ yᵢ²，其中 y = Lᵀx
         </text>
 
         {/* ================= 节点 (5) 右下：满列秩分解 RᵀR ================= */}
@@ -915,7 +915,7 @@ export function SpdFiveTestsEquivalenceWebDiagram({
           strokeWidth="1"
         />
         <text x="460" y="425" textAnchor="middle" className="fill-foreground text-xs">
-          半正定 (PSD) 辨析：xᵀAx ≥ 0 ⇔ λᵢ ≥ 0 ⇔ A = RᵀR（R 允许列降秩）；但注意：仅顺序主子式 det(Aₖ) ≥ 0 不足以推出 PSD，须全部主子式 ≥ 0！
+          半正定 (PSD) 辨析：xᵀAx ≥ 0 ⇔ λᵢ ≥ 0 ⇔ A = RᵀR（R 无列满秩要求）；但注意：仅顺序主子式 det(Aₖ) ≥ 0 不足以推出 PSD，须全部主子式 ≥ 0！
         </text>
       </svg>
     </MathDiagram>

@@ -16,7 +16,7 @@ export function EigenvalueInvariantDirectionsDiagram({
           <marker
             id="l21-arrow-blue"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -27,7 +27,7 @@ export function EigenvalueInvariantDirectionsDiagram({
           <marker
             id="l21-arrow-emerald"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -38,7 +38,7 @@ export function EigenvalueInvariantDirectionsDiagram({
           <marker
             id="l21-arrow-purple"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -49,7 +49,7 @@ export function EigenvalueInvariantDirectionsDiagram({
           <marker
             id="l21-arrow-rose"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -60,7 +60,7 @@ export function EigenvalueInvariantDirectionsDiagram({
           <marker
             id="l21-arrow-amber"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -71,7 +71,7 @@ export function EigenvalueInvariantDirectionsDiagram({
           <marker
             id="l21-arrow-slate"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -171,8 +171,8 @@ export function EigenvalueInvariantDirectionsDiagram({
             <line
               x1="0"
               y1="0"
-              x2="38"
-              y2="-38"
+              x2="40"
+              y2="-40"
               className="stroke-emerald-600 dark:stroke-emerald-400"
               strokeWidth="2.5"
               markerEnd="url(#l21-arrow-emerald)"
@@ -187,10 +187,10 @@ export function EigenvalueInvariantDirectionsDiagram({
 
             {/* 变换后 Ax₁ = 3x₁ = [3, 3]^T (120, -120) */}
             <line
-              x1="38"
-              y1="-38"
-              x2="114"
-              y2="-114"
+              x1="40"
+              y1="-40"
+              x2="120"
+              y2="-120"
               className="stroke-emerald-500 dark:stroke-emerald-400"
               strokeWidth="2"
               strokeDasharray="2 2"
@@ -208,8 +208,8 @@ export function EigenvalueInvariantDirectionsDiagram({
             <line
               x1="0"
               y1="0"
-              x2="38"
-              y2="38"
+              x2="40"
+              y2="40"
               className="stroke-purple-600 dark:stroke-purple-400"
               strokeWidth="2.5"
               markerEnd="url(#l21-arrow-purple)"
@@ -244,8 +244,8 @@ export function EigenvalueInvariantDirectionsDiagram({
             <line
               x1="0"
               y1="0"
-              x2="100"
-              y2="-60"
+              x2="104"
+              y2="-64"
               className="stroke-amber-500 dark:stroke-amber-400"
               strokeWidth="2"
               markerEnd="url(#l21-arrow-amber)"
@@ -260,7 +260,7 @@ export function EigenvalueInvariantDirectionsDiagram({
 
             {/* 偏折弧线 */}
             <path
-              d="M 45 -8 A 45 45 0 0 0 38 -24"
+              d="M 36.50 -6.08 A 37 37 0 0 0 31.51 -19.39"
               fill="none"
               className="stroke-rose-400/80 dark:stroke-rose-400/60"
               strokeWidth="1.2"
@@ -289,7 +289,7 @@ export function EigenvalueInvariantDirectionsDiagram({
             y="329"
             className="text-[11px] font-medium fill-foreground"
           >
-            结论：只有特征方向 x 满足 Ax 与 x 共线（纯拉伸或压缩）
+            特征向量 x ≠ 0 张成的直线包含 Ax，包括 Ax = 0 的情形
           </text>
         </g>
 
@@ -437,7 +437,7 @@ export function GeometricEigenSpectraDiagram({
           <marker
             id="l21-spec-emerald"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="5"
             markerHeight="5"
@@ -448,7 +448,7 @@ export function GeometricEigenSpectraDiagram({
           <marker
             id="l21-spec-purple"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="5"
             markerHeight="5"
@@ -459,7 +459,7 @@ export function GeometricEigenSpectraDiagram({
           <marker
             id="l21-spec-blue"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="5"
             markerHeight="5"
@@ -470,7 +470,7 @@ export function GeometricEigenSpectraDiagram({
           <marker
             id="l21-spec-rose"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="5"
             markerHeight="5"
@@ -496,17 +496,17 @@ export function GeometricEigenSpectraDiagram({
             面板 1：正交投影矩阵 P
           </text>
           <text x="16" y="42" className="text-[11px] fill-muted-foreground">
-            Col(P) 上保角不变，Null(P) 上坍缩为 0
+            Col(P) 中的向量不变，Null(P) 中的向量映到 0
           </text>
 
           {/* 几何坐标系，原点位于 (135, 150) */}
           <g transform="translate(135, 150)">
             {/* 投影直线 L (倾角 35度) */}
             <line
-              x1="-105"
-              y1="73"
-              x2="115"
-              y2="-80"
+              x1="-110"
+              y1="76"
+              x2="110"
+              y2="-76"
               className="stroke-emerald-500/40"
               strokeWidth="1.5"
             />
@@ -516,10 +516,10 @@ export function GeometricEigenSpectraDiagram({
 
             {/* 法向直线 L^perp (倾角 -55度) */}
             <line
-              x1="-73"
-              y1="-105"
-              x2="80"
-              y2="115"
+              x1="-66.5"
+              y1="-96.25"
+              x2="57"
+              y2="82.5"
               className="stroke-purple-500/40"
               strokeWidth="1.5"
             />
@@ -545,8 +545,8 @@ export function GeometricEigenSpectraDiagram({
             <line
               x1="0"
               y1="0"
-              x2="-40"
-              y2="-57"
+              x2="-38"
+              y2="-55"
               className="stroke-purple-600 dark:stroke-purple-400"
               strokeWidth="2.5"
               markerEnd="url(#l21-spec-purple)"
@@ -602,10 +602,10 @@ export function GeometricEigenSpectraDiagram({
           <g transform="translate(140, 150)">
             {/* 镜面 M (倾角 35度) */}
             <line
-              x1="-105"
-              y1="73"
-              x2="115"
-              y2="-80"
+              x1="-110"
+              y1="76"
+              x2="110"
+              y2="-76"
               className="stroke-blue-500/40"
               strokeWidth="2"
             />
@@ -615,10 +615,10 @@ export function GeometricEigenSpectraDiagram({
 
             {/* 镜面法线 M^perp */}
             <line
-              x1="-73"
-              y1="-105"
-              x2="80"
-              y2="115"
+              x1="-66.5"
+              y1="-96.25"
+              x2="57"
+              y2="82.5"
               className="stroke-rose-500/40"
               strokeWidth="1.2"
               strokeDasharray="3 3"
@@ -695,7 +695,7 @@ export function GeometricEigenSpectraDiagram({
             代数验证：R² = I ⇒ λ² = 1 ⇒ λ ∈ &#123;1, -1&#125;
           </text>
           <text x="20" y="280" className="text-[9px] fill-muted-foreground">
-            由 P 平移获得：R = 2P - I ⇒ 2(1)-1=1, 2(0)-1=-1
+            由 P 缩放再平移：R = 2P - I ⇒ 2(1)-1=1, 2(0)-1=-1
           </text>
         </g>
 
@@ -723,7 +723,7 @@ export function GeometricEigenSpectraDiagram({
             <circle
               cx="0"
               cy="0"
-              r="62"
+              r="60"
               className="fill-none stroke-muted-foreground/30"
               strokeWidth="1"
               strokeDasharray="3 3"
@@ -749,11 +749,11 @@ export function GeometricEigenSpectraDiagram({
               y1="0"
               x2="0"
               y2="-60"
-              className="stroke-amber-500 dark:stroke-amber-400"
+              className="stroke-emerald-600 dark:stroke-emerald-400"
               strokeWidth="2.5"
               markerEnd="url(#l21-spec-emerald)"
             />
-            <text x="-65" y="-55" className="text-[11px] font-bold fill-amber-600 dark:fill-amber-400">
+            <text x="-65" y="-55" className="text-[11px] font-bold fill-emerald-600 dark:fill-emerald-400">
               Qv = [0, 1]ᵀ
             </text>
 
@@ -776,7 +776,7 @@ export function GeometricEigenSpectraDiagram({
               textAnchor="middle"
               className="text-[10px] font-medium fill-rose-600 dark:fill-rose-400"
             >
-              实平面内没有任何向量与自身像共线！
+              实平面内没有非零向量与其旋转像共线
             </text>
           </g>
 
@@ -796,7 +796,7 @@ export function GeometricEigenSpectraDiagram({
             特征方程：λ² + 1 = 0 ⇒ λ = ±i
           </text>
           <text x="20" y="280" className="text-[9px] fill-muted-foreground">
-            复特征向量：x₁ = [1, i]ᵀ, x₂ = [1, -i]ᵀ
+            复特征向量：x₁ = [1, -i]ᵀ, x₂ = [1, i]ᵀ
           </text>
         </g>
       </svg>

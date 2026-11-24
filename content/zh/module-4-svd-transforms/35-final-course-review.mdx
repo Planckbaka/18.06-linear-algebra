@@ -110,16 +110,16 @@ $$
 
 | 分解名称 | 适用范围与矩阵形状 | 显式保留 / 揭示的子空间 | 核心代数与几何不变量 | 求解的核心问题与方程 | 复杂度与数值稳定性 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **1. 高斯消元分解**<br/>$PA = LU$<br/>（对称版 $A = LDL^T$ / Cholesky $A = R^T R$） | 任意 $A \in \mathbb{R}^{m\times n}$（常用方阵）；对称无行交换时 $A=LDL^T$；SPD 时 $A = R^T R$ | 保留 $\operatorname{Row}(A)$ 与 $\operatorname{Null}(A)$；$U$ 主元列指示 $\operatorname{Col}(A)$ 的基；**改变** $\operatorname{Col}(A)$ 本身 | $\det(A) = \pm \prod_{i=1}^n u_{ii}$；主元个数等于 $\operatorname{rank}(A)$；对称矩阵主元正负号个数与特征值一致 | 精确线性方程组 $A\mathbf{x} = \mathbf{b}$；特解 $N = [-F; I]$；**彻底破坏特征值** | $\mathcal{O}(\frac{1}{3}n^3)$ 消元 + $\mathcal{O}(n^2)$ 回代；选主元置换 $P$ 保障消元数值稳定 |
+| **1. 高斯消元分解**<br/>$PA = LU$<br/>（对称版 $A = LDL^T$ / Cholesky $A = R^T R$） | 任意 $A \in \mathbb{R}^{m\times n}$（常用方阵）；对称矩阵在标量主元分解存在时可写 $A=LDL^T$；SPD 时 $A = R^T R$ | 保留 $\operatorname{Row}(A)$ 与 $\operatorname{Null}(A)$；$U$ 主元列指示 $\operatorname{Col}(A)$ 的基；**改变** $\operatorname{Col}(A)$ 本身 | 方阵时 $\det(A) = \det(P)\prod_{i=1}^n u_{ii}$；主元个数等于 $\operatorname{rank}(A)$；若 $A=LDL^T$ 且 $D$ 为对角矩阵，$D$ 与 $A$ 惯性相同 | 精确线性方程组 $A\mathbf{x} = \mathbf{b}$；特解 $N = [-F; I]$；**彻底破坏特征值** | $\mathcal{O}(\frac{1}{3}n^3)$ 消元 + $\mathcal{O}(n^2)$ 回代；部分选主元控制乘数，稳定性还取决于元素增长 |
 | **2. 正交三角分解**<br/>$A = QR$ | 列满秩矩阵 $A \in \mathbb{R}^{m\times n}$（$\operatorname{rank}(A) = n \le m$），含 $m=n$ 可逆方阵 | $Q \in \mathbb{R}^{m\times n}$ 的列直接构成 $\operatorname{Col}(A)$ 的**标准正交基** | 保超平行体体积：方阵时 $\operatorname{Vol}(A) = \lvert\det A\rvert = \prod_{i=1}^n r_{ii}$；列长与夹角信息编码在 $R$ 中 | 最小二乘正规方程解耦为 $R\hat{\mathbf{x}} = Q^T\mathbf{b}$；投影矩阵简化为 $P = QQ^T$ | $\mathcal{O}(2mn^2 - \frac{2}{3}n^3)$；条件数（Condition Number）$\kappa(R) = \kappa(A)$，**极度稳健**（不平方放大条件数） |
-| **3. 谱分解 / 对角化**<br/>$A = S\Lambda S^{-1}$<br/>实对称：$A = Q\Lambda Q^T$<br/>（复酉：$U\Lambda U^H$；亏损：$MJM^{-1}$） | $S\Lambda S^{-1}$：仅限具备 $n$ 个无关特征向量的**方阵**；$Q\Lambda Q^T$：任意**实对称**方阵 $A=A^T$；$MJM^{-1}$：任意方阵 | 对角化要求特征向量张满 $\mathbb{C}^n$；对称矩阵中不同特征值对应特征子空间**两两正交**；零特征空间即 $\operatorname{Null}(A)$ | 相似不变量：特征多项式、$\operatorname{tr}(A) = \sum \lambda_i$、$\det(A) = \prod \lambda_i$、代数/几何重数、Jordan 块个数 | 离散幂迭代 $\mathbf{u}_k = A^k \mathbf{u}_0$；连续 ODE $\mathbf{u}(t) = e^{At}\mathbf{u}_0$；马尔可夫稳态（$\lambda_1 = 1$）；SPD 二次型最小化与主轴椭球 | 迭代求解（QR 算法）；对称矩阵与正交变换 $Q$ 条件数 $\kappa(Q)=1$ 极其稳定；一般 $S$ 若接近共线则高度病态 |
-| **4. 奇异值分解**<br/>$A = U\Sigma V^T$<br/>（复矩阵 $A = U\Sigma V^H$） | **地球上任意矩阵** $A \in \mathbb{R}^{m\times n}$（零条件限制：长方/对称/奇异/亏损通吃） | **同时**给出全部四个基本子空间的标准正交基：$V_r, V_{n-r}, U_r, U_{m-r}$ | 唯一非负奇异值 $\sigma_i = \sqrt{\lambda_i(A^T A)}$；$\lVert A\rVert_2 = \sigma_1$；$\lVert A\rVert_F = \sqrt{\sum \sigma_i^2}$；$\kappa_2(A) = \sigma_1/\sigma_r$ | Eckart-Young 最优秩 $k$ 逼近 $A_k = \sum_{i=1}^k \sigma_i\mathbf{u}_i\mathbf{v}_i^T$；**伪逆通解** $\mathbf{x}^+ = A^+\mathbf{b} = V\Sigma^+U^T\mathbf{b}$ | 数值最可靠的分解；通过双对角化 + 隐式 QR 求解；无需构造病态 $A^T A$ 即可直接计算 $\sigma_i$ 与基向量 |
+| **3. 谱分解 / 对角化**<br/>$A = S\Lambda S^{-1}$<br/>实对称：$A = Q\Lambda Q^T$<br/>（复酉：$U\Lambda U^H$；亏损：$MJM^{-1}$） | $S\Lambda S^{-1}$：仅限具备 $n$ 个无关特征向量的**方阵**；$Q\Lambda Q^T$：任意**实对称**方阵 $A=A^T$；$MJM^{-1}$：任意复方阵 | 对角化要求特征向量张满 $\mathbb{C}^n$；对称矩阵中不同特征值对应特征子空间**两两正交**；零特征空间即 $\operatorname{Null}(A)$ | 相似不变量：特征多项式、$\operatorname{tr}(A) = \sum \lambda_i$、$\det(A) = \prod \lambda_i$、代数/几何重数、Jordan 块个数 | 离散幂迭代 $\mathbf{u}_k = A^k \mathbf{u}_0$；连续 ODE $\mathbf{u}(t) = e^{At}\mathbf{u}_0$；马尔可夫稳态（$\lambda_1 = 1$）；SPD 二次型最小化与主轴椭球 | 迭代求解（QR 算法）；对称矩阵与正交变换 $Q$ 条件数 $\kappa(Q)=1$ 极其稳定；一般 $S$ 若接近共线则高度病态 |
+| **4. 奇异值分解**<br/>$A = U\Sigma V^T$<br/>（复矩阵 $A = U\Sigma V^H$） | **地球上任意矩阵** $A \in \mathbb{R}^{m\times n}$（零条件限制：长方/对称/奇异/亏损通吃） | **同时**给出全部四个基本子空间的标准正交基：$V_r, V_{n-r}, U_r, U_{m-r}$ | 唯一非负奇异值 $\sigma_i = \sqrt{\lambda_i(A^T A)}$；$\lVert A\rVert_2 = \sigma_1$；$\lVert A\rVert_F = \sqrt{\sum \sigma_i^2}$；$r\gt 0$ 时，$\sigma_1/\sigma_r$ 为限制映射 $A\big\rvert_{\operatorname{Row}(A)}$ 的条件数 | Eckart-Young 最优秩 $k$ 逼近 $A_k = \sum_{i=1}^k \sigma_i\mathbf{u}_i\mathbf{v}_i^T$；**伪逆通解** $\mathbf{x}^+ = A^+\mathbf{b} = V\Sigma^+U^T\mathbf{b}$ | 数值最可靠的分解；通过双对角化 + 隐式 QR 求解；无需构造病态 $A^T A$ 即可直接计算 $\sigma_i$ 与基向量 |
 
 </DefinitionCard>
 
 > **基变换与坐标无关视角（第 31–32 讲的画龙点睛）**：  
-> 从线性算子 $T: V \to W$ 的抽象视角看，四大分解不过是在**主动挑选最聪明的输入基与输出基**！
-> - 若要求输入基与输出基**必须相同**，能把矩阵彻底压成对角阵的极限便是**特征基 $S$**（$A = S\Lambda S^{-1}$），仅当 $A$ 为实对称（或正规）矩阵时这组基才能同时做到标准正交（$Q\Lambda Q^T$）；
+> 从线性算子 $T: V \to W$ 的抽象视角看，这些分解以不同方式使用坐标。消元把输出坐标化为便于读出主元的形式，薄 QR 则选取列空间的标准正交基并保留输入坐标。
+> - 输入输出共用一组特征基时得到 $A=S\Lambda S^{-1}$，前提是存在完整特征基。实正交矩阵 $Q$ 与实对角矩阵 $\Lambda$ 给出 $A=Q\Lambda Q^T$ 的充要条件是 $A$ 实对称。在复数域上，存在酉特征基的充要条件是 $A$ 为正规矩阵。
 > - 若允许输入基 $V$ 与输出基 $U$ **各自独立正交化**，则**任何**矩阵 $A$ 都能被一步压成纯粹的对角拉伸 $\Sigma$（$A = U\Sigma V^T$）！换基公式 $M^{-1} A M$ 与 $U^T A V$ 分别统治了“同空间演化系统”与“跨空间几何映射”两大世界。
 
 ---
@@ -218,7 +218,7 @@ $$
 1. **一般对角化动力系统（Module III, $A \in \mathbb{C}^{n\times n}$ 可对角化为 $A = S\Lambda S^{-1}$）**：
    - **离散系统 $\mathbf{u}_{k+1} = A\mathbf{u}_k$**：通解 $\mathbf{u}_k = \sum_{i=1}^n c_i \lambda_i^k \mathbf{x}_i$。系统渐近稳定（$\lim_{k\to\infty}\mathbf{u}_k = \mathbf{0}$）$\iff$ 谱半径 $\rho(A) = \max_i \lvert\lambda_i\rvert \lt 1$。
    - **连续系统 $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$**：通解 $\mathbf{u}(t) = e^{At}\mathbf{u}(0) = \sum_{i=1}^n c_i e^{\lambda_i t}\mathbf{x}_i$。系统渐近稳定（$\lim_{t\to\infty}\mathbf{u}(t) = \mathbf{0}$）$\iff$ 全谱实部严格为负 $\operatorname{Re}(\lambda_i) \lt 0$（对 $2\times 2$ 实矩阵等价于 $\operatorname{tr}(A) \lt 0$ 且 $\det(A) \gt 0$）。
-   - **正马尔可夫链（Markov Matrix $M$，$m_{ij} \gt 0$ 且 $\mathbf{1}^T M = \mathbf{1}^T$）**：恒有主特征值 $\lambda_1 = 1$ 且其余 $\lvert\lambda_i\rvert \lt 1$（$i\ge 2$）；全 1 左特征向量 $\mathbf{1}^T$ 强迫所有瞬态模态正交于 $\mathbf{1}$（$\mathbf{1}^T\mathbf{x}_i = 0$），故总概率守恒且 $\lim_{k\to\infty} M^k\mathbf{u}_0 = \mathbf{u}_\infty \in \operatorname{Null}(M - I)$；对应连续马尔可夫生成元 $\frac{d\mathbf{u}}{dt} = (M - I)\mathbf{u}$ 具有特征值 $\mu_i = \lambda_i - 1$，以同样的方式收敛到同一个稳态 $\mathbf{u}_\infty$！
+   - **正马尔可夫链（Markov Matrix $M\in\mathbb{R}^{n\times n}$，$m_{ij}\gt 0$、$\mathbf{1}^T M=\mathbf{1}^T$，初值 $\mathbf{u}_0$ 为概率向量）**：由 Perron–Frobenius 定理，$1$ 是单特征值，且其余 $\lvert\lambda_i\rvert \lt 1$（$i\ge 2$）；全 1 左特征向量 $\mathbf{1}^T$ 强迫所有瞬态模态正交于 $\mathbf{1}$（$\mathbf{1}^T\mathbf{x}_i = 0$），故总概率守恒且 $\lim_{k\to\infty} M^k\mathbf{u}_0 = \mathbf{u}_\infty \in \operatorname{Null}(M - I)$；对应连续马尔可夫生成元 $\frac{d\mathbf{u}}{dt} = (M - I)\mathbf{u}$ 具有特征值 $\mu_i = \lambda_i - 1$，以同样的方式收敛到同一个稳态 $\mathbf{u}_\infty$！
    - （注：若 $A$ 不可对角化，需用 Jordan 标准形 $A = MJM^{-1}$；稳定性判据 $\lvert\lambda_i\rvert \lt 1$ 与 $\operatorname{Re}(\lambda_i) \lt 0$ 依然充要成立，因为指数衰减压倒多项式因子 $k^p$ 或 $t^p$！）
 2. **实对称矩阵与二次型极值（Module IV, $A = A^T \in \mathbb{R}^{n\times n}$）**：
    - **谱定理**：$A = Q\Lambda Q^T = \sum_{i=1}^n \lambda_i \mathbf{q}_i\mathbf{q}_i^T$，全部特征值必为实数（$\lambda_1 \ge \dots \ge \lambda_n \in \mathbb{R}$），且存在标准正交特征基 $Q$。
@@ -233,10 +233,12 @@ $$
 <ProofCollapse title="展开定理 C 谱稳定性与 Rayleigh 商极值统一证明">
 
 **第一部分（动力系统与亏损矩阵补充）**：  
-当 $A = S\Lambda S^{-1}$ 时，$A^k = S\Lambda^k S^{-1}$ 与 $e^{At} = S e^{\Lambda t} S^{-1}$ 直接把系统分解为 $n$ 个独立的标量模态 $\lambda_i^k$ 与 $e^{\lambda_i t}$。对复特征值 $\lambda_i = \alpha_i + i\beta_i$，$\lvert\lambda_i^k\rvert = \lvert\lambda_i\rvert^k \to 0 \iff \lvert\lambda_i\rvert \lt 1$，且 $\lvert e^{\lambda_i t}\rvert = e^{\alpha_i t} \to 0 \iff \alpha_i = \operatorname{Re}(\lambda_i) \lt 0$。若 $A$ 出现 Jordan 块 $J_m(\lambda_i) = \lambda_i I_m + N$（其中 $N^m = O$），则 $J_m(\lambda_i)^k = \sum_{j=0}^{m-1}\binom{k}{j}\lambda_i^{k-j}N^j$ 与 $e^{J_m(\lambda_i)t} = e^{\lambda_i t}\sum_{j=0}^{m-1}\frac{t^j}{j!}N^j$。只要 $\lvert\lambda_i\rvert \lt 1$（或 $\operatorname{Re}(\lambda_i) \lt 0$），指数函数衰减速率严格压倒任意固定次数 $j \le m-1$ 的多项式增长，故系统仍严格趋于 $\mathbf{0}$。
+当 $A = S\Lambda S^{-1}$ 时，$A^k = S\Lambda^k S^{-1}$ 与 $e^{At} = S e^{\Lambda t} S^{-1}$ 直接把系统分解为 $n$ 个独立的标量模态 $\lambda_i^k$ 与 $e^{\lambda_i t}$。对复特征值 $\lambda_i = \alpha_i + i\beta_i$，$\lvert\lambda_i^k\rvert = \lvert\lambda_i\rvert^k \to 0 \iff \lvert\lambda_i\rvert \lt 1$，且 $\lvert e^{\lambda_i t}\rvert = e^{\alpha_i t} \to 0 \iff \alpha_i = \operatorname{Re}(\lambda_i) \lt 0$。若 $A$ 出现 Jordan 块 $J_m(\lambda_i) = \lambda_i I_m + N$（其中 $N^m = O$），则 $J_m(\lambda_i)^k = \sum_{j=0}^{\min(k,m-1)}\binom{k}{j}\lambda_i^{k-j}N^j$ 与 $e^{J_m(\lambda_i)t} = e^{\lambda_i t}\sum_{j=0}^{m-1}\frac{t^j}{j!}N^j$。只要 $\lvert\lambda_i\rvert \lt 1$（或 $\operatorname{Re}(\lambda_i) \lt 0$），指数函数衰减速率严格压倒任意固定次数 $j \le m-1$ 的多项式增长，故系统仍严格趋于 $\mathbf{0}$。
 
 **第二部分（马尔可夫连续生成元与离散链同稳态）**：  
-若 $\mathbf{1}^T M = \mathbf{1}^T$，则 $\mathbf{1}^T (M - I) = \mathbf{0}^T$。于是连续系统的总概率导数满足 $\frac{d}{dt}(\mathbf{1}^T \mathbf{u}(t)) = \mathbf{1}^T \frac{d\mathbf{u}}{dt} = \mathbf{1}^T (M - I)\mathbf{u}(t) = 0$，概率和恒定为 $1$！同时 $M - I$ 的特征值为 $\mu_i = \lambda_i - 1$，除 $\mu_1 = 0$ 对应同一右特征向量 $\mathbf{u}_\infty$ 外，其余特征值满足 $\operatorname{Re}(\mu_i) = \operatorname{Re}(\lambda_i) - 1 \le \lvert\lambda_i\rvert - 1 \lt 0$，故 $e^{(M-I)t}\mathbf{u}(0) \to \mathbf{u}_\infty$。
+若 $\mathbf{1}^T M = \mathbf{1}^T$，则 $\mathbf{1}^T (M - I) = \mathbf{0}^T$。于是连续系统的总概率导数满足 $\frac{d}{dt}(\mathbf{1}^T \mathbf{u}(t)) = \mathbf{1}^T \frac{d\mathbf{u}}{dt} = \mathbf{1}^T (M - I)\mathbf{u}(t) = 0$，故总质量保持初始值，初值为概率向量时等于 $1$。同时 $M - I$ 的特征值为 $\mu_i = \lambda_i - 1$，除 $\mu_1 = 0$ 对应同一右特征向量 $\mathbf{u}_\infty$ 外，其余特征值满足 $\operatorname{Re}(\mu_i) = \operatorname{Re}(\lambda_i) - 1 \le \lvert\lambda_i\rvert - 1 \lt 0$，故 $e^{(M-I)t}\mathbf{u}(0) \to \mathbf{u}_\infty$。
+
+离散与连续演化的共同极限为归一化 Perron 向量。其余广义特征空间上的分量衰减，因此这一结论也涵盖不可对角化的 $M$。
 
 **第三部分（对称矩阵 Rayleigh 商与 SPD 几何）**：  
 因为 $Q^T Q = I_n$，作正交坐标变换 $\mathbf{x} = Q\mathbf{y}$（保持长度 $\|\mathbf{x}\|_2^2 = \|\mathbf{y}\|_2^2 = \sum y_i^2$）。此时二次型彻底消去交叉项：
@@ -264,7 +266,7 @@ $$
 4. **误区 4：行列式满足线性可加性 $\det(A+B) = \det A + \det B$ 与一倍提取 $\det(cA) = c\det A$？**  
    **双双错误！** 行列式仅对**单个行**呈线性，对整矩阵既不可加也不满足一倍齐次：绝大多数情况下 $\det(A+B) \ne \det A + \det B$（例如 $\det(I_2 + I_2) = 4 \ne 1 + 1 = 2$）；且数乘整个 $n\times n$ 矩阵等于把 $n$ 行的公因子逐一提出，故 $\det(cA) = c^n \det(A)$，$\det(-A) = (-1)^n \det(A)$。
 5. **误区 5：高斯消元得到的上三角矩阵 $U$ 的主对角元就是 $A$ 的特征值？**  
-   **跨模块最大张冠李戴！** 初等行变换 $EA = U$ 保持解空间和 $\det(A) = \pm\det(U)$，但它**完全摧毁特征值与特征向量**！特征值只在**相似变换** $M^{-1}AM$ 下保持不变，而消元只是单侧左乘 $EA$。只有当矩阵本身**已经是三角矩阵**时，对角线元素才同时等于主元与特征值。
+   **跨模块最大张冠李戴！** 初等行变换 $EA = U$ 保持解空间和 $\det(A) = \det(P)\det(U)$ when $A$ is square and $PA=LU$，但它**完全摧毁特征值与特征向量**！特征值只在**相似变换** $M^{-1}AM$ 下保持不变，而消元只是单侧左乘 $EA$。只有当矩阵本身**已经是三角矩阵**时，对角线元素才同时等于主元与特征值。
 6. **误区 6：矩阵可逆就一定可对角化，奇异（$\det A = 0$）就一定不可对角化？**  
    **完全独立的两件事，毫无因果关系！** 可逆性看的是**有没有零特征值**（$\det A \ne 0$）；可对角化看的是**有没有凑足 $n$ 个线性无关特征向量**（每个特征值 $\operatorname{GM} = \operatorname{AM}$）。
    - **可逆但不可对角化**：Jordan 块 $J = \begin{bmatrix} 2 & 1 \\ 0 & 2 \end{bmatrix}$（$\det J = 4 \ne 0$ 可逆，但 $\lambda=2$ 只有 $1$ 个特征向量，亏损！）；
@@ -288,7 +290,7 @@ $$
 <InteractiveCanvasSlot
   id="l35-grand-finale-explorer"
   title="全课程终极交互实验台：四大子空间 × 四大矩阵分解联动探索"
-  description={"自由选择任意 $2\\times 2$、$3\\times 2$ 或 $2\\times 3$ 矩阵（可逆、奇异、对称正定或剪切亏损），同步联动观测四个基本子空间正交剖分、$PA=LU$ 主元消元、$QR$ 体积变形、特征方向与 $\\operatorname{tr}-\\det$ 动力学相平面，以及单位圆在 SVD $U\\Sigma V^T$ 下变为椭圆的主轴全流程。"}
+  description="在 4 类经典矩阵结构（3×3 方阵满秩 $r=m=n$、4×2 瘦长超定 $r=n<m$、2×4 矮胖欠定 $r=m<n$、3×3 秩亏缺 $r<\\min(m,n)$）之间一键切换，对照四个基本子空间维数、单/双侧逆存在性、SVD 奇异值结构与最优伪逆解 $\\mathbf{x}^+ = A^+\\mathbf{b}$。"
 />
 
 <KeyTakeaways
@@ -297,7 +299,7 @@ $$
     "**两大终极支柱**：全部 35 讲的骨架是四个基本子空间（$\\operatorname{Row}(A) \\perp \\operatorname{Null}(A)$ 于 $\\mathbb{R}^n$，$\\operatorname{Col}(A) \\perp \\operatorname{Null}(A^T)$ 于 $\\mathbb{R}^m$）与四大矩阵分解（$PA=LU$、$A=QR$、$S\\Lambda S^{-1}/Q\\Lambda Q^T$、$U\\Sigma V^T$）。",
     "**线性代数基本定理三部曲**：Part I 锁定维数守恒（$r, n-r, m-r$）；Part II 确立正交补直和分解（$\\mathbb{R}^n = \\operatorname{Row}(A) \\oplus \\operatorname{Null}(A)$）；Part III 用 SVD 给全四子空间同时配备标准正交基，使 $A: \\operatorname{Row}(A) \\to \\operatorname{Col}(A)$ 成为以 $A^+$ 为逆的对角化双射。",
     "**三大求解的统一**：无论方程精准有解（$A^{-1}\\mathbf{b}$）、无解过度决定（正规方程 $(A^T A)^{-1}A^T\\mathbf{b}$）还是秩亏缺多解（伪逆 $\\mathbf{x}^+ = A^+\\mathbf{b} = V\\Sigma^+ U^T\\mathbf{b}$），本质都是先将 $\\mathbf{b}$ 正交投影至 $\\operatorname{Col}(A)$，再取零空间分量为 $\\mathbf{0}$ 的唯一行空间原像。",
-    "**行列式与体积的几何桥梁**：行列式是方阵超平行体有向体积缩放因子（$\\lvert\\det A\\rvert = \\operatorname{Vol}(A) = \\prod r_{ii}$），其零点 $\\det(A-\\lambda I)=0$ 打开了谱分解与动力系统的大门。",
+    "**行列式与体积的几何桥梁**：行列式是方阵超平行体有向体积缩放因子（$\\lvert\\det A\\rvert = \\operatorname{Vol}(A) = \\prod_i \\lvert r_{ii}\\rvert$），其零点 $\\det(A-\\lambda I)=0$ 打开了谱分解与动力系统的大门。",
     "**谱理论的统一与边界**：可对角化阵 $A=S\\Lambda S^{-1}$ 主宰离散幂 $A^k$（稳定 $\\iff \\rho(A)\\lt 1$）、连续流 $e^{At}$（稳定 $\\iff \\operatorname{Re}(\\lambda_i)\\lt 0$）与马尔可夫稳态（$\\lambda_1=1$）；对称矩阵升级为实谱与正交基 $Q\\Lambda Q^T$，正定（$\\lambda_i\\gt 0$）刻画凸极小值与主轴椭球；亏损阵由 Jordan 块 $MJM^{-1}$ 兜底。",
     "**SVD 与低秩世界观**：任意矩阵都能拆成 $r$ 个正交秩 1 矩阵的加权和 $A = \\sum_{i=1}^r \\sigma_i \\mathbf{u}_i \\mathbf{v}_i^T$，由 $\\mathbf{u}_i = \\frac{1}{\\sigma_i}A\\mathbf{v}_i$ 严格锁死符号一致，前 $k$ 项截断 $A_k$ 在谱范数与 Frobenius 范数下均为最优秩 $k$ 逼近。"
   ]}
@@ -353,7 +355,7 @@ $$
 **1. 四个基本子空间分析**：  
 $A$ 的两列 $[1, 1, 0]^T$ 与 $[1, 0, 1]^T$ 显然不成比例，故列满秩，$r = \operatorname{rank}(A) = 2$（这里 $m = 3, n = 2$）。
 - $\operatorname{Row}(A) = \mathbb{R}^2$（$\dim = 2$），基为 $\{[1, 0]^T, [0, 1]^T\}$；
-- $\operatorname{Null}(A) = \{\mathbf{0}\}$（$\dim = 2 - 2 = 0$）；
+- $\operatorname{Null}(A) = \{\mathbf{0}\}$（维数 $0$，基为空集）；
 - $\operatorname{Col}(A) = \operatorname{span}\{[1, 1, 0]^T, [1, 0, 1]^T\}$（$\dim = 2$）；
 - $\operatorname{Null}(A^T)$（$\dim = 3 - 2 = 1$）：解 $A^T \mathbf{n} = \begin{bmatrix} 1 & 1 & 0 \\ 1 & 0 & 1 \end{bmatrix}\begin{bmatrix} y_1 \\ y_2 \\ y_3 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix}$，得 $y_2 = -y_1, y_3 = -y_1$，取基向量 $\mathbf{n} = \begin{bmatrix} 1 \\ -1 \\ -1 \end{bmatrix}$。
 
@@ -523,8 +525,8 @@ $$
 $$
 由此精确划分四类区域：
 - **稳定螺旋点（共轭复根且实部负：$\det \gt 0, \Delta \lt 0$）**：$3 - 2c \gt 0$ 且 $4 + 8c \lt 0 \implies c \lt -\frac{1}{2}$；
-- **稳定节点（两非正实根且严格负：$\det \gt 0, \Delta \ge 0$）**：$-\frac{1}{2} \le c \lt \frac{3}{2}$（含临界重根节点 $c = -\frac{1}{2}$）；
-- **退化中性平衡线（出现零特征值：$\det = 0$）**：$c = \frac{3}{2}$（特征值 $\lambda_1 = 0, \lambda_2 = -4$，所有轨线沿 $\mathbf{x}_2$ 方向收敛到直线上不同的稳定点）；
+- **稳定节点（两非正实根且严格负：$\det \gt 0, \Delta \ge 0$）**：$-\frac{1}{2} \le c \lt \frac{3}{2}$（在 $c=-\frac{1}{2}$ 时，$B_c+2I_2$ 的秩为 $1$，故为亏损稳定节点）；
+- **退化中性平衡线（出现零特征值：$\det = 0$）**：$c = \frac{3}{2}$（特征值 $\lambda_1 = 0, \lambda_2 = -4$，轨线沿稳定特征方向 $\operatorname{span}\{[2,-3]^T\}$ 趋向平衡线上的点）；
 - **不稳定鞍点（一正一负实根：$\det \lt 0$）**：$c \gt \frac{3}{2}$。
 
 </SolutionRigorous>
@@ -782,7 +784,7 @@ $$
 *证明与反例*：由第 29 讲相似矩阵性质，若 $B = M^{-1}AM$：
 - **不变量**：$\det(B - \lambda I) = \det(M^{-1}(A - \lambda I)M) = \det(A - \lambda I)$，故特征值、$\operatorname{tr}$、$\det$ 与 $\operatorname{rank}$（乘可逆阵不改秩）全不变；
 - **特征向量坐标**：若 $A\mathbf{x} = \lambda\mathbf{x}$，则 $B(M^{-1}\mathbf{x}) = \lambda(M^{-1}\mathbf{x})$，特征向量在旧基与新基下的坐标相差 $M^{-1}$；
-- **奇异值会变（除非 $M$ 正交）**：取 $A = \begin{bmatrix} 2 & 0 \\ 0 & 1 \end{bmatrix}$ 与非正交换基阵 $M = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}$，则 $B = M^{-1}AM = \begin{bmatrix} 2 & -1 \\ 0 & 1 \end{bmatrix}$。此时 $\sigma(A) = \{2, 1\}$，但 $\det(B^T B) = 4$ 且 $\operatorname{tr}(B^T B) = 4 + 1 + 1 = 6$，故 $B$ 的奇异值满足 $\sigma_1^2 + \sigma_2^2 = 6 \ne 2^2 + 1^2 = 5$（奇异值为 $\sqrt{3\pm\sqrt{5}}$），完全改变！这再次印证：特征值是在**一般可逆换基 $M^{-1}AM$** 下的不变量，而奇异值是仅在**正交换基 $U^T A V$** 下的欧氏长度不变量。
+- **非正交相似变换可能改变奇异值**：取 $A = \begin{bmatrix} 2 & 0 \\ 0 & 1 \end{bmatrix}$ 与非正交换基阵 $M = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}$，则 $B = M^{-1}AM = \begin{bmatrix} 2 & 1 \\ 0 & 1 \end{bmatrix}$。此时 $\sigma(A) = \{2, 1\}$，但 $\det(B^T B) = 4$ 且 $\operatorname{tr}(B^T B) = 4 + 1 + 1 = 6$，故 $B$ 的奇异值满足 $\sigma_1^2 + \sigma_2^2 = 6 \ne 2^2 + 1^2 = 5$（奇异值为 $\sqrt{3\pm\sqrt{5}}$），完全改变！这再次印证：特征值是在**一般可逆换基 $M^{-1}AM$** 下的不变量，而奇异值是仅在**正交换基 $U^T A V$** 下的欧氏长度不变量。
 
 </SolutionRigorous>
 </DualSolution>

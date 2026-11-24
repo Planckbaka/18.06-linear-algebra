@@ -15,7 +15,7 @@ export function EliminationPipelineDiagram({
         viewBox="0 0 720 285"
         className="w-full max-w-[720px] select-none text-foreground"
         role="img"
-        aria-label="Step-by-step Gaussian elimination from A to U via E21 and E32"
+        aria-label="Two elimination steps with pivots 1, 2, and 5, plus row and column multiplication rules"
       >
         <defs>
           <marker
@@ -202,7 +202,7 @@ export function EliminationPipelineDiagram({
             row_i(EA) = (row_i of E) · A
           </text>
           <text x="161" y="66" textAnchor="middle" className="fill-current text-[10.5px] opacity-70">
-            保持解集与零空间 Null(A)，但会改变列空间 Col(A)!
+            Col(EA) = E Col(A)，右端同步变为 Eb
           </text>
         </g>
 
@@ -215,7 +215,7 @@ export function EliminationPipelineDiagram({
             col_j(AC) = A · (col_j of C)
           </text>
           <text x="164" y="66" textAnchor="middle" className="fill-current text-[10.5px] opacity-70">
-            保持列空间 Col(A)，但会改变方程组的未知数坐标!
+            C 可逆时，Col(AC) = Col(A)；ACz = b 对应 x = Cz
           </text>
         </g>
       </svg>

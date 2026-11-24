@@ -9,13 +9,13 @@ textbookRef: "§6.3"
 
 在前两讲中，我们完成了矩阵特征值与特征向量的代数构造，并见证了离散差分方程（Difference Equations）$\mathbf{u}_{k+1} = A\mathbf{u}_k$ 如何通过矩阵幂 $A^k = S\Lambda^k S^{-1}$ 实现完全解耦。
 
-本讲将迈入**连续时间动力系统（Continuous Dynamical Systems）**的广阔疆域。无论是在电路分析中的 RLC 振荡、经典力学中的受阻尼弹簧振子、生态学中的捕食者-猎物模型，还是现代深度学习中处理超长序列的状态空间模型（SSM / Mamba），其底层的物理与数学规律都可以归结为一阶常微分方程组（System of Ordinary Differential Equations）：
+本讲将迈入**连续时间动力系统（Continuous Dynamical Systems）**的广阔疆域。以 RLC 电路和受阻尼弹簧振子为例，常系数线性模型可写成一阶常微分方程组（System of Ordinary Differential Equations）：
 
 $$
 \frac{d\mathbf{u}}{dt} = A\mathbf{u}, \quad \mathbf{u}(0) = \mathbf{u}_0
 $$
 
-我们将见证线性代数最震撼的结构性统一：连续微分算子 $\frac{d}{dt}$ 在特征向量基底（Eigenbasis）下被完全对角化，化解为 $n$ 个互不干扰的标量微积分方程；而经典标量指数函数 $e^{at}$ 在矩阵空间中绽放出绚烂的**矩阵指数（Matrix Exponential）** $e^{At}$。
+我们将见证线性代数最震撼的结构性统一：若系数矩阵 $A$ 存在特征基底（Eigenbasis），在这个基底中 $A$ 的表示是对角矩阵，方程组由此化为 $n$ 个相互独立的标量微分方程；而经典标量指数函数 $e^{at}$ 在矩阵空间中绽放出绚烂的**矩阵指数（Matrix Exponential）** $e^{At}$。
 
 ---
 
@@ -31,13 +31,13 @@ $$
 
 根据微积分基本定理，其通解为经典的指数衰减或增长：$u(t) = C e^{at} = u_0 e^{at}$。
 
-当我们将维度提升至 $n$ 维向量空间，考虑状态向量 $\mathbf{u}(t) \in \mathbb{R}^n$ 与系数矩阵 $A \in \mathbb{R}^{n\times n}$：
+当我们将维度提升至 $n$ 维向量空间，考虑状态向量 $\mathbf{u}(t) \in \mathbb{R}^n$ 与常系数矩阵 $A \in \mathbb{R}^{n\times n}$：
 
 $$
 \frac{d\mathbf{u}}{dt} = A\mathbf{u} = \begin{bmatrix} a_{11} & a_{12} & \cdots & a_{1n} \\ a_{21} & a_{22} & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ a_{n1} & a_{n2} & \cdots & a_{nn} \end{bmatrix} \begin{bmatrix} u_1(t) \\ u_2(t) \\ \vdots \\ u_n(t) \end{bmatrix}
 $$
 
-这组方程是严重**相互耦合（Coupled）**的——每个变量的变化率 $\frac{du_i}{dt}$ 都依赖于其他所有变量的当前值。
+若 $i\ne j$ 且 $a_{ij}\ne0$，则第 $i$ 个分量的变化率依赖于 $u_j$，相应方程彼此**耦合（Coupled）**。
 
 如何打破这种耦合？我们效仿标量方程的解法，猜测一个纯指数解（Ansatz）：
 
@@ -45,7 +45,7 @@ $$
 \mathbf{u}(t) = e^{\lambda t} \mathbf{x}
 $$
 
-其中 $\lambda$ 为待定标量，$\mathbf{x} \in \mathbb{C}^n$ 为不随时间变化的常数向量。将该假设解代入微分方程：
+其中 $\lambda\in\mathbb{C}$，$\mathbf{x}\in\mathbb{C}^n\setminus\{\mathbf{0}\}$ 为不随时间变化的向量。将该假设解代入微分方程：
 
 - 左侧求导（由于 $\mathbf{x}$ 为常向量）：
   $$
@@ -70,7 +70,7 @@ $$
 
 > **关键洞察**：连续时间的微分算子作用 $\frac{d}{dt} \mathbf{u} = A\mathbf{u}$，在指数假设下，奇迹般地退化为代数特征值与特征向量方程！
 > 
-> - 微分方程特解的增长/衰减速率 $\lambda$，正是矩阵 $A$ 的**特征值（Eigenvalue）**；
+> - 指数中的 $\lambda$ 是矩阵 $A$ 的**特征值（Eigenvalue）**，其实际振幅增长或衰减速率由 $\operatorname{Re}(\lambda)$ 决定。
 > - 空间各分量的振幅比例分布 $\mathbf{x}$，正是矩阵 $A$ 对应的**特征向量（Eigenvector）**。每一个这样的特解 $e^{\lambda_i t}\mathbf{x}_i$ 被称为系统的一个**纯特征模态（Eigenmode）**。
 
 ### 1.2 叠加原理与初值通解
@@ -114,7 +114,7 @@ $$
 \frac{d\mathbf{u}}{dt} = \begin{bmatrix} -1 & 2 \\ 1 & -2 \end{bmatrix} \mathbf{u}, \quad \mathbf{u}(0) = \begin{bmatrix} 1 \\ 0 \end{bmatrix}
 $$
 
-其中 $u_1(t), u_2(t)$ 分别表示两容器中的溶质浓度或两区域的人口数量。
+其中 $u_1(t), u_2(t)$ 分别表示两容器中的溶质量或两区域的人口数量。
 
 #### 步骤一：特征方程与特征值
 计算矩阵 $A$ 的迹与行列式：
@@ -185,7 +185,7 @@ $$
 
 ### 1.4 高阶常微分方程的“降阶增维”转化法
 
-工程与物理中经常遇到二阶或高阶标量微分方程（例如受阻尼振子、波动方程）。线性代数的一大威力在于：**任意高阶线性常微分方程，均可降阶等价转化为一个一阶微分方程组**。
+工程与物理中经常遇到二阶或高阶标量微分方程（例如受阻尼振子、波动方程）。线性代数的一大威力在于：**任意可解出最高阶导数的高阶线性常微分方程，都可写成等价的一阶微分方程组**。
 
 考虑经典的受阻尼机械振荡方程：
 
@@ -239,14 +239,14 @@ $$
 e^{At} \equiv \exp(At) = \sum_{k=0}^{\infty} \frac{(At)^k}{k!} = I_n + At + \frac{1}{2!}A^2 t^2 + \frac{1}{3!}A^3 t^3 + \dots
 $$
 
-该级数对任意方阵 $A$ 和任意标量 $t$，在任意诱导矩阵范数下均**绝对收敛（Absolutely Convergent）**且**内闭一致收敛**。
+该级数对任意方阵 $A$ 和任意标量 $t$，在任意诱导矩阵范数下均**绝对收敛（Absolutely Convergent）**，并在每个紧区间上一致收敛。
 </DefinitionCard>
 
 <TheoremCard
   title="矩阵指数的基本微分与代数性质"
   termEn="Fundamental Properties of Matrix Exponential"
 >
-设 $A, B \in \mathbb{C}^{n\times n}$，$t, s \in \mathbb{R}$。矩阵指数满足以下根本性质：
+设 $A \in \mathbb{C}^{n\times n}$、$\mathbf{u}_0\in\mathbb{C}^n$、$t\in\mathbb{R}$。矩阵指数满足以下根本性质：
 1. **微分性质**：
    $$
    \frac{d}{dt}\left(e^{At}\right) = A e^{At} = e^{At} A
@@ -261,7 +261,7 @@ $$
    e^{At} = S e^{\Lambda t} S^{-1} = S \begin{bmatrix} e^{\lambda_1 t} & & 0 \\ & \ddots & \\ 0 & & e^{\lambda_n t} \end{bmatrix} S^{-1}
    $$
 5. **逆矩阵性质**：矩阵指数 $e^{At}$ 恒可逆，且 $(e^{At})^{-1} = e^{-At}$。
-6. **雅可比行列式恒等式（Jacobi's Formula）**：
+6. **行列式–迹恒等式（Determinant–Trace Identity）**：
    $$
    \det\left(e^{At}\right) = e^{\operatorname{tr}(At)} = e^{t \cdot \operatorname{tr}(A)}
    $$
@@ -271,12 +271,12 @@ $$
 
 **证明 1：逐项求导微分性质**
 
-由于级数 $\sum_{k=0}^{\infty} \frac{(At)^k}{k!}$ 一致收敛，我们可以对矩阵级数逐项关于标量时间 $t$ 求导：
+在任意诱导矩阵范数下，当 $|t|\le R$ 时，原级数各项的范数不超过 $(R\|A\|)^k/k!$，导数级数第 $k$ 项（$k\ge1$）的范数不超过 $\|A\|(R\|A\|)^{k-1}/(k-1)!$。两组上界的级数均收敛，所以可以逐项求导。
 
 $$
 \begin{aligned}
 \frac{d}{dt}\left(e^{At}\right) &= \frac{d}{dt}\left( I_n + At + \frac{t^2}{2!}A^2 + \frac{t^3}{3!}A^3 + \dots \right) \\
-&= \mathbf{0} + A + \frac{2t}{2!}A^2 + \frac{3t^2}{3!}A^3 + \dots \\
+&= A + \frac{2t}{2!}A^2 + \frac{3t^2}{3!}A^3 + \dots \\
 &= A + tA^2 + \frac{t^2}{2!}A^3 + \dots \\
 &= A \left( I_n + tA + \frac{t^2}{2!}A^2 + \dots \right) = A e^{At}
 \end{aligned}
@@ -312,16 +312,12 @@ $$
 由于 $At$ 与 $-At$ 恒可交换（$At(-At) = -At(At)$），利用交换矩阵乘积公式可得：
 
 $$
-e^{At} e^{-At} = e^{At - At} = e^{\mathbf{0}} = I_n \implies (e^{At})^{-1} = e^{-At}
+e^{At} e^{-At} = e^{At - At} = e^{0_{n\times n}} = I_n \implies (e^{At})^{-1} = e^{-At}
 $$
 
-对于可对角化矩阵，其特征值为 $e^{\lambda_i t}$，行列式等于特征值的乘积：
+在 $\mathbb{C}$ 上，可逐次选取一个特征向量，再将剩余分块三角化，得到 $A=STS^{-1}$。其中 $T$ 为上三角矩阵，对角元为 $\lambda_1,\dots,\lambda_n$。指数级数保持相似关系，且 $e^{Tt}$ 仍为上三角矩阵，对角元为 $e^{\lambda_i t}$。将这些对角元相乘，即得 $\det(e^{At})=e^{t\operatorname{tr}(A)}$。
 
-$$
-\det\left(e^{At}\right) = \prod_{i=1}^n e^{\lambda_i t} = e^{\sum_{i=1}^n \lambda_i t} = e^{t \sum_{i=1}^n \lambda_i} = e^{t \cdot \operatorname{tr}(A)}
-$$
-
-根据代数几何连续性，该雅可比公式对所有方阵恒成立。
+为证明初值解唯一，若 $\mathbf{u}'=A\mathbf{u}$，则 $\frac{d}{dt}(e^{-At}\mathbf{u}(t))=\mathbf{0}$，所以 $e^{-At}\mathbf{u}(t)=\mathbf{u}_0$。乘以 $e^{At}$ 即得所述解。
 </ProofCollapse>
 
 ### 2.1 亏损矩阵（Defective Matrix）与幂零矩阵的有限级数截断
@@ -342,7 +338,7 @@ $$
 N^2 = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}\begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} = \mathbf{0}
 $$
 
-因为 $N^2 = \mathbf{0}$，所有更高阶次幂 $N^k = \mathbf{0} \ (k \ge 2)$ 全部恒等于零！因此 $e^{Nt}$ 的无穷级数在第二项**精准截断（Truncates）**：
+因为 $N^2 = 0_{2\times 2}$，所有更高阶次幂 $N^k = 0_{2\times 2} \ (k \ge 2)$ 全部恒等于零！因此 $e^{Nt}$ 的无穷级数在第二项**精准截断（Truncates）**：
 
 $$
 e^{Nt} = I_2 + Nt + \frac{1}{2!}N^2 t^2 + \dots = I_2 + Nt = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} + \begin{bmatrix} 0 & t \\ 0 & 0 \end{bmatrix} = \begin{bmatrix} 1 & t \\ 0 & 1 \end{bmatrix}
@@ -364,11 +360,11 @@ $$
 
 ## 3. 连续系统稳定性理论与 2x2 迹-行列式平面
 
-在离散时间马尔可夫链与差分方程 $\mathbf{u}_{k+1} = A\mathbf{u}_k$ 中，系统的稳定性由特征值模长是否小于 $1$（即处于复平面单位圆盘内 $|\lambda_i| \lt 1$）裁定。而在连续系统 $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$ 中，时间的流逝由 $e^{\lambda_i t}$ 驱动，规则发生本质跃迁。
+离散差分方程 $\mathbf{u}_{k+1}=A\mathbf{u}_k$ 的原点渐近稳定，当且仅当每个特征值满足 $|\lambda_i|\lt1$。而在连续系统 $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$ 中，时间的流逝由 $e^{\lambda_i t}$ 驱动，规则发生本质跃迁。
 
 ### 3.1 复特征值与欧拉公式分解
 
-设矩阵 $A$ 包含复共轭特征值 $\lambda = \alpha + i\omega$（$\alpha, \omega \in \mathbb{R}$）。根据欧拉公式（Euler's Formula）：
+设矩阵 $A$ 包含复共轭特征值 $\lambda = \alpha + i\omega$（$\alpha,\omega\in\mathbb{R}$ 且 $\omega\ne0$）。根据欧拉公式（Euler's Formula）：
 
 $$
 e^{\lambda t} = e^{(\alpha + i\omega)t} = e^{\alpha t} e^{i\omega t} = e^{\alpha t} \left(\cos(\omega t) + i \sin(\omega t)\right)
@@ -380,12 +376,12 @@ $$
 \left| e^{\lambda t} \right| = \left| e^{\alpha t} \right| \cdot \left| \cos(\omega t) + i\sin(\omega t) \right| = e^{\alpha t} \cdot 1 = e^{\operatorname{Re}(\lambda) t}
 $$
 
-这给出了连续微分系统稳定性的金科玉律：
-- 虚部 $\operatorname{Im}(\lambda) = \omega$ 纯粹控制**旋转振荡频率（Oscillation Frequency）**；
+对单个特征模态，实部与虚部的作用分别如下。
+- 虚部的绝对值 $|\omega|$ 是**振荡角频率（Angular Frequency）**。
 - 实部 $\operatorname{Re}(\lambda) = \alpha$ 完全主导**振幅包络线的演变趋势（Amplitude Growth/Decay）**：
-  1. 若 $\operatorname{Re}(\lambda) \lt 0$：$e^{\alpha t} \to 0 \ (t \to \infty)$，指数衰减归零（**渐近稳定**）；
-  2. 若 $\operatorname{Re}(\lambda) = 0$：$|e^{\lambda t}| = 1$，等幅纯周期振荡或常数（**中性稳定 / 边缘稳定**）；
-  3. 若 $\operatorname{Re}(\lambda) \gt 0$：$e^{\alpha t} \to \infty \ (t \to \infty)$，指数爆炸发散（**不稳定**）。
+  1. 若 $\operatorname{Re}(\lambda) \lt 0$：$e^{\alpha t} \to 0 \ (t \to \infty)$，该模态指数衰减归零。
+  2. 若 $\operatorname{Re}(\lambda) = 0$：$|e^{\lambda t}| = 1$，该模态的振幅保持不变。
+  3. 若 $\operatorname{Re}(\lambda) \gt 0$：$e^{\alpha t} \to \infty \ (t \to \infty)$，该模态的振幅指数增长。
 
 <TheoremCard
   title="连续线性系统渐近稳定性充要判据"
@@ -398,13 +394,14 @@ $$
 $$
 
 此时称矩阵 $A$ 为一个**赫尔维茨矩阵（Hurwitz Matrix）**。
+该判据无需假设可对角化。对于 $N^m=0$ 的若尔当块 $\lambda I+N$，其指数为 $e^{\lambda t}\sum_{j=0}^{m-1}t^jN^j/j!$。实部严格为负时，指数衰减压倒多项式增长；实部非负的复特征模态不衰减，取其实部或虚部，至少有一个实解不趋于原点。流在正时间上有界，当且仅当所有特征值实部非正，且虚轴上的特征值均为半单特征值（对应若尔当块大小均为 $1$）。
 </TheoremCard>
 
 ---
 
 ### 3.2 2x2 实矩阵的迹-行列式完整判据
 
-对于二阶系统 $A = \begin{bmatrix} a & b \\ c & d \end{bmatrix} \in \mathbb{R}^{2\times 2}$，我们无需显式解出特征多项式的根，仅凭矩阵的两个标量不变量——**迹（Trace）**与**行列式（Determinant）**，即可彻底锁定相图行为！
+对于二阶系统 $A = \begin{bmatrix} a & b \\ c & d \end{bmatrix} \in \mathbb{R}^{2\times 2}$，我们无需显式解出特征多项式的根，仅凭矩阵的两个标量不变量——**迹（Trace）**与**行列式（Determinant）**，即可判定原点是否渐近稳定！
 
 令：
 
@@ -426,9 +423,10 @@ $$
    - 渐近稳定要求 $\operatorname{Re}(\lambda) \lt 0 \iff T \lt 0$。
    - 同时 $\Delta \lt 0 \implies 4D \gt T^2 \ge 0 \implies D \gt 0$ 自动恒成立。
 
-2. **情形二：两非零实特征值（判别式 $\Delta = T^2 - 4D \ge 0$）**
-   - 若 $D \lt 0$：由于 $D = \lambda_1 \lambda_2 \lt 0$，两实根必定一正一负（$\lambda_1 \lt 0 \lt \lambda_2$）。负特征值方向收缩，正特征值方向发散，构成经典**鞍点（Saddle Point）**，系统必定不稳定！
+2. **情形二：实特征值（判别式 $\Delta = T^2 - 4D \ge 0$）**
+   - 若 $D \lt 0$：由于 $D = \lambda_1 \lambda_2 \lt 0$，两实根必定一正一负。负特征值方向收缩，正特征值方向发散，构成经典**鞍点（Saddle Point）**，系统必定不稳定！
    - 若 $D \gt 0$：两根同号（同正或同负）。此时要使两根均为负，必须且只需其和为负，即 $T = \lambda_1 + \lambda_2 \lt 0$。
+   - 若 $D=0$：至少有一个零特征值，原点不渐近稳定。
 
 综合上述两类情形，得到精辟的二阶稳定性充要定理：
 
@@ -445,23 +443,23 @@ D = \frac{1}{4}T^2 \iff \Delta = T^2 - 4D = 0
 $$
 
 这条抛物线将上半平面（$D \gt 0$）严格分割为两半：
-- 抛物线上方（$D \gt \frac{1}{4}T^2$）：特征根为复共轭对，相轨线表现为**螺旋焦点（Spirals/Foci）**；
+- 抛物线上方（$D \gt \frac{1}{4}T^2$）：特征根为复共轭对。$T\ne0$ 时为**螺旋焦点（Spirals/Foci）**，$T=0$ 时为中心点（Center）。
 - 抛物线下方（$0 \lt D \le \frac{1}{4}T^2$）：特征根为同号实数，相轨线表现为**节点（Nodes）**；
 - 下半平面（$D \lt 0$）：特征根为异号实数，恒为**鞍点（Saddle Points）**。
 
 <TraceDeterminantStabilityPlaneDiagram />
 
-详细分区拓扑性质总结如下表：
+在 $D=T^2/4$ 且 $T\ne0$ 时，重实特征值给出节点。标量矩阵对应星形节点，亏损矩阵对应只有一条特征直线的节点。在 $(T,D)=(0,0)$ 处，若 $A=0_{2\times2}$，每个点都是平衡点；若 $A\ne0_{2\times2}$，则为幂零剪切，$\operatorname{Null}(A)$ 以外的轨线无界。
 
 | 所在几何区域 | 代数条件 | 特征值谱性质 | 相空间拓扑类型 | 动力学稳定性 |
 | :--- | :--- | :--- | :--- | :--- |
 | **第二象限（抛物线上方）** | $T \lt 0, D \gt T^2/4$ | 复共轭根 $\lambda = \alpha \pm i\omega, \alpha \lt 0$ | 稳定焦点（Stable Spiral） | **渐近稳定**（旋转衰减归零） |
-| **第二象限（抛物线与轴之间）** | $T \lt 0, 0 \lt D \le T^2/4$ | 两负实根 $\lambda_2 \le \lambda_1 \lt 0$ | 稳定节点（Stable Node） | **渐近稳定**（单调衰减归零） |
+| **第二象限（抛物线与轴之间）** | $T \lt 0, 0 \lt D \le T^2/4$ | 两负实根 $\lambda_2 \le \lambda_1 \lt 0$ | 稳定节点（Stable Node） | **渐近稳定**（轨线趋向原点） |
 | **第一象限（抛物线上方）** | $T \gt 0, D \gt T^2/4$ | 复共轭根 $\lambda = \alpha \pm i\omega, \alpha \gt 0$ | 不稳定焦点（Unstable Spiral） | **不稳定**（旋转向外发散） |
-| **第一象限（抛物线与轴之间）** | $T \gt 0, 0 \lt D \le T^2/4$ | 两正实根 $0 \lt \lambda_1 \le \lambda_2$ | 不稳定节点（Unstable Node） | **不稳定**（单调向外爆炸） |
+| **第一象限（抛物线与轴之间）** | $T \gt 0, 0 \lt D \le T^2/4$ | 两正实根 $0 \lt \lambda_1 \le \lambda_2$ | 不稳定节点（Unstable Node） | **不稳定**（非零轨线最终发散） |
 | **正纵轴射线（虚轴共轭）** | $T = 0, D \gt 0$ | 纯虚数对 $\lambda = \pm i\sqrt{D}$ | 中心点（Neutral Center） | **中性稳定**（封闭椭圆轨道） |
 | **整个下半平面** | $D \lt 0$（任意 $T$） | 异号实数对 $\lambda_1 \lt 0 \lt \lambda_2$ | 鞍点（Saddle Point） | **不稳定**（双曲向外逃逸） |
-| **横轴退化线** | $D = 0$（任意 $T$） | 至少存在一个零根 $\lambda_1 = 0$ | 平衡点直线（Line of Equilibria） | **非渐近稳定**（有非零稳态） |
+| **横轴退化线** | $D = 0$（任意 $T$） | 至少存在一个零根 $\lambda_1 = 0$ | 平衡点子空间 $\operatorname{Null}(A)$ | **非渐近稳定**（有非零稳态） |
 
 ---
 
@@ -473,48 +471,31 @@ $$
 
 初学者最容易将标量乘法性质 $e^{a+b} = e^a e^b$ 无条件照搬到矩阵。**这是严重错误的！**
 
-**真相**：等式 $e^{A+B} = e^A e^B$ 成立的**充要条件**是矩阵 $A$ 与 $B$ 可交换（$AB = BA$）。
+若 $AB=BA$，由二项式定理与绝对收敛级数的柯西乘积可得 $e^{A+B}=e^Ae^B$。矩阵不交换时，该等式可能失效。引入实参数 $s$，便能看清二阶项的确切作用：
 
-我们通过 Taylor 展开到二阶项便能一针见血地看穿其破绽：
 $$
-\begin{aligned}
-e^{A+B} &= I + (A+B) + \frac{1}{2}(A+B)^2 + \dots \\
-&= I + A + B + \frac{1}{2}\left(A^2 + AB + BA + B^2\right) + \dots
-\end{aligned}
+e^{sA}e^{sB}-e^{s(A+B)}
+=\frac{s^2}{2}(AB-BA)+O(s^3)\quad(s\to 0)
 $$
-而右侧两矩阵指数相乘：
-$$
-\begin{aligned}
-e^A e^B &= \left(I + A + \frac{1}{2}A^2 + \dots\right)\left(I + B + \frac{1}{2}B^2 + \dots\right) \\
-&= I + A + B + \frac{1}{2}A^2 + AB + \frac{1}{2}B^2 + \dots
-\end{aligned}
-$$
-两者二阶项之差为：
-$$
-e^A e^B - e^{A+B} = \frac{1}{2}\left(AB - BA\right) + \dots = \frac{1}{2}[A, B] + \dots
-$$
-其中 $[A, B] \equiv AB - BA$ 称为李代数中的**对易子（Commutator / Lie Bracket）**。只有当 $[A, B] = \mathbf{0}$ 即 $AB = BA$ 时，二者才吻合。在量子力学与现代几何中，更一般的非交换公式由著名的 **Baker-Campbell-Hausdorff (BCH) 公式** 给出：
-$$
-e^A e^B = \exp\left( A + B + \frac{1}{2}[A, B] + \frac{1}{12}[A, [A, B]] + \frac{1}{12}[B, [B, A]] + \dots \right)
-$$
+
+因此，$AB=BA$ 当且仅当 $e^{s(A+B)}=e^{sA}e^{sB}$ 对 $0$ 的某个邻域内所有 $s$ 成立。固定比例下，非交换矩阵也可能满足等式。例如取 $A=2\pi i\operatorname{diag}(1,0)$、$B=2\pi i\begin{bmatrix}1&1\\0&0\end{bmatrix}$，其对易子非零。$A$、$B$ 与 $A+B$ 各有两个互异特征值，且都为 $2\pi i$ 的整数倍，所以三者的指数矩阵均为 $I_2$。
 
 ### 陷阱二：逐元素求指数（Entry-by-entry Exponentiation）
 
-绝对不要将矩阵指数理解为对矩阵的每一个元素分别取指数！即：
-$$
-\left(e^A\right)_{ij} \neq e^{a_{ij}} \quad (\text{除非 } A \text{ 本身就是纯对角矩阵})
-$$
+绝对不要将矩阵指数理解为对矩阵的每一个元素分别取指数。
+
+当 $A$ 为对角矩阵时，$e^A$ 的对角元是相应标量的指数，非对角元仍为零。
 例如对于 $A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}$：
 - 错误算法（逐元素计算）：$\begin{bmatrix} e^0 & e^1 \\ e^0 & e^0 \end{bmatrix} = \begin{bmatrix} 1 & e \\ 1 & 1 \end{bmatrix}$；
-- 正确算法（级数定义）：$e^A = I + A + \mathbf{0} = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}$。二者大相径庭！
+- 正确算法（级数定义）：$e^A = I + A = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}$。二者大相径庭！
 
 ### 陷阱三：混淆连续系统与离散系统的稳定性判据
 
 千万不要混淆连续常微分方程与离散差分方程的稳定性域：
-- **离散时间动力学（$\mathbf{u}_{k+1} = A\mathbf{u}_k$）**：稳定性取决于矩阵幂 $A^k$。要求所有特征值位于**开单位圆盘内部**：$|\lambda_i| \lt 1$；
-- **连续时间动力学（$\frac{d\mathbf{u}}{dt} = A\mathbf{u}$）**：稳定性取决于指数函数 $e^{At}$。要求所有特征值位于**开左半复平面**：$\operatorname{Re}(\lambda_i) \lt 0$。
+- **离散时间动力学（$\mathbf{u}_{k+1} = A\mathbf{u}_k$）**：演化由矩阵幂 $A^k$ 决定。原点渐近稳定要求所有特征值位于**开单位圆盘内部**：$|\lambda_i| \lt 1$；
+- **连续时间动力学（$\frac{d\mathbf{u}}{dt} = A\mathbf{u}$）**：演化由矩阵指数 $e^{At}$ 决定。原点渐近稳定要求所有特征值位于**开左半复平面**：$\operatorname{Re}(\lambda_i) \lt 0$。
 
-二者的内在联系：离散化映射 $z = e^\lambda$ 将左半平面 $\operatorname{Re}(\lambda) \lt 0$ 精确单射映射到单位圆盘内部 $|z| = |e^\lambda| = e^{\operatorname{Re}(\lambda)} \lt 1$。
+二者的内在联系：离散化映射 $z = e^\lambda$ 将左半平面 $\operatorname{Re}(\lambda) \lt 0$ 映入开单位圆盘（不含原点） $0\lt |z| = |e^\lambda| = e^{\operatorname{Re}(\lambda)} \lt 1$。
 </PitfallAlert>
 
 ---
@@ -538,7 +519,7 @@ $$
     "当 A 可对角化时（A = S\\Lambda S^{-1}），矩阵指数计算极具效率：e^{At} = S e^{\\Lambda t} S^{-1}，将 n 维耦合问题解耦为特征坐标下相互独立的 n 个一阶标量方程。",
     "亏损矩阵（Defective Matrix）虽不可对角化，但其 Jordan 块分解 A = \\lambda I + N 中的幂零矩阵满足 N^k = 0，使得级数有限步截断，严格孕育出微积分中的世俗共振项 t e^{\\lambda t}。",
     "连续时间系统原点渐近稳定的充要条件是矩阵 A 的所有特征值严格位于左半复平面，即 \\operatorname{Re}(\\lambda_i) \\lt 0；对于 2\\times 2 实矩阵，这等价于 \\operatorname{tr}(A) \\lt 0 且 \\det(A) \\gt 0。",
-    "矩阵指数乘积法则 e^{A+B} = e^A e^B 成立的充要条件是矩阵可交换（AB = BA）；当矩阵非交换时，高阶修正由李代数对易子 [A, B] = AB - BA 主导的 Baker-Campbell-Hausdorff (BCH) 公式给出。"
+    "矩阵可交换时，$e^{A+B}=e^Ae^B$。对于非交换矩阵，引入比例参数 $s$ 后，两个指数表达式之差的二阶项为 $\\tfrac{s^2}{2}[A,B]$。",
   ]}
 />
 
@@ -558,7 +539,7 @@ $$
   tier="L1"
   title="求解 2x2 耦合微分方程组与渐近稳态"
 >
-考虑双质点对称耦合衰减系统：
+考虑两个容器以单位速率交换物质，且各自以单位速率流失物质的系统。
 
 $$
 \frac{d\mathbf{u}}{dt} = \begin{bmatrix} -2 & 1 \\ 1 & -2 \end{bmatrix}\mathbf{u}(t), \quad \mathbf{u}(0) = \begin{bmatrix} 3 \\ 1 \end{bmatrix}
@@ -578,10 +559,9 @@ $$
 
 <DualSolution>
 <SolutionIntuition>
-矩阵 $A = \begin{bmatrix} -2 & 1 \\ 1 & -2 \end{bmatrix}$ 为实对称矩阵。其对角线上的 $-2$ 代表自身阻尼，非对角线上的 $1$ 代表两质点间的互易弹性连接。
-系统具有极强的对称性：
-- 对称模态：两质点同向运动，$\mathbf{x}_1 = [1, 1]^T$，此时互连接弹簧不变形，仅承受自身阻尼 $-1$，衰减较慢（$\lambda_1 = -1$）；
-- 反对称模态：两质点反向运动，$\mathbf{x}_2 = [1, -1]^T$，弹簧发生剧烈相对拉伸，受到更强的综合耗散，衰减极快（$\lambda_2 = -3$）。
+矩阵 $A = \begin{bmatrix} -2 & 1 \\ 1 & -2 \end{bmatrix}$ 为实对称矩阵。交换流量与两容器的物质量之差成正比，各容器还按自身当前物质量的单位速率流失。
+- 对称模态 $\mathbf{x}_1=[1,1]^T$ 的两分量相等，净交换为零，指数为 $\lambda_1=-1$。
+- 反对称模态 $\mathbf{x}_2=[1,-1]^T$ 的两分量符号相反，交换也会缩小两者之差，指数为 $\lambda_2=-3$。
 两个特征值均为负数，系统必指数衰减至原点 $\mathbf{0}$。
 </SolutionIntuition>
 
@@ -636,12 +616,12 @@ $$
 <TrueFalseInteractive
   id="l23-tf1"
   correct={false}
-  quickFeedback="矩阵指数乘积法则 e^{A+B} = e^A e^B 成立的充要条件是矩阵可交换 AB = BA。若 AB \neq BA，由于二项式展开失效与不可交换项存在，等式严格不成立。"
+  quickFeedback="矩阵可交换时等式成立。解答中的两个幂零移位矩阵给出反例：两指数矩阵的乘积对角元不相等，而矩阵和的指数对角元相等。"
 />
 
 <DualSolution>
 <SolutionIntuition>
-标量中 $e^{a+b} = e^a e^b$ 成立的深层底层前提是乘法满足交换律 $ab = ba$。而在矩阵代数中，矩阵乘法一般不可交换（$AB \neq BA$）。一旦无法交换，二阶展开中 $(A+B)^2 = A^2 + AB + BA + B^2 \neq A^2 + 2AB + B^2$，直接导致左右两端幂级数断裂。
+标量指数乘积法则来自乘法交换律。下面两个非交换移位矩阵的有序乘积使右侧对角元不相等，而左侧由对称的交换矩阵生成，其对角元相等。
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -650,7 +630,7 @@ $$
 $$
 A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}, \quad B = \begin{bmatrix} 0 & 0 \\ 1 & 0 \end{bmatrix}
 $$
-易知 $A^2 = B^2 = \mathbf{0}$，因此其指数矩阵极其简单：
+易知 $A^2 = B^2 = 0_{2\times 2}$，因此其指数矩阵极其简单：
 $$
 e^A = I + A = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}, \quad e^B = I + B = \begin{bmatrix} 1 & 0 \\ 1 & 1 \end{bmatrix}
 $$
@@ -691,12 +671,12 @@ $$
 <TrueFalseInteractive
   id="l23-tf2"
   correct={false}
-  quickFeedback="错误！渐近稳定的充要条件是 \operatorname{tr}(A) \lt 0 且 \det(A) \gt 0。若 \operatorname{tr}(A) \lt 0 但 \det(A) \lt 0，两特征值异号，原点是典型的鞍点（Saddle Point），存在指数发散方向，系统绝对不稳定。"
+  quickFeedback="对于二维实系统，原点渐近稳定当且仅当 $\operatorname{tr}(A)\lt0$ 且 $\det(A)\gt0$。行列式为负时，原点是鞍点。"
 />
 
 <DualSolution>
 <SolutionIntuition>
-迹是两个特征值的和：$T = \lambda_1 + \lambda_2$。若 $T \lt 0$，只能保证两特征值“平均为负”，并不能保证每个特征值实部都小于零。若一个特征值是 $-5$（极强收缩），另一个是 $+1$（向外发散），则和为 $-4 \lt 0$，但由于正特征值的存在，系统沿不稳定流形必定爆炸发散（鞍点）。
+迹是两个特征值的和：$T = \lambda_1 + \lambda_2$。若 $T \lt 0$，只能保证两特征值的实部平均为负，并不能保证每个特征值实部都小于零。若一个特征值是 $-5$（极强收缩），另一个是 $+1$（向外发散），则和为 $-4 \lt 0$，但由于正特征值的存在，系统沿不稳定流形必定爆炸发散（鞍点）。
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -780,7 +760,7 @@ e^{At} = e^{(5I_2 t + Nt)} = e^{5t I_2} e^{Nt}
 $$
 分别计算：
 1. $e^{5t I_2} = \operatorname{diag}(e^{5t}, e^{5t}) = e^{5t} I_2$
-2. $N^2 = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \implies N^k = \mathbf{0} \ (\forall k \ge 2)$
+2. $N^2 = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \implies N^k = 0_{2\times 2} \ (\forall k \ge 2)$
    $$
    e^{Nt} = I_2 + Nt + \frac{1}{2!}N^2 t^2 + \dots = I_2 + Nt = \begin{bmatrix} 1 & t \\ 0 & 1 \end{bmatrix}
    $$
@@ -808,7 +788,7 @@ $$
 ### 习题 5（L4 综合拓展：斜对称矩阵与正交能量守恒旋转）
 
 <ExerciseCard
-  id="l23-ex4"
+  id="l23-ex5"
   tier="L4"
   title="斜对称微分算子与矩阵指数的正交性（能量守恒）"
 >
@@ -839,7 +819,7 @@ $$
 <DualSolution>
 <SolutionIntuition>
 在复数中，纯虚数 $i\omega$ 的指数 $e^{i\omega t} = \cos(\omega t) + i\sin(\omega t)$ 是模长为 $1$ 的旋转子。在矩阵代数中，**斜对称矩阵是纯虚数的矩阵多维推广**！
-斜对称矩阵 $K$ 的特征值均为纯虚数 $\pm i\omega_j$。因此，$e^{Kt}$ 并不改变向量的任何长度，它在 $n$ 维空间中执行纯粹的刚体刚性旋转（Rigid Rotation），绝不产生能量发散或耗散。
+斜对称矩阵 $K$ 的特征值均在虚轴上，非零特征值成对出现 $\pm i\omega_j$。因此，$e^{Kt}$ 并不改变向量的任何长度，它在 $n$ 维空间中执行纯粹的刚体刚性旋转（Rigid Rotation），绝不产生能量发散或耗散。
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -854,7 +834,7 @@ $$
 $$
 由于 $Kt$ 与 $-Kt$ 可交换（标量倍数关系），因此：
 $$
-Q(t)^T Q(t) = \left(e^{Kt}\right)^T e^{Kt} = e^{-Kt} e^{Kt} = e^{(-K + K)t} = e^{\mathbf{0}} = I_n
+Q(t)^T Q(t) = \left(e^{Kt}\right)^T e^{Kt} = e^{-Kt} e^{Kt} = e^{(-K + K)t} = e^{0_{n\times n}} = I_n
 $$
 故对任意 $t \in \mathbb{R}$，$e^{Kt}$ 均为标准正交矩阵。
 
@@ -865,7 +845,7 @@ $$
 $$
 
 方法二（微积分能量流率求导）：
-定义系统的动能/总能量 $E(t) = \mathbf{u}(t)^T \mathbf{u}(t)$。对其关于时间求导：
+定义平方范数 $E(t) = \mathbf{u}(t)^T \mathbf{u}(t)$。对其关于时间求导：
 $$
 \begin{aligned}
 \frac{dE}{dt} &= \left(\frac{d\mathbf{u}}{dt}\right)^T \mathbf{u} + \mathbf{u}^T \left(\frac{d\mathbf{u}}{dt}\right) \\
@@ -873,9 +853,9 @@ $$
 &= \mathbf{u}^T K^T \mathbf{u} + \mathbf{u}^T K \mathbf{u} = \mathbf{u}^T (K^T + K) \mathbf{u}
 \end{aligned}
 $$
-由于 $K$ 斜对称，$K^T + K = \mathbf{0}$，因此：
+由于 $K$ 斜对称，$K^T + K = 0_{n\times n}$，因此：
 $$
-\frac{dE}{dt} = \mathbf{u}^T \mathbf{0} \mathbf{u} = 0 \quad (\forall t) \implies E(t) \equiv E(0) = \|\mathbf{u}_0\|^2
+\frac{dE}{dt} = \mathbf{u}^T (K^T+K) \mathbf{u} = 0 \quad (\forall t) \implies E(t) \equiv E(0) = \|\mathbf{u}_0\|^2
 $$
 能量严格守恒。
 
@@ -887,12 +867,12 @@ $$
 将偶数次幂与奇数次幂分别分组求和：
 $$
 \begin{aligned}
-e^{Kt} &= \sum_{m=0}^\infty \frac{(Kt)^m}{m!} = \left(\sum_{k=0}^\infty \frac{(-1)^k (\omega t)^{2k}}{(2k)!}\right) I_2 + \left(\sum_{k=0}^\infty \frac{(-1)^k (\omega t)^{2k+1}}{(2k+1)!}\right) \frac{K}{\omega} \\
+e^{Kt} &= \sum_{m=0}^\infty \frac{(Kt)^m}{m!} = \left(\sum_{k=0}^\infty \frac{(-1)^k (\omega t)^{2k}}{(2k)!}\right) I_2 + \left(\sum_{k=0}^\infty \frac{(-1)^k (\omega t)^{2k+1}}{(2k+1)!}\right) \begin{bmatrix}0&-1\\1&0\end{bmatrix} \\
 &= \cos(\omega t) I_2 + \sin(\omega t) \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix} \\
 &= \begin{bmatrix} \cos(\omega t) & -\sin(\omega t) \\ \sin(\omega t) & \cos(\omega t) \end{bmatrix}
 \end{aligned}
 $$
-几何意义：$e^{Kt}$ 是平面上标准的逆时针旋转矩阵 $R(\omega t)$，旋转角速度为 $\omega$。相平面上的所有轨线均为同心圆，无任何发散与衰减，完美对应迹-行列式平面上的中性中心点（Center）。
+几何意义：$e^{Kt}$ 是平面旋转矩阵 $R(\omega t)$，旋转角速度为 $\omega$。当 $\omega\ne0$，非零初态的轨线为圆，原点是中心点（Center）。当 $\omega=0$，有 $e^{Kt}=I_2$，每个点都是平衡点。
 </SolutionRigorous>
 </DualSolution>
 </ExerciseCard>
@@ -909,13 +889,13 @@ $$
   paperRef="Gu et al. (ICLR 2022) Efficiently Modeling Long Sequences with Structured State Spaces (S4) · Gu & Dao (2023) Mamba: Linear-Time Sequence Modeling with Selective State Spaces"
 >
 
-在以 Transformer 为主导的现代大语言模型时代，自注意力机制（Self-Attention）的计算复杂度随序列长度 $L$ 呈现不可避免的二次方膨胀 $O(L^2)$，极大地限制了百万级超长文本与高采样率音频视频的建模。
+在以 Transformer 为主导的现代大语言模型时代，自注意力机制（Self-Attention）的计算复杂度随序列长度 $L$ 在使用稠密的全注意力时呈二次增长 $O(L^2)$，极大地限制了百万级超长文本与高采样率音频视频的建模。
 
 2022 年由 Albert Gu 等人提出的 **S4（Structured State Space for Sequence Modeling）** 以及 2023 年横空出世的 **Mamba** 架构，开辟了次世代大模型的全新范式。而令人惊叹的是：**S4 与 Mamba 整个理论的基石，完完全全就是本讲探讨的一阶线性常微分方程与矩阵指数离散化！**
 
 ### 1. 连续时间物理模型：状态空间方程（State Space Equation）
 
-SSM 将序列数据视为一个连续随时间演化的输入信号 $x(t) \in \mathbb{R}$。该系统通过隐状态向量 $\mathbf{h}(t) \in \mathbb{C}^N$ 记忆历史上下文，并通过观测矩阵映射为输出 $y(t) \in \mathbb{R}$：
+SSM 将序列数据视为一个连续随时间演化的输入信号 $x(t) \in \mathbb{R}$。该系统通过隐状态向量 $\mathbf{h}(t) \in \mathbb{C}^N$ 记忆历史上下文，并通过观测矩阵映射为输出 $y(t)\in\mathbb{C}$（需要实输出时可取实部）：
 
 $$
 \begin{aligned}
@@ -927,13 +907,13 @@ $$
 其中：
 - $A \in \mathbb{C}^{N\times N}$ 为状态转移矩阵（State Transition Matrix），主导记忆的保留与衰减；
 - $B \in \mathbb{C}^{N\times 1}$ 为输入投影向量；
-- $C \in \mathbb{C}^{1\times N}$ 为输出解码向量。
+- $C \in \mathbb{C}^{1\times N}$ 为输出读出行向量，$D\in\mathbb{C}$ 是直通系数。
 
 ### 2. 零阶保持（Zero-Order Hold, ZOH）离散化与矩阵指数 $\bar{A} = \exp(\Delta A)$
 
 数字计算机处理的是离散 Token 序列 $(x_0, x_1, x_2, \dots)$。若采样时间步长为 $\Delta \gt 0$，我们必须对上述连续 ODE 积分。
 
-假设输入在步长区间 $[t_k, t_{k+1}] = [k\Delta, (k+1)\Delta]$ 内保持恒定（即零阶保持假设 $x(t) = x_k$）。根据一阶线性微分方程的常数变易法（Duhamel 积分原理）：
+假设输入在步长区间 $[t_k, t_{k+1}) = [k\Delta, (k+1)\Delta)$ 内保持恒定（即零阶保持假设 $x(t) = x_k$）。根据一阶线性微分方程的常数变易法（Duhamel 积分原理）：
 
 $$
 \mathbf{h}(t_{k+1}) = e^{\Delta A} \mathbf{h}(t_k) + \left( \int_0^\Delta e^{\tau A} d\tau \right) B x_k
@@ -948,16 +928,16 @@ $$
 其中离散转移矩阵与离散输入向量严格为：
 
 $$
-\bar{A} \equiv e^{\Delta A}, \quad \bar{B} \equiv (\Delta A)^{-1}\left(e^{\Delta A} - I_N\right) \Delta B = \left(\int_0^\Delta e^{\tau A} d\tau\right) B
+\bar{A}=e^{\Delta A},\qquad \bar{B}=\left(\int_0^\Delta e^{\tau A}\,d\tau\right)B
 $$
+
+积分公式也适用于奇异的 $A$。当 $A$ 可逆时，$\bar{B}=A^{-1}(e^{\Delta A}-I_N)B$。对角模态的输入系数为 $(e^{\Delta\lambda}-1)/\lambda$（$\lambda\ne0$），在 $\lambda=0$ 处取极限值 $\Delta$。
 
 **矩阵指数 $e^{\Delta A}$ 直接扮演了前后两步记忆状态的核心传递算子！**
 
-### 3. S4D 复特征谱解耦：为什么必须对角化？
+### 3. S4D 复特征谱解耦：对角状态演化
 
-如果直接对一般高维方阵 $A \in \mathbb{C}^{N\times N}$（通常 $N=64 \sim 128$）进行密集矩阵乘法，每处理一个 Token 都需要 $O(N^2)$ 计算量，且在训练时长为 $L$ 的序列时无法并行化。
-
-突破口正是本讲讲授的**特征基底解耦**：S4D（S4-Diagonal）直接将状态矩阵设为或对角化为复对角形式：
+稠密状态更新每步需要 $O(N^2)$ 次运算。S4 使用结构化状态矩阵，S4D 则直接将状态矩阵参数化为复对角形式，使每步状态更新降为 $O(N)$。
 
 $$
 A = \operatorname{diag}(\lambda_1, \lambda_2, \dots, \lambda_N), \quad \text{其中 } \lambda_n = -\alpha_n + i\omega_n \ (\alpha_n \gt 0)
@@ -966,17 +946,17 @@ $$
 此时，连续矩阵指数瞬间退化为 $N$ 个独立的标量指数：
 
 $$
-\bar{A} = \operatorname{diag}\left(e^{\Delta \lambda_1}, e^{\Delta \lambda_2}, \dots, e^{\Delta \lambda_N}\right) = \operatorname{diag}\left(e^{-\Delta \alpha_n} e^{i\Delta \omega_n}\right)
+\bar{A} = \operatorname{diag}\left(e^{\Delta \lambda_1}, e^{\Delta \lambda_2}, \dots, e^{\Delta \lambda_N}\right) = \operatorname{diag}\left(e^{-\Delta \alpha_n}e^{i\Delta\omega_n}\right)_{n=1}^N
 $$
 
 这个公式蕴含了深刻的动力学美感：
-1. **记忆衰减包络**：由于 $\alpha_n \gt 0$，实部模长 $|\bar{a}_n| = e^{-\Delta \alpha_n} \lt 1$。这严格保证了连续与离散系统的**赫尔维茨渐近稳定性**，防止隐层状态随时间发散爆炸！
-2. **多尺度旋转记忆（HiPPO）**：虚部频率 $\omega_n$ 在复平面施加不同角速度的连续旋转振荡。这使得隐状态能够以正交多项式（Legendre Polynomials）的形式无损压缩并记忆数万步之前的早期输入！
-3. **极速并行卷积**：在训练阶段，展开递归式可将整个序列的输出写为离散卷积 $y = \mathbf{K} * x$。由于 $\bar{A}$ 是对角矩阵，卷积核 $\mathbf{K} = (C\bar{B}, C\bar{A}\bar{B}, C\bar{A}^2\bar{B}, \dots)$ 可通过一维快速傅里叶变换（1D FFT）在 $O(L \log L)$ 复杂度内全并行计算完成！
+- **齐次部分的渐近稳定性。** 连续矩阵 $A$ 是赫尔维茨矩阵；$\rho(\bar A)\lt1$ 保证固定步长的离散系统在零输入下也渐近稳定。
+- **衰减与振荡。** $\alpha_n$ 决定第 $n$ 个模态的衰减包络，$\omega_n$ 决定每步相位增量 $\Delta\omega_n$。这些参数可用源自 HiPPO 构造的谱来初始化。
+- **固定参数下的卷积。** 零初态时，更新后的读出 $C\mathbf h_{k+1}+Dx_k$ 是滞后 $j$ 处系数为 $C\bar A^j\bar B$ 的卷积，再加直通项 $Dx_k$。对角转移下，直接构造长度 $L$ 的核需 $O(NL)$，对已有卷积核应用 FFT 需 $O(L\log L)$。
 
 ### 4. 走向 Mamba：选择性状态空间（Selective SSM）
 
-S4 模型的转移参数 $\Delta, A, B, C$ 是时间不变（Time-invariant）的，类似于一个固定频率的线性带通滤波器。
+S4 模型的转移参数 $\Delta, A, B, C$ 是时间不变（Time-invariant）的，因此在零初态下可用固定的卷积核表示。
 
 而 Mamba 的重大飞跃，是让步长 $\Delta_t$ 与输入投影 $B_t, C_t$ 成为当前 Token $x_t$ 的动态神经网络输出函数：
 
@@ -984,20 +964,16 @@ $$
 \Delta_t = \operatorname{Softplus}\left(\text{Linear}(x_t)\right), \quad B_t = \text{Linear}(x_t), \quad C_t = \text{Linear}(x_t)
 $$
 
-这意味着：**模型可以根据当前输入的内容，动态调整时间步长 $\Delta_t$！**
-- 当遇到无关的标点或冗余停用词时，模型预测一个极大的 $\Delta_t$，导致 $\bar{A}_t = e^{\Delta_t A}$ 衰减极快，瞬间遗忘无关历史；
-- 当遇到关键的关键词或长程因果实体时，模型预测一个极小的 $\Delta_t \approx 0$，使得 $\bar{A}_t \approx I_N$，将关键记忆完好无损地传递给后续数千个 Token。
+固定 $A$，在每个时间区间内保持输入不变时，精确零阶保持使用 $\bar A_t=e^{\Delta_t A}$ 与 $\bar B_t=\left(\int_0^{\Delta_t}e^{\tau A}\,d\tau\right)B_t$。对实部为负的模态，较大的 $\Delta_t$ 更强地衰减旧状态，而较小的 $\Delta_t$ 使 $\bar A_t$ 接近 $I_N$。输入项与读出也随当前词元变化，因此选择性状态空间模型采用扫描来处理递推。这里的输入系数是对所述标量输入微分方程做精确零阶保持所得的公式。
 
-以下自包含的 PyTorch 代码演示了连续状态空间矩阵的 ZOH 离散化计算，并验证了利用特征对角谱 $S e^{\Lambda \Delta} S^{-1}$ 与完整矩阵指数 `torch.linalg.matrix_exp` 的严格等价性。
+下方的 PyTorch 示例验证矩阵指数的特征基底公式及零阶保持输入项。
 
 <CollapsibleCode title="PyTorch 连续状态空间矩阵指数 ZOH 离散化与对角谱演化验证" language="python">
 ```python
 import torch
-import math
 
 def demonstrate_ssm_discretization():
     torch.manual_seed(42)
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # 状态维度 N = 4，采样步长 Delta
     N = 4
@@ -1048,12 +1024,15 @@ def demonstrate_ssm_discretization():
         print(f"离散模态 mu_{i+1} 模长 |mu| = {torch.abs(mu).item():.5f} < 1")
     assert (torch.abs(disc_evals) < 1.0).all(), "离散系统特征值模长必须严格小于 1"
     
-    # === 4. 模拟连续状态空间脉冲响应 (Impulse Response) ===
+    # === 4. 模拟零阶保持离散系统的脉冲响应 ===
     # 输入脉冲 x_0 = 1, 其余为 0
     B = torch.ones(N, 1, dtype=torch.complex64)
-    # ZOH 离散 B_bar = (Delta * A)^-1 (exp(Delta * A) - I) Delta B
+    # 此处 A 可逆，使用零阶保持的输入系数
     I_N = torch.eye(N, dtype=torch.complex64)
-    B_bar = torch.linalg.solve(delta * A_continuous, (A_bar_dense - I_N)) @ (delta * B)
+    B_bar = torch.linalg.solve(A_continuous, (A_bar_dense - I_N) @ B)
+    input_factors = torch.expm1(delta * lambda_diag) / lambda_diag
+    B_bar_spectral = S @ (input_factors[:, None] * (S_inv @ B))
+    torch.testing.assert_close(B_bar, B_bar_spectral)
     
     # 迭代演化 50 步
     steps = 50
@@ -1070,7 +1049,6 @@ def demonstrate_ssm_discretization():
     print(f"第 10 步 norm: {h_norms[9]:.4f}")
     print(f"第 30 步 norm: {h_norms[29]:.4f}")
     print(f"第 50 步 norm: {h_norms[49]:.4f}")
-    assert h_norms[-1] < h_norms[0], "由于 Hurwitz 稳定性，隐状态范数必随时间渐近归零"
     print("\n验证完全通过！线性微分方程矩阵指数理论完美支撑状态空间模型基石。")
 
 if __name__ == '__main__':

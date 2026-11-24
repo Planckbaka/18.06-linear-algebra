@@ -93,7 +93,7 @@ Here is a remarkably reliable rule of thumb: **almost everywhere you see a trans
 | :--- | :---: | :---: | :--- |
 | Transpose operator | $A^T$ | $A^H = \bar{A}^T$ | $(AB)^H = B^H A^H$ |
 | Standard inner product | $\mathbf{x}^T \mathbf{y}$ | $\mathbf{z}^H \mathbf{w} = \sum \bar{z}_k w_k$ | Positivity $\mathbf{z}^H\mathbf{z} \gt 0$ ($\mathbf{z} \ne \mathbf{0}$) |
-| Real-spectrum matrix | Real symmetric ($A^T = A$) | **Hermitian matrix** ($A^H = A$) | All eigenvalues $\lambda_i \in \mathbb{R}$ |
+| Self-adjoint matrix | Real symmetric ($A^T = A$) | **Hermitian matrix** ($A^H = A$) | All eigenvalues $\lambda_i \in \mathbb{R}$ |
 | Length-preserving matrix | Orthogonal ($Q^T Q = I_n$) | **Unitary matrix** ($U^H U = I_n$) | Preserves norm $\|U\mathbf{z}\| = \|\mathbf{z}\|$, and $|\lambda_i| = 1$ |
 | Spectral theorem | $A = Q \Lambda Q^T$ | $A = U \Lambda U^H$ | Orthonormal basis of eigenvectors |
 
@@ -170,7 +170,7 @@ $$
   we see directly that $U^H U = I_2$ and
 
   $$
-  A = U \begin{bmatrix} 4 & 0 \\ 0 & 1 \end{bmatrix} U^H!
+  A = U \begin{bmatrix} 4 & 0 \\ 0 & 1 \end{bmatrix} U^H
   $$
 
 This clean structure is no accident—it is guaranteed by the following central theorem.
@@ -187,9 +187,10 @@ This clean structure is no accident—it is guaranteed by the following central 
      $$
      where $U \in \mathbb{C}^{n\times n}$ is unitary ($U^H U = I_n$) and $\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n) \in \mathbb{R}^{n\times n}$ is real diagonal.
 
-2. **Three Geometric & Spectral Properties of Unitary Matrices** (for $U \in \mathbb{C}^{n\times n}$ with $U^H U = I_n$):
+2. **Four Geometric & Spectral Properties of Unitary Matrices** (for $U \in \mathbb{C}^{n\times n}$ with $U^H U = I_n$):
    - **Isometry (preserves inner products and lengths)**: For all $\mathbf{z}, \mathbf{w} \in \mathbb{C}^n$, $(U\mathbf{z})^H(U\mathbf{w}) = \mathbf{z}^H\mathbf{w}$ and $\|U\mathbf{z}\| = \|\mathbf{z}\|$;
    - **Eigenvalues on the unit circle**: Every eigenvalue $\lambda \in \mathbb{C}$ of $U$ has modulus $|\lambda| = 1$;
+   - **Unitary diagonalization**: $U$ is normal since $U^H U = U U^H = I_n$. By the complex spectral theorem for normal matrices, it has an orthonormal eigenbasis, with diagonal entries of modulus $1$ in that basis.
    - **Group closure**: The product $U_1 U_2$ of two $n \times n$ unitary matrices and the inverse $U^{-1} = U^H$ are also unitary. Normalized orthogonal basis transforms such as $\frac{1}{\sqrt{n}}F_n$ fit directly into this unitary framework.
 
 </TheoremCard>
@@ -533,10 +534,10 @@ Since $\mathbf{x}$ is arbitrary, the matrix factorization holds!
 
 **Part 2: Recursive complexity $M(n) = \frac{1}{2} n \log_2 n$**
 
-Let $M(n)$ be the number of complex multiplications needed for an $n$-point FFT:
+Let $M(n)$ count the twiddle multiplications in an $n$-point radix-2 FFT, charging one complex multiplication per butterfly even when the factor is $1$ or $i$. This is an upper bound on the number needed in an implementation that simplifies these factors.
 1. Permuting by $P_n$ only reorders entries and requires $0$ multiplications;
 2. Computing $F_{n/2}\mathbf{x}_{\text{even}}$ and $F_{n/2}\mathbf{x}_{\text{odd}}$ takes $2 M(n/2)$ complex multiplications;
-3. Forming $\mathbf{d} = D_{n/2} \mathbf{y}_{\text{odd}}$ takes at most $\frac{n}{2}$ complex multiplications (multiplying each entry of $\mathbf{y}_{\text{odd}}$ by $1, w, \dots, w^{n/2-1}$). Because both halves share the same vector $\mathbf{d}$, computing $\mathbf{y}_{\text{even}} + \mathbf{d}$ and $\mathbf{y}_{\text{even}} - \mathbf{d}$ uses only $n$ additions/subtractions and zero extra multiplications!
+3. Forming $\mathbf{d} = D_{n/2} \mathbf{y}_{\text{odd}}$ counts as $\frac{n}{2}$ complex multiplications (multiplying each entry of $\mathbf{y}_{\text{odd}}$ by $1, w, \dots, w^{n/2-1}$). Because both halves share the same vector $\mathbf{d}$, computing $\mathbf{y}_{\text{even}} + \mathbf{d}$ and $\mathbf{y}_{\text{even}} - \mathbf{d}$ uses only $n$ additions/subtractions and zero extra multiplications!
 
 This gives the recurrence (with base case $M(1) = 0$, since $F_1 = [1]$):
 
@@ -559,7 +560,7 @@ $$
 For $n = 1024 = 2^{10}$:
 - Direct matrix multiplication requires $n^2 = 1024^2 = 1{,}048{,}576 \approx 10^6$ complex multiplications;
 - The FFT requires only $\frac{1}{2} \times 1024 \times 10 = 5{,}120$ complex multiplications;
-- That is a speedup of $1{,}048{,}576 / 5{,}120 = 204.8\times$ (**over 200 times faster**)! For $n = 2^{20} \approx 10^6$, the speedup exceeds $100{,}000\times$. Q.E.D.
+- The multiplication-count ratio is $1{,}048{,}576/5{,}120 = 204.8$. At $n=2^{20}$ it is approximately $104{,}858$. Actual runtime also depends on additions, data movement, and implementation.
 
 </ProofCollapse>
 
@@ -592,9 +593,9 @@ Many informal notes say "symmetric matrices have real eigenvalues and orthogonal
   also satisfies $B^T = B$, yet $\operatorname{tr}(B) = 0$ and $\det(B) = -1 - i^2 = 0$, giving a repeated eigenvalue $\lambda_1 = \lambda_2 = 0$ with $\operatorname{rank}(B) = 1$ and only one independent eigenvector $[1, i]^T$—it cannot even be diagonalized! Moreover, a Hermitian matrix must have real diagonal entries, whereas a complex symmetric matrix can have any complex numbers on its diagonal.
 
 ### 3. Pitfall 3: Forgetting the $\frac{1}{\sqrt{n}}$ Normalization or the $\frac{1}{n}$ Inverse Factor for $F_n$
-The columns of $F_n$ are **mutually orthogonal, not unit vectors**—each column has length $\sqrt{n}$ (since $\|\mathbf{c}_k\|^2 = \sum_{r=0}^{n-1} |w^{rk}|^2 = n$). Therefore:
+For $n \ge 2$, the columns of $F_n$ are **mutually orthogonal with length greater than one**—each column has length $\sqrt{n}$ (since $\|\mathbf{c}_k\|^2 = \sum_{r=0}^{n-1} |w^{rk}|^2 = n$). Therefore:
 - $F_n$ itself is **not** unitary: $F_n^H F_n = n I_n \ne I_n$;
-- Only $\tilde{F}_n = \frac{1}{\sqrt{n}} F_n$ is a unitary matrix;
+- The normalized matrix $\tilde{F}_n = \frac{1}{\sqrt{n}} F_n$ is unitary. At $n=1$, $F_1=\tilde{F}_1=[1]$;
 - The inverse DFT must divide by $n$: $F_n^{-1} = \frac{1}{n} F_n^H = \frac{1}{n} \bar{F}_n$. Forgetting that $\frac{1}{n}$ factor amplifies the reconstructed signal by $n$ (in discrete Parseval's identity, $\|F_n \mathbf{x}\|^2 = n \|\mathbf{x}\|^2$).
 
 </PitfallAlert>
@@ -737,7 +738,7 @@ Determine whether the following statement is true or false:
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-For real matrices, $A^T = A$ forces real eigenvalues because $\mathbf{x}^T\mathbf{x} \gt 0$. In $\mathbb{C}^n$, dropping the conjugate not only loses reality of the eigenvalues—it can even destroy the existence of a full set of eigenvectors! Because the complex vector $[1, i]^T$ is "self-orthogonal" under the unconjugated dot product ($\mathbf{z}^T\mathbf{z} = 0$), a nonzero complex symmetric matrix can collapse into a defective nilpotent matrix.
+For real symmetric matrices, $A^H = A^T = A$, and the proof uses $\mathbf{x}^H A\mathbf{x}/(\mathbf{x}^H\mathbf{x})$ even when the eigenvector is initially complex. In $\mathbb{C}^n$, dropping the conjugate not only loses reality of the eigenvalues—it can even destroy the existence of a full set of eigenvectors! Because the complex vector $[1, i]^T$ is "self-orthogonal" under the unconjugated dot product ($\mathbf{z}^T\mathbf{z} = 0$), a nonzero complex symmetric matrix can collapse into a defective nilpotent matrix.
 </SolutionIntuition>
 <SolutionRigorous>
 The statement is **False**. Over $\mathbb{C}^{n\times n}$, only the **Hermitian condition $A^H = A$** guarantees real eigenvalues and unitary diagonalizability. Complex symmetry ($A^T = A$) guarantees neither:
@@ -768,7 +769,7 @@ Determine whether the following statement is true or false:
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! The columns of $F_n$ are mutually orthogonal, not unit vectors: each column has squared length $n$, so $F_n^H F_n = n I_n$ (not $I_n$). Only $\frac{1}{\sqrt{n}} F_n$ is unitary, and the inverse DFT must divide by $n$: $F_n^{-1} = \frac{1}{n} F_n^H$."
+  quickFeedback="False! The columns of $F_n$ are mutually orthogonal, not unit vectors: each column has squared length $n$, so $F_n^H F_n = n I_n$ (not $I_n$). The normalization $\frac{1}{\sqrt{n}} F_n$ is unitary for all $n$, including $F_1=[1]$, and the inverse DFT must divide by $n$: $F_n^{-1} = \frac{1}{n} F_n^H$."
 />
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
@@ -778,7 +779,7 @@ Determine whether the following statement is true or false:
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-Every entry of $F_n$ lies on the unit circle (modulus $1$), so each column of $n$ entries has squared length $n$ (length $\sqrt{n}$). The columns are orthogonal, just not yet normalized to unit length—like an orthogonal basis scaled up by $\sqrt{n}$. Multiplying by $F_n$ scales vector norms by $\sqrt{n}$, so the inverse must scale back down by $n$ ($F_n^{-1} = \frac{1}{n} F_n^H$).
+Every entry of $F_n$ lies on the unit circle (modulus $1$), so each column of $n$ entries has squared length $n$ (length $\sqrt{n}$). The columns are orthogonal, just not yet normalized to unit length—like an orthogonal basis scaled up by $\sqrt{n}$. Both $F_n$ and $F_n^H$ scale norms by $\sqrt{n}$, so their composition scales by $n$. The inverse is $F_n^{-1} = \frac{1}{n} F_n^H$ and scales norms by $1/\sqrt{n}$.
 </SolutionIntuition>
 <SolutionRigorous>
 The statement is **False**.
@@ -789,7 +790,7 @@ $$
 \mathbf{c}_k^H \mathbf{c}_k = \sum_{r=0}^{n-1} |w^{rk}|^2 = \sum_{r=0}^{n-1} 1 = n
 $$
 
-Hence $F_n^H F_n = n I_n$, so for all $n \ge 2$, $F_n$ is **not** unitary. The correct normalized unitary matrix and inverse are:
+The off-diagonal inner products vanish by the roots-of-unity sum in Section 3.3. Hence $F_n^H F_n = n I_n$, so for all $n \ge 2$, $F_n$ is **not** unitary. The correct normalized unitary matrix and inverse are:
 1. $\tilde{F}_n = \frac{1}{\sqrt{n}} F_n$ is unitary ($\tilde{F}_n^H \tilde{F}_n = I_n$);
 2. $F_n^{-1} = \frac{1}{n} F_n^H = \frac{1}{n} \bar{F}_n$.
 </SolutionRigorous>
@@ -874,7 +875,7 @@ This capstone problem connects the FFT factorization directly to signal convolut
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-Part 1 shows how the FFT breaks 16 potential interactions into two $2$-point sum-and-difference steps plus one twiddle rotation and butterfly merge: the even samples $[1, 0]$ and odd samples $[2, -1]$ are transformed independently, then $D_2 = \operatorname{diag}(1, i)$ rotates the odd half's phases before adding and subtracting. Part 2 reveals the true secret behind why the FFT dominates signal processing, PDEs, and convolutional neural networks: **every shift-invariant operator (circulant matrix / discrete convolution) becomes diagonal in the Fourier basis!** Because the complex exponentials $\mathbf{c}_k = [1, w^k, w^{2k}, \dots]$ are the natural eigenvectors of the cyclic shift $P$ (shifting by one step simply multiplies by the phase $w^k$), any circulant convolution $C\mathbf{x}$ reduces to three $\mathcal{O}(n\log n)$ FFTs and elementwise multiplication: $C\mathbf{x} = F_n^{-1}\big((F_n\mathbf{c}) \odot (F_n\mathbf{x})\big)$!
+Part 1 shows how the FFT breaks 16 potential interactions into two $2$-point sum-and-difference steps plus one twiddle rotation and butterfly merge: the even samples $[1, 0]$ and odd samples $[2, -1]$ are transformed independently, then $D_2 = \operatorname{diag}(1, i)$ rotates the odd half's phases before adding and subtracting. Part 2 reveals the true secret behind why the FFT dominates signal processing, PDEs, and convolutional neural networks: **every linear operator commuting with the cyclic shift becomes diagonal in the Fourier basis!** Because the complex exponentials $\mathbf{c}_k = [1, w^k, w^{2k}, \dots]$ are the natural eigenvectors of the cyclic shift $P$ (shifting by one step simply multiplies by the phase $w^k$), any circulant convolution $C\mathbf{x}$ reduces to three $\mathcal{O}(n\log n)$ FFTs and elementwise multiplication: $C\mathbf{x} = F_n\big((F_n\mathbf{c}) \odot (F_n^{-1}\mathbf{x})\big)$ under the upward-shift convention used here.
 </SolutionIntuition>
 <SolutionRigorous>
 **Part 1 Solution (Step-by-step 4-point FFT):**
@@ -924,7 +925,7 @@ Part 1 shows how the FFT breaks 16 potential interactions into two $2$-point sum
    $$
    C = \tilde{F}_4 \, \operatorname{diag}(F_4 \mathbf{c}) \, \tilde{F}_4^H = F_4 \, \operatorname{diag}(F_4 \mathbf{c}) \, F_4^{-1}
    $$
-   This is the linear-algebraic heart of the Convolution Theorem: $C \mathbf{x} = F_4^{-1}\big((F_4 \mathbf{c}) \odot (F_4 \mathbf{x})\big)$, allowing circulant convolution in $\mathcal{O}(n\log n)$ operations via the FFT!
+   This is the linear-algebraic heart of the Convolution Theorem: $C\mathbf{x} = F_4\big((F_4\mathbf{c}) \odot (F_4^{-1}\mathbf{x})\big)$, where $\odot$ denotes entrywise multiplication. With the downward shift $P^T$ and the same coefficients, the transform order is reversed: $C_{\mathrm{down}}\mathbf{x}=F_4^{-1}\big((F_4\mathbf{c})\odot(F_4\mathbf{x})\big)$. The same argument at length $n=2^L$ gives an $\mathcal{O}(n\log n)$ algorithm.
 </SolutionRigorous>
 </DualSolution>
 

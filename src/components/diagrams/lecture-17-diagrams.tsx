@@ -2,7 +2,7 @@ import * as React from 'react';
 import { MathDiagram } from './math-diagram';
 
 export function GramSchmidtAndQRDiagram({
-  caption = 'Gram-Schmidt 正交化几何去投影与 $A = QR$ 矩阵分解结构：左图展示从原始基 $\\mathbf{a}_1, \\mathbf{a}_2$ 逐步剔除平行投影分量 $(\\mathbf{q}_1^T\\mathbf{a}_2)\\mathbf{q}_1$，获得正交残差 $\\mathbf{B} \\perp \\mathbf{q}_1$ 并归一化为单位正交坐标架 $\\{\\mathbf{q}_1, \\mathbf{q}_2\\}$；右图揭示 $A = QR$ 分解中上三角矩阵 $R = Q^TA$ 的本质——下三角元素因 $\\mathbf{q}_i \\perp \\operatorname{span}\\{\\mathbf{a}_1, \\dots, \\mathbf{a}_j\\}$ ($i > j$) 严格为零，主对角元 $r_{jj} = \\|\\mathbf{v}_j\\|_2 > 0$ 严格为正，彻底消除最小二乘求解中 $A^TA$ 的病态求逆灾难！',
+  caption = 'Gram-Schmidt 正交化几何去投影与 $A = QR$ 矩阵分解结构：左图展示从原始基 $\\mathbf{a}_1, \\mathbf{a}_2$ 逐步剔除平行投影分量 $(\\mathbf{q}_1^T\\mathbf{a}_2)\\mathbf{q}_1$，获得正交残差 $\\mathbf{v}_2 \\perp \\mathbf{q}_1$ 并归一化为单位正交坐标架 $\\{\\mathbf{q}_1, \\mathbf{q}_2\\}$；右图揭示 $A = QR$ 分解中上三角矩阵 $R = Q^TA$ 的本质——下三角元素因 $\\mathbf{q}_i \\perp \\operatorname{span}\\{\\mathbf{a}_1, \\dots, \\mathbf{a}_j\\}$ ($i > j$) 严格为零，独立列的残差非零，因此 $r_{jj} = \\|\\mathbf{v}_j\\|_2 > 0$。用 $R\\hat{\\mathbf{x}}=Q^T\\mathbf{b}$ 求解最小二乘可避免形成 $A^TA$。',
 }: {
   caption?: string;
 }) {
@@ -111,7 +111,7 @@ export function GramSchmidtAndQRDiagram({
             x1="35"
             y1="258"
             x2="350"
-            y2="192"
+            y2="195"
             className="stroke-muted-foreground/35"
             strokeWidth="1.5"
             strokeDasharray="4 3"
@@ -138,8 +138,8 @@ export function GramSchmidtAndQRDiagram({
           <line
             x1="75"
             y1="250"
-            x2="260"
-            y2="210"
+            x2="255"
+            y2="214"
             className="stroke-blue-600 dark:stroke-blue-400"
             strokeWidth="2.2"
             markerEnd="url(#l17-arrow-blue)"
@@ -156,8 +156,8 @@ export function GramSchmidtAndQRDiagram({
           <line
             x1="75"
             y1="250"
-            x2="157"
-            y2="232"
+            x2="155"
+            y2="234"
             className="stroke-blue-700 dark:stroke-blue-300"
             strokeWidth="4"
             markerEnd="url(#l17-arrow-blue)"
@@ -174,8 +174,8 @@ export function GramSchmidtAndQRDiagram({
           <line
             x1="75"
             y1="250"
-            x2="148"
-            y2="95"
+            x2="149"
+            y2="100"
             className="stroke-emerald-600 dark:stroke-emerald-400"
             strokeWidth="2.4"
             markerEnd="url(#l17-arrow-emerald)"
@@ -192,8 +192,8 @@ export function GramSchmidtAndQRDiagram({
           <line
             x1="75"
             y1="250"
-            x2="177"
-            y2="228"
+            x2="175"
+            y2="230"
             className="stroke-amber-600 dark:stroke-amber-400"
             strokeWidth="2.4"
             strokeDasharray="4 2"
@@ -208,29 +208,29 @@ export function GramSchmidtAndQRDiagram({
 
           {/* Dashed drop line from a2 to p */}
           <line
-            x1="148"
-            y1="95"
-            x2="177"
-            y2="228"
+            x1="149"
+            y1="100"
+            x2="175"
+            y2="230"
             className="stroke-rose-600 dark:stroke-rose-400"
             strokeWidth="1.8"
             strokeDasharray="4 3"
           />
 
-          {/* Perpendicular right-angle mark at P (177, 228) */}
+          {/* Perpendicular right-angle mark at p (175, 230) */}
           <polyline
-            points="166,230 163.5,218 174.5,216"
+            points="163,232.4 160.6,220.4 172.6,218"
             fill="none"
             className="stroke-rose-600 dark:stroke-rose-400"
             strokeWidth="1.4"
           />
 
-          {/* Orthogonal residue vector B = v2 = a2 - p from Origin */}
+          {/* Orthogonal residue vector v₂ = a₂ − p from Origin */}
           <line
             x1="75"
             y1="250"
-            x2="46"
-            y2="117"
+            x2="49"
+            y2="120"
             className="stroke-purple-600 dark:stroke-purple-400"
             strokeWidth="2.2"
             markerEnd="url(#l17-arrow-purple)"
@@ -240,15 +240,15 @@ export function GramSchmidtAndQRDiagram({
             y="115"
             className="fill-purple-700 dark:fill-purple-300 font-mono text-[11px] font-bold"
           >
-            B = a₂ − p
+            v₂ = a₂ − p
           </text>
 
-          {/* Unit vector q2 = B / ||B|| */}
+          {/* Unit vector q2 = v₂ / ‖v₂‖₂ */}
           <line
             x1="75"
             y1="250"
-            x2="57"
-            y2="168"
+            x2="59"
+            y2="170"
             className="stroke-purple-700 dark:stroke-purple-300"
             strokeWidth="4"
             markerEnd="url(#l17-arrow-purple)"
@@ -258,12 +258,12 @@ export function GramSchmidtAndQRDiagram({
             y="172"
             className="fill-purple-800 dark:fill-purple-200 font-mono text-[10px] font-bold"
           >
-            q₂ = B / ‖B‖
+            q₂ = v₂ / ‖v₂‖
           </text>
 
           {/* Right-angle between q1 and q2 at origin */}
           <polyline
-            points="87,247 84.5,235.5 72.5,238.5"
+            points="87,247.6 84.6,235.6 72.6,238"
             fill="none"
             className="stroke-foreground/60"
             strokeWidth="1.3"
@@ -291,10 +291,10 @@ export function GramSchmidtAndQRDiagram({
               第 1 步：基线归一化 ➜ q₁ = a₁ / ‖a₁‖ (形成首个单位标准基)
             </text>
             <text x="12" y="37" className="fill-purple-700 dark:fill-purple-300 font-mono text-[10px] font-semibold">
-              第 2 步：剥离投影分量 ➜ B = a₂ − (q₁ᵀa₂)q₁ ⟂ q₁
+              第 2 步：剥离投影分量 ➜ v₂ = a₂ − (q₁ᵀa₂)q₁ ⟂ q₁
             </text>
             <text x="12" y="55" className="fill-emerald-700 dark:fill-emerald-300 font-mono text-[10px] font-bold">
-              第 3 步：残差归一化 ➜ q₂ = B / ‖B‖，得到标准正交坐标系 &#123;q₁, q₂&#125;
+              第 3 步：残差归一化 ➜ q₂ = v₂ / ‖v₂‖，得到标准正交坐标系 &#123;q₁, q₂&#125;
             </text>
           </g>
         </g>
@@ -513,10 +513,10 @@ export function GramSchmidtAndQRDiagram({
               ◆ QR 分解彻底拯救最小二乘计算：
             </text>
             <text x="12" y="37" className="fill-foreground/90 font-mono text-[10px]">
-              传统法: AᵀA x̂ = Aᵀb ➜ 条件数平方 κ(A)², 数值极其敏感病态！
+              正规方程：AᵀA x̂ = Aᵀb，κ₂(AᵀA) = κ₂(A)²
             </text>
             <text x="12" y="55" className="fill-blue-700 dark:fill-blue-300 font-mono text-[10px] font-bold">
-              QR 法:  R x̂ = Qᵀb ➜ 直接回代求解！避开 AᵀA 求逆，κ(R) = κ(A)！
+              QR 法:  R x̂ = Qᵀb ➜ 直接回代求解！避开 AᵀA 求逆，κ₂(R) = κ₂(A)！
             </text>
           </g>
         </g>
@@ -591,10 +591,10 @@ export function OrthonormalProjectionDiagram({
             {/* Row 3: Computational bottlenecks */}
             <rect x="0" y="118" width="318" height="52" rx="4" className="fill-rose-500/10 stroke-rose-500/30" />
             <text x="12" y="136" className="fill-rose-800 dark:fill-rose-200 font-mono text-[9.5px]">
-              ⚠ 致命短板：必须计算 (AᵀA)⁻¹，耗时 O(n³)
+              需形成 AᵀA，再求解线性系统
             </text>
             <text x="12" y="153" className="fill-rose-800 dark:fill-rose-200 font-mono text-[9.5px]">
-              ⚠ 条件数灾难：κ(AᵀA) = κ(A)²，高灵敏浮点舍入误差
+              若 A 满列秩，则 κ₂(AᵀA) = κ₂(A)²
             </text>
           </g>
         </g>
@@ -652,7 +652,7 @@ export function OrthonormalProjectionDiagram({
               ✓ 零求逆计算：(QᵀQ)⁻¹ = I_n，直接点积 O(mn) 产出！
             </text>
             <text x="12" y="153" className="fill-emerald-800 dark:fill-emerald-200 font-mono text-[9.5px] font-semibold">
-              ✓ 绝对数值保范：κ₂(Q) = 1，误差永不被放大！
+              ✓ κ₂(Q) = 1，精确算术下 Q 保持输入扰动的范数
             </text>
           </g>
         </g>

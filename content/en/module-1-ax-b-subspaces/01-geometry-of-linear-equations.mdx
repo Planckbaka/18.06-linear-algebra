@@ -37,8 +37,7 @@ The **Row Picture** looks at the matrix one row (one scalar equation) at a time:
 
 - The first equation $2x - y = 0$ defines a straight line in the plane $\mathbb{R}^2$ passing through the origin $(0, 0)$ with slope $2$.
 - The second equation $-x + 2y = 3$ defines another straight line passing through $(0, \frac{3}{2})$ and $(-3, 0)$.
-
-Solving the system in the Row Picture means finding the **common point of intersection that lies on both lines simultaneously**. You can quickly verify that $(x, y) = (1, 2)$ satisfies both equations, so the two lines meet at the unique point $(1, 2)$.
+Solving the system in the row picture means finding a point on both lines. Their slopes, $2$ and $\tfrac12$, are different, so the point $(1, 2)$, which satisfies both equations, is their unique intersection.
 
 ### 1.2 The Column Picture: Linear Combination of Column Vectors
 
@@ -56,7 +55,7 @@ Now the question is no longer "where do two lines cross?", but rather a dynamic 
 
 Compare the left and right panels in the diagram below: taking $x = 1$ copy of $\mathbf{a}_1 = (2, -1)^T$ plus $y = 2$ copies of $\mathbf{a}_2$ (which gives $(-2, 4)^T$), the diagonal of the resulting vector parallelogram lands right on $(0, 3)^T$ along the $y$-axis!
 
-<RowVsColumn2DDiagram caption="Left (Row Picture): two lines in the plane intersect at the unique point (1, 2). Right (Column Picture): the linear combination 1 * a_1 + 2 * a_2 constructs the target vector b = (0, 3)^T via the parallelogram law." />
+<RowVsColumn2DDiagram caption="In the row picture, the lines intersect at the unique solution $(1,2)$. In the column picture, the parallelogram gives $\mathbf{a}_1+2\mathbf{a}_2=\mathbf{b}=(0,3)^T$." />
 
 <InteractiveCanvasSlot
   id="l01-row-vs-col-2d"
@@ -110,7 +109,7 @@ $$
 
 Let us contrast the two geometric pictures in three-dimensional space $\mathbb{R}^3$:
 
-- **The Struggle of the Row Picture**: Each linear equation in three unknowns (such as $2x - y = 0$) defines a **two-dimensional plane** in $\mathbb{R}^3$. Two non-parallel planes intersect in a line in 3D, and that line intersects the third plane at a single point (here $(x, y, z) = (0, 0, 2)$). Even drawing three tilted planes and pinpointing their common intersection on a flat chalkboard is notoriously difficult. Once we move to a $10\times 10$ system in $\mathbb{R}^{10}$, the Row Picture asks you to visualize the intersection of **10 nine-dimensional hyperplanes in ten-dimensional space**—where human visual intuition hits a brick wall.
+- **Row Picture**: A linear equation in three unknowns with a nonzero coefficient row defines a plane in $\mathbb{R}^3$. Here the first two planes meet along the line $y=2x$, $z=3x+1$. Substituting into the third equation gives $4x+2=4$, so the three planes meet only at $(x, y, z) = (0.5, 1, 2.5)$. A $10\times 10$ system with nonzero coefficient rows asks us to intersect ten nine-dimensional affine hyperplanes in $\mathbb{R}^{10}$.
 - **The Clarity of the Column Picture**: Written in column form, the system reads:
 
 $$
@@ -146,9 +145,9 @@ $$
 
 The second column $\mathbf{a}_2$ contributes no new direction at all; it is merely the first column stretched by $-2$. Consequently, no matter how we choose the weights $x, y \in \mathbb{R}$, the combination $x\mathbf{a}_1 + y\mathbf{a}_2 = (x - 2y)\mathbf{a}_1$ is trapped forever on the **one-dimensional line** spanned by $\mathbf{a}_1$! Almost every vector in the plane (such as $\mathbf{b} = (0, 3)^T$) lies off this line, rendering the equation completely unsolvable.
 
-<SingularColumn2DDiagram caption="Singular dimensional collapse: because a_2 = -2 * a_1 is collinear with a_1, the column space Col(A) collapses from the 2D plane onto a 1D line. Any target vector b = (0, 3)^T outside this line makes Ax = b inconsistent (no solution)." />
+<SingularColumn2DDiagram caption="Since $\mathbf{a}_2=-2\mathbf{a}_1$, the column space is the line through $\mathbf{a}_1$ and the origin. The target $\mathbf{b}=(0,3)^T$ lies off the line and gives no solution. The target $\tilde{\mathbf{b}}=(-2,1)^T$ lies on the line and gives infinitely many solutions." />
 
-The exact same geometry governs three-dimensional space $\mathbb{R}^3$: if the three column vectors $\mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3$ happen to lie in the **same two-dimensional plane through the origin** (for instance, when $\mathbf{a}_3 = \mathbf{a}_1 + \mathbf{a}_2$), then their linear combinations can only sweep out that flat 2D sheet and can never reach any vector $\mathbf{b}$ outside that plane. Such a matrix is called a **singular matrix** (or non-invertible matrix).
+In $\mathbb{R}^3$, if all three columns lie in a plane through the origin, their span is contained in that plane. For example, $\mathbf{a}_3 = \mathbf{a}_1 + \mathbf{a}_2$ gives a two-dimensional column space when $\mathbf{a}_1$ and $\mathbf{a}_2$ are independent, and a smaller subspace otherwise. In all these cases the square matrix is **singular** and no target outside the plane can be reached.
 
 We now elevate this geometric insight into a rigorous equivalence theorem (whose full algebraic machinery will be developed across the upcoming chapters on elimination and dimension):
 
@@ -165,18 +164,11 @@ Let $A = \begin{bmatrix} \mathbf{a}_1 & \cdots & \mathbf{a}_n \end{bmatrix} \in 
 </TheoremCard>
 
 <ProofCollapse title="Rigorous Proof: Why 'Solvable Everywhere' and 'Unique Solution' Are Locked Together for Square Matrices">
-For a general rectangular matrix, existence and uniqueness of solutions are two separate questions. However, when the number of rows equals the number of columns (a square matrix $A \in \mathbb{R}^{n\times n}$), the input space and output space both have dimension $n$:
+Statements 1 and 2 are equivalent by the definition of the column space. In $\mathbb{R}^n$, a family of exactly $n$ vectors is a basis if and only if it spans $\mathbb{R}^n$, and also if and only if it is linearly independent. This gives $2 \iff 3$.
 
-- Suppose there exists a nonzero vector $\mathbf{v} \neq \mathbf{0}$ such that $A\mathbf{v} = \mathbf{0}$ (say with last component $v_n \neq 0$). Then the last column $\mathbf{a}_n$ can be written as a linear combination of the first $n-1$ columns:
+If the columns form a basis, every $\mathbf{b} \in \mathbb{R}^n$ has a unique expansion in them. The map taking $\mathbf{b}$ to its coefficient vector is linear by uniqueness of the expansion, and it inverts $\mathbf{x}\mapsto A\mathbf{x}$ in both directions. This gives $3 \implies 4$. Statement 4 immediately implies 1.
 
-$$
-\mathbf{a}_n = -\frac{v_1}{v_n}\mathbf{a}_1 - \cdots - \frac{v_{n-1}}{v_n}\mathbf{a}_{n-1}
-$$
-
-- This means discarding $\mathbf{a}_n$ does not shrink the column space at all: $\operatorname{Col}(A) = \operatorname{span}\{\mathbf{a}_1, \dots, \mathbf{a}_{n-1}\}$. Yet $n-1$ vectors can span at most an $(n-1)$-dimensional subspace (a hyperplane) and can never fill the $n$-dimensional space $\mathbb{R}^n$. Hence there must exist vectors $\mathbf{b} \notin \operatorname{Col}(A)$ for which $A\mathbf{x} = \mathbf{b}$ has no solution!
-- Conversely, for any $\tilde{\mathbf{b}} \in \operatorname{Col}(A)$ that does admit a particular solution $\mathbf{x}_p$, every scalar $c \in \mathbb{R}$ gives $A(\mathbf{x}_p + c\mathbf{v}) = A\mathbf{x}_p + c\mathbf{0} = \tilde{\mathbf{b}}$, immediately producing infinitely many solutions.
-
-This explains why the moment a square matrix becomes singular, its solvability fractures from "a unique solution for every $\mathbf{b}$" into **"no solution for almost all $\mathbf{b}$, and infinitely many solutions for $\mathbf{b}$ inside the collapsed subspace $\operatorname{Col}(A)$"**—and why a linear system can never have "exactly two solutions"!
+If $A$ is singular, its column space is proper and there is a nonzero $\mathbf{v}$ with $A\mathbf{v}=\mathbf{0}$. For any solvable right-hand side $\mathbf{b}$ with a particular solution $\mathbf{x}_p$, the distinct vectors $\mathbf{x}_p+c\mathbf{v}$ for $c\in\mathbb{R}$ all satisfy $A(\mathbf{x}_p+c\mathbf{v})=\mathbf{b}$. The same argument applies to a rectangular real system whenever it has two distinct solutions, by taking their difference as $\mathbf{v}$.
 </ProofCollapse>
 
 <PitfallAlert title="Common Pitfalls & Transcript Errata">
@@ -185,7 +177,7 @@ This explains why the moment a square matrix becomes singular, its solvability f
 2. **Pitfall 2: Ignoring the "Square $n\times n$" Hypothesis in Theorem 1.1**
    If $A \in \mathbb{R}^{3\times 2}$ (3 equations, 2 unknowns), even when its two columns are non-collinear (linearly independent), their linear combinations $\operatorname{Col}(A)$ form only a 2D plane inside $\mathbb{R}^3$—so $A\mathbf{x} = \mathbf{b}$ cannot possibly be solvable for every $\mathbf{b} \in \mathbb{R}^3$!
 3. **Pitfall 3: Calling Every High-Dimensional Row Object a "Plane"**
-   In $\mathbb{R}^n$, a single non-degenerate linear equation $a_1 x_1 + \cdots + a_n x_n = b_1$ defines an **$(n - 1)$-dimensional affine hyperplane**: in $\mathbb{R}^2$ it is a 1D line, in $\mathbb{R}^3$ it is a 2D plane, and in $\mathbb{R}^4$ it is a 3D hyperplane.
+   In $\mathbb{R}^n$, a row equation $\mathbf{a}^T\mathbf{x}=b$ with $\mathbf{a}\neq\mathbf{0}$ defines an **$(n-1)$-dimensional affine hyperplane**. If $\mathbf{a}=\mathbf{0}$, its solution set is all of $\mathbb{R}^n$ when $b=0$ and empty otherwise.
 </PitfallAlert>
 
 <KeyTakeaways
@@ -193,7 +185,7 @@ This explains why the moment a square matrix becomes singular, its solvability f
   items={[
     "The first principle of matrix-vector multiplication $A\\mathbf{x}$ is a **linear combination of the columns**: $A\\mathbf{x} = x_1\\mathbf{a}_1 + \\cdots + x_n\\mathbf{a}_n$. Always look at a matrix by columns first, then by rows.",
     "Whether $A\\mathbf{x} = \\mathbf{b}$ is solvable is completely equivalent to the geometric test $\\mathbf{b} \\in \\operatorname{Col}(A)$.",
-    "For an $n \\times n$ square matrix, the $n$ columns do not lie in a common hyperplane (linear independence) $\\iff \\operatorname{Col}(A) = \\mathbb{R}^n \\iff$ a unique solution exists for every $\\mathbf{b}$.",
+    "For $A \\in \\mathbb{R}^{n\\times n}$, the columns are linearly independent $\\iff \\operatorname{Col}(A) = \\mathbb{R}^n \\iff$ a unique solution exists for every $\\mathbf{b} \\in \\mathbb{R}^n$.",
     "The solution set of a real linear system has only three possibilities: **$0$ solutions**, **$1$ unique solution**, or **infinitely many ($\\infty$) solutions**—never 'exactly $2$ solutions'."
   ]}
 />
@@ -225,7 +217,7 @@ $$
 **Without writing down a single step of Gaussian elimination**, inspect the three columns $\mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3$ of $A$ to answer the following:
 1. When $\mathbf{b}_1 = (3, 1, 5)^T$, write down a particular solution $\mathbf{x}$ by inspection.
 2. When $\mathbf{b}_2 = (5, 5, 5)^T$, write down a particular solution $\mathbf{x}$ by inspection. If we perturb the right-hand side slightly to $\tilde{\mathbf{b}}_2 = (4, 5, 5)^T$, does a solution still exist?
-3. When $\mathbf{b}_3 = (0, 0, 0)^T$, are there nonzero solutions in addition to the zero vector? (Hint: check whether all three columns satisfy the same plane equation $2u_1 - u_2 - u_3 = 0$!)
+3. When $\mathbf{b}_3 = \mathbf{0}$, are there nonzero solutions? (Hint: check whether all three columns satisfy the same plane equation $2u_1 - u_2 - u_3 = 0$.)
 
 <ProgressiveHint
   buttonPrefix="Unlock Hint"
@@ -243,7 +235,7 @@ $$
 <SolutionIntuition>
 
 1. $\mathbf{b}_1 = (3, 1, 5)^T$ is literally the second column $\mathbf{a}_2$, so we immediately read off the particular solution $\mathbf{x} = (0, 1, 0)^T$.
-2. $\mathbf{b}_2 = (5, 5, 5)^T$ is the direct sum of the last two columns, $\mathbf{a}_2 + \mathbf{a}_3 = (3+2,\; 1+4,\; 5+0)^T$, giving the particular solution $\mathbf{x} = (0, 1, 1)^T$!
+2. $\mathbf{b}_2 = (5, 5, 5)^T$ is the sum $\mathbf{a}_2 + \mathbf{a}_3 = (3+2,\; 1+4,\; 5+0)^T$, giving the particular solution $\mathbf{x} = (0, 1, 1)^T$.
    However, looking closely at the three columns, every single column satisfies $2u_1 - u_2 - u_3 = 0$ (for $\mathbf{a}_1: 2-0-2=0$; for $\mathbf{a}_2: 6-1-5=0$; for $\mathbf{a}_3: 4-4-0=0$). This means all three columns are coplanar in the plane $2u_1 - u_2 - u_3 = 0$! The perturbed vector $\tilde{\mathbf{b}}_2 = (4, 5, 5)^T$ gives $2(4) - 5 - 5 = -2 \neq 0$, floating outside the column-space plane, so **no solution exists**!
 3. Since the three columns are coplanar, some nonzero linear combination must cancel to zero: notice that $4\mathbf{a}_2 - \mathbf{a}_3 = (10, 0, 20)^T = 10\mathbf{a}_1$, which rearranges to $10\mathbf{a}_1 - 4\mathbf{a}_2 + \mathbf{a}_3 = \mathbf{0}$! Thus for $\mathbf{b}_3 = \mathbf{0}$, every vector on the line $c(10, -4, 1)^T$ ($c \in \mathbb{R}$) is a solution!
 
@@ -264,7 +256,7 @@ $$
 
 All three parts follow immediately:
 1. $\mathbf{b}_1 = \mathbf{a}_2 \in \operatorname{Col}(A)$, with general solution $\mathbf{x} = (0, 1, 0)^T + c(10, -4, 1)^T$ ($c \in \mathbb{R}$).
-2. $\mathbf{b}_2 = \mathbf{a}_2 + \mathbf{a}_3 \in \operatorname{Col}(A)$, with general solution $\mathbf{x} = (0, 1, 1)^T + c(10, -4, 1)^T$; whereas $\tilde{\mathbf{b}}_2 = (4, 5, 5)^T$ yields $2(4) - 5 - 5 = -2 \neq 0 \implies \tilde{\mathbf{b}}_2 \notin \operatorname{Col}(A)$, so no solution exists.
+2. $\mathbf{b}_2 = \mathbf{a}_2 + \mathbf{a}_3 \in \operatorname{Col}(A)$, with general solution $\mathbf{x} = (0, 1, 1)^T + c(10, -4, 1)^T$ ($c \in \mathbb{R}$). For $\tilde{\mathbf{b}}_2 = (4, 5, 5)^T$, we have $2(4)-5-5=-2\neq 0$, so it lies outside $\operatorname{Col}(A)$ and the system is inconsistent.
 3. For $\mathbf{b}_3 = \mathbf{0}$, the general solution is $\mathbf{x} = c(10, -4, 1)^T$ ($c \in \mathbb{R}$).
 
 </SolutionRigorous>
@@ -277,7 +269,7 @@ All three parts follow immediately:
   tierLabel="L2 · Conceptual True/False"
   title="Conceptual Check: Does a Singular Matrix Fail for Every Nonzero Right-Hand Side?"
 >
-Determine whether the following statement is true or false, and formulate a geometric explanation or a minimal $2\times 2$ / $3\times 3$ counterexample:
+Determine whether the following statement is true or false, and give a geometric argument or a $3\times 3$ counterexample.
 
 > **Statement**: Let $A \in \mathbb{R}^{3\times 3}$ be a singular matrix (its three columns are coplanar). Then for **every nonzero vector** $\mathbf{b} \neq \mathbf{0}$, the linear system $A\mathbf{x} = \mathbf{b}$ has no solution.
 
@@ -286,13 +278,13 @@ Determine whether the following statement is true or false, and formulate a geom
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! Coplanar columns mean that the column space $\operatorname{Col}(A)$ degenerates into a plane (or a line, or the origin). Whenever a nonzero vector $\mathbf{b}$ lies inside that plane (for instance, picking $\mathbf{b} = \mathbf{a}_1 \neq \mathbf{0}$), the system not only has a solution, it has infinitely many!"
+  quickFeedback="False. For a singular matrix with a nonzero column $\mathbf{a}_j$, choose $\mathbf{b}=\mathbf{a}_j$. Then $\mathbf{x}=\mathbf{e}_j$ is a solution, and adding arbitrary multiples of a nonzero homogeneous solution gives infinitely many."
 />
 
 <ProgressiveHint
   buttonPrefix="Unlock Hint"
   hints={[
-    "If $A$ is not the zero matrix—say its first column is $\\mathbf{a}_1 \\neq \\mathbf{0}$—try setting the right-hand side to $\\mathbf{b} = \\mathbf{a}_1$. Is $\\mathbf{x} = (1, 0, 0)^T$ a valid solution?"
+    "Choose a singular matrix whose first column satisfies $\\mathbf{a}_1 \\neq \\mathbf{0}$. Try setting the right-hand side to $\\mathbf{b} = \\mathbf{a}_1$. Is $\\mathbf{x} = (1, 0, 0)^T$ a valid solution?"
   ]}
 />
 
@@ -303,12 +295,12 @@ Determine whether the following statement is true or false, and formulate a geom
 >
 <SolutionIntuition>
 
-Picture three nonzero vector arrows in 3D space lying flat on the surface of a desk: although you can never combine them to reach a target point floating in midair above the desk, **there are still infinitely many nonzero points lying right on the desktop**! As long as $\mathbf{b}$ lies on that desktop, you can reach it—and because the three arrows have redundancy among them, there are infinitely many ways to combine them into $\mathbf{b}$.
+Take three arrows that span a plane through the origin. Their linear combinations reach every point of that plane, including nonzero targets. Because there are three columns in a two-dimensional subspace, a nonzero combination sums to $\mathbf{0}$ and its coefficients can be added to any solution.
 
 </SolutionIntuition>
 <SolutionRigorous>
 
-We construct a minimal counterexample: take
+We construct a $3\times 3$ counterexample: take
 
 $$
 A = \begin{bmatrix} 1 & 1 & 0 \\ 0 & 0 & 0 \\ 0 & 0 & 0 \end{bmatrix}, \quad \mathbf{b} = \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix} \neq \mathbf{0}
@@ -335,7 +327,7 @@ Determine whether the following statement is true or false:
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! In four-dimensional space $\mathbb{R}^4$, linear combinations of just $3$ column vectors can span at most a $3$-dimensional hyperplane, which can never fill all of $4$-dimensional space $\mathbb{R}^4$."
+  quickFeedback="False! In four-dimensional space $\mathbb{R}^4$, three independent columns span a $3$-dimensional hyperplane, which can never fill all of $4$-dimensional space $\mathbb{R}^4$."
 />
 
 <ProgressiveHint
@@ -382,7 +374,7 @@ If $x_1\mathbf{a}_1 + x_2\mathbf{a}_2 + x_3\mathbf{a}_3 = \mathbf{0}$, then $(x_
   tierLabel="L3 · Zero-Calculation Subspace Reasoning"
   title="Zero-Calculation Subspace Reasoning: The Locked Column Plane of a Cyclic Difference Matrix"
 >
-(Adapted from a classic starred problem in Gilbert Strang's textbook §1.2) Consider the beautifully symmetric cyclic difference matrix $A \in \mathbb{R}^{3\times 3}$:
+Consider this cyclic difference matrix $A \in \mathbb{R}^{3\times 3}$. Its rows are cyclic shifts of one another.
 
 $$
 A = \begin{bmatrix}
@@ -476,7 +468,7 @@ Translate these two configurations into the **Column Picture**:
 <SolutionIntuition>
 
 This problem builds the ultimate bridge between **parallel translation of planes in the Row Picture** and **subspace membership in the Column Picture**!
-1. The coefficient matrix $A$ for Configuration A and Configuration B can be **completely identical**! In both configurations, because any two planes intersect in a line (not all three normals are collinear), the column space $\operatorname{Col}(A)$ is a **two-dimensional plane** in $\mathbb{R}^3$ (the three columns are coplanar but not collinear).
+1. The coefficient matrix $A$ can be identical in both configurations. Two nonparallel planes give two independent row normals, and the common direction of the pairwise intersection lines is perpendicular to all three normals. Thus the row space and the column space both have dimension $2$.
    The only difference lies in where $\mathbf{b}$ lands relative to $\operatorname{Col}(A)$:
    - When **$\mathbf{b} \notin \operatorname{Col}(A)$**, no combination of the columns can reach $\mathbf{b}$ (no solution). Reflected into the Row Picture, the three planes are shifted apart by $\mathbf{b}$ to form a hollow **triangular prism (Configuration A)**!
    - When **$\mathbf{b} \in \operatorname{Col}(A)$**, there are infinitely many column combinations with one degree of freedom. Reflected into the Row Picture, the three shifted planes meet cleanly along a **single common spine (Configuration B)**!
@@ -484,7 +476,7 @@ This problem builds the ultimate bridge between **parallel translation of planes
 </SolutionIntuition>
 <SolutionRigorous>
 
-1. Because no two planes in the Row Picture are parallel, at least two row normal vectors of $A$ are linearly independent; because the three planes do not intersect at a unique point, $A$ is singular. Hence in both configurations the column space $\operatorname{Col}(A)$ has dimension $2$ (a 2D plane through the origin in $\mathbb{R}^3$). The two configurations differ solely by whether $\mathbf{b} \notin \operatorname{Col}(A)$ (Configuration A, empty solution set) or $\mathbf{b} \in \operatorname{Col}(A)$ (Configuration B, a 1D affine line of solutions).
+1. Two nonparallel planes have independent row normals, so the row rank is at least $2$. In either configuration, the pairwise intersection lines share a direction. A nonzero vector $\mathbf{v}$ in that direction satisfies $A\mathbf{v}=\mathbf{0}$, so $A$ is singular. Equality of row and column rank (proved in Lecture 10) gives $\dim\operatorname{Col}(A)=2$. For this fixed $A$, the pairwise intersection lines stay parallel as $\mathbf{b}$ varies. If $\mathbf{b}\in\operatorname{Col}(A)$ they share a point and therefore coincide. Otherwise they are distinct, giving Configuration A.
 
 2. **Explicit Construction**: Choose three planes through the origin $x = 0$, $y = 0$, and $x + y = 0$ (pairwise non-parallel, all containing the $z$-axis):
 

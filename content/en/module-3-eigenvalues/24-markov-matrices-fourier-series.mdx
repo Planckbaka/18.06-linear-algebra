@@ -7,8 +7,8 @@ textbookRef: "§10.3, §4.4"
 
 In the previous lectures, we built the algebraic machinery of eigenvalues and eigenvectors ($A\mathbf{x} = \lambda \mathbf{x}$) and saw how diagonalization solves discrete difference equations $\mathbf{u}_{k+1} = A\mathbf{u}_k$. Now, Prof. Gilbert Strang takes us to two towering applications of linear algebra:
 
-1. **Markov Matrices (Transition Matrices)**: The matrices governing discrete random walks, population migration, Google PageRank, and modern generative diffusion models. Using the fundamental theorem of the four subspaces (row rank equals column rank), we will prove why $\lambda_1 = 1$ is *always* an eigenvalue and why the steady state dominates the long-term limit.
-2. **Fourier Series**: Extending orthogonal projection from finite-dimensional Euclidean space $\mathbb{R}^n$ (Lecture 17) seamlessly to the infinite-dimensional space of continuous functions $L^2([0, 2\pi])$. Remarkably, the classical Fourier coefficient formulas memorized in calculus turn out to be nothing more than the orthogonal basis projection formula in a function inner-product space!
+1. **Markov Matrices (Transition Matrices)**: The matrices governing discrete random walks, population migration, and Google PageRank. Using the fundamental theorem of the four subspaces (row rank equals column rank), we will prove why $\lambda_1 = 1$ is *always* an eigenvalue and when all initial distributions converge to the same steady state.
+2. **Fourier Series**: Extending orthogonal projection from finite-dimensional Euclidean space $\mathbb{R}^n$ (Lecture 17) seamlessly to the infinite-dimensional space of square-integrable functions $L^2([0, 2\pi])$. Remarkably, the classical Fourier coefficient formulas memorized in calculus turn out to be nothing more than the orthogonal basis projection formula in a function inner-product space!
 
 ---
 
@@ -49,11 +49,11 @@ $$
 \mathbf{1}^T \mathbf{u}_{k+1} = \mathbf{1}^T (A \mathbf{u}_k) = (\mathbf{1}^T A) \mathbf{u}_k = \mathbf{1}^T \mathbf{u}_k = 1
 $$
 
-This proves that **total probability mass is strictly conserved over time**! The state vector $\mathbf{u}_k$ is forever confined to the $(n-1)$-dimensional standard probability simplex $\Delta^{n-1} = \{\mathbf{u} \in \mathbb{R}^n \mid \mathbf{1}^T \mathbf{u} = 1, \, u_i \ge 0\}$.
+Thus total probability mass is conserved. Each entry of $A\mathbf{u}_k$ is also nonnegative because $A$ and $\mathbf{u}_k$ have nonnegative entries. The state vector $\mathbf{u}_k$ is forever confined to the $(n-1)$-dimensional standard probability simplex $\Delta^{n-1} = \{\mathbf{u} \in \mathbb{R}^n \mid \mathbf{1}^T \mathbf{u} = 1, \, u_i \ge 0\}$.
 
 ---
 
-## 2. Three Core Spectral Properties and the Four-Subspace Proof
+## 2. Core Spectral Properties and the Four-Subspace Proof
 
 The extraordinary elegance of Markov matrices stems directly from their spectral structure.
 
@@ -66,14 +66,17 @@ Let $A \in \mathbb{R}^{n \times n}$ be a column-stochastic Markov matrix. Then:
    $$
    |\lambda_i| \le 1
    $$
-3. **Zero-sum law for transient eigenvectors**: If $\lambda \ne 1$ is an eigenvalue of $A$ with corresponding right eigenvector $\mathbf{x}$ ($A\mathbf{x} = \lambda \mathbf{x}$), then the components of $\mathbf{x}$ must sum to zero:
+3. **Zero-sum law for non-1 eigenvalues**: If $\lambda \ne 1$ is an eigenvalue of $A$ with corresponding right eigenvector $\mathbf{x}$ ($A\mathbf{x} = \lambda \mathbf{x}$), then the components of $\mathbf{x}$ must sum to zero:
    $$
    \mathbf{1}^T \mathbf{x} = 0
    $$
-4. **Perron–Frobenius Theorem**: If $A$ is strictly positive ($a_{ij} \gt 0$ for all $i, j$) or primitive ($A^m \gt 0$ for some positive integer $m$), then $\lambda_1 = 1$ is a simple dominant eigenvalue (algebraic and geometric multiplicity $1$), and all other eigenvalues strictly satisfy $|\lambda_i| \lt 1$ ($i \ge 2$). In this case, there exists a unique strictly positive steady-state vector $\mathbf{u}_\infty \gt \mathbf{0}$ ($\mathbf{1}^T \mathbf{u}_\infty = 1$) such that for *any* initial probability distribution $\mathbf{u}_0 \in \Delta^{n-1}$,
+4. **Perron–Frobenius Theorem**: If $A$ is primitive (every entry of $A^m$ is positive for some integer $m\ge1$, including $m=1$ for strictly positive $A$), then $\lambda_1 = 1$ is a simple dominant eigenvalue (algebraic and geometric multiplicity $1$), and all other eigenvalues strictly satisfy $|\lambda_i| \lt 1$ ($i \ge 2$). In this case, there exists a unique strictly positive steady-state vector $\mathbf{u}_\infty \gt \mathbf{0}$ ($\mathbf{1}^T \mathbf{u}_\infty = 1$) such that for *any* initial probability distribution $\mathbf{u}_0 \in \Delta^{n-1}$,
    $$
    \lim_{k \to \infty} A^k \mathbf{u}_0 = \mathbf{u}_\infty
    $$
+
+
+Every finite Markov matrix has at least one stationary distribution: the averages $\mathbf{v}_N=N^{-1}\sum_{k=0}^{N-1}A^k\mathbf{u}_0$ lie in the compact simplex and $(A-I_n)\mathbf{v}_N=(A^N\mathbf{u}_0-\mathbf{u}_0)/N\to\mathbf{0}$. Any subsequential limit is stationary. For a common limit from every starting distribution, the exact spectral criterion is that $1$ is simple and every other eigenvalue has modulus below $1$. The stationary vector has mass $1$, so its span and $H=\operatorname{Null}(\mathbf{1}^T)$ give a direct sum of two invariant subspaces. The remaining eigenvalues are exactly those of the restriction of $A$ to $H$. If their moduli are below $1$, this restriction decays and $A^k\to\mathbf{u}_\infty\mathbf{1}^T$. Conversely, the common limit determines every column of this rank-one limit and forces all modes on the zero-sum subspace to decay. Primitivity guarantees a strictly positive limit. A reducible matrix can satisfy the spectral criterion with a stationary distribution supported on fewer states.
 
 </TheoremCard>
 
@@ -166,7 +169,7 @@ $$
 \mathbf{1}^T \mathbf{x} = 0
 $$
 
-**Physical meaning**: Every decaying transient mode must have components summing to zero! It represents a pure **redistribution of probability mass** among states (what one state gains, others must lose), never creating or destroying total probability.
+**Physical meaning**: Every eigenmode with $\lambda\ne1$ has component sum zero, even when it is periodic. It represents a pure **redistribution of probability mass** among states (what one state gains, others must lose), never creating or destroying total probability.
 
 **Proof of the Spectral Bound $|\lambda| \le 1$ (Property 2):**
 
@@ -279,7 +282,7 @@ $$
 
 Regardless of the initial distribution, Boston will eventually settle at $\frac{2}{3}$ of the total population and California at $\frac{1}{3}$.
 
-<MarkovSteadyStateSimplexDiagram caption="Probability state trajectory sliding along the 1D probability simplex (u₁ + u₂ = 1) toward the steady state u_∞ = [2/3, 1/3]ᵀ as the zero-sum transient mode (0.7)ᵏ[1, -1]ᵀ decays to zero." />
+<MarkovSteadyStateSimplexDiagram caption="Probability state trajectory sliding along the 1D probability simplex (u₁ + u₂ = 1) toward the steady state u_∞ = [2/3, 1/3]ᵀ as the zero-sum transient component decays by a factor of 0.7 per step. The plot starts at [0.1, 0.9]ᵀ." />
 
 ---
 
@@ -295,7 +298,7 @@ $$
 \mathbf{f}^T \mathbf{g} = \sum_{i=1}^n f_i g_i
 $$
 
-Let the dimension $n \to \infty$: replace the discrete index $i \in \{1, \dots, n\}$ by a continuous variable $x$ on $[0, 2\pi]$, and replace the discrete components $f_i$ by function values $f(x)$. The sum naturally becomes a Riemann integral. In the space $L^2([0, 2\pi])$ of square-integrable real functions, the **continuous inner product** is defined as:
+For continuous functions, sample at $n$ equally spaced points $x_i$ in $[0,2\pi]$. The weighted dot products $\frac{2\pi}{n}\sum_{i=1}^n f(x_i)g(x_i)$ tend to the integral as $n\to\infty$. In the real space $L^2([0, 2\pi])$ of square-integrable functions identified up to equality almost everywhere, the **continuous inner product** is defined as:
 
 $$
 \langle f, g \rangle = \int_0^{2\pi} f(x) g(x)\,dx
@@ -319,7 +322,7 @@ $$
 \mathcal{B} = \{1, \cos x, \sin x, \cos 2x, \sin 2x, \dots, \cos kx, \sin kx, \dots\}
 $$
 
-forms a mutually orthogonal basis of functions. Their inner products and squared norms satisfy:
+forms a complete orthogonal system in real $L^2$. Orthogonality and norms follow from the integrals below. Completeness is the separate Fourier theorem that trigonometric polynomials are dense in $L^2$.
 
 1. **Squared norm of the constant basis function**:
    $$
@@ -364,7 +367,7 @@ $$
 \int_0^{2\pi} \cos(nx)\,dx = 0, \quad \int_0^{2\pi} \sin(nx)\,dx = 0 \quad (\forall n \in \mathbb{Z}, \; n \ne 0)
 $$
 
-every product-to-sum integral vanishes, establishing pairwise orthogonality.
+these products integrate to zero. For the sine–cosine product with $k=m$, the zero-frequency sine term is identically zero. The constant is orthogonal to each positive-frequency term by the same integral identities.
 
 When $k = m \ge 1$, we have $\cos((k-m)x) = \cos(0) = 1$, so:
 
@@ -388,7 +391,7 @@ $$
 \mathbf{q}_i^T \mathbf{v} = c_i (\mathbf{q}_i^T \mathbf{q}_i) \implies c_i = \frac{\mathbf{q}_i^T \mathbf{v}}{\mathbf{q}_i^T \mathbf{q}_i} = \frac{\mathbf{q}_i^T \mathbf{v}}{\|\mathbf{q}_i\|^2}
 $$
 
-Now expand a function $f(x)$ in the orthogonal trigonometric basis:
+For real $f\in L^2([0,2\pi])$, the finite partial sum $S_N$ is its orthogonal projection onto the span of the constant and the first $N$ sine and cosine modes. Completeness gives $\|f-S_N\|\to0$, so the expansion is an equality in $L^2$:
 
 $$
 f(x) = a_0 \cdot 1 + \sum_{k=1}^\infty (a_k \cos kx + b_k \sin kx)
@@ -446,7 +449,7 @@ $$
    $$
    a_0 = \frac{1}{2\pi}\left( \int_0^\pi 1\,dx + \int_\pi^{2\pi} (-1)\,dx \right) = \frac{\pi - \pi}{2\pi} = 0
    $$
-2. **Cosine terms**: Because $f(x)$ is odd-symmetric, every cosine projection vanishes:
+2. **Cosine terms**: The periodic extension is odd almost everywhere, so every cosine projection vanishes:
    $$
    a_k = \frac{1}{\pi}\left( \int_0^\pi \cos kx\,dx - \int_\pi^{2\pi} \cos kx\,dx \right) = \frac{1}{\pi k}\left( [\sin kx]_0^\pi - [\sin kx]_\pi^{2\pi} \right) = 0
    $$
@@ -455,7 +458,7 @@ $$
    b_k = \frac{1}{\pi}\left( \int_0^\pi \sin kx\,dx - \int_\pi^{2\pi} \sin kx\,dx \right) = \frac{1}{\pi k}\left( [-\cos kx]_0^\pi - [-\cos kx]_\pi^{2\pi} \right)
    $$
    $$
-   = \frac{1}{\pi k}\left( (1 - \cos k\pi) - (\cos 2k\pi - \cos k\pi) \right) = \frac{2}{\pi k}(1 - \cos k\pi)
+   = \frac{1}{\pi k}\left( (1 - \cos k\pi) - (\cos k\pi - \cos 2k\pi) \right) = \frac{2}{\pi k}(1 - \cos k\pi)
    $$
    When $k$ is even, $\cos k\pi = 1 \implies b_k = 0$.
    When $k$ is odd, $\cos k\pi = -1 \implies b_k = \frac{4}{\pi k}$.
@@ -465,6 +468,8 @@ Thus, the orthogonal Fourier expansion of the square wave is:
 $$
 f(x) \sim \frac{4}{\pi}\left( \sin x + \frac{1}{3}\sin 3x + \frac{1}{5}\sin 5x + \frac{1}{7}\sin 7x + \dots \right)
 $$
+
+The partial sums converge in $L^2$. For this piecewise constant periodic function they also converge pointwise to the midpoint value $0$ at each jump, and to $f(x)$ at continuity points.
 
 ### 2. Solving the Odd Basel Sum via the Pythagorean Theorem
 
@@ -494,7 +499,7 @@ Using nothing more than the Pythagorean theorem for orthogonal projections, we h
 
 ### 1. Column-Stochastic vs. Row-Stochastic Conventions
 In MIT 18.06, Prof. Strang consistently uses **column-stochastic** Markov matrices (states are column vectors $\mathbf{u}_k$, the recurrence is $\mathbf{u}_{k+1} = A\mathbf{u}_k$, and columns sum to $1$: $\mathbf{1}^T A = \mathbf{1}^T$). In this convention, the steady state is a **right eigenvector** of $A$ ($A\mathbf{u}_\infty = \mathbf{u}_\infty$).
-However, in computer science, the original PageRank paper, reinforcement learning, and discrete diffusion models (D3PM), authors often use **row-stochastic** transition matrices $P = A^T$ (states are row vectors $\boldsymbol{\pi}_k^T$, the recurrence is $\boldsymbol{\pi}_{k+1}^T = \boldsymbol{\pi}_k^T P$, and rows sum to $1$: $P\mathbf{1} = \mathbf{1}$). Under that convention, the steady state is a **left eigenvector** ($\boldsymbol{\pi}_\infty^T P = \boldsymbol{\pi}_\infty^T$). Always check which convention a paper uses before mixing up left and right eigenvectors!
+However, in computer science, and reinforcement learning, authors often use **row-stochastic** transition matrices $P = A^T$ (states are row vectors $\boldsymbol{\pi}_k^T$, the recurrence is $\boldsymbol{\pi}_{k+1}^T = \boldsymbol{\pi}_k^T P$, and rows sum to $1$: $P\mathbf{1} = \mathbf{1}$). Under that convention, the steady state is a **left eigenvector** ($\boldsymbol{\pi}_\infty^T P = \boldsymbol{\pi}_\infty^T$). Always check which convention a paper uses before mixing up left and right eigenvectors!
 
 ### 2. Having $\lambda_1 = 1$ Does Not Guarantee Convergence to a Unique Steady State!
 Although every non-negative column-stochastic matrix has $\lambda_1 = 1$, that alone does *not* guarantee convergence to a unique steady state:
@@ -504,9 +509,9 @@ $$
 P = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
 $$
 
-has eigenvalues $\lambda_1 = 1$ and $\lambda_2 = -1$. Because a non-$1$ eigenvalue sits on the unit circle ($|-1| = 1$), the state bounces back and forth between the two endpoints forever and never converges.
+has eigenvalues $\lambda_1 = 1$ and $\lambda_2 = -1$. Because a non-$1$ eigenvalue sits on the unit circle ($|-1| = 1$), a state with unequal components oscillates forever. The uniform distribution is stationary and is the unique stationary distribution.
 - **Reducible multiple steady states**: The identity matrix $I_2$ is a valid Markov matrix, with repeated eigenvalue $\lambda_1 = \lambda_2 = 1$. Every point on the simplex is a steady state, so the limit depends entirely on the initial state.
-Only when the Perron–Frobenius condition holds (the matrix is primitive, i.e., $A^m \gt 0$ for some $m \ge 1$) are all remaining eigenvalues strictly bounded by $|\lambda_i| \lt 1$, guaranteeing a unique steady state!
+Primitivity is sufficient for convergence to a unique positive distribution. For example, the reducible matrix in Exercise 5 converges to a point mass.
 
 ### 3. Why Some Textbooks Write $\frac{a_0}{2}$ for the Fourier Constant Term
 Students often wonder why one textbook writes $f(x) = \frac{a_0}{2} + \sum \dots$ while another writes $f(x) = a_0 \cdot 1 + \sum \dots$.
@@ -518,8 +523,8 @@ The reason is the basis norm! The constant function $1$ has squared norm $\|1\|^
 
 <InteractiveCanvasSlot
   id="l24-markov-fourier-sandbox"
-  title="Markov Simplex Convergence & Fourier Approximation Sandbox"
-  description="Explore exponential convergence of probability vectors along the simplex under varying subdominant eigenvalues $\lambda_2$, and observe Gibbs phenomenon and monotone MSE decay as trigonometric basis terms approximate a square wave."
+  title="2-State Markov Simplex Convergence & Periodicity Sandbox"
+  description="Adjust the stay probabilities $P_{11}, P_{22}$ and step count $k$ of a 2×2 column-stochastic Markov chain, track the subdominant eigenvalue $\\lambda_2 = P_{11} + P_{22} - 1$, and compare exponential convergence to steady state against periodic oscillation at $\\lambda_2 = -1$ and the reducible identity case at $\\lambda_2 = 1$."
 />
 
 ---
@@ -527,9 +532,9 @@ The reason is the basis norm! The constant function $1$ has squared norm $\|1\|^
 <KeyTakeaways title="Key Takeaways" items={[
   "Algebraic essence of Markov matrices: non-negative entries ($a_{ij} \\ge 0$) and columns summing to 1 ($\\mathbf{1}^T A = \\mathbf{1}^T$), ensuring total probability mass $\\mathbf{1}^T \\mathbf{u}_k = 1$ is strictly conserved inside the probability simplex.",
   "Four-subspace proof of $\\lambda_1 = 1$: $(A^T - I)\\mathbf{1} = \\mathbf{0}$ places $\\mathbf{1} \\in \\operatorname{Null}(A^T - I)$; by row rank = column rank, $\\dim \\operatorname{Null}(A - I) = \\dim \\operatorname{Null}(A^T - I) \\ge 1$, guaranteeing a nonzero steady-state eigenvector $A\\mathbf{x}_1 = \\mathbf{x}_1$.",
-  "Zero-sum transient modes: every eigenvector with $\\lambda \\ne 1$ satisfies $\\mathbf{1}^T \\mathbf{x} = 0$, representing pure probability exchange between states without altering total probability.",
+  "Zero-sum eigenvectors: every eigenvector with $\\lambda \\ne 1$ satisfies $\\mathbf{1}^T \\mathbf{x} = 0$, representing pure probability exchange between states without altering total probability.",
   "Perron–Frobenius Theorem: for strictly positive ($A \\gt 0$) or primitive Markov matrices, all other eigenvalues satisfy $|\\lambda_i| \\lt 1$, guaranteeing geometric convergence from any initial distribution to a unique positive steady state.",
-  "Inner product on function space: viewing $[0, 2\\pi]$ as an infinite-dimensional vector space gives the continuous inner product $\\langle f, g \\rangle = \\int_0^{2\\pi} f(x)g(x)\\,dx$ and energy norm $\\|f\\|^2 = \\int_0^{2\\pi} f(x)^2\\,dx$.",
+  "Inner product on function space: the real function space $L^2([0,2\\pi])$ uses the continuous inner product $\\langle f, g \\rangle = \\int_0^{2\\pi} f(x)g(x)\\,dx$ and energy norm $\\|f\\|^2 = \\int_0^{2\\pi} f(x)^2\\,dx$.",
   "Fourier series as orthogonal projection: the trigonometric basis is mutually orthogonal, so Fourier coefficients $a_k, b_k$ are simply Lecture 17 projections $c_i = \\frac{\\langle \\mathbf{v}, \\mathbf{q}_i \\rangle}{\\|\\mathbf{q}_i\\|^2}$ in $L^2([0, 2\\pi])$, and Parseval's identity is the infinite-dimensional Pythagorean theorem."
 ]} />
 
@@ -634,7 +639,7 @@ Determine whether the following statement is true or false:
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! If a Markov matrix is periodic (like the permutation matrix with $\lambda = 1, -1$), $A^k$ oscillates forever and never converges. If it is reducible (like $I_2$), the limit has rank 2 with unequal columns. Perron–Frobenius conditions (positive or primitive $A$) are required to guarantee a unique rank-1 limit."
+  quickFeedback="The two-state swap has alternating powers, and the identity has a rank-two limit. Primitivity guarantees a rank-one limit with a strictly positive stationary distribution. An absorbing chain can also have a rank-one limit."
 />
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
@@ -644,7 +649,7 @@ Determine whether the following statement is true or false:
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-Not every Markov matrix converges, and even when it does, the limit need not have rank $1$. A permutation matrix bounces states back and forth between vertices of the simplex forever; the identity matrix leaves every point frozen as its own steady state without mixing. Only when the chain is strictly positive or primitive (well-connected and aperiodic) does the system forget its initial state and collapse onto a unique rank-1 attractor.
+Not every Markov matrix converges, and even when it does, the limit need not have rank $1$. A permutation matrix bounces states back and forth between vertices of the simplex forever; the identity matrix leaves every point frozen as its own steady state without mixing. A primitive chain always forgets its initial distribution, as does the absorbing example in Exercise 5.
 </SolutionIntuition>
 <SolutionRigorous>
 The statement is **False**. Two counterexamples suffice:
@@ -673,7 +678,7 @@ $$
 
 It is non-negative and column-stochastic. For every $k$, $A^k = I_2$, so the limit exists, but $\operatorname{rank}(I_2) = 2 \ne 1$ and its two columns are not equal.
 
-**Conclusion**: Only under the Perron–Frobenius hypotheses ($A^m \gt 0$ for some $m \ge 1$) do all eigenvalues other than $\lambda_1 = 1$ satisfy $|\lambda_i| \lt 1$, ensuring convergence of $A^k$ to the unique rank-1 matrix $[\mathbf{u}_\infty \;\; \dots \;\; \mathbf{u}_\infty]$.
+Primitivity guarantees the shared rank-one limit. The exact spectral test is a simple eigenvalue at $1$ and all other eigenvalues strictly inside the unit disk.
 </SolutionRigorous>
 </DualSolution>
 
@@ -690,7 +695,7 @@ Determine whether the following statement is true or false:
   correct={true}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="True! Left-multiplying $A\mathbf{x} = \lambda \mathbf{x}$ by $\mathbf{1}^T$ and using $\mathbf{1}^T A = \mathbf{1}^T$ gives $\mathbf{1}^T \mathbf{x} = \lambda (\mathbf{1}^T \mathbf{x})$, so $(1 - \lambda)(\mathbf{1}^T \mathbf{x}) = 0$. Since $\lambda \ne 1$, we must have $\mathbf{1}^T \mathbf{x} = 0$."
+  quickFeedback="Left-multiply the eigenvector equation by $\mathbf{1}^T$ to obtain $(1-\lambda)\mathbf{1}^T\mathbf{x}=0$. Since $\lambda\ne1$, the component sum is zero."
 />
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
@@ -831,24 +836,24 @@ Therefore, $AB$ is a valid column-stochastic Markov matrix.
 
 This problem explores two landmark applications of Markov steady states and Fourier orthogonal projection:
 
-1. **Google PageRank Dead-Ends and the Damping Matrix**:
+1. **Google PageRank Absorbing States and the Damping Matrix**:
    Consider a 3-node web graph with column-stochastic transition matrix:
    $$
    A = \begin{bmatrix} 0 & 1/2 & 0 \\ 1 & 0 & 0 \\ 0 & 1/2 & 1 \end{bmatrix}
    $$
    (a) Verify that $A$ is a column-stochastic Markov matrix, find its eigenvalues and steady-state vector $\mathbf{u}_\infty$, and explain why node 3 acts as an absorbing "black hole."
-   (b) To cure dead-end traps, Google introduces a damping factor $\alpha \in (0, 1)$ (typically $\alpha = 0.85$) to form the Google matrix:
+   (b) To prevent absorption traps, Google introduces a damping factor $\alpha \in (0, 1)$ (typically $\alpha = 0.85$) to form the Google matrix:
    $$
    G = \alpha A + \frac{1 - \alpha}{3} \mathbf{1} \mathbf{1}^T
    $$
    Prove that $G$ is a strictly positive Markov matrix, and explain how the Perron–Frobenius theorem guarantees existence, uniqueness, and power-iteration convergence of the PageRank vector.
 
 2. **Best $L^2$ Approximation by Trigonometric Polynomials (Infinite-Dimensional Least Squares)**:
-   For a function $f \in L^2([0, 2\pi])$ and any $N$-th order trigonometric polynomial:
+   For a real function $f \in L^2([0, 2\pi])$ and a trigonometric polynomial of degree at most $N$ with real coefficients:
    $$
    S_N(x) = c_0 + \sum_{k=1}^N (c_k \cos kx + d_k \sin kx)
    $$
-   Use orthogonality to prove that the mean-square approximation error
+   Use orthogonality to prove that the integrated squared error
    $$
    E(c_0, \{c_k\}, \{d_k\}) = \|f - S_N\|^2 = \int_0^{2\pi} (f(x) - S_N(x))^2\,dx
    $$
@@ -862,7 +867,7 @@ This problem explores two landmark applications of Markov steady states and Four
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-In PageRank, absorbing states (dangling nodes with no outgoing links) swallow all PageRank score over time. Adding a small random-teleportation term ($\frac{1-\alpha}{3}\mathbf{1}\mathbf{1}^T$) turns a sparse, reducible graph into a strictly positive matrix, activating Perron–Frobenius and ensuring a unique, rapidly computable steady state.
+In PageRank, node 3 absorbs all mass in the undamped walk because the other two eigenvalues have modulus below $1$. Adding a small random-teleportation term ($\frac{1-\alpha}{3}\mathbf{1}\mathbf{1}^T$) turns a sparse, reducible graph into a strictly positive matrix, activating Perron–Frobenius and ensuring a unique, rapidly computable steady state.
 In function approximation, Fourier series is Lecture 15's least-squares projection in infinite dimensions: the closest point in the subspace is always the orthogonal projection, and any deviation in the coefficients simply adds extra squared legs via the Pythagorean theorem!
 </SolutionIntuition>
 <SolutionRigorous>
@@ -894,7 +899,7 @@ $$
 \mathbf{u}_\infty = \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}
 $$
 
-Physical interpretation: Column 3 is $[0, 0, 1]^T$, meaning once a random surfer reaches node 3, they stay at node 3 forever (no outgoing links). Meanwhile, nodes 1 and 2 leak probability into node 3 at every step. Over time, node 3 absorbs $100\%$ of the probability mass, destroying any meaningful ranking between nodes 1 and 2.
+Physical interpretation: Column 3 is $[0, 0, 1]^T$, meaning once a random surfer reaches node 3, they stay there forever because of its probability-one self-loop. Meanwhile, probability passes from node 1 to node 2, then can enter node 3. Over time, node 3 absorbs $100\%$ of the probability mass, destroying any meaningful ranking between nodes 1 and 2.
 
 **(b) Properties of the Google Matrix $G$:**
 Check column sums:
@@ -919,6 +924,8 @@ Every entry of $G$ is strictly positive. By the **Perron–Frobenius Theorem**:
 1. There exists a unique strictly positive steady-state vector $\mathbf{r} \gt \mathbf{0}$ ($\mathbf{1}^T \mathbf{r} = 1$) satisfying $G\mathbf{r} = \mathbf{r}$.
 2. $\lambda_1 = 1$ is a simple dominant eigenvalue, while all other eigenvalues satisfy $|\lambda_i| \le \alpha \lt 1$.
 3. Starting from any initial distribution $\mathbf{u}_0$, power iteration $\mathbf{u}_k = G^k \mathbf{u}_0$ converges exponentially at rate $\mathcal{O}(\alpha^k)$ to the unique PageRank vector $\mathbf{r}$, completely eliminating the black-hole trap!
+
+On the zero-sum subspace, $G$ acts as $\alpha A$, because the teleportation term vanishes there. The induced $1$-norm of $A$ is $1$, so $\|G^k\mathbf{u}_0-\mathbf{r}\|_1\le\alpha^k\|\mathbf{u}_0-\mathbf{r}\|_1$. This also gives the other-eigenvalue bound.
 
 ---
 
@@ -994,26 +1001,26 @@ Q.E.D.! The Fourier coefficients uniquely minimize the $L^2$ approximation error
 ### 1. The Forward Noising Process of Generative AI Is a Time-Inhomogeneous Markov Chain
 
 Modern generative diffusion models (such as Stable Diffusion and Sora) operate in two stages:
-1. **Forward Process**: Gradually inject small amounts of noise into clean data until it collapses into an uninformative steady-state noise distribution.
-2. **Reverse Denoising Process**: Train a neural network to invert each step, synthesizing realistic data from pure noise.
+1. **Forward Process**: Gradually inject small amounts of noise into clean data so that the final distribution is close to the chosen noise distribution.
+2. **Reverse Denoising Process**: Learn reverse transition distributions, synthesizing realistic data from pure noise.
 
 In discrete state-space diffusion models (**D3PM**, and modern discrete language diffusion models like MDLM), a token $x$ lives in a discrete vocabulary $\{1, 2, \dots, K\}$ (where $K$ can be tens of thousands).
 
 From step $t-1$ to $t$, the distribution evolves via a row-stochastic transition matrix $Q_t \in \mathbb{R}^{K \times K}$ (note: ML literature uses the row-stochastic convention $Q_t = A_t^T$, $Q_t \mathbf{1} = \mathbf{1}$, with row-vector states):
 
 $$
-q(\mathbf{x}_t \mid \mathbf{x}_{t-1}) = \mathbf{x}_{t-1}^T Q_t
+\bigl(q(X_t=j\mid X_{t-1}=i)\bigr)_{j=1}^K = \mathbf{e}_i^T Q_t
 $$
 
-After $t$ consecutive noising steps from clean input $\mathbf{x}_0$, the conditional distribution is governed by the **cumulative matrix product**:
+After $t$ consecutive noising steps from an initial token $X_0$, the conditional distribution is governed by the **cumulative matrix product**:
 
 $$
-q(\mathbf{x}_t \mid \mathbf{x}_0) = \mathbf{x}_0^T Q_1 Q_2 \dots Q_t = \mathbf{x}_0^T \bar{Q}_t
+\mathbf{p}_t^T = \mathbf{e}_i^T Q_1 Q_2 \cdots Q_t = \mathbf{e}_i^T \bar Q_t \qquad (X_0=i)
 $$
 
 where $\bar{Q}_t = \prod_{s=1}^t Q_s$.
 
-### 2. Spectral Decomposition of the Uniform Kernel and $\mathcal{O}(1)$ Closed-Form Jumps
+### 2. Spectral Decomposition of the Uniform Kernel and Direct Sampling
 
 In D3PM, the foundational noising kernel is the **Uniform Transition Kernel**. At step $s$, it takes the form:
 
@@ -1027,7 +1034,7 @@ where $\beta_s \in (0, 1)$ is the noise schedule hyperparameter. Notice that $Q_
    $$
    Q_s \mathbf{1} = (1 - \beta_s)\mathbf{1} + \frac{\beta_s}{K} \mathbf{1} (\mathbf{1}^T \mathbf{1}) = (1 - \beta_s)\mathbf{1} + \frac{\beta_s}{K} \mathbf{1} (K) = \mathbf{1}
    $$
-   So $\lambda_1 = 1$ with eigenvector $\mathbf{1}$. Normalized, the steady state is the **uniform distribution** $\mathbf{u}_\infty = \frac{1}{K}\mathbf{1}^T$ over the vocabulary!
+   So $\lambda_1 = 1$ with eigenvector $\mathbf{1}$. Normalized, the steady state is the **uniform distribution** $\mathbf{u}_\infty^T = \frac{1}{K}\mathbf{1}^T$ over the vocabulary!
 2. **Transient eigenvalues and zero-sum eigenspace**:
    For any nonzero vector $\mathbf{v} \in \mathbf{1}^\perp$ satisfying $\mathbf{1}^T \mathbf{v} = 0$ (the $(K-1)$-dimensional zero-sum subspace):
    $$
@@ -1049,36 +1056,30 @@ $$
 \bar{Q}_t = \prod_{s=1}^t Q_s = \bar{\alpha}_t I_K + (1 - \bar{\alpha}_t) \frac{1}{K} \mathbf{1}\mathbf{1}^T
 $$
 
-**Why this matters in practice**: During diffusion training, we sample a random step $t \in [1, T]$ and noise a batch of data. Without eigendecomposition, multiplying $t$ dense $K \times K$ matrices would cost $\mathcal{O}(t K^3)$. With this spectral closed form, we compute the exact noisy distribution in $\mathcal{O}(1)$ time:
-
-$$
-q(\mathbf{x}_t \mid \mathbf{x}_0) = \bar{\alpha}_t \mathbf{x}_0^T + (1 - \bar{\alpha}_t) \frac{1}{K}\mathbf{1}^T
-$$
-
-For large $t$, $\bar{\alpha}_t \to 0$, the original signal $\mathbf{x}_0$ decays exponentially to zero, and the distribution converges to the maximum-entropy uniform steady state!
+For a constant schedule, $\bar Q_t=Q^t$ and $\bar\alpha_t=(1-\beta)^t$. With varying $\beta_s$, precompute the cumulative factors once. To sample a single token from the row $\bar\alpha_t\mathbf{e}_i^T+(1-\bar\alpha_t)\mathbf{1}^T/K$, keep token $i$ with probability $\bar\alpha_t$ and otherwise draw uniformly. This takes constant work per token after lookup, while writing the whole row costs $O(K)$ and materializing the full matrix costs $O(K^2)$. For $0<\beta_s<1$, the infinite product tends to zero exactly when $\sum_s\beta_s=\infty$, yielding the uniform limit. At finite $T$ the residual weight equals $\bar\alpha_T$.
 
 ### 3. Unified View: Masked Diffusion and Continuous Gaussian DDPM
 
-Beyond uniform noise, modern discrete language diffusion (such as MDLM) often uses an **absorbing mask transition kernel**:
+With a special mask state in the vocabulary, the row-stochastic absorbing kernel is
 
 $$
-Q_s = (1 - \beta_s) I + \beta_s \mathbf{e}_{\text{mask}} \mathbf{1}^T
+P_{\text{mask}}=\mathbf{1}\mathbf{e}_{\text{mask}}^T,\qquad Q_s=(1-\beta_s)I_K+\beta_s P_{\text{mask}}.
 $$
 
-where every token transitions with probability $\beta_s$ into a special `[MASK]` absorbing state. Its eigenvalues are again $1$ (steady state) and $1 - \beta_s$ (transient decay), generalizing BERT-style masking into continuous-time Markov diffusion.
+Each row assigns the reset probability to the mask column, and the mask row stays at the mask with probability $1$. Since $P_{\text{mask}}^2=P_{\text{mask}}$, the same product gives $\bar Q_t=\bar\alpha_t I_K+(1-\bar\alpha_t)P_{\text{mask}}$. The eigenvalues are $1$ and $1-\beta_s$ (multiplicity $K-1$), and the limit is the point mass at the mask when $\bar\alpha_t\to0$.
 
-In continuous DDPM (Ho et al., 2020), the discrete vocabulary is replaced by $\mathbb{R}^d$, and the discrete Markov chain becomes an Ornstein–Uhlenbeck Gaussian diffusion process:
+In DDPM, the state space is continuous but time is discrete. For independent $\boldsymbol{\epsilon}_t\sim\mathcal{N}(\mathbf{0},I_d)$ also independent of $\mathbf{x}_0$, the update is $\mathbf{x}_t=\sqrt{1-\beta_t}\,\mathbf{x}_{t-1}+\sqrt{\beta_t}\,\boldsymbol{\epsilon}_t$. The Gaussian variances telescope when the update is unrolled, giving
 
 $$
-\mathbf{x}_t = \sqrt{1 - \beta_t}\,\mathbf{x}_{t-1} + \sqrt{\beta_t}\,\boldsymbol{\epsilon}_t \implies \mathbf{x}_t = \sqrt{\bar{\alpha}_t}\,\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t}\,\boldsymbol{\epsilon}
+q(\mathbf{x}_t\mid\mathbf{x}_0)=\mathcal{N}\left(\sqrt{\bar\alpha_t}\,\mathbf{x}_0,\,(1-\bar\alpha_t)I_d\right).
 $$
 
-whose steady-state attractor is the standard Gaussian $\mathcal{N}(\mathbf{0}, I)$. Whether discrete or continuous, text or images, generative diffusion models rest squarely on Markov spectral decay and steady-state limits!
+The standard Gaussian is invariant under each step. The conditional law approaches it when $\bar\alpha_t\to0$. This is the discrete-time Gaussian analogue of the decay in the discrete-state kernels.
 
-<CollapsibleCode language="python" title="d3pm_markov_spectral_decay.py — D3PM Spectral Decay & Closed-Form Sampling">
+<CollapsibleCode language="python" title="d3pm_markov_spectral_decay.py — D3PM Spectral Decay & Closed-Form Probabilities">
 ```python
 """
-Verify spectral decay and closed-form direct sampling for D3PM discrete diffusion.
+Verify spectral decay and closed-form transition probabilities for D3PM discrete diffusion.
 Demonstrates exact equivalence between iterative matrix multiplication and the
 spectral closed-form solution, as well as convergence to the uniform steady state.
 """
@@ -1095,16 +1096,19 @@ def verify_d3pm_markov_dynamics():
     alphas = 1.0 - betas
     alpha_bars = torch.cumprod(alphas, dim=0)
 
-    # 1. Verify eigenvalue structure of a single-step transition matrix Q_0
+    # 1. Verify the spectrum of Q_1 (schedule index 0 in Python)
     t_test = 0
     beta_0 = betas[t_test].item()
     ones = torch.ones(K, K)
     I = torch.eye(K)
     # Row-stochastic matrix: each row sums to 1
-    Q_0 = (1.0 - beta_0) * I + (beta_0 / K) * ones
+    Q_1 = (1.0 - beta_0) * I + (beta_0 / K) * ones
 
     # Compute eigenvalues
-    eigenvalues = torch.linalg.eigvals(Q_0)
+    eigenvalues = torch.linalg.eigvalsh(Q_1)
+    expected = torch.full_like(eigenvalues, 1.0 - beta_0)
+    expected[-1] = 1.0
+    torch.testing.assert_close(eigenvalues, expected)
     print("=" * 60)
     print(f"Step t=1 transition matrix Q_1 eigenvalues (expected: one 1.0, {K-1} copies of {1.0 - beta_0:.4f}):")
     for idx, ev in enumerate(sorted(eigenvalues.real, reverse=True)):
@@ -1123,6 +1127,7 @@ def verify_d3pm_markov_dynamics():
 
     # Measure Frobenius norm difference
     diff = torch.norm(Q_bar_iterative - Q_bar_analytical).item()
+    torch.testing.assert_close(Q_bar_iterative, Q_bar_analytical)
     print("\n" + "=" * 60)
     print(f"T={T} iterative product Q_bar vs. spectral closed form:")
     print(f"  Cumulative decay factor alpha_bar_T = {alpha_bar_T:.6f}")
@@ -1140,10 +1145,12 @@ def verify_d3pm_markov_dynamics():
         ab = alpha_bars[step-1].item()
         # Direct closed-form evaluation q(x_t | x_0) = x_0 @ Q_bar_t
         prob_t = ab * x_0 + (1.0 - ab) * (1.0 / K) * torch.ones(1, K)
+        if step == T:
+            torch.testing.assert_close(prob_t, x_0 @ Q_bar_iterative)
         probs_formatted = [round(p, 4) for p in prob_t.squeeze().tolist()]
         print(f"  t={step:2d} (alpha_bar={ab:.4f}) : {probs_formatted}")
 
-    print("\nSteady-state limit (t -> inf): uniform distribution [0.2, 0.2, 0.2, 0.2, 0.2]")
+    print("Uniform invariant distribution:", [1.0 / K] * K)
     print("=" * 60)
 
 if __name__ == '__main__':

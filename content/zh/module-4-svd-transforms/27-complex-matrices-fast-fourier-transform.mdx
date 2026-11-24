@@ -152,7 +152,8 @@ $$
 2. **酉矩阵的三大几何与谱性质**（设 $U \in \mathbb{C}^{n\times n}$ 满足 $U^H U = I_n$）：
    - **保内积与保长（等距性）**：对任意 $\mathbf{z}, \mathbf{w} \in \mathbb{C}^n$，均有 $(U\mathbf{z})^H(U\mathbf{w}) = \mathbf{z}^H\mathbf{w}$ 以及 $\|U\mathbf{z}\| = \|\mathbf{z}\|$；
    - **特征值落在单位圆上**：$U$ 的任意特征值 $\lambda \in \mathbb{C}$ 均满足模长 $|\lambda| = 1$；
-   - **酉群封闭性**：两个同阶酉矩阵的乘积 $U_1 U_2$ 及其逆 $U^{-1} = U^H$ 仍是酉矩阵，且 $\frac{1}{\sqrt{n}}F_n$ 等正交基旋转变换皆可由酉谱分解表示。
+   - **酉群封闭性**：两个同阶酉矩阵的乘积 $U_1 U_2$ 及其逆 $U^{-1} = U^H$ 仍是酉矩阵。
+   - **酉对角化**：由 $U^H U = U U^H = I_n$ 知 $U$ 为正规矩阵（Normal Matrix）。复正规矩阵谱定理保证其存在标准正交特征基，对角化后的对角元素模长均为 $1$。
 
 </TheoremCard>
 
@@ -484,10 +485,10 @@ $$
 
 **第二部分：递归运算复杂度 $M(n) = \frac{1}{2} n \log_2 n$ 的推导**
 
-设完成一次 $n$ 点 FFT 所需的复数乘法次数为 $M(n)$：
+记 $M(n)$ 为 $n$ 点基 2 FFT 的旋转因子乘法计数，每个蝶形单元计一次，即使因子为 $1$ 或 $i$。对这些因子做简化后，实际需要的乘法次数可更少。
 1. 左乘置换矩阵 $P_n$ 仅仅重排元素位置，需要 $0$ 次乘法；
 2. 分别计算 $F_{n/2}\mathbf{x}_{\text{even}}$ 与 $F_{n/2}\mathbf{x}_{\text{odd}}$，共需 $2 M(n/2)$ 次复数乘法；
-3. 计算 $\mathbf{d} = D_{n/2} \mathbf{y}_{\text{odd}}$ 需要至多 $\frac{n}{2}$ 次复数乘法（分别用 $1, w, \dots, w^{n/2-1}$ 乘以 $\mathbf{y}_{\text{odd}}$ 的各分量；由于上下两半共用同一个 $\mathbf{d}$，计算 $\mathbf{y}_{\text{even}} + \mathbf{d}$ 与 $\mathbf{y}_{\text{even}} - \mathbf{d}$ 只需 $n$ 次复数加减，不再消耗乘法！）。
+3. 计算 $\mathbf{d} = D_{n/2} \mathbf{y}_{\text{odd}}$ 按上述约定计 $\frac{n}{2}$ 次复数乘法（分别用 $1, w, \dots, w^{n/2-1}$ 乘以 $\mathbf{y}_{\text{odd}}$ 的各分量；由于上下两半共用同一个 $\mathbf{d}$，计算 $\mathbf{y}_{\text{even}} + \mathbf{d}$ 与 $\mathbf{y}_{\text{even}} - \mathbf{d}$ 只需 $n$ 次复数加减，不再消耗乘法！）。
 
 由此得到递推方程（$M(1) = 0$，因为 $F_1 = [1]$ 无需任何乘法）：
 
@@ -532,7 +533,7 @@ $$
 
 ### 3. 陷阱三：遗忘 $F_n$ 的缩放系数 $\frac{1}{\sqrt{n}}$ 或逆变换因子 $\frac{1}{n}$
 傅里叶矩阵 $F_n$ 本身的列向量**两两正交但不是单位向量**——每一列的长度是 $\sqrt{n}$（因为 $\| \mathbf{c}_k \|^2 = \sum_{r=0}^{n-1} |w^{rk}|^2 = n$）。因此：
-- $F_n$ 本身**不是**酉矩阵，$F_n^H F_n = n I_n \ne I_n$；
+- 当 $n \ge 2$ 时，$F_n^H F_n = n I_n \ne I_n$，故 $F_n$ 不是酉矩阵；$F_1=[1]$ 已经是酉矩阵。
 - 只有 $\tilde{F}_n = \frac{1}{\sqrt{n}} F_n$ 才是真正的酉矩阵；
 - 逆离散傅里叶变换必须除以 $n$，即 $F_n^{-1} = \frac{1}{n} F_n^H = \frac{1}{n} \bar{F}_n$。如果忘记 $\frac{1}{n}$ 因子，把频率分量反变换回时域信号时，振幅会被错误放大 $n$ 倍（在离散帕塞瓦尔能量守恒中对应 $\|F_n \mathbf{x}\|^2 = n \|\mathbf{x}\|^2$）！
 
@@ -646,7 +647,7 @@ $$
 
 <DualSolution>
 <SolutionIntuition>
-实矩阵上“转置等于自身”能锁死特征值为实数，是因为用到了 $\mathbf{x}^T\mathbf{x} \gt 0$。到了复数域，如果不对转置加共轭，不仅实数性会丢掉，连“特征向量能张满全空间”也会崩塌——因为复向量 $[1, i]^T$ 在不共轭时“自己与自己正交”（$\mathbf{z}^T\mathbf{z} = 0$），这让矩阵可以退化成非零却幂零的亏损矩阵。
+实对称矩阵满足 $A^H=A^T=A$，即便特征向量起初取复值，也可用实数比值 $\mathbf{x}^H A\mathbf{x}/(\mathbf{x}^H\mathbf{x})$ 证明特征值为实数。到了复数域，如果不对转置加共轭，不仅实数性会丢掉，连“特征向量能张满全空间”也会崩塌——因为复向量 $[1, i]^T$ 在不共轭时“自己与自己正交”（$\mathbf{z}^T\mathbf{z} = 0$），这让矩阵可以退化成非零却幂零的亏损矩阵。
 </SolutionIntuition>
 <SolutionRigorous>
 该命题**错误**。在复域 $\mathbb{C}^{n\times n}$ 上，只有 **Hermitian 条件 $A^H = A$** 才能保证特征值全实且可酉对角化；单纯的复对称条件 $A^T = A$ 既不能保证特征值为实数，甚至不能保证矩阵可对角化。给出两类明确反例：
@@ -675,7 +676,7 @@ $$
 <TrueFalseInteractive
   id="l27-tf2"
   correct={false}
-  quickFeedback={"错误！$F_n$ 的各列仅互相正交但尚未单位化，每列模长平方为 $n$，所以 $F_n^H F_n = n I_n$（而非 $I_n$）。只有 $\\frac{1}{\\sqrt{n}} F_n$ 才是酉矩阵，且傅里叶逆变换必须除以 $n$：$F_n^{-1} = \\frac{1}{n} F_n^H = \\frac{1}{n} \\bar{F}_n$。"}
+  quickFeedback={"错误！$F_n$ 的各列仅互相正交但尚未单位化，每列模长平方为 $n$，所以 $F_n^H F_n = n I_n$（而非 $I_n$）。归一化后的 $\\frac{1}{\\sqrt{n}} F_n$ 对所有 $n$ 都是酉矩阵（包括 $F_1=[1]$），且傅里叶逆变换必须除以 $n$：$F_n^{-1} = \\frac{1}{n} F_n^H = \\frac{1}{n} \\bar{F}_n$。"}
 />
 
 <ProgressiveHint hints={[
@@ -816,7 +817,7 @@ $$
 <DualSolution>
 <SolutionIntuition>
 第 1 问让你亲手体验“蝴蝶如何扇动翅膀”：原本要算 $4\times 4 = 16$ 项乘加的 $F_4 \mathbf{x}$，拆成两个极简的 $2\times 2$ 和差运算外加 1 次乘以 $i$ 的旋转调整后，加减交叉瞬间得出全部 4 个频谱分量。
-第 2 问揭示了为什么信号处理与偏微分方程数值求解离不开傅里叶变换：带有周期边界条件的平移算子（循环矩阵）本质上是复平面单位圆上的纯旋转！傅里叶矩阵 $F_n$ 的各列恰好就是移位算子的特征模态（复正弦波在移位下只改变相位而不改变波形！）。因此，复杂的时域循环卷积 $C\mathbf{x}$ 一旦转入傅里叶基底，就彻底解耦为逐点的对角乘法 $\Lambda (F_n \mathbf{x})$！
+第 2 问揭示了为什么信号处理与偏微分方程数值求解离不开傅里叶变换：带有周期边界条件的平移算子（循环矩阵）本质上是复平面单位圆上的纯旋转！傅里叶矩阵 $F_n$ 的各列恰好就是移位算子的特征模态（复正弦波在移位下只改变相位而不改变波形！）。因此，复杂的时域循环卷积 $C\mathbf{x}$ 一旦转入傅里叶基底，就彻底解耦为逐点的对角乘法 $\Lambda(F_n^{-1}\mathbf{x})$！
 </SolutionIntuition>
 <SolutionRigorous>
 **第 1 问解答：**
@@ -898,9 +899,9 @@ $$
 C\mathbf{x} = \frac{1}{4} F_4 \Big( (F_4 \mathbf{c}) \odot (F_4^H \mathbf{x}) \Big)
 $$
 
-其中 $\odot$ 表示向量的逐元素乘积（Hadamard Product）。（若采用工程中常见的**循环下移**矩阵 $S = P^T$ 定义标准循环卷积 $C_{\text{conv}} = \sum_{m=0}^3 c_m S^m$，则由 $S \bar{\mathbf{f}}_k = w^k \bar{\mathbf{f}}_k$ 同理可得更熟悉的形式 $C_{\text{conv}}\mathbf{x} = F_4^{-1}\big((F_4 \mathbf{c}) \odot (F_4 \mathbf{x})\big)$。）
+其中 $\odot$ 表示向量的逐元素乘积（Hadamard Product）。（若采用工程中常见的**循环下移**矩阵 $S = P^T$ 定义标准循环卷积 $C_{\text{conv}} = \sum_{m=0}^3 c_m S^m$，则由 $S \overline{\mathbf{u}_k} = w^k \overline{\mathbf{u}_k}$ 同理可得更熟悉的形式 $C_{\text{conv}}\mathbf{x} = F_4^{-1}\big((F_4 \mathbf{c}) \odot (F_4 \mathbf{x})\big)$。）
 
-**快速卷积的复杂度机制**：直接计算 $n$ 阶循环矩阵乘积 $C\mathbf{x}$ 需要 $n^2$ 次乘法；而利用上述傅里叶谱对角化，只需执行 2 次正向/共轭 FFT（将系数 $\mathbf{c}$ 与信号 $\mathbf{x}$ 转换到特征频率基底）+ $n$ 次复数逐点相乘（$\Lambda$ 对角缩放）+ 1 次逆/共轭 FFT（回到时域），总复杂度骤降为 $\mathcal{O}(n \log n)$！这正是数字信号滤波、图像卷积与大整数快速乘法的线性代数引擎。
+**快速卷积的复杂度机制**：直接计算 $n$ 阶循环矩阵乘积 $C\mathbf{x}$ 需要 $n^2$ 次乘法；而利用上述傅里叶谱对角化，只需分别计算 $F_n\mathbf{c}$ 与 $F_n^{-1}\mathbf{x}$，逐元素相乘后再应用 $F_n$，总复杂度骤降为 $\mathcal{O}(n \log n)$！这正是数字信号滤波、图像卷积与大整数快速乘法的线性代数引擎。
 </SolutionRigorous>
 </DualSolution>
 

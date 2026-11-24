@@ -21,7 +21,7 @@ export function SvdCircleToEllipsePipelineDiagram({
           <marker
             id="l30-pipe-arrow-blue"
             viewBox="0 0 10 10"
-            refX="8"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -32,7 +32,7 @@ export function SvdCircleToEllipsePipelineDiagram({
           <marker
             id="l30-pipe-arrow-purple"
             viewBox="0 0 10 10"
-            refX="8"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -119,14 +119,14 @@ export function SvdCircleToEllipsePipelineDiagram({
             strokeWidth="1.6"
           />
 
-          {/* Orthonormal input axes v1, v2 rotated by -35 deg */}
+          {/* Orthonormal input axes rotated 35° counterclockwise in the mathematical plane */}
           {/* v1 = (cos(-35), sin(-35)) * 54 = (+44.2, -31.0) -> (166.2, 167.0) */}
           {/* v2 = (cos(-125), sin(-125)) * 54 = (-31.0, -44.2) -> (91.0, 153.8) */}
           <line
             x1="122"
             y1="198"
-            x2="165"
-            y2="168"
+            x2="166.234"
+            y2="167.027"
             className="stroke-blue-600 dark:stroke-blue-400"
             strokeWidth="2.5"
             markerEnd="url(#l30-pipe-arrow-blue)"
@@ -134,8 +134,8 @@ export function SvdCircleToEllipsePipelineDiagram({
           <line
             x1="122"
             y1="198"
-            x2="92"
-            y2="155"
+            x2="91.027"
+            y2="153.766"
             className="stroke-purple-600 dark:stroke-purple-400"
             strokeWidth="2.5"
             markerEnd="url(#l30-pipe-arrow-purple)"
@@ -232,7 +232,7 @@ export function SvdCircleToEllipsePipelineDiagram({
           <line
             x1="346"
             y1="198"
-            x2="399"
+            x2="400"
             y2="198"
             className="stroke-blue-600 dark:stroke-blue-400"
             strokeWidth="2.5"
@@ -242,7 +242,7 @@ export function SvdCircleToEllipsePipelineDiagram({
             x1="346"
             y1="198"
             x2="346"
-            y2="145"
+            y2="144"
             className="stroke-purple-600 dark:stroke-purple-400"
             strokeWidth="2.5"
             markerEnd="url(#l30-pipe-arrow-purple)"
@@ -341,7 +341,7 @@ export function SvdCircleToEllipsePipelineDiagram({
           <line
             x1="570"
             y1="198"
-            x2="645"
+            x2="646"
             y2="198"
             className="stroke-blue-600 dark:stroke-blue-400"
             strokeWidth="2.5"
@@ -351,7 +351,7 @@ export function SvdCircleToEllipsePipelineDiagram({
             x1="570"
             y1="198"
             x2="570"
-            y2="167"
+            y2="166"
             className="stroke-purple-600 dark:stroke-purple-400"
             strokeWidth="2.5"
             markerEnd="url(#l30-pipe-arrow-purple)"
@@ -379,7 +379,7 @@ export function SvdCircleToEllipsePipelineDiagram({
             沿主轴按 σ₁ ≥ σ₂ &gt; 0 伸缩
           </text>
           <text x="570" y="341" textAnchor="middle" className="fill-muted-foreground text-[10px]">
-            形状变为正半轴长 σ₁, σ₂ 的椭圆
+            此例半轴长为 76/54、32/54
           </text>
         </g>
 
@@ -440,7 +440,7 @@ export function SvdCircleToEllipsePipelineDiagram({
             <line
               x1="0"
               y1="0"
-              x2="75"
+              x2="76"
               y2="0"
               className="stroke-blue-600 dark:stroke-blue-400"
               strokeWidth="2.5"
@@ -450,7 +450,7 @@ export function SvdCircleToEllipsePipelineDiagram({
               x1="0"
               y1="0"
               x2="0"
-              y2="-31"
+              y2="-32"
               className="stroke-purple-600 dark:stroke-purple-400"
               strokeWidth="2.5"
               markerEnd="url(#l30-pipe-arrow-purple)"
@@ -611,7 +611,7 @@ export function SvdFourSubspacesOrthonormalMapDiagram({
           </text>
           <circle cx="292" cy="212" r="4.5" className="fill-foreground" />
           <text x="300" y="216" className="fill-foreground text-[11px] font-mono font-bold">
-            0
+            𝟎
           </text>
 
           {/* Null(A) Box */}
@@ -635,106 +635,7 @@ export function SvdFourSubspacesOrthonormalMapDiagram({
           </text>
           <rect x="52" y="294" width="210" height="26" rx="6" className="fill-background/70 stroke-emerald-500/35" />
           <text x="157" y="311" textAnchor="middle" className="fill-muted-foreground text-[10px]">
-            对应 AᵀA 的零特征值 (σ_i = 0)
-          </text>
-        </g>
-
-        {/* ================= CENTER MAPPING ARROWS ================= */}
-        <g>
-          {/* Top summary pill */}
-          <rect
-            x="320"
-            y="60"
-            width="280"
-            height="36"
-            rx="8"
-            className="fill-purple-500/10 stroke-purple-500/40"
-          />
-          <text x="460" y="75" textAnchor="middle" className="fill-purple-700 dark:fill-purple-300 text-[11px] font-mono font-bold">
-            对角化双射：A V_r = U_r Σ_r
-          </text>
-          <text x="460" y="90" textAnchor="middle" className="fill-muted-foreground text-[10px] font-mono">
-            σ₁ ≥ σ₂ ≥ ⋯ ≥ σ_r &gt; 0 (一一保维正交对应)
-          </text>
-
-          {/* Basis mapping arrows from Row(A) to Col(A) */}
-          {/* Row 1: v1 -> sigma1 u1 */}
-          <line
-            x1="280"
-            y1="118"
-            x2="634"
-            y2="118"
-            className="stroke-blue-600 dark:stroke-blue-400"
-            strokeWidth="2.2"
-            markerEnd="url(#l30-sub-arrow-blue)"
-          />
-          <rect x="386" y="106" width="148" height="22" rx="6" className="fill-background stroke-blue-500/45" />
-          <text x="460" y="121" textAnchor="middle" className="fill-blue-700 dark:fill-blue-300 text-[11px] font-mono font-bold">
-            Av₁ = σ₁ u₁
-          </text>
-
-          {/* Row 2: v2 -> sigma2 u2 */}
-          <line
-            x1="280"
-            y1="150"
-            x2="634"
-            y2="150"
-            className="stroke-blue-600 dark:stroke-blue-400"
-            strokeWidth="2"
-            markerEnd="url(#l30-sub-arrow-blue)"
-          />
-          <rect x="386" y="138" width="148" height="22" rx="6" className="fill-background stroke-blue-500/45" />
-          <text x="460" y="153" textAnchor="middle" className="fill-blue-700 dark:fill-blue-300 text-[11px] font-mono font-bold">
-            Av₂ = σ₂ u₂
-          </text>
-
-          {/* Row r: vr -> sigmar ur */}
-          <line
-            x1="280"
-            y1="184"
-            x2="634"
-            y2="184"
-            className="stroke-purple-600 dark:stroke-purple-400"
-            strokeWidth="2.2"
-            markerEnd="url(#l30-sub-arrow-purple)"
-          />
-          <rect x="386" y="172" width="148" height="22" rx="6" className="fill-background stroke-purple-500/45" />
-          <text x="460" y="187" textAnchor="middle" className="fill-purple-700 dark:fill-purple-300 text-[11px] font-mono font-bold">
-            Av_r = σ_r u_r
-          </text>
-
-          {/* Nullspace collapse arrow from Null(A) to output origin 0 at (628, 212) */}
-          <path
-            d="M 280 268 C 415 268, 520 250, 620 214"
-            fill="none"
-            className="stroke-emerald-600 dark:stroke-emerald-400"
-            strokeWidth="2.2"
-            strokeDasharray="5 3"
-            markerEnd="url(#l30-sub-arrow-emerald)"
-          />
-          <rect x="348" y="232" width="214" height="24" rx="6" className="fill-background stroke-emerald-500/50" />
-          <text x="455" y="248" textAnchor="middle" className="fill-emerald-700 dark:fill-emerald-300 text-[10.5px] font-mono font-bold">
-            Av_i = 0  (i &gt; r, 全部压扁至原点)
-          </text>
-
-          {/* Full vs Thin SVD Box */}
-          <rect
-            x="320"
-            y="278"
-            width="280"
-            height="64"
-            rx="9"
-            className="fill-muted/40 stroke-border"
-            strokeWidth="1.2"
-          />
-          <text x="460" y="298" textAnchor="middle" className="fill-foreground text-[11.5px] font-mono font-bold">
-            Full: A = Uₘₓₘ Σₘₓₙ Vₙₓₙᵀ
-          </text>
-          <text x="460" y="316" textAnchor="middle" className="fill-purple-700 dark:fill-purple-300 text-[11.5px] font-mono font-bold">
-            Thin: A = U_r Σ_r V_rᵀ  (r×r 对角核心)
-          </text>
-          <text x="460" y="333" textAnchor="middle" className="fill-muted-foreground text-[10px]">
-            截掉 Σ 中全零行列不损失任何信息
+            对应 AᵀA 的零特征空间
           </text>
         </g>
 
@@ -785,7 +686,7 @@ export function SvdFourSubspacesOrthonormalMapDiagram({
           </text>
           <circle cx="628" cy="212" r="4.5" className="fill-foreground" />
           <text x="614" y="216" className="fill-foreground text-[11px] font-mono font-bold">
-            0
+            𝟎
           </text>
 
           {/* Null(A^T) Box */}
@@ -813,6 +714,105 @@ export function SvdFourSubspacesOrthonormalMapDiagram({
           </text>
         </g>
 
+        {/* ================= CENTER MAPPING ARROWS ================= */}
+        <g>
+          {/* Top summary pill */}
+          <rect
+            x="320"
+            y="60"
+            width="280"
+            height="36"
+            rx="8"
+            className="fill-purple-500/10 stroke-purple-500/40"
+          />
+          <text x="460" y="75" textAnchor="middle" className="fill-purple-700 dark:fill-purple-300 text-[11px] font-mono font-bold">
+            对角化双射：A V_r = U_r Σ_r
+          </text>
+          <text x="460" y="90" textAnchor="middle" className="fill-muted-foreground text-[10px] font-mono">
+            σ₁ ≥ ⋯ ≥ σ_r &gt; 0（r &gt; 0 时）
+          </text>
+
+          {/* Basis mapping arrows from Row(A) to Col(A) */}
+          {/* Row 1: v1 -> sigma1 u1 */}
+          <line
+            x1="280"
+            y1="118"
+            x2="639"
+            y2="118"
+            className="stroke-blue-600 dark:stroke-blue-400"
+            strokeWidth="2.2"
+            markerEnd="url(#l30-sub-arrow-blue)"
+          />
+          <rect x="386" y="106" width="148" height="22" rx="6" className="fill-background stroke-blue-500/45" />
+          <text x="460" y="121" textAnchor="middle" className="fill-blue-700 dark:fill-blue-300 text-[11px] font-mono font-bold">
+            Av₁ = σ₁ u₁
+          </text>
+
+          {/* Row 2: v2 -> sigma2 u2 */}
+          <line
+            x1="280"
+            y1="150"
+            x2="639"
+            y2="150"
+            className="stroke-blue-600 dark:stroke-blue-400"
+            strokeWidth="2"
+            markerEnd="url(#l30-sub-arrow-blue)"
+          />
+          <rect x="386" y="138" width="148" height="22" rx="6" className="fill-background stroke-blue-500/45" />
+          <text x="460" y="153" textAnchor="middle" className="fill-blue-700 dark:fill-blue-300 text-[11px] font-mono font-bold">
+            Av₂ = σ₂ u₂
+          </text>
+
+          {/* Row r: vr -> sigmar ur */}
+          <line
+            x1="280"
+            y1="184"
+            x2="639"
+            y2="184"
+            className="stroke-purple-600 dark:stroke-purple-400"
+            strokeWidth="2.2"
+            markerEnd="url(#l30-sub-arrow-purple)"
+          />
+          <rect x="386" y="172" width="148" height="22" rx="6" className="fill-background stroke-purple-500/45" />
+          <text x="460" y="187" textAnchor="middle" className="fill-purple-700 dark:fill-purple-300 text-[11px] font-mono font-bold">
+            Av_r = σ_r u_r
+          </text>
+
+          {/* Nullspace collapse arrow from Null(A) to output origin 0 at (628, 212) */}
+          <path
+            d="M 280 268 C 415 268, 520 250, 620 214"
+            fill="none"
+            className="stroke-emerald-600 dark:stroke-emerald-400"
+            strokeWidth="2.2"
+            strokeDasharray="5 3"
+            markerEnd="url(#l30-sub-arrow-emerald)"
+          />
+          <rect x="348" y="232" width="214" height="24" rx="6" className="fill-background stroke-emerald-500/50" />
+          <text x="455" y="248" textAnchor="middle" className="fill-emerald-700 dark:fill-emerald-300 text-[10.5px] font-mono font-bold">
+            Av_i = 𝟎  (r &lt; i ≤ n)
+          </text>
+
+          {/* Full vs Thin SVD Box */}
+          <rect
+            x="320"
+            y="278"
+            width="280"
+            height="64"
+            rx="9"
+            className="fill-muted/40 stroke-border"
+            strokeWidth="1.2"
+          />
+          <text x="460" y="298" textAnchor="middle" className="fill-foreground text-[11.5px] font-mono font-bold">
+            Full: A = Uₘₓₘ Σₘₓₙ Vₙₓₙᵀ
+          </text>
+          <text x="460" y="316" textAnchor="middle" className="fill-purple-700 dark:fill-purple-300 text-[11.5px] font-mono font-bold">
+            Thin: A = U_r Σ_r V_rᵀ  (r×r 对角核心)
+          </text>
+          <text x="460" y="333" textAnchor="middle" className="fill-muted-foreground text-[10px]">
+            截掉 Σ 中全零行列不损失任何信息
+          </text>
+        </g>
+
         {/* ================= BOTTOM RANK-1 OUTER PRODUCT SUM BAR ================= */}
         <rect
           x="22"
@@ -831,7 +831,7 @@ export function SvdFourSubspacesOrthonormalMapDiagram({
           A  =  σ₁ u₁ v₁ᵀ  +  σ₂ u₂ v₂ᵀ  +  ⋯  +  σ_r u_r v_rᵀ  =  ∑ σ_i u_i v_iᵀ  (i = 1,…,r)
         </text>
         <text x="460" y="409" textAnchor="middle" className="fill-muted-foreground text-[11px]">
-          按奇异值从大到小排列的 r 个正交秩 1 矩阵累加；仅保留前 k 项即为最小二乘/谱范数下的最优秩 k 逼近！
+          按奇异值从大到小排列的 秩 1 项在 Frobenius 内积下正交，截取前 k 项给出 Frobenius 范数与谱范数下的最优秩至多 k 逼近
         </text>
       </svg>
     </MathDiagram>

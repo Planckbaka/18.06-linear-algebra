@@ -10,9 +10,9 @@ textbookRef: "§5.1"
 在前两章中，我们处理了任意长方矩阵 $A \in \mathbb{R}^{m \times n}$，探索了四个基本子空间、投影矩阵以及最小二乘法。从本讲开始，我们进入线性代数最为精妙的核心领域之一——**方阵的行列式（Determinant）与特征值（Eigenvalue）**。
 
 对于一个 $n \times n$ 的方阵 $A$，行列式是一个将矩阵的全部 $n^2$ 个元素压缩为一个标量数值的映射 $\det: \mathbb{R}^{n \times n} \to \mathbb{R}$（常记作 $\det(A)$ 或 $|A|$）。它承担着三大不可替代的数学与几何使命：
-1. **可逆性判据**：$\det(A) \ne 0 \iff A$ 可逆（非奇异）。这是检验线性方程组 $A\mathbf{x} = \mathbf{b}$ 具备唯一解的最强标量指标。
-2. **几何体积与定向**：$|\det(A)|$ 衡量由 $A$ 的行（或列）向量张成的 $n$ 维平行多面体的超体积，而其正负号 $\operatorname{sgn}(\det(A))$ 则表征空间的定向翻转。
-3. **特征值的钥匙**：在后续章节中，求解特征值问题 $A\mathbf{x} = \lambda \mathbf{x}$ 的唯一代数通用途径就是通过特征多项式方程 $\det(A - \lambda I) = 0$。
+1. **可逆性判据**：$\det(A) \ne 0 \iff A$ 可逆（非奇异）。这等价于对每个 $\mathbf{b} \in \mathbb{R}^n$，方程组 $A\mathbf{x} = \mathbf{b}$ 都有唯一解。
+2. **几何体积与定向**：$|\det(A)|$ 衡量由 $A$ 的行（或列）向量张成的 $n$ 维平行多面体的超体积，当 $A$ 可逆时，行列式为正表示保持定向，为负表示反转定向。
+3. **特征值的钥匙**：在后续章节中，求解特征值问题 $A\mathbf{x} = \lambda \mathbf{x}$ 可用特征方程 $\det(A - \lambda I) = 0$。
 
 传统的线性代数教材往往直接抛出包含 $n!$ 项交错和的庞大公式或繁冗的代数余子式递归展开。然而，Gilbert Strang 教授坚持采用由魏尔斯特拉斯（Weierstrass）奠定的现代数学公理化视角：**只需三个极其自然简洁的公理性质，便足以唯一确定行列式函数！**
 
@@ -20,7 +20,7 @@ textbookRef: "§5.1"
 
 ## 核心公理：定义行列式的三大基石
 
-设 $M_{n}(\mathbb{R})$ 表示实数域上的 $n \times n$ 方阵空间。我们将矩阵 $A$ 视作由 $n$ 个行向量垂直堆叠而成的序列：
+固定正整数 $n \ge 1$。设 $M_{n}(\mathbb{R})$ 表示实数域上的 $n \times n$ 方阵空间。我们将矩阵 $A$ 视作由 $n$ 个行向量垂直堆叠而成的序列：
 
 $$
 A = \begin{pmatrix} \mathbf{r}_1 \\ \mathbf{r}_2 \\ \vdots \\ \mathbf{r}_n \end{pmatrix}, \quad \mathbf{r}_i \in \mathbb{R}^{1 \times n}
@@ -28,21 +28,21 @@ $$
 
 <DefinitionCard title="行列式的三大公理定义" termEn="Three Defining Axioms of the Determinant">
 
-设映射 $\det: M_{n}(\mathbb{R}) \to \mathbb{R}$，若对任意方阵满足以下三条公理，则该映射称为**行列式**：
+设映射 $\det: M_{n}(\mathbb{R}) \to \mathbb{R}$，若对 $M_n(\mathbb{R})$ 中的任意矩阵满足以下三条公理，则该映射称为**行列式**：
 
 1. **单位矩阵归一化（Normalization of Identity Matrix）**：
    单位矩阵的行列式恒为 1：
    $$
    \det(I_n) = 1
    $$
-   几何直观上，标准正交基张成的单位超立方体体积严格定义为 1。
+   几何直观上，标准正交基（Orthonormal Basis）张成的单位超立方体体积严格定义为 1。
 
 2. **行交换变号性（Sign Reversal under Row Exchange）**：
    若交换矩阵 $A$ 的任意两行得到新矩阵 $B$，则行列式反转正负号：
    $$
    \det(B) = -\det(A)
    $$
-   若置换矩阵 $P$ 对应 $k$ 次行交换，则 $\det(P) = (-1)^k$。几何上，每次行交换都对应一次镜面反射，翻转了坐标架的有向朝向（Orientation）。
+   若置换矩阵（Permutation Matrix）$P$ 对应 $k$ 次行交换，则 $\det(P) = (-1)^k$。几何上，每次行交换都对应一次镜面反射，翻转了坐标架的有向朝向（Orientation）。
 
 3. **单行线性性（Single-row Linearity / Multilinearity）**：
    行列式关于矩阵的**每一单独行**分别呈现线性关系。假设除第 $i$ 行外，其余所有行向量均保持完全不变：
@@ -62,8 +62,12 @@ $$
 我们务必牢记：**单行线性绝不等于整个矩阵的线性！** 若将 $n$ 阶方阵的所有元素同时乘以 $c$，根据公理 3，每一个行向量都会依次提出一个因子 $c$，总共提出 $n$ 个因子：
 
 $$
-\det(cA) = c^n \det(A) \ne c \det(A) \quad (n \ge 2)
+\det(cA) = c^n \det(A)
 $$
+
+当 $n \ge 2$ 时，取 $A=I_n$ 与 $c=2$ 即可看出行列式在整个矩阵空间上并非线性函数。$n=1$ 时，行列式是线性的。
+
+为说明唯一性，将每行写成标准基行向量的线性组合，再按公理 3 展开。若某项含有两个相同的基行向量，由公理 2 可知它在 $\mathbb{R}$ 上的行列式为零。其余各项都是标准基行向量的重排，公理 1 和 2 确定其值与符号。第 19 讲将给出显式公式。将标量换成复数后，同样的代数推导适用于 $\mathbb{C}$。
 
 ---
 
@@ -95,7 +99,7 @@ $$
 
 <TheoremCard title="性质 5：高斯消元行变换保持行列式不变" termEn="Property 5: Elimination Step Preserves Determinant">
 
-将矩阵某一行的标量倍数加到另一行上（初等行变换 $r_i \to r_i - \ell r_k$，其中 $i \ne k$），矩阵的行列式保持严格不变：
+设 $A \in \mathbb{R}^{n \times n}$，$\ell \in \mathbb{R}$。将矩阵某一行的标量倍数加到另一行上（初等行变换 $r_i \to r_i - \ell r_k$，其中 $i \ne k$），矩阵的行列式保持严格不变：
 $$
 \det \begin{pmatrix} \vdots \\ \mathbf{r}_i - \ell \mathbf{r}_k \\ \vdots \\ \mathbf{r}_k \\ \vdots \end{pmatrix} = \det \begin{pmatrix} \vdots \\ \mathbf{r}_i \\ \vdots \\ \mathbf{r}_k \\ \vdots \end{pmatrix} = \det(A)
 $$
@@ -112,13 +116,13 @@ $$
 $$
 -\ell \cdot 0 = 0 \implies \det \begin{pmatrix} \vdots \\ \mathbf{r}_i - \ell \mathbf{r}_k \\ \vdots \\ \mathbf{r}_k \\ \vdots \end{pmatrix} = \det(A)
 $$
-这表明高斯消元初等下三角矩阵 $E_{ik}$ 的行列式满足 $\det(E_{ik}) = 1$。消元剪切变换（Shear）在几何上不改变底与高，因而体积严格守恒！证毕。
+这表明初等消元矩阵（Elementary Elimination Matrix）$E_{ik}$ 的行列式满足 $\det(E_{ik}) = 1$。消元剪切变换（Shear）在几何上不改变底与高，因而体积严格守恒！证毕。
 
 </ProofCollapse>
 
 <TheoremCard title="性质 6：全零行导致行列式为零" termEn="Property 6: Row of Zeros implies Zero Determinant">
 
-若方阵 $A$ 包含一行全零向量（即存在某个 $i$ 使得 $\mathbf{r}_i = \mathbf{0}^T$），则：
+若 $A \in \mathbb{R}^{n \times n}$ 包含一行全零向量（即存在某个 $i$ 使得 $\mathbf{r}_i = \mathbf{0}^T$），则：
 $$
 \det(A) = 0
 $$
@@ -127,7 +131,7 @@ $$
 
 <ProofCollapse title="性质 6 的公理化严格证明">
 
-将全零行表示为数乘形式 $\mathbf{0}^T = 0 \cdot \mathbf{0}^T$。根据**公理 3a**（单行数乘性），可以从第 $i$ 行提出标量标量因子 $c = 0$：
+将全零行表示为数乘形式 $\mathbf{0}^T = 0 \cdot \mathbf{0}^T$。根据**公理 3a**（单行数乘性），可以从第 $i$ 行提出标量因子 $c = 0$：
 $$
 \det(A) = \det \begin{pmatrix} \vdots \\ 0 \cdot \mathbf{0}^T \\ \vdots \end{pmatrix} = 0 \cdot \det \begin{pmatrix} \vdots \\ \mathbf{0}^T \\ \vdots \end{pmatrix} = 0
 $$
@@ -137,16 +141,16 @@ $$
 
 <TheoremCard title="性质 7：三角矩阵的行列式为主对角线主元之积" termEn="Property 7: Triangular Matrix Determinant is the Product of Diagonal Entries">
 
-若方阵 $U \in \mathbb{R}^{n \times n}$ 为上三角矩阵（或下三角矩阵 $L$、对角矩阵 $D$），其对角线元素为主元 $d_1, d_2, \dots, d_n$，则：
+设 $T \in \mathbb{R}^{n \times n}$ 为上三角或下三角矩阵，其对角元为 $d_1, d_2, \dots, d_n$，则：
 $$
-\det(U) = \prod_{i=1}^n d_i = d_1 d_2 \cdots d_n
+\det(T) = \prod_{i=1}^n d_i = d_1 d_2 \cdots d_n
 $$
 
 </TheoremCard>
 
 <ProofCollapse title="性质 7 的公理化严格证明">
 
-我们分两种情况讨论：
+先设 $T=U$ 为上三角矩阵，分两种情况讨论：
 - **情形一：所有对角元素均非零（$d_i \ne 0, \forall i$）**。
   由于主元均不为零，我们可以由下至上利用初等行消元（性质 5）将主对角线上方的所有非零元素全部消为零。根据性质 5，消元完全不改变行列式的值：
   $$
@@ -159,7 +163,9 @@ $$
   最后代入**公理 1**（$\det(I_n) = 1$），立得 $\det(U) = \prod_{i=1}^n d_i$。
 
 - **情形二：至少存在一个对角元素为零（即存在 $d_k = 0$）**。
-  若对角线上存在零，矩阵的列向量必然线性相关。通过消元必能将最底下一行完全化为全零行。由**性质 6**，该行列式等于 0；而此时对角线元素的乘积 $\prod d_i$ 亦因包含因子 0 而等于 0，等式依然成立。证毕。
+  若 $d_k=0$，上三角矩阵的前 $k$ 列只有前 $k-1$ 个分量可能非零。这些列线性相关，所以仅用行加法和行交换消元即可得到零行。由性质 6 与行交换变号性，$\det(U)=0=\prod_{i=1}^n d_i$。
+
+对下三角矩阵，若所有 $d_i$ 非零，则从上到下消去对角线以下的元素。若 $d_k=0$，则最后 $n-k+1$ 列只有最后 $n-k$ 个分量可能非零，同样由列线性相关得到结论。
 
 </ProofCollapse>
 
@@ -179,9 +185,9 @@ $$
 $$
 \det(A) = (-1)^k \det(U)
 $$
-其中 $k$ 为消元过程中执行行交换的总次数。由性质 7，$\det(U) = \prod_{i=1}^n d_i$：
+其中 $k$ 为消元过程中执行行交换的总次数，且消元不进行行数乘。由性质 7，$\det(U) = \prod_{i=1}^n d_i$：
 1. **若 $A$ 可逆**：矩阵拥有完整的 $n$ 个非零主元（$\operatorname{rank}(A) = n$），所有 $d_i \ne 0$。因此 $\det(U) \ne 0$，进而 $\det(A) = (-1)^k \prod d_i \ne 0$。
-2. **若 $A$ 奇异**：矩阵主元个数不足 $n$ 个（$\operatorname{rank}(A) \lt n$），消元终局必出现至少一个零主元（产生全零行）。由性质 6，$\det(U) = 0$，进而 $\det(A) = 0$。证毕。
+2. **若 $A$ 奇异**：矩阵主元个数不足 $n$ 个（$\operatorname{rank}(A) \lt n$），消元后至少有一行全零。由性质 6，$\det(U) = 0$，进而 $\det(A) = 0$。证毕。
 
 </ProofCollapse>
 
@@ -198,7 +204,7 @@ $$
 
 我们区分矩阵 $B$ 是否奇异分别进行证明：
 - **情形一：$B$ 是奇异矩阵（$\det(B) = 0$）**。
-  由性质 8，奇异矩阵 $B$ 的零空间非平凡，存在非零向量 $\mathbf{x} \ne \mathbf{0}$ 使得 $B\mathbf{x} = \mathbf{0}$。
+  由性质 8，奇异矩阵 $B$ 的零空间（Nullspace）非平凡，存在非零向量 $\mathbf{x} \ne \mathbf{0}$ 使得 $B\mathbf{x} = \mathbf{0}$。
   于是 $(AB)\mathbf{x} = A(B\mathbf{x}) = A\mathbf{0} = \mathbf{0}$，说明 $AB$ 的零空间亦包含非零向量 $\mathbf{x}$，故乘积 $AB$ 同样是奇异矩阵。
   根据性质 8，$\det(AB) = 0$。因此等式两边均为 0：
   $$
@@ -220,7 +226,7 @@ $$
      D(PA) = \frac{\det((PA)B)}{\det(B)} = \frac{\det(P(AB))}{\det(B)} = \frac{-\det(AB)}{\det(B)} = -D(A)
      $$
   3. **验证公理 3**：注意到矩阵乘积的第 $i$ 行由行向量点乘给出：$\mathbf{r}_i(AB) = \mathbf{r}_i(A) B$。
-     - 若将 $A$ 的第 $i$ 行乘以标量 $c$，则 $AB$ 的第 $i$ 行变为 $(c\mathbf{r}_i(A))B = c(\mathbf{r}_i(A)B)$，其余行完全不受影响。利用标准行列式的单行数乘性，分子提出 $c$，从而 $D(cA) = c D(A)$。
+     - 若将 $A$ 的第 $i$ 行乘以标量 $c$，则 $AB$ 的第 $i$ 行变为 $(c\mathbf{r}_i(A))B = c(\mathbf{r}_i(A)B)$，其余行完全不受影响。利用标准行列式的单行数乘性，分子提出 $c$，从而 $D(A_c) = cD(A)$（$A_c$ 仅将第 $i$ 行数乘）。
      - 若将 $A$ 的第 $i$ 行拆分为两向量之和 $\mathbf{a} + \mathbf{a}'$，则 $AB$ 的第 $i$ 行为 $(\mathbf{a} + \mathbf{a}')B = \mathbf{a}B + \mathbf{a}'B$。利用标准行列式的单行可加性，分子拆分为两项之和，从而 $D$ 满足单行可加性。
   
   由于三大公理**唯一确定**了行列式函数，满足三大公理的函数 $D(A)$ 必然与 $\det(A)$ 恒等：
@@ -247,7 +253,7 @@ $$
 
 <ProofCollapse title="性质 10 的公理化严格证明（基于 PA = LU 分解）">
 
-由高斯消元全主元理论，任意方阵 $A$ 均可进行带行置换的 $LU$ 分解：
+由带行选主元的高斯消元，任意方阵 $A$ 均可进行带行置换的 $LU$ 分解：
 $$
 PA = LU
 $$
@@ -270,7 +276,7 @@ $$
    $$
    \det(L) = \det(L^T) = 1
    $$
-2. **上三角矩阵 $U$ 与 $U^T$**：转置操作不移动主对角线上的任何元素（$u_{ii}^T = u_{ii}$）。由性质 7，上三角矩阵与其转置的对角元乘积完全相同：
+2. **上三角矩阵 $U$ 与 $U^T$**：转置操作不移动主对角线上的任何元素（$(U^T)_{ii} = u_{ii}$）。由性质 7，上三角矩阵与其转置的对角元乘积完全相同：
    $$
    \det(U^T) = \prod_{i=1}^n u_{ii} = \det(U)
    $$
@@ -307,25 +313,25 @@ $$
 
 <PitfallAlert title="行列式计算与理解中的四大高频误区">
 
-1. **加法陷阱：$\det(A + B) \ne \det(A) + \det(B)$**
-   单行可加性绝不能跨行累加！
+1. **$n\ge 2$ 时的加法陷阱**
+   单行可加性不能推出行列式对整个矩阵可加。
    考虑极简反例：取 $A = I_2, B = I_2$，则：
    $$
    \det(A) = 1, \quad \det(B) = 1, \quad \det(A + B) = \det(2I_2) = 2^2 \cdot 1 = 4 \ne 1 + 1 = 2
    $$
-   在几何上，两个立体几何体的向量和所张成的凸包体积，绝不等于各自体积之和。
+   在几何上，将两组边向量逐一相加后所得平行多面体的体积，一般不等于原来两个体积之和。
 
 2. **整体标量陷阱：$\det(cA) = c^n \det(A)$**
-   对 $n \times n$ 矩阵，每个行向量均被放大了 $c$ 倍。在提公因子时，每一行贡献一个 $c$，累计提出 $c^n$。若遗忘指数 $n$，当 $n = 4, c = 2$ 时将产生高达 $16$ 倍的巨大偏差！
+   对 $n \times n$ 矩阵，每个行向量均被放大了 $c$ 倍。在提公因子时，每一行贡献一个 $c$，累计提出 $c^n$。若遗忘指数 $n$，当 $n = 4, c = 2$ 时会误用因子 $2$，而正确因子为 $16$！
 
 3. **消元置换变号遗漏与行伸缩陷阱**：
-   在利用消元法计算行列式时，公式为 $\det(A) = (-1)^k \prod d_i$。必须严格记录**行交换总次数 $k$**。
+   若消元只使用行加法和行交换，公式为 $\det(A) = (-1)^k \prod d_i$。必须严格记录**行交换总次数 $k$**。
    此外，初等行剪切变换 $r_i \to r_i - \ell r_k$ 保持行列式不变，但初等行伸缩 $r_i \to c r_i$ **会使得行列式乘以 $c$**，二者切忌混淆！
 
 4. **理论可逆性与数值病态性（Conditioning）的鸿沟**：
    在理论纯数学中，$\det(A) = 0$ 充要刻画奇异性；
    但在工程浮点计算中，**绝不能依据 $\det(A) \approx 0$ 来判定矩阵是否病态或不可逆**！
-   例如矩阵 $A = 0.1 \cdot I_{100} \in \mathbb{R}^{100 \times 100}$，其行列式为 $(0.1)^{100} = 10^{-100}$（在标准 IEEE 754 双精度下直接下溢为 0），但该矩阵的条件数 $\kappa(A) = 1$，可逆性完美无瑕，逆矩阵仅为 $10 I_{100}$！真正衡量数值奇异性的是条件数 $\kappa(A) = \sigma_{\max} / \sigma_{\min}$。
+   例如矩阵 $A = 0.1 \cdot I_{100} \in \mathbb{R}^{100 \times 100}$，其行列式为 $(0.1)^{100} = 10^{-100}$，但该矩阵的谱条件数 $\kappa_2(A) = 1$，可逆性完美无瑕，逆矩阵仅为 $10 I_{100}$！对于可逆矩阵，谱条件数衡量相对敏感性： $\kappa_2(A) = \sigma_{\max} / \sigma_{\min}$。
 
 </PitfallAlert>
 
@@ -336,7 +342,7 @@ $$
 <InteractiveCanvasSlot
   id="l18-determinant-axioms-sandbox"
   title="公理化几何沙盒：平行四边形面积与单行线性性"
-  description="拖动顶点探索单行线性叠加、矩阵整体缩放面积四倍膨胀，以及剪切变换下有向面积的守恒性。"
+  description="用滑块缩放一行或剪切平行四边形，再交换两行观察行列式变号。"
 />
 
 ---
@@ -345,12 +351,12 @@ $$
 
 <KeyTakeaways
   items={[
-    "三大公理奠基：\\det(I_n) = 1、行交换反转符号、单行线性性（Single-row Linearity）是完全确定行列式函数的唯一定义基石。",
-    "单行线性与矩阵非线性：行列式不是矩阵空间上的线性泛函，\\det(cA) = c^n \\det(A)，且绝大多数情况下 \\det(A+B) \\ne \\det(A) + \\det(B)。",
-    "消元法是计算王道：通过行剪切消元化简为上三角阶梯形，\\det(A) = (-1)^k \\prod_{i=1}^n d_i，算力复杂度仅为 O(n^3)，远胜 O(n!) 阶公式。",
-    "奇异性充要判据：\\det(A) = 0 \\iff A 奇异（列线性相关）；但在工程浮点数值计算中，不可用行列式近似零判断病态性。",
-    "乘法乘积法则：\\det(AB) = \\det(A)\\det(B)，由比值构造法获证，立得逆矩阵行列式 \\det(A^{-1}) = 1/\\det(A) 及正交矩阵 \\det(Q) = \\pm 1。",
-    "转置不变与行列对偶：\\det(A^T) = \\det(A)，由 PA = LU 严格获证，保证了所有关于行成立的消元、线性与依赖定理在列上镜像对称成立。"
+    "三条公理唯一确定行列式：$\\det(I_n)=1$，交换两行使其变号，每一行分别线性。",
+    "同时缩放每一行得到 $\\det(cA)=c^n\\det(A)$。当 $n\\ge 2$ 时，取 $A=B=I_n$ 可见 $\\det(A+B)$ 未必等于 $\\det(A)+\\det(B)$。",
+    "仅用行加法和 $k$ 次行交换消元，可在 $O(n^3)$ 次运算内得到 $\\det(A)=(-1)^k\\prod_{i=1}^n d_i$。",
+    "$\\det(A)=0$ 当且仅当 $A$ 奇异。仅凭行列式的值很小，无法判断条件数的大小。",
+    "由乘积法则 $\\det(AB)=\\det(A)\\det(B)$，可逆矩阵满足 $\\det(A^{-1})=1/\\det(A)$。",
+    "由转置不变性 $\\det(A^T)=\\det(A)$，行列式的行性质也适用于列。对正交矩阵 $Q$，还有 $\\det(Q)^2=1$。"
   ]}
 />
 
@@ -375,7 +381,7 @@ $$
   hints={[
     "第 1 行第 1 个元素为 0，不能作为消元主元，必须先通过行交换引入非零主元。",
     "交换第 1 行与第 2 行（引入变号因子 -1），然后将第 1 行的倍数从第 3 行减去消除首列。",
-    "记录所有行交换次数 k 与主对角线主元，最终答案为 \\det(A) = (-1)^k \\prod d_i。"
+    "记录所有行交换次数 k 与主对角线主元，最终答案为 $\\det(A) = (-1)^k \\prod_i d_i$。"
   ]}
 />
 
@@ -413,10 +419,12 @@ $$
 
 设 $A \in \mathbb{R}^{4 \times 4}$ 满足 $\det(A) = 3$。
 
+判断正误：$\det(2A)=2\det(A)=6$。
+
 <TrueFalseInteractive
   id="l18-tf1"
   correct={false}
-  quickFeedback="错误！若方阵为 4 阶，每一个行向量均乘以 2，由单行数乘性需提出 4 个 2，因此 det(2A) = 2⁴ det(A) = 16 × 3 = 48，而非 6！"
+  quickFeedback={"错误。四行各提出一个 $2$，故 $\\det(2A)=2^4\\det(A)=48$。"}
 />
 
 试精确计算下列矩阵的行列式：
@@ -427,9 +435,9 @@ $$
 
 <ProgressiveHint
   hints={[
-    "注意 A 的阶数 n = 4，提取标量 c 时适用公式 \\det(cA) = c^4 \\det(A)。",
+    "注意 A 的阶数 n = 4，提取标量 c 时适用公式 $\\det(cA) = c^4 \\det(A)$。",
     "负号等价于数乘标量 c = -1，计算 (-1)^4。",
-    "逆矩阵公式 \\det(A^{-1}) = 1/\\det(A)；转置矩阵公式 \\det(A^T) = \\det(A)。"
+    "逆矩阵公式 $\\det(A^{-1}) = 1/\\det(A)$；转置矩阵公式 $\\det(A^T) = \\det(A)$。"
   ]}
 />
 
@@ -466,18 +474,18 @@ $$
 
 <ExerciseCard id="l18-ex3" tier="L2" title="行和为零矩阵的奇异性判别">
 
+设 $A \in \mathbb{R}^{n \times n}$ 且 $n\ge 1$。若其每一行的所有元素之和均等于 0，证明：$\det(A) = 0$。
+
 <TrueFalseInteractive
   id="l18-tf2"
   correct={true}
-  quickFeedback="正确！若方阵每行元素之和均为 0，则矩阵全 1 向量满足 Ax = 0，零空间包含非零向量，故矩阵必奇异，行列式恒为 0。"
+  quickFeedback={"正确。非零全 1 向量 $\\mathbf{e}$ 满足 $A\\mathbf{e}=\\mathbf{0}$，故 $A$ 奇异且 $\\det(A)=0$。"}
 />
-
-设 $A \in \mathbb{R}^{n \times n}$，若其每一行的所有元素之和均等于 0，证明：$\det(A) = 0$。
 
 <ProgressiveHint
   hints={[
     "矩阵的各行元素之和为 0，用矩阵乘以列向量的形式如何表达？",
-    "考虑全 1 列向量 \\mathbf{x} = (1, 1, \\dots, 1)^T，计算 A\\mathbf{x} 的结果。",
+    "考虑全 1 列向量 $\\mathbf{x} = (1, 1, \\dots, 1)^T$，计算 $A\\mathbf{x}$ 的结果。",
     "零空间非平凡等价于什么？根据性质 8 如何推导行列式？"
   ]}
 />
@@ -516,7 +524,7 @@ $$
 
 <ProgressiveHint
   hints={[
-    "对 A^T = -A 两边同时取行列式，利用性质 10 以及数乘性质 \\det(-A) = (-1)^n \\det(A)。",
+    "对 A^T = -A 两边同时取行列式，利用性质 10 以及数乘性质 $\\det(-A) = (-1)^n \\det(A)$。",
     "当 n 为奇数时，(-1)^n 等于多少？方程如何解？",
     "对 Q^T Q = I_n 两边同时取行列式，结合性质 9、10 与公理 1。"
   ]}
@@ -564,7 +572,7 @@ $$
    $$
    (\det(Q))^2 = 1 \implies \det(Q) = \pm 1
    $$
-   其中 $\det(Q) = 1$ 对应纯旋转矩阵（保定向），$\det(Q) = -1$ 对应包含反射的变换（反转定向）。证毕。
+   符号刻画 $Q$ 保持定向（$+1$）或反转定向（$-1$）。
 </SolutionRigorous>
 </DualSolution>
 
@@ -578,7 +586,7 @@ $$
 M = \begin{pmatrix} A & B \\ 0 & D \end{pmatrix}
 $$
 
-其中 $A \in \mathbb{R}^{k \times k}$， $D \in \mathbb{R}^{(n-k) \times (n-k)}$ 均为方阵，$B \in \mathbb{R}^{k \times (n-k)}$， $0$ 为 $(n-k) \times k$ 的零矩阵。
+其中 $1 \le k \lt n$，$A \in \mathbb{R}^{k \times k}$， $D \in \mathbb{R}^{(n-k) \times (n-k)}$ 均为方阵，$B \in \mathbb{R}^{k \times (n-k)}$， $0$ 为 $(n-k) \times k$ 的零矩阵。
 
 1. 利用初等行消元或分块分解理论，证明：
    $$
@@ -591,15 +599,15 @@ $$
 
 <ProgressiveHint
   hints={[
-    "可以将分块上三角矩阵分解为两个简单分块矩阵的乘积：\\begin{pmatrix} A & B \\\\ 0 & D \\end{pmatrix} = \\begin{pmatrix} I & 0 \\\\ 0 & D \\end{pmatrix} \\begin{pmatrix} A & B \\\\ 0 & I \\end{pmatrix}。",
-    "或者利用消元法：由于左下角全为 0，对 A 消元不影响 D，对 D 消元不影响 A，所有主元恰好由 A 的主元与 D 的主元拼合而成。",
-    "在第 2 问中，将矩阵分为四个 2x2 的子块，直接套用乘积公式。"
+    "若对角块奇异，试找仅在第一块上非零的 $M$ 的零空间向量，或仅在第二块上非零的 $M^T$ 的零空间向量。",
+    "若对角块均可逆，可分别在各块内消元，并分别记录行交换次数。",
+    "第 2 问将 $M$ 分成四个 $2\\times 2$ 子块，再应用分块行列式公式。"
   ]}
 />
 
 <DualSolution>
 <SolutionIntuition>
-分块三角矩阵与普通的标量三角矩阵类似，非对角块 $B$ 在消元过程中不会影响对角块 $A$ 和 $D$ 产生的主元。因此整个矩阵的主元集合就是 $A$ 的主元并上 $D$ 的主元，总乘积必然是两块行列式的乘积。
+可分别对两个对角块消元。左下角零块保持为零，在任一对角块内消元都不会改变另一个对角块。
 </SolutionIntuition>
 <SolutionRigorous>
 1. **分块行列式定理证明**：
@@ -608,14 +616,14 @@ $$
      $$
      M\mathbf{x} = \begin{pmatrix} A & B \\ 0 & D \end{pmatrix} \begin{pmatrix} \mathbf{u} \\ \mathbf{0} \end{pmatrix} = \begin{pmatrix} A\mathbf{u} \\ \mathbf{0} \end{pmatrix} = \mathbf{0}
      $$
-     说明 $M$ 奇异，$\det(M) = 0 = \det(A)\det(D)$。若 $\det(D) = 0$，同理可取转置利用 $\det(M^T) = \det(M)$ 获证。
+     说明 $M$ 奇异，$\det(M) = 0 = \det(A)\det(D)$。若 $\det(D)=0$，则 $\det(D^T)=0$，故可取 $\mathbf{v}\in\mathbb{R}^{n-k}\setminus\{\mathbf{0}\}$ 使 $D^T\mathbf{v}=\mathbf{0}$，则 $M^T(\mathbf{0}^T,\mathbf{v}^T)^T=\mathbf{0}$。由转置不变性得 $\det(M)=0$。
    - **情形二：$A$ 和 $D$ 均可逆**。
      我们利用分块矩阵乘法执行初等分块消元分解：
      $$
-     \begin{pmatrix} A & B \\ 0 & D \end{pmatrix} = \begin{pmatrix} A & 0 \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & A^{-1}B \\ 0 & D \end{pmatrix} = \begin{pmatrix} A & 0 \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & A^{-1}B \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & 0 \\ 0 & D \end{pmatrix}
+     \begin{pmatrix} A & B \\ 0 & D \end{pmatrix} = \begin{pmatrix} A & 0 \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & A^{-1}B \\ 0 & D \end{pmatrix} = \begin{pmatrix} A & 0 \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & A^{-1}BD^{-1} \\ 0 & I_{n-k} \end{pmatrix} \begin{pmatrix} I_k & 0 \\ 0 & D \end{pmatrix}
      $$
      对这三项分别考察行列式：
-     - 中间项 $\begin{pmatrix} I_k & A^{-1}B \\ 0 & I_{n-k} \end{pmatrix}$ 为单位对角线上三角矩阵，由性质 7 其行列式为 1；
+     - 中间项 $\begin{pmatrix} I_k & A^{-1}BD^{-1} \\ 0 & I_{n-k} \end{pmatrix}$ 为单位对角线上三角矩阵，由性质 7 其行列式为 1；
      - 第一项 $\begin{pmatrix} A & 0 \\ 0 & I \end{pmatrix}$ 通过行消元等价于对 $A$ 独立消元，其行列式等于 $\det(A)$；
      - 第三项 $\begin{pmatrix} I & 0 \\ 0 & D \end{pmatrix}$ 同理其行列式等于 $\det(D)$。
      根据性质 9（乘积定理）：

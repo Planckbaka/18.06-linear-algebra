@@ -5,9 +5,9 @@ videoEpisode: "P22"
 textbookRef: "§6.2"
 ---
 
-In the previous lecture, we introduced eigenvalues and eigenvectors: for certain special vectors, the action of a matrix $A$ leaves their direction unchanged and simply scales them by a scalar factor ($A\mathbf{x} = \lambda \mathbf{x}$).
+In the previous lecture, we introduced eigenvalues and eigenvectors: for certain special vectors, the action of a matrix $A$ multiplies them by a scalar, so each eigenvector line is invariant ($A\mathbf{x} = \lambda \mathbf{x}$).
 
-Now ask the natural next question: what happens if we collect all the eigenvectors of a matrix and use them as a brand-new coordinate basis for the space? The answer is one of the most powerful and widely used structural theorems in all of linear algebra: **diagonalization**.
+Now ask the natural next question: what happens if we choose a basis consisting of eigenvectors of the matrix, when such a basis exists? The answer is one of the most powerful and widely used structural theorems in all of linear algebra: **diagonalization**.
 
 Diagonalization completely **decouples** a coupled matrix operation. Once a matrix is diagonalized, computing high powers $A^k$, solving systems of discrete difference equations, and analyzing the asymptotic stability of dynamical systems all collapse from tangled matrix multiplications into independent one-dimensional scalar exponentials.
 
@@ -17,7 +17,7 @@ Diagonalization completely **decouples** a coupled matrix operation. Once a matr
 
 ### The Column Picture of Diagonalization
 
-Suppose an $n \times n$ matrix $A \in \mathbb{C}^{n \times n}$ has $n$ eigenvalues $\lambda_1, \lambda_2, \dots, \lambda_n$ with corresponding eigenvectors $\mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_n \in \mathbb{C}^n$. By definition, each eigenpair satisfies:
+Suppose an $n \times n$ matrix $A \in \mathbb{C}^{n \times n}$ has $n$ eigenvalues counted with algebraic multiplicity $\lambda_1, \lambda_2, \dots, \lambda_n$ and choose one nonzero eigenvector for each entry in this list, reusing a vector if needed. Denote them by $\mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_n \in \mathbb{C}^n$. By definition, each eigenpair satisfies:
 
 $$
 A \mathbf{x}_i = \lambda_i \mathbf{x}_i \quad (i = 1, 2, \dots, n)
@@ -123,9 +123,9 @@ A^k = S \begin{bmatrix}
 \end{bmatrix} S^{-1}
 $$
 
-Once the eigendecomposition is computed, finding any high power—say $A^{1000}$—requires only $n$ scalar powers on the diagonal and two matrix multiplications. The computational cost is completely decoupled from the exponent $k$!
+With $S$ and $S^{-1}$ available, forming a dense $A^k$ uses $n$ scalar powers, an $O(n^2)$ column scaling, and one dense product. Applying $A^k$ to a single vector uses two matrix–vector products. Binary exponentiation takes $O(\log k)$ multiplications per scalar power, or $O(\log k)$ matrix products without an eigendecomposition.
 
-If $A$ is also invertible (meaning every eigenvalue $\lambda_i \ne 0$), the exact same formula extends to negative integer powers:
+$A^0=I_n$ and $\Lambda^0=I_n$ also give the formula at $k=0$, including for singular $A$. If $A$ is also invertible (meaning every eigenvalue $\lambda_i \ne 0$), the exact same formula extends to negative integer powers:
 
 $$
 A^{-1} = S \Lambda^{-1} S^{-1} = S \operatorname{diag}\left(\frac{1}{\lambda_1}, \frac{1}{\lambda_2}, \dots, \frac{1}{\lambda_n}\right) S^{-1}
@@ -150,7 +150,7 @@ To measure both how often an eigenvalue repeats as a root and how many independe
 Let $A \in \mathbb{C}^{n \times n}$ have characteristic polynomial $p(\lambda) = \det(A - \lambda I_n)$, and let $\lambda_0$ be an eigenvalue of $A$:
 
 1. **Algebraic Multiplicity ($\operatorname{AM}$)**:
-   The multiplicity of $\lambda_0$ as a root of the polynomial equation $p(\lambda) = 0$—that is, the highest power $(\lambda_0 - \lambda)^{\operatorname{AM}(\lambda_0)}$ that divides $p(\lambda)$. By the Fundamental Theorem of Algebra, the algebraic multiplicities sum to $n$:
+   The multiplicity of $\lambda_0$ as a root of the polynomial equation $p(\lambda) = 0$—that is, the highest power $(\lambda - \lambda_0)^{\operatorname{AM}(\lambda_0)}$ that divides $p(\lambda)$. By the Fundamental Theorem of Algebra, the sum over distinct eigenvalues is $n$:
    $$
    \sum_{i} \operatorname{AM}(\lambda_i) = n
    $$
@@ -229,13 +229,13 @@ Let $\lambda_1, \lambda_2, \dots, \lambda_m$ be $m$ distinct eigenvalues of $A$ 
 
 Let $g = \operatorname{GM}(\lambda_0) = \dim \operatorname{Null}(A - \lambda_0 I_n) \ge 1$.
 Choose an orthonormal basis $\{\mathbf{q}_1, \dots, \mathbf{q}_g\}$ for the eigenspace $\operatorname{Null}(A - \lambda_0 I_n)$, and extend it to an orthonormal basis $\{\mathbf{q}_1, \dots, \mathbf{q}_g, \mathbf{q}_{g+1}, \dots, \mathbf{q}_n\}$ of all of $\mathbb{C}^n$. Form the unitary matrix $Q = [Q_1 \ Q_2]$, where $Q_1 = [\mathbf{q}_1 \ \dots \ \mathbf{q}_g]$.
-Since every column of $Q_1$ is an eigenvector for $\lambda_0$, we have $A Q_1 = \lambda_0 Q_1$. Computing the similarity transform $Q^{-1} A Q = Q^* A Q$ gives:
+If $g=n$, then $A=\lambda_0 I_n$ and the two multiplicities are both $n$. For $g\lt n$, since every column of $Q_1$ is an eigenvector for $\lambda_0$, we have $A Q_1 = \lambda_0 Q_1$. Computing the similarity transform $Q^{-1} A Q = Q^H A Q$ gives:
 
 $$
-Q^{-1} A Q = Q^* A Q = \begin{bmatrix} Q_1^* \\ Q_2^* \end{bmatrix} \begin{bmatrix} A Q_1 & A Q_2 \end{bmatrix} = \begin{bmatrix} Q_1^* (\lambda_0 Q_1) & Q_1^* A Q_2 \\ Q_2^* (\lambda_0 Q_1) & Q_2^* A Q_2 \end{bmatrix}
+Q^{-1} A Q = Q^H A Q = \begin{bmatrix} Q_1^H \\ Q_2^H \end{bmatrix} \begin{bmatrix} A Q_1 & A Q_2 \end{bmatrix} = \begin{bmatrix} Q_1^H (\lambda_0 Q_1) & Q_1^H A Q_2 \\ Q_2^H (\lambda_0 Q_1) & Q_2^H A Q_2 \end{bmatrix}
 $$
 
-Using orthonormality ($Q_1^* Q_1 = I_g$ and $Q_2^* Q_1 = 0$), this simplifies to a block upper-triangular matrix:
+Using orthonormality ($Q_1^H Q_1 = I_g$ and $Q_2^H Q_1 = 0$), this simplifies to a block upper-triangular matrix:
 
 $$
 Q^{-1} A Q = \begin{bmatrix} \lambda_0 I_g & B \\ 0 & C \end{bmatrix}
@@ -254,6 +254,8 @@ $$
 $$
 
 This completes the proof.
+
+The eigenspaces for distinct eigenvalues form a direct sum. To see this, write a vanishing sum with one vector from each eigenspace. Each nonzero summand is itself an eigenvector, so Part 1 forces every summand to be zero. Thus a basis from each eigenspace supplies exactly $\sum_{\lambda\text{ distinct}}\operatorname{GM}(\lambda)$ independent eigenvectors in total.
 
 </ProofCollapse>
 
@@ -349,7 +351,7 @@ $$
 \rho(A) = \max_{1 \le i \le n} |\lambda_i|
 $$
 
-Watching each term $\lambda_i^k$ as $k \to \infty$ tells us the long-term fate of the system:
+For diagonalizable $A$, the terms $\lambda_i^k$ determine the long-term behavior. At $k=0$, every mode has its original amplitude, including modes with $\lambda_i=0$.
 
 1. **Asymptotic Stability (Decay to Zero)**:
    If $\rho(A) \lt 1$ (every eigenvalue has $|\lambda_i| \lt 1$), then $|\lambda_i|^k \to 0$ for every $i$. For **every** initial state $\mathbf{u}_0$:
@@ -362,7 +364,9 @@ Watching each term $\lambda_i^k$ as $k \to \infty$ tells us the long-term fate o
    \lim_{k \to \infty} \mathbf{u}_k = c_1 \mathbf{x}_1
    $$
 3. **Exponential Blow-Up (Instability)**:
-   If $\rho(A) \gt 1$ (at least one eigenvalue has $|\lambda_i| \gt 1$), then for any initial state with a nonzero projection $c_i \ne 0$ along that mode, $\|\mathbf{u}_k\|$ grows exponentially and the system diverges.
+   If $\rho(A) \gt 1$ (at least one eigenvalue has $|\lambda_i| \gt 1$), then for any initial state with a nonzero eigenbasis coefficient $c_i \ne 0$ along that mode, $\|\mathbf{u}_k\|$ grows exponentially and the system diverges.
+
+The decay criterion holds even for defective matrices: $A^k\to 0$ if and only if $\rho(A)\lt 1$. Necessity follows by testing an eigenvector. For sufficiency, a Jordan block $\lambda I+N$ with $N^m=0$ contributes terms $\binom{k}{j}\lambda^{k-j}N^j$, $0\le j\le\min(k,m-1)$. These vanish for $0\lt|\lambda|\lt 1$, since exponential decay dominates each fixed-degree polynomial. Blocks with $\lambda=0$ vanish after finitely many steps.
 
 ### Classic Application: Solving the Fibonacci Sequence by Diagonalization
 
@@ -412,7 +416,7 @@ $$
 Find the corresponding eigenvectors from $(A - \lambda_i I)\mathbf{x}_i = \mathbf{0}$:
 
 $$
-\begin{bmatrix} 1 - \lambda_i & 1 \\ 1 & -\lambda_i \end{bmatrix} \begin{bmatrix} x_{i,1} \\ x_{i,2} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_{i,1} - \lambda_i x_{i,2} = 0 \implies \mathbf{x}_i = \begin{bmatrix} \lambda_i \\ 1 \end{bmatrix}
+\begin{bmatrix} 1 - \lambda_i & 1 \\ 1 & -\lambda_i \end{bmatrix} \begin{bmatrix} x_{i,1} \\ x_{i,2} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_{i,1} - \lambda_i x_{i,2} = 0 \quad\left(\text{choose }\mathbf{x}_i = \begin{bmatrix} \lambda_i \\ 1 \end{bmatrix}\right)
 $$
 
 Explicitly:
@@ -507,7 +511,7 @@ $$
 
 Its characteristic equation is $\lambda^2 + 1 = 0 \implies \lambda = \pm i$.
 - **Over $\mathbb{R}$**: There are no real eigenvalues and no real eigenvectors, so $R$ is **not diagonalizable** over $\mathbb{R}$.
-- **Over $\mathbb{C}$**: There are two distinct complex eigenvalues $\lambda_1 = i$ and $\lambda_2 = -i$, with complex eigenvectors $\mathbf{x}_1 = [i, 1]^T$ and $\mathbf{x}_2 = [-i, 1]^T$. Thus $R$ is **completely diagonalizable** over $\mathbb{C}$!
+- **Over $\mathbb{C}$**: There are two distinct complex eigenvalues $\lambda_1 = i$ and $\lambda_2 = -i$, with complex eigenvectors $\mathbf{x}_1 = [1, -i]^T$ and $\mathbf{x}_2 = [1, i]^T$. Thus $R$ is **completely diagonalizable** over $\mathbb{C}$!
 
 ### Trap 4: Assuming $S$ and $\Lambda$ Are Unique
 
@@ -533,10 +537,10 @@ The factorization $A = S \Lambda S^{-1}$ is **not unique**:
 
 <KeyTakeaways title="Key Takeaways" items={[
   "Core diagonalization identities: If $A \\in \\mathbb{C}^{n \\times n}$ has $n$ linearly independent eigenvectors forming the columns of $S$, then $AS = S\\Lambda$, which gives $A = S\\Lambda S^{-1}$ and $\\Lambda = S^{-1}AS$.",
-  "Fast matrix powers: Diagonalization decouples repeated matrix multiplication into scalar powers on the diagonal, $A^k = S\\Lambda^k S^{-1} = S\\operatorname{diag}(\\lambda_1^k, \\dots, \\lambda_n^k)S^{-1}$, reducing complexity from $O(k n^3)$ to $O(n^3 + n)$.",
+  "Given the eigendecomposition, applying $A^k = S\\Lambda^k S^{-1}$ to a vector takes two matrix–vector products and $n$ scalar powers.",
   "Sufficient vs. necessary & sufficient: Having $n$ distinct eigenvalues is sufficient for diagonalizability, not necessary. The exact criterion is $\\operatorname{GM}(\\lambda_i) = \\operatorname{AM}(\\lambda_i)$ for every eigenvalue $\\lambda_i$ (no missing eigenvectors).",
   "Invertibility and diagonalizability are independent: Invertibility depends on whether any $\\lambda_i = 0$ ($\\det(A) = \\prod \\lambda_i \\ne 0$), while diagonalizability depends on whether the eigenvectors span $\\mathbb{C}^n$. Singular matrices can be diagonalizable, and invertible matrices can be defective.",
-  "Modal expansion of discrete dynamics: The solution to $\\mathbf{u}_{k+1} = A \\mathbf{u}_k$ is $\\mathbf{u}_k = \\sum_{i=1}^n c_i \\lambda_i^k \\mathbf{x}_i$; asymptotic stability for all initial conditions is governed by the spectral radius $\\rho(A) = \\max |\\lambda_i| \\lt 1$.",
+  "Modal expansion of discrete dynamics: For diagonalizable $A$, the solution to $\\mathbf{u}_{k+1} = A \\mathbf{u}_k$ is $\\mathbf{u}_k = \\sum_{i=1}^n c_i \\lambda_i^k \\mathbf{x}_i$; asymptotic stability for all initial conditions is governed by the spectral radius $\\rho(A) = \\max |\\lambda_i| \\lt 1$.",
   "Fibonacci via diagonalization: Converting a second-order scalar recurrence into a first-order companion matrix system reveals that the dominant eigenvalue $\\lambda_1 = \\phi \\approx 1.618$ controls both the exponential growth rate and the limiting ratio of consecutive terms."
 ]} />
 
@@ -560,7 +564,7 @@ $$
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
   "Solve the characteristic equation $\\det(A - \\lambda I) = (1 - \\lambda)^2 - 4 = 0$ for the two eigenvalues.",
-  "Solve $(A - \\lambda I)\\mathbf{x} = \\mathbf{0}$ for each eigenvector, and notice that the eigenvectors of a symmetric matrix are orthogonal.",
+  "Solve $(A - \\lambda I)\\mathbf{x} = \\mathbf{0}$ for each eigenvector, and notice that the eigenvectors for distinct eigenvalues of a real symmetric matrix are orthogonal.",
   "Apply $A^{10} = S \\Lambda^{10} S^{-1}$ using $3^{10}$ and $(-1)^{10} = 1$ on the diagonal."
 ]} />
 
@@ -633,7 +637,7 @@ True or False: **"If a square matrix $A$ is invertible, then $A$ must be diagona
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! Invertibility only requires all eigenvalues to be nonzero (det != 0), whereas diagonalizability requires GM = AM for every eigenvalue (no missing eigenvectors). Counterexample: the 2x2 Jordan block [1, 1; 0, 1] is invertible (det = 1), yet has GM(1) = 1 < AM(1) = 2 and is not diagonalizable."
+  quickFeedback="False. The shear $A=\begin{bmatrix}1&1\\0&1\end{bmatrix}$ has $\det(A)=1$ and only one independent eigenvector."
 />
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
@@ -680,7 +684,7 @@ True or False: **"If a square matrix $A$ has a repeated eigenvalue (algebraic mu
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! A matrix with repeated eigenvalues is still diagonalizable as long as GM = AM for every eigenvalue. The simplest counterexample is the identity matrix I_n: all n eigenvalues equal 1, yet it is already diagonal."
+  quickFeedback="False. For $n\ge2$, the identity $I_n$ is diagonal and its sole eigenvalue $1$ has algebraic and geometric multiplicity $n$."
 />
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
@@ -689,16 +693,16 @@ True or False: **"If a square matrix $A$ has a repeated eigenvalue (algebraic mu
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-A repeated eigenvalue simply signals that we must check the geometric multiplicity; diagonalizability fails only when eigenvectors are missing. The identity matrix $I_n$ has $\lambda = 1$ repeated $n$ times, yet every vector in $\mathbb{R}^n$ is an eigenvector and $I_n$ is already diagonal.
+A repeated eigenvalue simply signals that we must check the geometric multiplicity; diagonalizability fails only when eigenvectors are missing. The identity matrix $I_n$ has $\lambda = 1$ repeated $n$ times, yet every nonzero vector in $\mathbb{R}^n$ is an eigenvector and $I_n$ is already diagonal.
 </SolutionIntuition>
 <SolutionRigorous>
 The statement is **False**.
 Counterexample: consider the $n \times n$ identity matrix $I_n$ ($n \ge 2$).
-Its characteristic polynomial is $p(\lambda) = (1 - \lambda)^n = 0$, so $\lambda = 1$ has algebraic multiplicity $\operatorname{AM}(1) = n \gt 1$.
+Its characteristic polynomial is $p(\lambda) = (1 - \lambda)^n$, so $\lambda = 1$ has algebraic multiplicity $\operatorname{AM}(1) = n \gt 1$.
 Computing its geometric multiplicity:
 
 $$
-\operatorname{GM}(1) = \dim \operatorname{Null}(I_n - 1 \cdot I_n) = \dim \operatorname{Null}(0) = n
+\operatorname{GM}(1) = \dim \operatorname{Null}(I_n - 1 \cdot I_n) = \dim \operatorname{Null}(0_{n\times n}) = n
 $$
 
 Thus $\operatorname{GM}(1) = \operatorname{AM}(1) = n$. Any basis of $\mathbb{R}^n$ is an eigenbasis, and $I_n$ is trivially diagonalizable.
@@ -709,7 +713,7 @@ Thus $\operatorname{GM}(1) = \operatorname{AM}(1) = n$. Any basis of $\mathbb{R}
 
 <ExerciseCard id="l22-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="AM vs. GM Analysis: Rank-One Perturbations and Matrix Powers">
 
-Let $\mathbf{u}, \mathbf{v} \in \mathbb{R}^n$ be nonzero column vectors satisfying $\mathbf{v}^T \mathbf{u} \ne 0$. Consider the shifted rank-one matrix:
+Let $n\ge 2$ and let $\mathbf{u}, \mathbf{v} \in \mathbb{R}^n$ be nonzero column vectors satisfying $\mathbf{v}^T \mathbf{u} \ne 0$. Consider the shifted rank-one matrix:
 
 $$
 A = \mathbf{u}\mathbf{v}^T + c I_n \quad (c \in \mathbb{R})
@@ -717,7 +721,7 @@ $$
 
 1. Prove that $A$ has eigenvalues $\lambda_1 = c + \mathbf{v}^T \mathbf{u}$ and $\lambda_2 = c$;
 2. Find the algebraic and geometric multiplicities of $\lambda_2 = c$, and determine whether $A$ is diagonalizable;
-3. If a general matrix $M$ is diagonalizable with eigenpairs $(\mu_i, \mathbf{x}_i)$, prove that $M^k$ has eigenpairs $(\mu_i^k, \mathbf{x}_i)$—that is, $M^k$ shares the exact same eigenvectors as $M$.
+3. For any square matrix $M$, any eigenpair $(\mu_i,\mathbf{x}_i)$ and any integer $k\ge 1$, prove that $(\mu_i^k,\mathbf{x}_i)$ is an eigenpair of $M^k$. Can $M^k$ have additional eigenvectors?
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
   "Apply $A$ to $\\mathbf{u}$ and use associativity: $(\\mathbf{u}\\mathbf{v}^T)\\mathbf{u} = \\mathbf{u}(\\mathbf{v}^T\\mathbf{u})$.",
@@ -762,7 +766,7 @@ $$
 Since $\mathbf{v}^T \mathbf{u} \ne 0$, we have $\lambda_1 = c + \mathbf{v}^T \mathbf{u} \ne c$, so $\lambda_1$ contributes $\operatorname{AM}(\lambda_1) \ge 1$. Because all algebraic multiplicities sum to $n$:
 
 $$
-\operatorname{AM}(\lambda_1) + \operatorname{AM}(c) = n \implies \operatorname{AM}(c) \le n - 1
+\operatorname{AM}(\lambda_1) + \operatorname{AM}(c) \le n \implies \operatorname{AM}(c) \le n - 1
 $$
 
 Combining this with $\operatorname{AM}(c) \ge \operatorname{GM}(c) = n - 1$ forces:
@@ -781,7 +785,7 @@ $$
 M^k \mathbf{x}_i = M (M^{k-1}\mathbf{x}_i) = M (\mu_i^{k-1}\mathbf{x}_i) = \mu_i^{k-1} (M \mathbf{x}_i) = \mu_i^{k-1} (\mu_i \mathbf{x}_i) = \mu_i^k \mathbf{x}_i
 $$
 
-Hence $\mathbf{x}_i$ remains an eigenvector of $M^k$ with eigenvalue $\mu_i^k$.
+If $M$ is diagonalizable, its eigenbasis is still an eigenbasis for $M^k$. Distinct eigenvalues can coincide after taking powers. For example, $M=\operatorname{diag}(1,-1)$ has two eigenlines, while $M^2=I_2$ has every nonzero vector as an eigenvector.
 </SolutionRigorous>
 </DualSolution>
 
@@ -811,7 +815,7 @@ $$
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-Every second-order recurrence is a $2 \times 2$ companion matrix system whose long-term behavior is governed by the magnitudes of its two eigenvalues. At the discriminant boundary $\Delta = 0$ (such as $a = 1, b = -1/4$), the two eigenvalues collide at $1/2$ and the companion matrix becomes a defective Jordan block, producing secular terms like $k (1/2)^k$. Stability requires both eigenvalues to sit inside the open unit disk in the complex plane, which maps to the famous open stability triangle in the $(a, b)$ plane.
+Every second-order recurrence is a $2 \times 2$ companion matrix system whose long-term behavior is governed by the magnitudes of its two eigenvalues. At the discriminant boundary $\Delta = 0$ (such as $a = 1, b = -1/4$), the two eigenvalues collide at $1/2$ and the companion matrix is similar to a defective Jordan block, which can produce secular terms like $k (1/2)^k$. Stability requires both eigenvalues to sit inside the open unit disk in the complex plane, which maps to the famous open stability triangle in the $(a, b)$ plane.
 </SolutionIntuition>
 <SolutionRigorous>
 **Part 1: Companion matrix**
@@ -865,7 +869,7 @@ $$
 \operatorname{GM}\left(\frac{1}{2}\right) = 2 - 1 = 1 \lt \operatorname{AM}\left(\frac{1}{2}\right)
 $$
 
-Because $\operatorname{GM} \lt \operatorname{AM}$, $C$ is **not diagonalizable** (its only eigenvectors are multiples of $[1/2, 1]^T$).
+Because $\operatorname{GM} \lt \operatorname{AM}$, $C$ is **not diagonalizable** (its eigenvectors are the nonzero multiples of $[1/2, 1]^T$).
 
 **Part 4: Derivation of the open stability triangle**
 Asymptotic stability for all initial states holds if and only if $\rho(C) \lt 1$, i.e., $|\lambda_1| \lt 1$ and $|\lambda_2| \lt 1$.
@@ -875,31 +879,12 @@ $$
 \lambda_1 + \lambda_2 = a, \qquad \lambda_1 \lambda_2 = -b
 $$
 
-Consider two cases:
-1. **Complex-conjugate roots ($\Delta = a^2 + 4b \lt 0$)**:
-   The two roots have equal modulus, with $|\lambda_1|^2 = |\lambda_2|^2 = \lambda_1 \lambda_2 = -b$.
-   Thus $|\lambda_i| \lt 1 \iff 0 \le -b \lt 1 \iff -1 \lt b \le 0$.
-   In this region, $a^2 \lt -4b \le 4 \implies |a| \lt 2$, which automatically implies $1 - a - b \gt 0$ and $1 + a - b \gt 0$ (since $p(\lambda) \gt 0$ for all real $\lambda$ when $\Delta \lt 0$).
-2. **Real roots ($\Delta = a^2 + 4b \ge 0$)**:
-   Both real roots lie strictly in $(-1, 1)$ if and only if the upward-opening parabola $p(\lambda) = \lambda^2 - a\lambda - b$ has:
-   - Vertex inside $(-1, 1)$: $-1 \lt \frac{a}{2} \lt 1 \implies |a| \lt 2$;
-   - Positive values at both endpoints $\lambda = \pm 1$:
-     $$
-     p(1) = 1 - a - b \gt 0, \qquad p(-1) = 1 + a - b \gt 0
-     $$
-   - Product in $(-1, 1)$: $\lambda_1 \lambda_2 = -b \in (-1, 1) \implies |b| \lt 1$.
+If the roots are nonreal conjugates, then $-b=|\lambda_1|^2>0$ and $p(1),p(-1)>0$ automatically, since $p(x)=|x-\lambda_1|^2$ for real $x$. Thus $|b|\lt 1$ gives the exact stability criterion in this case.
 
-Notice that adding $1 - a - b \gt 0$ and $1 + a - b \gt 0$ already forces $2 - 2b \gt 0 \implies b \lt 1$, and $|a| \lt 1 - b$ follows from the same two inequalities when $b \gt -1$. Combining both cases, the necessary and sufficient conditions are:
+For real roots in $(-1,1)$, we have $|b|=|\lambda_1\lambda_2|\lt 1$ and $p(\pm1)>0$. Conversely, $p(1)>0$ forces both roots below $1$ or both above $1$. The latter would give $|\lambda_1\lambda_2|>1$. Likewise, $p(-1)>0$ forces both roots above $-1$ or both below $-1$, and the latter again violates $|b|\lt 1$. This includes repeated real roots.
 
-$$
-\begin{cases}
-b \gt -1 \\
-1 - a - b \gt 0 \\
-1 + a - b \gt 0
-\end{cases}
-$$
+The inequalities are equivalent to $-1\lt b\lt 1-|a|$, the open triangle with vertices $(0,1),(-2,-1),(2,-1)$.
 
-Together with $b \lt 1$ (implied by adding the last two inequalities), this defines $|b| \lt 1$, $1 - a - b \gt 0$, and $1 + a - b \gt 0$: the open triangle in the $(a, b)$-plane bounded by $b = -1$, $b = 1 - a$, and $b = 1 + a$, with vertices $(0, 1)$, $(-2, -1)$, and $(2, -1)$.
 </SolutionRigorous>
 </DualSolution>
 
@@ -919,42 +904,26 @@ Together with $b \lt 1$ (implied by adding the last two inequalities), this defi
 
 ### The Linear Algebra Bridge: Unrolling Through Time as Matrix Powers
 
-In a Recurrent Neural Network (RNN) or a deep residual architecture with repeated state transitions, the hidden state evolves across time steps via:
+In a recurrent neural network (RNN), let $\mathbf{h}_t\in\mathbb{R}^{d_h}$, $\mathbf{x}_t\in\mathbb{R}^{d_x}$, $W_{hh}\in\mathbb{R}^{d_h\times d_h}$ and $W_{xh}\in\mathbb{R}^{d_h\times d_x}$. The recurrence is
 
 $$
 \mathbf{h}_t = \sigma(W_{hh} \mathbf{h}_{t-1} + W_{xh} \mathbf{x}_t)
 $$
 
-When we train with Backpropagation Through Time (BPTT) and compute the gradient of the loss $\mathcal{L}$ with respect to the initial hidden state $\mathbf{h}_0$, the chain rule produces a product of Jacobians:
+For a terminal loss $\mathcal{L}=\ell(\mathbf{h}_T)$, use column gradients $\mathbf{g}_t=\nabla_{\mathbf{h}_t}\mathcal{L}$. The forward Jacobian is $J_t=D_t W_{hh}$, where $D_t=\operatorname{diag}(\sigma'(W_{hh}\mathbf{h}_{t-1}+W_{xh}\mathbf{x}_t))$ for an elementwise activation. Backpropagation applies the transposed Jacobians in order:
 
 $$
-\frac{\partial \mathcal{L}}{\partial \mathbf{h}_0} = \frac{\partial \mathcal{L}}{\partial \mathbf{h}_T} \prod_{t=1}^T \frac{\partial \mathbf{h}_t}{\partial \mathbf{h}_{t-1}} = \frac{\partial \mathcal{L}}{\partial \mathbf{h}_T} \prod_{t=1}^T \left( W_{hh}^T D_t \right)
+\mathbf{g}_{t-1}=W_{hh}^T D_t\mathbf{g}_t,\qquad
+\mathbf{g}_0=J_1^T J_2^T\cdots J_T^T\mathbf{g}_T
 $$
 
-where $D_t = \operatorname{diag}\left(\sigma'(W_{hh} \mathbf{h}_{t-1} + W_{xh} \mathbf{x}_t)\right)$ is the diagonal Jacobian of the activation function.
+For the linear activation $D_t=I$ this becomes $(W_{hh}^T)^{\,T}\mathbf{g}_T$, where the outer exponent is the number of steps. When the activation derivatives are close to $1$, the matrix power serves as a local approximation. In the fixed linear case, $\rho(W_{hh})<1$ gives asymptotic decay for every terminal gradient, while $\rho(W_{hh})>1$ gives growing directions. A diagonalizable transpose makes these directions explicit through $\sum_i c_i\lambda_i^{\,T}\mathbf{x}_i$. A nonnormal matrix can still produce transient amplification when its spectral radius is below $1$.
 
-In an unsaturated regime where $D_t \approx I$, long-range gradient propagation reduces directly to a **high power of the transposed weight matrix**:
-
-$$
-\prod_{t=1}^T W_{hh}^T \approx (W_{hh}^T)^T
-$$
-
-Applying the diagonalization $W_{hh}^T = S \Lambda S^{-1}$ from this lecture:
-
-$$
-(W_{hh}^T)^T \mathbf{g} = \sum_{i=1}^n c_i \lambda_i^T \mathbf{x}_i
-$$
-
-This modal expansion explains the central dilemma of training deep sequence models:
-1. **Exploding Gradients**:
-   If the spectral radius $\rho(W_{hh}) = \max_i |\lambda_i| \gt 1$, any gradient component along a dominant eigenvector grows exponentially like $\lambda_{\max}^T$, overflowing floating-point precision (`NaN`) and destabilizing training.
-2. **Vanishing Gradients**:
-   If $\rho(W_{hh}) \lt 1$, every mode decays like $\lambda_i^T \to 0$. By $T = 50$ or $100$ steps, the gradient shrinks geometrically below machine precision, and the model loses the ability to learn long-range dependencies.
+For the nonlinear recurrence, the actual product depends on all $D_t$. The induced Euclidean norm obeys $\|\mathbf{g}_0\|_2\le\|\mathbf{g}_T\|_2\prod_{t=1}^T\|W_{hh}\|_2\|D_t\|_2$. Here $\rho(W_{hh})\le\|W_{hh}\|_2=\sigma_{\max}(W_{hh})$ and equality can fail outside the normal case.
 
 ### Spectral Normalization and Power Iteration
 
-To enforce $1$-Lipschitz continuity throughout deep networks (especially GAN discriminators) and keep gradient magnitudes controlled, Miyato et al. introduced **Spectral Normalization**, which divides each weight matrix by its spectral norm (its largest singular value $\sigma_{\max}(W)$):
-
+Spectral normalization divides a nonzero weight matrix by its largest singular value. The resulting linear map is $1$-Lipschitz in the Euclidean norm. A whole network inherits that bound when the other operations in the composition are also $1$-Lipschitz.
 $$
 W_{\text{SN}} = \frac{W}{\sigma_{\max}(W)}
 $$
@@ -967,19 +936,18 @@ $$
 \mathbf{u}_{k+1} = \frac{W \mathbf{v}_k}{\|W \mathbf{v}_k\|_2}, \qquad \mathbf{v}_{k+1} = \frac{W^T \mathbf{u}_{k+1}}{\|W^T \mathbf{u}_{k+1}\|_2}
 $$
 
-Why does power iteration converge so rapidly? Expanding $\mathbf{v}_0$ in the orthonormal eigenbasis of $W^T W$:
+Let $W\in\mathbb{R}^{m\times n}$ with $n\ge2$, padding the singular-value list with zeros to length $n$ if needed. Assume $\sigma_1\gt\sigma_2$ and $c_1=\mathbf{q}_1^T\mathbf{v}_0\ne 0$. Expanding $\mathbf{v}_0$ in the orthonormal eigenbasis of $W^T W$:
 
 $$
 (W^T W)^k \mathbf{v}_0 = c_1 \sigma_1^{2k} \mathbf{q}_1 + c_2 \sigma_2^{2k} \mathbf{q}_2 + \dots = c_1 \sigma_1^{2k} \left[ \mathbf{q}_1 + \frac{c_2}{c_1} \left( \frac{\sigma_2}{\sigma_1} \right)^{2k} \mathbf{q}_2 + \dots \right]
 $$
 
-Subdominant modes decay exponentially at rate $\left( \frac{\sigma_2}{\sigma_1} \right)^{2k}$! Because each SGD step changes $W$ only slightly, the singular vectors from the previous step serve as an accurate warm start, so **a single power-iteration step per training update** tracks $\sigma_{\max}(W)$ accurately—cutting the cost from $O(n^3)$ to $O(n^2)$!
+The ratio $(\sigma_2/\sigma_1)^{2k}$ controls the directional error under these hypotheses. If the top singular value is repeated, the iteration approaches the normalized projection onto its eigenspace given a nonzero initial component there. A warm start can make a single iteration useful, with accuracy depending on the gap and weight changes. Each step uses two matrix–vector products. Dividing by an approximate singular value gives approximate normalization.
 
 <CollapsibleCode language="python" title="PyTorch Lab: Spectral-Radius Gradient Flow & Power-Iteration Spectral Normalization">
 ```python
 import torch
 import torch.nn as nn
-import matplotlib.pyplot as plt
 
 torch.manual_seed(42)
 
@@ -1031,11 +999,13 @@ class PowerIterationSpectralNorm(nn.Module):
         self.weight = weight
         out_features, in_features = weight.shape
         # Initialize left and right singular vector buffers
-        self.register_buffer('u', nn.functional.normalize(torch.randn(out_features), dim=0))
-        self.register_buffer('v', nn.functional.normalize(torch.randn(in_features), dim=0))
+        self.register_buffer('u', nn.functional.normalize(weight.new_empty(out_features).normal_(), dim=0))
+        self.register_buffer('v', nn.functional.normalize(weight.new_empty(in_features).normal_(), dim=0))
         self.n_power_iterations = n_power_iterations
 
     def forward(self):
+        if self.n_power_iterations < 1:
+            raise ValueError("Use at least one power iteration.")
         u = self.u
         v = self.v
         W = self.weight
@@ -1048,8 +1018,10 @@ class PowerIterationSpectralNorm(nn.Module):
                 # u = normalize(W v)
                 u = nn.functional.normalize(torch.mv(W, v), dim=0, out=u)
             
-            # Estimate largest singular value: sigma = u^T W v
-            sigma = torch.dot(u, torch.mv(W, v))
+        # Hold the estimated singular vectors fixed when differentiating sigma
+        sigma = torch.dot(u.clone(), torch.mv(W, v.clone()))
+        if not torch.isfinite(sigma) or sigma <= 0:
+            raise ValueError("Spectral normalization requires a finite, positive estimate.")
             
         # Normalize weight matrix by estimated spectral norm
         return W / sigma, sigma
@@ -1060,13 +1032,13 @@ true_sigma_max = torch.linalg.svdvals(test_W)[0].item()
 
 sn_layer = PowerIterationSpectralNorm(test_W, n_power_iterations=1)
 _, estimated_sigma_1 = sn_layer()
-sn_layer.n_power_iterations = 5
+sn_layer.n_power_iterations = 4
 _, estimated_sigma_5 = sn_layer()
 
 print("\n--- Spectral Norm Estimation Accuracy ---")
 print(f"Exact largest singular value (SVD): {true_sigma_max:.5f}")
 print(f"1-step power iteration estimate:    {estimated_sigma_1.item():.5f} (rel error: {abs(estimated_sigma_1.item()-true_sigma_max)/true_sigma_max:.2%})")
-print(f"5-step power iteration estimate:    {estimated_sigma_5.item():.5f} (rel error: {abs(estimated_sigma_5.item()-true_sigma_max)/true_sigma_max:.4%})")
+print(f"5-step cumulative power iteration estimate:    {estimated_sigma_5.item():.5f} (rel error: {abs(estimated_sigma_5.item()-true_sigma_max)/true_sigma_max:.4%})")
 ```
 </CollapsibleCode>
 

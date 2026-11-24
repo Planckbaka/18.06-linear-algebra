@@ -5,12 +5,12 @@ import { MathDiagram } from './math-diagram'
  * BigFormulaPermutationsDiagram
  * Visualizes:
  * Left panel: Single-row multilinearity splitting a 3x3 determinant into 3^3 = 27 matrices,
- *             where 21 collapse to 0 (repeated columns) and 3! = 6 non-attacking rook placements survive.
+ *             where 21 collapse to 0 (repeated column indices) and 3! = 6 non-attacking rook placements survive.
  * Right panel: All 3! = 6 permutations of (1, 2, 3) grouped into 3 even (sgn = +1) and 3 odd (sgn = -1),
- *              highlighting why Sarrus diagonal rule works only for n=2, 3 and fails for n >= 4 (24 != 8).
+ *              highlighting the six terms in Sarrus’ rule and the failure of its extension to n >= 4.
  */
 export function BigFormulaPermutationsDiagram({
-  caption = '图 19.1 行列式大公式的 27 项拆解与 6 个置换项（Sarrus 对角线法则仅在 n=2, 3 巧合成立，n \\ge 4 严重失效）',
+  caption = '图 19.1 行列式大公式的 $3^3 = 27$ 项拆解与 $3! = 6$ 个置换项（Sarrus 对角线法则适用于 $n=3$，推广到 $n \\ge 4$ 时失效）',
 }: {
   caption?: string
 }) {
@@ -70,7 +70,7 @@ export function BigFormulaPermutationsDiagram({
 
           {/* Header */}
           <text x="24" y="32" className="text-base font-bold fill-foreground">
-            多重线性拆分：3&#94;3 = 27 项的湮灭
+            多重线性拆分：3³ = 27 项的湮灭与筛选
           </text>
           <text x="24" y="52" className="text-xs fill-muted-foreground">
             由公理 3 每行拆为标准基，仅每行每列恰选 1 个元素的项幸存
@@ -87,8 +87,8 @@ export function BigFormulaPermutationsDiagram({
               className="fill-muted/20 stroke-border stroke-[1]"
             />
             {/* Brackets */}
-            <path d="M 16 12 L 10 12 L 10 52 L 16 52" className="stroke-foreground stroke-[1.5] fill-none" />
-            <path d="M 144 12 L 150 12 L 150 52 L 144 52" className="stroke-foreground stroke-[1.5] fill-none" />
+            <path d="M 16 15 L 10 15 L 10 59 L 16 59" className="stroke-foreground stroke-[1.5] fill-none" />
+            <path d="M 144 15 L 150 15 L 150 59 L 144 59" className="stroke-foreground stroke-[1.5] fill-none" />
             <text x="35" y="28" className="text-xs fill-foreground">a&#8321;&#8321;</text>
             <text x="75" y="28" className="text-xs fill-foreground">a&#8321;&#8322;</text>
             <text x="115" y="28" className="text-xs fill-foreground">a&#8321;&#8323;</text>
@@ -134,7 +134,7 @@ export function BigFormulaPermutationsDiagram({
             </text>
 
             <text x="20" y="50" className="text-xs fill-muted-foreground">
-              若两行或多行选中相同列，则矩阵含相同列方向或零列，行列式为 0：
+              若两行选中同一列，提取系数后会出现相同的基行向量：
             </text>
 
             {/* Example of repeated column matrix */}
@@ -171,7 +171,7 @@ export function BigFormulaPermutationsDiagram({
             </text>
 
             <text x="20" y="48" className="text-xs fill-muted-foreground">
-              每行选一个非零元，且每列恰有一个非零元：对应置换矩阵 P_&sigma;
+              每行每列恰选一个位置，提取系数后得到置换矩阵 P_&sigma;
             </text>
 
             {/* Rook placement miniature */}
@@ -192,7 +192,7 @@ export function BigFormulaPermutationsDiagram({
                 行索引：(1, 2, 3)
               </text>
               <text x="75" y="38" className="text-xs font-semibold fill-foreground">
-                列索引：(&sigma;(1), &sigma;(2), &sigma;(3)) &isin; S&#8323;
+                列索引：(&sigma;(1), &sigma;(2), &sigma;(3))，&sigma; &isin; S&#8323;
               </text>
               <text x="75" y="56" className="text-xs fill-emerald-600 dark:fill-emerald-400 font-mono">
                 det(A) = &sum; sgn(&sigma;) a&#8321;,&#963;(1) a&#8322;,&#963;(2) a&#8323;,&#963;(3)
@@ -247,7 +247,7 @@ export function BigFormulaPermutationsDiagram({
             <g transform="translate(142, 32)">
               <rect x="0" y="0" width="118" height="56" rx="4" className="fill-background stroke-border stroke-[1]" />
               <text x="8" y="18" className="text-[11px] font-mono fill-blue-600 dark:fill-blue-400">(2, 3, 1)</text>
-              <text x="8" y="34" className="text-[10px] fill-muted-foreground">逆序数: 2 (轮换右移)</text>
+              <text x="8" y="34" className="text-[10px] fill-muted-foreground">逆序数: 2 (循环左移)</text>
               <text x="8" y="48" className="text-[11px] font-bold font-mono fill-foreground">+ a&#8321;&#8322;a&#8322;&#8323;a&#8323;&#8321;</text>
             </g>
 
@@ -255,7 +255,7 @@ export function BigFormulaPermutationsDiagram({
             <g transform="translate(268, 32)">
               <rect x="0" y="0" width="118" height="56" rx="4" className="fill-background stroke-border stroke-[1]" />
               <text x="8" y="18" className="text-[11px] font-mono fill-blue-600 dark:fill-blue-400">(3, 1, 2)</text>
-              <text x="8" y="34" className="text-[10px] fill-muted-foreground">逆序数: 2 (轮换左移)</text>
+              <text x="8" y="34" className="text-[10px] fill-muted-foreground">逆序数: 2 (循环右移)</text>
               <text x="8" y="48" className="text-[11px] font-bold font-mono fill-foreground">+ a&#8321;&#8323;a&#8322;&#8321;a&#8323;&#8322;</text>
             </g>
           </g>
@@ -315,16 +315,16 @@ export function BigFormulaPermutationsDiagram({
 
             <g transform="translate(16, 36)">
               <text x="0" y="16" className="text-xs fill-foreground">
-                &bull; 2 阶：2! = 2 项 &larr; 主对角线 &minus; 反对角线（恰好吻合）
+                &bull; 2 阶：2! = 2 项 &larr; 主对角线乘积 &minus; 反对角线乘积
               </text>
               <text x="0" y="34" className="text-xs fill-foreground">
-                &bull; 3 阶：3! = 6 项 &larr; 3 条正对角线 &minus; 3 条负对角线（恰好吻合）
+                &bull; 3 阶：3! = 6 项 &larr; Sarrus 法则的 6 个带符号乘积
               </text>
               <text x="0" y="52" className="text-xs font-bold fill-rose-600 dark:fill-rose-400">
                 &bull; 4 阶：4! = 24 项，而对角线划线法只有 4 + 4 = 8 项！
               </text>
               <text x="0" y="70" className="text-xs fill-muted-foreground">
-                漏掉 24 &minus; 8 = 16 项（如 a&#8321;&#8321;a&#8322;&#8322;a&#8323;&#8324;a&#8324;&#8323; 根本不在对角线上）！4 阶切勿划线！
+                漏掉 24 &minus; 8 = 16 项（如 &minus;a&#8321;&#8321;a&#8322;&#8322;a&#8323;&#8324;a&#8324;&#8323; 不在任何循环对角线上）！4 阶切勿划线！
               </text>
             </g>
           </g>
@@ -379,10 +379,10 @@ export function CofactorTridiagonalDiagram({
           />
 
           <text x="24" y="32" className="text-base font-bold fill-foreground">
-            代数余子式：C&#7522;&#11388; = (&minus;1)&#7522;&#43;&#11388; M&#7522;&#11388;
+            代数余子式：C&#7522;&#11388; = (&minus;1)<tspan baselineShift="super" fontSize="75%">i+j</tspan> M&#7522;&#11388;
           </text>
           <text x="24" y="52" className="text-xs fill-muted-foreground">
-            大公式中按元素 a&#7522;&#11388; 提取公因式，剩余 (n&minus;1)! 项即为余子式
+            大公式中按元素 a&#7522;&#11388; 提取公因式，剩余 (n&minus;1)! 项的带符号和给出代数余子式
           </text>
 
           {/* 4x4 Checkerboard Grid */}
@@ -500,7 +500,7 @@ export function CofactorTridiagonalDiagram({
             {/* Minor M_{12} result */}
             <g transform="translate(240, 24)">
               <text x="0" y="16" className="text-xs font-bold fill-emerald-600 dark:fill-emerald-400">
-                剩余 3&times;3 子矩阵 (M&#8321;&#8322;)：
+                剩余 3&times;3 子矩阵 M′&#8321;&#8322;：
               </text>
               <rect x="0" y="28" width="145" height="74" rx="4" className="fill-emerald-500/10 stroke-emerald-500/40 stroke-[1]" />
               <text x="12" y="48" className="text-[10px] font-mono fill-emerald-600 dark:fill-emerald-400">a&#8322;&#8321;  a&#8322;&#8323;  a&#8322;&#8324;</text>
@@ -578,7 +578,7 @@ export function CofactorTridiagonalDiagram({
             </g>
 
             <text x="16" y="122" className="text-xs fill-foreground">
-              数学内涵：差分行列式线性增长，D&#8345; &gt; 0 恒成立，K&#8345; 处处可逆（且正定）！
+              数学内涵：D&#8345; &gt; 0，故 K&#8345; 可逆。各阶顺序主子式为正，故 K&#8345; 正定。
             </text>
             <text x="16" y="140" className="text-[11px] fill-muted-foreground">
               这是物理与微分方程中连续区间 [&minus;u&apos;&apos; = f] 离散化的基石矩阵。

@@ -12,7 +12,7 @@ textbookRef: "§5.3"
 Gilbert Strang 教授在这一讲中给出了三个震撼而优雅的答案：
 1. **代数求逆的终极解析公式**：无需消元，直接通过**伴随矩阵（Adjugate Matrix）**写出逆矩阵的闭式解 $A^{-1} = \frac{1}{\det A} C^T$；
 2. **线性方程组的纯符号闭式解**：**克拉默法则（Cramer's Rule）**，并通过一行惊艳的矩阵等式完成秒杀级证明；
-3. **空间的真实几何量度**：行列式的绝对值 $|\det(A)|$ 精确等于 $n$ 维**平行多面体（Parallelepiped）**的**有向体积（Oriented Volume）**，其正负号严格刻画了坐标系的手性定向。
+3. **空间的真实几何量度**：行列式的绝对值 $|\det(A)|$ 精确等于 $n$ 维**平行多面体（Parallelepiped）**的**无向体积（Unsigned Volume）**，其正负号严格刻画了坐标系的手性定向。
 
 ---
 
@@ -22,15 +22,15 @@ Gilbert Strang 教授在这一讲中给出了三个震撼而优雅的答案：
 
 ### 1.1 代数余子式矩阵与伴随矩阵
 
-回顾第 19 讲，设 $A \in \mathbb{R}^{n \times n}$，划掉其第 $i$ 行与第 $j$ 列后剩下的 $(n-1) \times (n-1)$ 子矩阵记为 $M_{ij}$，则原矩阵在位置 $(i, j)$ 处的**代数余子式（Cofactor）**定义为：
+回顾第 19 讲，设 $A \in \mathbb{R}^{n \times n}$，划掉其第 $i$ 行与第 $j$ 列后剩下的 $(n-1) \times (n-1)$ 子矩阵记为 $M'_{ij}$，余子式为 $M_{ij}=\det(M'_{ij})$，原矩阵在位置 $(i, j)$ 处的**代数余子式（Cofactor）**定义为：
 $$
-C_{ij} = (-1)^{i+j} \det(M_{ij})
+C_{ij} = (-1)^{i+j} \det(M'_{ij})
 $$
 
 将所有位置的代数余子式排列成同阶方阵，便得到了**代数余子式矩阵（Cofactor Matrix）** $C$。
 
 <DefinitionCard title="代数余子式矩阵与伴随矩阵" termEn="Cofactor Matrix and Adjugate Matrix">
-设方阵 $A = [a_{ij}] \in \mathbb{R}^{n \times n}$，定义其**代数余子式矩阵** $C \in \mathbb{R}^{n \times n}$ 的第 $i$ 行第 $j$ 列元素为 $A$ 对应位置的代数余子式 $C_{ij}$：
+设方阵 $A = [a_{ij}] \in \mathbb{R}^{n \times n}$，$n\ge 1$。当 $n=1$ 时，空行列式取 $1$。定义其**代数余子式矩阵** $C \in \mathbb{R}^{n \times n}$ 的第 $i$ 行第 $j$ 列元素为 $A$ 对应位置的代数余子式 $C_{ij}$：
 $$
 C = \begin{bmatrix}
 C_{11} & C_{12} & \cdots & C_{1n} \\
@@ -39,7 +39,7 @@ C_{21} & C_{22} & \cdots & C_{2n} \\
 C_{n1} & C_{n2} & \cdots & C_{nn}
 \end{bmatrix}
 $$
-$C$ 的**转置矩阵** $C^T$ 被称为 $A$ 的**伴随矩阵（Adjugate Matrix）**，在经典文献中常记为 $\operatorname{adj}(A)$ 或 $A^*$：
+$C$ 的**转置矩阵** $C^T$ 被称为 $A$ 的**伴随矩阵（Adjugate Matrix）**，记为 $\operatorname{adj}(A)$：
 $$
 \operatorname{adj}(A) \triangleq C^T = \begin{bmatrix}
 C_{11} & C_{21} & \cdots & C_{n1} \\
@@ -60,13 +60,13 @@ $$
 $$
 A C^T = C^T A = \det(A) I_n
 $$
-由此可知：方阵 $A$ 可逆（$\det(A) \neq 0$）当且仅当存在逆矩阵，且其闭式逆矩阵公式为：
+由行列式判据，$A$ 可逆当且仅当 $\det(A)\ne 0$。此时有
 $$
 A^{-1} = \frac{1}{\det(A)} C^T = \frac{1}{\det(A)} \operatorname{adj}(A)
 $$
 </TheoremCard>
 
-<ProofCollapse title="伴随矩阵乘积恒等式 $A C^T = (\det A) I_n$ 的严谨证明">
+<ProofCollapse title="伴随矩阵乘积恒等式的证明">
 我们逐个分析乘积矩阵 $P = A C^T \in \mathbb{R}^{n \times n}$ 的每一个元素 $P_{ik}$。根据矩阵乘法定义：
 $$
 P_{ik} = \sum_{j=1}^n a_{ij} (C^T)_{jk} = \sum_{j=1}^n a_{ij} C_{kj}
@@ -89,31 +89,21 @@ $$
 P_{ik} = a_{i1} C_{k1} + a_{i2} C_{k2} + \cdots + a_{in} C_{kn}
 $$
 这个和式具有极其精妙的几何与代数解释：
-我们构造一个辅助矩阵 $A^*$，它是将原矩阵 $A$ 的第 $k$ 行替换为第 $i$ 行的副本，而其余所有行保持不变：
-$$
-A^* = \begin{bmatrix}
-\text{row}_1(A) \\
-\vdots \\
-\text{row}_i(A) \\
-\vdots \\
-\text{row}_i(A) \quad \leftarrow \text{第 } k \text{ 行被替换为第 } i \text{ 行} \\
-\vdots \\
-\text{row}_n(A)
-\end{bmatrix}
-$$
-现在，计算辅助矩阵 $A^*$ 沿其第 $k$ 行的拉普拉斯展开：
-- $A^*$ 的第 $k$ 行元素就是 $a_{i1}, a_{i2}, \dots, a_{in}$；
-- 划掉 $A^*$ 的第 $k$ 行后，剩余各行与原矩阵划掉第 $k$ 行完全一致，因此 $A^*$ 在第 $k$ 行的代数余子式依然精确等于原矩阵的 $C_{k1}, C_{k2}, \dots, C_{kn}$！
+记 $\widetilde{A}$ 为用 $A$ 的第 $i$ 行替换第 $k$ 行后得到的矩阵。
+
+现在，计算辅助矩阵 $\widetilde{A}$ 沿其第 $k$ 行的拉普拉斯展开：
+- $\widetilde{A}$ 的第 $k$ 行元素就是 $a_{i1}, a_{i2}, \dots, a_{in}$；
+- 划掉 $\widetilde{A}$ 的第 $k$ 行后，剩余各行与原矩阵划掉第 $k$ 行完全一致，因此 $\widetilde{A}$ 在第 $k$ 行的代数余子式依然精确等于原矩阵的 $C_{k1}, C_{k2}, \dots, C_{kn}$！
 
 因此，辅助矩阵的行列式展开式为：
 $$
-\det(A^*) = \sum_{j=1}^n a_{ij} C_{kj} = P_{ik}
+\det(\widetilde{A}) = \sum_{j=1}^n a_{ij} C_{kj} = P_{ik}
 $$
-但请注意！矩阵 $A^*$ 的第 $i$ 行与第 $k$ 行是**完全相同的两行**（因为第 $k$ 行是第 $i$ 行的复制品）。根据第 18 讲行列式的基本性质 4（两行相等则行列式为零）：
+但请注意！矩阵 $\widetilde{A}$ 的第 $i$ 行与第 $k$ 行是**完全相同的两行**（因为第 $k$ 行是第 $i$ 行的复制品）。根据第 18 讲行列式的基本性质 4（两行相等则行列式为零）：
 $$
-\det(A^*) = 0 \implies P_{ik} = 0 \quad (\forall i \neq k)
+\det(\widetilde{A}) = 0 \implies P_{ik} = 0 \quad (\forall i \neq k)
 $$
-同理，考虑左乘 $C^T A$ 时，对应的是按列的拉普拉斯展开与异列替换，完全类似可证 $(C^T A)_{ik} = \det(A) \delta_{ik}$。
+同理，考虑左乘 $C^T A$ 时，对应的是按列的拉普拉斯展开与异列替换，完全类似可证 $(C^T A)_{ik} = \det(A) \delta_{ik}$，其中 $\delta_{ik}$ 在 $i=k$ 时为 $1$，否则为 $0$。
 
 综上所述，矩阵 $A C^T$ 和 $C^T A$ 的主对角线元素恒为 $\det(A)$，所有非对角线元素恒为 $0$：
 $$
@@ -146,7 +136,7 @@ $$
 $$
 \operatorname{adj}(A) = C^T = \begin{bmatrix} d & -b \\ -c & a \end{bmatrix}
 $$
-由于 $\det(A) = ad - bc$，我们瞬间重新得到了我们在初学线性代数时烂熟于心的 $2 \times 2$ 求逆口诀（“主对角对调，副对角取反，除以行列式”）：
+若 $\det(A)=ad-bc\ne 0$，我们瞬间重新得到了我们在初学线性代数时烂熟于心的 $2 \times 2$ 求逆口诀（“主对角对调，副对角取反，除以行列式”）：
 $$
 A^{-1} = \frac{1}{ad - bc} \begin{bmatrix} d & -b \\ -c & a \end{bmatrix}
 $$
@@ -233,7 +223,7 @@ Strang 教授在课堂上展示的证明被公认为线性代数教学中的神�
 
 我们构造一个特殊的矩阵 $X_j$，它是将单位矩阵 $I_n$ 的第 $j$ 列替换为待求解向量 $\mathbf{x}$：
 $$
-X_j = \begin{bmatrix} \mathbf{e}_1 & \cdots & \mathbf{x} & \cdots & \mathbf{e}_n \end{bmatrix} = \begin{bmatrix}
+X_j = \begin{bmatrix} \mathbf{e}_1 & \cdots & \mathbf{e}_{j-1} & \mathbf{x} & \mathbf{e}_{j+1} & \cdots & \mathbf{e}_n \end{bmatrix} = \begin{bmatrix}
 1 & & x_1 & & \\
 & \ddots & \vdots & & \\
 & & x_j & & \\
@@ -241,13 +231,13 @@ X_j = \begin{bmatrix} \mathbf{e}_1 & \cdots & \mathbf{x} & \cdots & \mathbf{e}_n
 & & x_n & & 1
 \end{bmatrix}
 $$
-计算矩阵 $X_j$ 的行列式：沿第 $j$ 行（或沿第 $j$ 列）展开，其他非对角元全为 0，主对角线其余元素全为 1，显然有：
+计算矩阵 $X_j$ 的行列式：第 $j$ 行只有 $x_j$ 可能非零，且 $(j,j)$ 余子式是 $I_{n-1}$ 的行列式。沿第 $j$ 行展开可得
 $$
 \det(X_j) = x_j
 $$
-现在，让原矩阵 $A$ 右乘矩阵 $X_j$。利用矩阵乘法的列视角（Column Picture）：
+现在，让原矩阵 $A$ 右乘矩阵 $X_j$。利用矩阵乘法的列图像（Column Picture）：
 $$
-A X_j = A \begin{bmatrix} \mathbf{e}_1 & \cdots & \mathbf{x} & \cdots & \mathbf{e}_n \end{bmatrix} = \begin{bmatrix} A \mathbf{e}_1 & \cdots & A \mathbf{x} & \cdots & A \mathbf{e}_n \end{bmatrix}
+A X_j = A \begin{bmatrix} \mathbf{e}_1 & \cdots & \mathbf{e}_{j-1} & \mathbf{x} & \mathbf{e}_{j+1} & \cdots & \mathbf{e}_n \end{bmatrix} = \begin{bmatrix} A \mathbf{e}_1 & \cdots & A \mathbf{x} & \cdots & A \mathbf{e}_n \end{bmatrix}
 $$
 因为 $A \mathbf{e}_k = \mathbf{a}_k$（$A$ 的第 $k$ 列），并且根据方程组定义 $A \mathbf{x} = \mathbf{b}$：
 $$
@@ -265,32 +255,34 @@ $$
 
 ### 2.3 算法现实核查：克拉默法则 vs 高斯消元法
 
-克拉默法则在教科书中被广泛讲授，但为什么在工业界大型线性方程组求解（如天气预报、有限元仿真、深度学习优化）中，**严禁使用克拉默法则进行数值求解**？
+克拉默法则在教科书中被广泛讲授，但为什么在工业界大型线性方程组求解（如有限元仿真）中，**通常不逐个计算克拉默法则所需的行列式**？
 
 让我们算一笔计算复杂度（Time Complexity）的硬账：
 - 求解一个 $n$ 阶方程组，克拉默法则需要计算 **$n + 1$ 个行列式**（$\det(A)$ 以及 $\det(B_1), \dots, \det(B_n)$）。
-- 如果使用代数余子式展开计算行列式，每个行列式需要 $O(n!)$ 次运算，总复杂度为 $O((n+1)!)$。对于 $n = 50$，$51! \approx 1.55 \times 10^{66}$，哪怕使用全球最快超算也需要算到宇宙毁灭。
-- 即便使用高斯消元法先求出三角矩阵再算行列式（每个行列式 $O(\frac{1}{3}n^3)$ 运算），$n+1$ 个行列式也需要：
+- 如果使用代数余子式展开计算行列式，每个行列式需要 $O(n!)$ 次运算，总复杂度为 $O((n+1)!)$。对于 $n = 50$，$51! \approx 1.55 \times 10^{66}$。
+- 即便使用高斯消元法先求出三角矩阵再算行列式（每个行列式 $O(n^3)$ 运算），$n+1$ 个行列式也需要：
   $$
-  (n+1) \cdot \frac{1}{3} n^3 \approx \frac{1}{3} n^4 \text{ 次浮点运算}
+  (n+1) \cdot \frac{2}{3} n^3 \approx \frac{2}{3} n^4 \text{ 次浮点运算}
   $$
-- 与之相对，$PA = LU$ 分解法解方程组：先进行一次 $LU$ 分解花费 $\frac{1}{3} n^3$ 浮点运算，随后利用前向/回代仅需 $O(n^2)$ 运算，总耗时牢牢锁定在 **$\frac{1}{3} n^3$**。
+- 与之相对，$PA = LU$ 分解法解方程组：先进行一次 $LU$ 分解花费 $\frac{2}{3} n^3$ 浮点运算，随后利用前向/回代仅需 $O(n^2)$ 运算，总运算量为 $\frac{2}{3}n^3+O(n^2)$ 次浮点运算。
 
-| 求解方法 | 计算步数 (FLOPs) | $n = 10$ 时耗时 | $n = 1000$ 时耗时估算 | 适用场景 |
+| 求解方法 | 计算步数 (FLOPs) | $n = 10$ 时运算量 | $n = 1000$ 时运算量估算 | 适用场景 |
 | :--- | :--- | :--- | :--- | :--- |
-| **余子式克拉默法则** | $O((n+1)!)$ | 约 $4 \times 10^7$ 次 | 无法完成 ($10^{2567}$ 次) | 理论概念验证 |
-| **高斯求行列式克拉默** | $O(n^4 / 3)$ | 约 $3.3 \times 10^3$ 次 | 约 $3.3 \times 10^{11}$ 次 (数分钟) | 符号代数推导 |
-| **LU 消元分解法** | $O(n^3 / 3)$ | 约 $3.3 \times 10^2$ 次 | 约 $3.3 \times 10^8$ 次 (毫秒级) | **现代工程计算标准** |
+| **余子式克拉默法则** | $O((n+1)!)$ | 约 $4 \times 10^7$ 项 | 约 $10^{2570}$ 量级的项数 | 理论概念验证 |
+| **高斯求行列式克拉默** | $O(n^4)$ | 约 $7.3 \times 10^3$ 次 | 约 $6.7 \times 10^{11}$ 次 | 符号代数推导 |
+| **LU 消元分解法** | $O(n^3)$ | 约 $6.7 \times 10^2$ 次 | 约 $6.7 \times 10^8$ 次 | **现代工程计算标准** |
+
+*余子式法的估算用 $(n+1)!$ 计数全部行列式的置换项。LU 的估算使用浮点运算量的主导项。*
 
 **结论**：克拉默法则的价值在于**纯符号解析分析**（例如当矩阵含有未知参数 $k, t$，我们需要解关于参数的解析导数 $\frac{\partial x_j}{\partial b_i}$ 时，它给出了精确的封闭导数），而不是大规模数值运算！
 
 ---
 
-## 三、有向体积 $|\det(A)|$ 与 Gram-Schmidt 正交高分解 $A = QR$
+## 三、几何体积 $|\det(A)|$、定向与 Gram-Schmidt 正交高分解 $A = QR$
 
 现在进入本讲最具视觉冲击力的高潮部分：**行列式的几何本质是什么？**
 
-在二维平面中，两个列向量 $\mathbf{a}_1, \mathbf{a}_2$ 张成一个平行四边形；在三维空间中，三个列向量 $\mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3$ 张成一个平形六面体（平行多面体）；在 $n$ 维欧氏空间 $\mathbb{R}^n$ 中，$n$ 个列向量张成一个 $n$ 维平行多面体：
+在二维平面中，两个列向量 $\mathbf{a}_1, \mathbf{a}_2$ 张成一个平行四边形；在三维空间中，三个列向量 $\mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3$ 张成一个平行六面体（平行多面体）；在 $n$ 维欧氏空间 $\mathbb{R}^n$ 中，$n$ 个列向量张成一个 $n$ 维平行多面体：
 $$
 P = \left\{ \sum_{i=1}^n c_i \mathbf{a}_i \;\middle|\; 0 \le c_i \le 1 \right\}
 $$
@@ -300,14 +292,14 @@ $$
 $$
 \operatorname{Vol}(P) = |\det(A)|
 $$
-此外，$\det(A)$ 的符号反映了向量组的**定向（Orientation）**或**手性（Chirality）**：
-- $\det(A) \gt 0$：基底与标准笛卡尔坐标系具有相同的手性（满足右手系法则）；
-- $\det(A) \lt 0$：基底包含奇数次镜像反射（空间手性反转，变为左手系）；
+有向体积（Oriented Volume）为 $\det(A)$。当列向量线性无关时，其符号给出有序基相对于标准有序基的定向（Orientation）：
+- $\det(A) \gt 0$：有序基与标准基定向相同；
+- $\det(A) \lt 0$：有序基与标准基定向相反；
 - $\det(A) = 0$：多面体在某个方向扁平化（降维），体积为 0，列向量线性相关。
 </TheoremCard>
 
-<ProofCollapse title="几何证明路径一：基于 Gram-Schmidt 正交化与 $A = QR$ 分解">
-在第 17 讲中，我们学习了任何可逆方阵 $A$ 都可以唯一分解为 $A = QR$，其中：
+<ProofCollapse title="基于 Gram-Schmidt 正交化与 QR 分解的几何证明">
+若 $A$ 奇异，列向量落在真子空间中，$n$ 维体积和 $|\det(A)|$ 都为零。若 $A$ 可逆，由第 17 讲可唯一分解为 $A = QR$，其中：
 - $Q \in \mathbb{R}^{n \times n}$ 是标准正交矩阵（$Q^T Q = I_n$）；
 - $R \in \mathbb{R}^{n \times n}$ 是主对角元全为正（$r_{ii} \gt 0$）的上三角矩阵。
 
@@ -315,7 +307,7 @@ $$
 $$
 |\det(A)| = |\det(Q)| \cdot |\det(R)|
 $$
-1. 因为 $Q^T Q = I_n$，根据性质有 $\det(Q^T Q) = (\det Q)^2 = \det(I_n) = 1$，所以 $|\det(Q)| = 1$（正交矩阵代表空间中的纯旋转或纯反射，保长度且保体积！）；
+1. 因为 $Q^T Q = I_n$，根据性质有 $\det(Q^T Q) = (\det Q)^2 = \det(I_n) = 1$，所以 $|\det(Q)| = 1$（正交变换保持长度和体积）；
 2. 因为 $R$ 是上三角矩阵，根据第 18 讲性质 7，上三角矩阵的行列式为其对角元之乘积：
    $$
    \det(R) = \prod_{i=1}^n r_{ii} = r_{11} r_{22} \cdots r_{nn}
@@ -337,27 +329,23 @@ $$
   $$
   \text{Vol}_{3D} = (\text{底面积 } r_{11} r_{22}) \times (\text{正交高 } r_{33}) = r_{11} r_{22} r_{33}
   $$
-通过数学归纳法可知：$r_{ii}$ 在几何上严格等于第 $i$ 个向量 $\mathbf{a}_i$ 垂直于前 $i-1$ 个向量所张成超平面的**正交垂高**！
+通过数学归纳法可知：$r_{ii}$ 在几何上严格等于第 $i$ 个向量 $\mathbf{a}_i$ 垂直于前 $i-1$ 个向量所张成的子空间的**正交垂高**！
 因此，上三角乘积 $\prod_{i=1}^n r_{ii}$ 正是初等立体几何“底面积 $\times$ 正交高”在 $n$ 维空间的直接递归泛化！全证完毕。
 </ProofCollapse>
 
-<ProofCollapse title="公理化证明路径二：验证体积函数满足行列式的 3 条基本公理">
-在第 18 讲中，Strang 教授强调行列式是**唯一**满足以下三条公理的多元函数 $D(\mathbf{a}_1, \dots, \mathbf{a}_n)$：
-1. **公理 1（单位阵）**：$D(I_n) = 1$。
-   几何上，单位矩阵各列向量 $\mathbf{e}_1, \dots, \mathbf{e}_n$ 张成边长为 1 的 $n$ 维单位超立方体，其几何体积公理化定义为 $1$；
-2. **公理 2（行/列对换变号）**：交换任意两个向量，改变了坐标系的排列手性（右手系变为左手系，如三维空间中对换 $x$ 与 $y$ 轴产生镜像），有向体积反号；
-3. **公理 3（线性性）**：
-   - **数乘**：将其中一条边拉长 $c$ 倍，根据长方形/多面体体积公式，体积同步放大 $|c|$ 倍（若 $c \lt 0$ 则反向反号）；
-   - **加法与剪切不变性**：若给向量 $\mathbf{a}_i$ 加上平行于其他向量的分量（即行/列初等变换 $\mathbf{a}_i \leftarrow \mathbf{a}_i + c \mathbf{a}_k$），这对应于几何上的**卡瓦列里原理（Cavalieri's principle，保高平行剪切）**——倾斜多面体，底面积不变且垂直高不变，体积严格守恒！
+<ProofCollapse title="用有向高度验证行列式公理">
 
-由于任何满足这三条几何性质的体积函数必须恒等于行列式，故有向体积必为 $\det(A)$，绝对体积必为 $|\det(A)|$。
+固定除某一列外的所有列。若这些固定列线性相关，无论剩余列取何值，所得平行多面体的 $n$ 维体积均为零。否则，固定列张成一个 $(n-1)$ 维子空间。选取其单位法向量 $\mathbf{n}$，使将 $\mathbf{n}$ 填入空缺列时，有序列向量组具有正定向。于是当该列为 $\mathbf{v}$ 时，有向体积就是固定的底面体积乘以有向高度 $\mathbf{n}^T\mathbf{v}$。它对 $\mathbf{v}$ 线性，因此同时满足数乘性和可加性。
+
+交换两列保持几何体积，并在列向量构成基时反转定向。标准有序基的有向体积为 $1$。所以有向体积满足列形式的三条行列式公理，等于 $\det(A)$。
+
 </ProofCollapse>
 
 <CramersRuleAndVolumeDiagram />
 
 ### 3.1 经典几何应用：二维三角形面积与多元微积分雅可比变换
 
-#### 任意多边形/三角形面积公式
+#### 平面三角形面积公式
 平面直角坐标系中，设三角形三顶点坐标分别为 $(x_1, y_1), (x_2, y_2), (x_3, y_3)$。如何用行列式快速计算其面积？
 我们将平面嵌入三维空间 $z = 1$ 的平面上：
 $$
@@ -382,11 +370,11 @@ $$
 这恰好是以顶点 1 为坐标原点时，向量 $\mathbf{v}_{12}$ 与 $\mathbf{v}_{13}$ 所张成平行四边形面积的行列式！而三角形面积是平行四边形的一半，系数 $\frac{1}{2}$ 便由此而来。
 
 #### 多元微积分中的雅可比行列式（Jacobian Determinant）
-在重积分变量替换（Change of Variables）中，从笛卡尔坐标 $(x, y, z)$ 变换为曲面坐标 $(u, v, w)$：
+在重积分变量替换（Change of Variables）中，从笛卡尔坐标 $(x, y, z)$ 变换为参数坐标 $(u, v, w)$：
 $$
 \mathbf{x} = \mathbf{g}(u, v, w)
 $$
-微元体积 $dx \, dy \, dz$ 变换为 $du \, dv \, dw$ 时必须乘上一个局部缩放系数：
+设 $\mathbf{g}$ 是积分区域之间的 $C^1$ 微分同胚，则体积元变换公式为：
 $$
 dx \, dy \, dz = |\det(J)| \, du \, dv \, dw, \quad J = \frac{\partial (x, y, z)}{\partial (u, v, w)} = \begin{bmatrix}
 \frac{\partial x}{\partial u} & \frac{\partial x}{\partial v} & \frac{\partial x}{\partial w} \\
@@ -403,9 +391,9 @@ $$
 
 <PitfallAlert title="克拉默法则、伴随矩阵与体积概念的三大高频陷阱">
 1. **忘记伴随矩阵的转置（$C^T$ 遗漏）**：
-   极多初学者在写闭式求逆公式时，误写为 $A^{-1} = \frac{1}{\det A} C$。切记：代数余子式矩阵 $C$ 的行与列**必须对调**！仅当 $A$ 为对称矩阵（$A = A^T$）时，$C$ 才是对称的（$C = C^T$）。对于一般非对称矩阵，如果不转置，$A C$ 的非对角元根本无法构造出含有两行相同的奇异矩阵 $A^*$，非对角元不会抵消为 0！
+   伴随矩阵是 $C^T$。若 $A$ 可逆，由 $C^T=\det(A)A^{-1}$ 可知 $C=C^T$ 当且仅当 $A=A^T$。若 $A$ 奇异，即使 $A$ 不对称，$C$ 也可能对称，例如所有代数余子式均为零时。
 2. **将 $\det(A) \lt 0$ 误判为“计算错误”或“无物理意义”**：
-   在求解几何图形面积或多面体体积时，有些同学看到负号便惊慌失措。在纯几何中，真实物理体积必须取绝对值 $|\det(A)|$；而在现代代数几何、微分几何与计算机图形学中，行列式的**正负号是无价的信息**——它代表了空间坐标变换是否发生了**镜像手性翻转（Reflection）**。若刚体动画变换矩阵的 $\det(A) \lt 0$，说明模型被“里朝外翻转”（Normal Vector 反转），光照渲染将会彻底崩溃！
+   绝对值给出几何体积。负行列式说明可逆实线性变换反转定向，例如使变换后的网格顶点绕序反转。
 3. **在 $\det(A) = 0$ 时强行套用克拉默法则**：
    克拉默法则的分母为 $\det(A)$，其使用前提是矩阵非奇异。当 $\det(A) = 0$ 时，方程组要么无解（矛盾），要么有无穷多解（存在自由变量）。此时若分子行列式 $\det(B_j) = 0$，并不能得出 $x_j = \frac{0}{0} = 1$ 或任何确定数值，克拉默法则完全失效，必须回到第 7-9 讲的阶梯形消元法求解。
 </PitfallAlert>
@@ -417,7 +405,7 @@ $$
 <InteractiveCanvasSlot
   id="l20-volume-and-cramer-sandbox"
   title="有向体积与克拉默法则交互实验台"
-  description="拖动 2D/3D 基底向量实时观察平行多面体形变、剪切保体积性、右手系到左手系的手性反转（行列式变号），以及克拉默法则中各列替换对应的面积比率伸缩。"
+  description="用滑块改变二维方程组的右端项与第二列，比较有向面积，并观察行列式为零时解的情况。"
 />
 
 ---
@@ -425,12 +413,12 @@ $$
 ## 六、核心要点总结
 
 <KeyTakeaways items={[
-  "伴随矩阵定义为代数余子式矩阵的转置：\\operatorname{adj}(A) = C^T，其核心性质为 A C^T = C^T A = (\\det A) I_n。",
-  "闭式求逆公式 A^{-1} = \\frac{1}{\\det A} C^T 显示了逆矩阵中每一个元素的解析表达式，分母均为 \\det(A)。",
-  "乘积 A C^T 非对角元全为 0 的本质是“异行余子式展开”：等价于计算一个含有两行完全相同的奇异矩阵的行列式，恒等于 0。",
-  "克拉默法则给出了 A \\mathbf{x} = \\mathbf{b} 的纯符号闭式解 x_j = \\frac{\\det(B_j)}{\\det(A)}，Strang 的一行动巧证明利用 A [e_1 \\dots x \\dots e_n] = B_j 展现了行列式乘法性质的威力。",
-  "n 维平行多面体的几何体积严格等于 |\\det(A)|，通过 A = QR 分解可严谨证明体积等于 Gram-Schmidt 各步正交高与底边长的乘积 \\prod r_{ii}。",
-  "行列式的正负号编码空间手性（定向）：\\det(A) \\gt 0 保持右手系，\\det(A) \\lt 0 产生镜像反转；多元微积分中的雅可比行列式 |\\det(J)| 正是该体积微元缩放率的局部线性化推广。"
+  "伴随矩阵是代数余子式矩阵的转置 $\\operatorname{adj}(A)=C^T$，满足 $AC^T=C^TA=\\det(A)I_n$。",
+  "若 $\\det(A)\\ne 0$，则逆矩阵为 $A^{-1}=C^T/\\det(A)$。",
+  "$AC^T$ 的每个非对角元都是含有两条相同行的行列式的代数余子式展开，因此为零。",
+  "对可逆的 $A$，克拉默法则给出 $x_j=\\det(B_j)/\\det(A)$，其中 $B_j$ 将 $A$ 的第 $j$ 列换为 $\\mathbf{b}$。",
+  "$n$ 维体积为 $|\\det(A)|$。当 $A$ 可逆时，它等于 Gram-Schmidt 分解中各个正对角元的乘积 $\\prod_i r_{ii}$。",
+  "行列式为正时保持定向，为负时反转定向。变量替换中的雅可比因子 $|\\det(J)|$ 给出局部体积缩放率。"
 ]} />
 
 ---
@@ -446,9 +434,9 @@ $$
 3. 平面上三点坐标分别为 $P_1(1, 2), P_2(4, 6), P_3(2, 8)$，利用三阶行列式求 $\triangle P_1 P_2 P_3$ 的面积。
 
 <ProgressiveHint hints={[
-  "注意伴随矩阵必须对代数余子式进行转置：\\operatorname{adj}(A) = C^T。",
-  "平行四边形面积即为原矩阵行列式的绝对值 |\\det(A)|。",
-  "三角形面积公式为 \\frac{1}{2} |\\det([x_i, y_i, 1])|，可先做行初等变换消去第 3 列后再展开。"
+  "注意伴随矩阵必须对代数余子式进行转置：$\\operatorname{adj}(A) = C^T$。",
+  "平行四边形面积即为原矩阵行列式的绝对值 $|\\det(A)|$。",
+  "在三角形的行列式中，用第 2、3 行分别减去第 1 行，沿最后一列展开，再取绝对值的一半。"
 ]} />
 
 <DualSolution>
@@ -513,22 +501,22 @@ $$
 <ExerciseCard id="l20-ex2" tier="L2" title="概念辨析：伴随矩阵转置与行列式恒等式">
 判定下列命题的正误并给出详尽的数学反驳或证明。
 
+**题目陈述**：对任意可逆矩阵 $A \in \mathbb{R}^{n \times n}$，由于代数余子式 $C_{ij}$ 是划去第 $i$ 行第 $j$ 列所得，故闭式逆矩阵公式 $A^{-1} = \frac{1}{\det A} C$ 恒成立。
+
 <TrueFalseInteractive
   id="l20-tf1"
   correct={false}
-  quickFeedback="错误！代数余子式矩阵 C 必须转置才能得到伴随矩阵 adj(A) = C^T。只有当原矩阵 A 为对称矩阵时，C 才恰好等于 C^T。"
+  quickFeedback={"错误。逆矩阵公式用的是伴随矩阵 $C^T$。若 $A$ 可逆，省略转置恰好在 $A$ 对称时成立。"}
 />
-
-**题目陈述**：对任意可逆矩阵 $A \in \mathbb{R}^{n \times n}$，由于代数余子式 $C_{ij}$ 是划去第 $i$ 行第 $j$ 列所得，故闭式逆矩阵公式 $A^{-1} = \frac{1}{\det A} C$ 恒成立。
 
 <ProgressiveHint hints={[
   "写出一个最简单的非对称 2x2 矩阵并计算 A C 进行乘积验证。",
-  "只有当 (A C)_{ik} = 0 (i \\neq k) 时才能构成单位矩阵，考察异行相乘究竟需要哪一行/列的代数余子式。"
+  "要使 $i\\ne k$ 时 $(AC^T)_{ik}=0$，$C^T$ 的第 $k$ 列应放入原矩阵哪一行的代数余子式？"
 ]} />
 
 <DualSolution>
 <SolutionIntuition>
-行与列在乘法中是正交相交的。若不转置，乘积第 $i$ 行遇到的是第 $k$ 列的余子式，两者的下标无法对齐为“同一矩阵的两行相等”。
+$A$ 的第 $i$ 行与 $C^T$ 的第 $k$ 列点乘，恰好把该行的元素与第 $k$ 行的代数余子式配对。这正是用第 $i$ 行替换第 $k$ 行后，沿第 $k$ 行展开行列式所需的配对。
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -556,22 +544,22 @@ $A$ 的第 $i$ 行向量为 $(a_{i1}, \dots, a_{in})$。为使其乘积结果为
 <ExerciseCard id="l20-ex3" tier="L2" title="手性定向与整系数矩阵的逆">
 判定下列命题的正误并给出详尽的数论与代数推导。
 
+**题目陈述**：若方阵 $A \in \mathbb{Z}^{n \times n}$ 的所有元素均为整数，则其逆矩阵 $A^{-1}$ 存在且亦为全整数方阵（$A^{-1} \in \mathbb{Z}^{n \times n}$）的充要条件是 $\det(A) = \pm 1$。
+
 <TrueFalseInteractive
   id="l20-tf2"
   correct={true}
-  quickFeedback="正确！因为 A^{-1} = (1/det A) C^T，若 A 为整数矩阵，则 C 的元素必全为整数。逆矩阵亦为整数矩阵当且仅当 det(A) 能整除 1，即 det(A) = ±1。"
+  quickFeedback={"正确。若 $A$ 与其逆均为整数矩阵，则整数行列式满足 $\\det(A)\\det(A^{-1})=1$。反过来，若 $\\det(A)=\\pm 1$，则逆矩阵为整数矩阵 $\\pm C^T$。"}
 />
 
-**题目陈述**：若方阵 $A \in \mathbb{Z}^{n \times n}$ 的所有元素均为整数，则其逆矩阵 $A^{-1}$ 存在且亦为全整数方阵（$A^{-1} \in \mathbb{Z}^{n \times n}$）的充要条件是 $\det(A) = \pm 1$。
-
 <ProgressiveHint hints={[
-  "必要性：利用行列式乘法性质 \\det(A) \\det(A^{-1}) = \\det(I) = 1，注意整数的约数只能是哪些。",
-  "充分性：利用伴随矩阵闭式求逆公式 A^{-1} = \\frac{1}{\\det A} C^T，分析代数余子式是否全为整数。"
+  "必要性：利用行列式乘法性质 $\\det(A)\\det(A^{-1}) = 1$，注意整数的约数只能是哪些。",
+  "充分性：利用伴随矩阵闭式求逆公式 $A^{-1} = C^T/\\det(A)$，分析代数余子式是否全为整数。"
 ]} />
 
 <DualSolution>
 <SolutionIntuition>
-整数除以一个数若依然必须是整数，分母只能是 1 或 -1。伴随矩阵 $C^T$ 是由整数的加减乘法构成的，本身绝对是整数矩阵，因此唯一的障碍就在于分母 $\det(A)$。
+若矩阵及其逆矩阵都为整数矩阵，则它们的有向体积缩放因子都是整数，乘积为 $1$。反过来，若 $\det(A)=\pm1$，伴随矩阵公式只需将整数代数余子式除以 $\pm1$。
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -598,9 +586,9 @@ $$
 已知 $A \in \mathbb{Z}^{n \times n}$ 且 $\det(A) = \pm 1$。
 根据代数余子式的定义：
 $$
-C_{ij} = (-1)^{i+j} \det(M_{ij})
+C_{ij} = (-1)^{i+j} \det(M'_{ij})
 $$
-子矩阵 $M_{ij}$ 是由 $A$ 划去一行一列得到的，其所有元素均为整数，故其行列式 $\det(M_{ij})$ 必然是整数。因此伴随矩阵的所有元素全为整数：
+子矩阵 $M'_{ij}$ 是由 $A$ 划去一行一列得到的，其所有元素均为整数，故其行列式 $\det(M'_{ij})$ 必然是整数。因此伴随矩阵的所有元素全为整数：
 $$
 \operatorname{adj}(A) = C^T \in \mathbb{Z}^{n \times n}
 $$
@@ -609,7 +597,7 @@ $$
 A^{-1} = \frac{1}{\det(A)} C^T = \pm 1 \cdot C^T = \pm C^T
 $$
 因为整数矩阵乘以 $\pm 1$ 依然是全整数矩阵，所以 $A^{-1} \in \mathbb{Z}^{n \times n}$。
-（注：这类行列式为 $\pm 1$ 的整矩阵在抽象代数中被称为**幺模矩阵（Unimodular Matrix）**，构成了特殊的线性群 $\mathrm{GL}_n(\mathbb{Z})$）。
+（注：这类行列式为 $\pm 1$ 的整矩阵在抽象代数中被称为**幺模矩阵（Unimodular Matrix）**，构成了一般线性群 $\mathrm{GL}_n(\mathbb{Z})$）。
 </SolutionRigorous>
 </DualSolution>
 </ExerciseCard>
@@ -627,9 +615,9 @@ n, & \text{若 } \operatorname{rank}(A) = n \\
 $$
 
 <ProgressiveHint hints={[
-  "对第一问：从恒等式 A \\operatorname{adj}(A) = (\\det A) I_n 出发，两边同时取行列式。",
-  "注意若 \\det(A) = 0，不可直接除以 \\det(A)，需分为满秩与非满秩讨论。",
-  "对第二问：当 \\operatorname{rank}(A) = n-1 时，至少存在一个非零 (n-1) 阶子式，故 \\operatorname{adj}(A) \\neq O；再利用 Sylvester 秩不等式或零空间判定其秩只能为 1。"
+  "对第一问：从恒等式 $A\\operatorname{adj}(A) = \\det(A) I_n$ 出发，两边同时取行列式。",
+  "注意若 $\\det(A)=0$，不可直接除以 $\\det(A)$，需分为满秩与非满秩讨论。",
+  "若 $\\operatorname{rank}(A)=n-1$，非零子式给出 $\\operatorname{adj}(A)\\ne 0$。再由 $A\\operatorname{adj}(A)=0$ 限制伴随矩阵的秩。"
 ]} />
 
 <DualSolution>
@@ -648,7 +636,7 @@ $$
 \det(A \operatorname{adj}(A)) = \det((\det A) I_n)
 $$
 左边根据行列式乘积性质等于 $\det(A) \det(\operatorname{adj}(A))$。
-右边提取标量：注意标量 $\det(A)$ 乘以 $n$ 阶单位矩阵，根据性质 3b，提到行列式外需提升至 $n$ 次幂：
+右边提取标量：注意标量 $\det(A)$ 乘以 $n$ 阶单位矩阵，根据全矩阵的数乘公式，提到行列式外需提升至 $n$ 次幂：
 $$
 \det((\det A) I_n) = (\det A)^n \det(I_n) = (\det A)^n
 $$
@@ -688,8 +676,8 @@ $$
   \operatorname{rank}(\operatorname{adj}(A)) = 1
   $$
 - **情形 3：$\operatorname{rank}(A) \le n - 2$**
-  根据秩的定义，原矩阵 $A$ 中所有阶数大于等于 $n - 1$ 的子式全部恒等于 0。
-  而伴随矩阵的每一个元素 $C_{ji} = (-1)^{i+j} \det(M_{ij})$ 恰好都是 $A$ 的 $(n-1)$ 阶子式！
+  根据秩等于最大非零子式的阶数，原矩阵 $A$ 中所有阶数大于等于 $n - 1$ 的子式全部恒等于 0。
+  而伴随矩阵的每一个元素 $(C^T)_{ij} = C_{ji} = (-1)^{i+j}\det(M'_{ji})$ 是 $A$ 的 $(n-1)$ 阶子式乘以相应的位置符号。
   因此对所有的 $i, j$，都有 $C_{ij} = 0$，伴随矩阵为全零矩阵：
   $$
   \operatorname{adj}(A) = O \implies \operatorname{rank}(\operatorname{adj}(A)) = 0
@@ -699,23 +687,23 @@ $$
 </DualSolution>
 </ExerciseCard>
 
-<ExerciseCard id="l20-ex5" tier="L4" title="高维嵌入曲面面积与 Gram 行列式 $\det(A^T A)$">
+<ExerciseCard id="l20-ex5" tier="L4" title="嵌入平行四边形面积与 Gram 行列式">
 在实际物理与工程问题中，我们经常遇到**长方矩阵**（例如 $A \in \mathbb{R}^{3 \times 2}$，两个三维列向量 $\mathbf{a}_1, \mathbf{a}_2 \in \mathbb{R}^3$ 倾斜嵌入在三维空间中）。因为 $A$ 不是方阵，$\det(A)$ 无意义。
 1. 证明由 $\mathbf{a}_1, \mathbf{a}_2$ 所张成的二维平行四边形在三维空间中的面积为：
 $$
 \operatorname{Area} = \sqrt{\det(A^T A)} = \|\mathbf{a}_1 \times \mathbf{a}_2\|_2
 $$
-2. 利用瘦 $QR$ 分解（Thin $QR$，其中 $A = Q_1 R$，$Q_1 \in \mathbb{R}^{3 \times 2}$ 列正交 $Q_1^T Q_1 = I_2$，$R \in \mathbb{R}^{2 \times 2}$ 上三角）证明上述结论。
+2. 利用瘦 $QR$ 分解（Thin $QR$，其中 $A = Q_1 R$，$Q_1 \in \mathbb{R}^{3 \times 2}$ 的列向量标准正交，$Q_1^T Q_1 = I_2$，$R \in \mathbb{R}^{2 \times 2}$ 上三角）证明上述结论。
 
 <ProgressiveHint hints={[
-  "将 A^T A 展开为点积矩阵：第一行为 [a1·a1, a1·a2]，第二行为 [a2·a1, a2·a2]。",
-  "利用向量代数恒等式 ||a1||^2 ||a2||^2 - (a1·a2)^2 = ||a1||^2 ||a2||^2 (1 - \\cos^2\\theta) = ||a1 \\times a2||^2。",
-  "代入 A = Q1 R，计算 A^T A = R^T Q1^T Q1 R = R^T R，取行列式！"
+  "$A^T A$ 的第 $(i,j)$ 个元素是 $\\mathbf{a}_i^T\\mathbf{a}_j$。应用二阶行列式公式。",
+  "若有零列，三个量均为零。两列均非零时，利用 $\\mathbf{a}_1\\cdot\\mathbf{a}_2 = \\|\\mathbf{a}_1\\|_2\\|\\mathbf{a}_2\\|_2\\cos\\theta$ 和叉积模长公式。",
+  "若两列线性无关，代入 $A=Q_1R$，用 $Q_1^TQ_1=I_2$ 得到 $A^TA=R^TR$，再取行列式。"
 ]} />
 
 <DualSolution>
 <SolutionIntuition>
-当矩阵不是方阵时，$A^T A$ 将高维向量投影折叠为方阵（Gram 矩阵），其元素记录了所有列向量的内积长度与夹角。Gram 行列式开根号正是微分几何中黎曼度量张量诱导的表面积微元 $\sqrt{\det g}$。
+当矩阵不是方阵时，$A^T A$ 是由列向量的内积组成的 Gram 矩阵（Gram Matrix），记录了列向量的长度与夹角。Gram 行列式开根号正是微分几何中黎曼度量张量诱导的表面积微元 $\sqrt{\det g}$。
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -728,7 +716,7 @@ $$
 $$
 \det(A^T A) = \|\mathbf{a}_1\|^2 \|\mathbf{a}_2\|^2 - (\mathbf{a}_1 \cdot \mathbf{a}_2)^2
 $$
-设两向量夹角为 $\theta$，则 $\mathbf{a}_1 \cdot \mathbf{a}_2 = \|\mathbf{a}_1\| \|\mathbf{a}_2\| \cos\theta$，代入得：
+若任一列为零，平行四边形面积、Gram 行列式与叉积均为零。否则设两向量的夹角为 $\theta\in[0,\pi]$，则 $\mathbf{a}_1 \cdot \mathbf{a}_2 = \|\mathbf{a}_1\| \|\mathbf{a}_2\| \cos\theta$，代入得：
 $$
 \det(A^T A) = \|\mathbf{a}_1\|^2 \|\mathbf{a}_2\|^2 (1 - \cos^2\theta) = \|\mathbf{a}_1\|^2 \|\mathbf{a}_2\|^2 \sin^2\theta
 $$
@@ -736,10 +724,10 @@ $$
 $$
 \sqrt{\det(A^T A)} = \|\mathbf{a}_1\| \|\mathbf{a}_2\| \sin\theta
 $$
-根据解析几何定义，底边长 $\|\mathbf{a}_1\|$ 乘以垂直高度 $\|\mathbf{a}_2\|\sin\theta$ 正是平行四边形面积，且该模长恰好等于外积模长 $\|\mathbf{a}_1 \times \mathbf{a}_2\|_2$。
+根据解析几何定义，底边长 $\|\mathbf{a}_1\|$ 乘以垂直高度 $\|\mathbf{a}_2\|\sin\theta$ 正是平行四边形面积，且该模长恰好等于叉积模长 $\|\mathbf{a}_1 \times \mathbf{a}_2\|_2$。
 
 **第二问证明（瘦 $QR$ 分解几何视角）：**
-对 $A \in \mathbb{R}^{3 \times 2}$ 作 Gram-Schmidt 正交化，得瘦 $QR$ 分解：
+若两列线性相关，平行四边形面积为零，且由 $\operatorname{Null}(A^T A)=\operatorname{Null}(A)$ 可知 $A^T A$ 奇异。若两列线性无关，对 $A \in \mathbb{R}^{3 \times 2}$ 作 Gram-Schmidt 正交化，得瘦 $QR$ 分解：
 $$
 A = Q_1 R = \begin{bmatrix} \mathbf{q}_1 & \mathbf{q}_2 \end{bmatrix} \begin{bmatrix} r_{11} & r_{12} \\ 0 & r_{22} \end{bmatrix}
 $$
@@ -752,14 +740,14 @@ $$
 $$
 \det(A^T A) = \det(R^T R) = \det(R^T) \det(R) = (\det R)^2
 $$
-因为 $R$ 是上三角方阵，$\det(R) = r_{11} r_{22}$，因此：
+因为 $R$ 是对角元 $r_{11},r_{22}\gt 0$ 的上三角方阵，$\det(R) = r_{11} r_{22}$，因此：
 $$
 \sqrt{\det(A^T A)} = \sqrt{(r_{11} r_{22})^2} = r_{11} r_{22}
 $$
 在 Gram-Schmidt 中：
 - $r_{11} = \|\mathbf{a}_1\|_2$ 为平行四边形的底边长；
 - $r_{22} = \|\mathbf{a}_2 - \operatorname{proj}_{\mathbf{q}_1}\mathbf{a}_2\|_2$ 为垂直于 $\mathbf{q}_1$ 的几何正交高！
-底边长乘正交高，正是二维平行四边形面积。该结论直接推广到任意嵌入高维空间 $\mathbb{R}^m$ 的 $k$ 维流形体积元 $d V = \sqrt{\det(J^T J)} \, d u_1 \cdots d u_k$。
+底边长乘正交高，正是二维平行四边形面积。该结论直接推广到任意嵌入高维空间 $\mathbb{R}^m$ 的 $k$ 维流形在正则参数化（雅可比矩阵 $J\in\mathbb{R}^{m\times k}$ 列满秩）下的体积元 $d V = \sqrt{\det(J^T J)} \, d u_1 \cdots d u_k$。
 </SolutionRigorous>
 </DualSolution>
 </ExerciseCard>
@@ -784,9 +772,8 @@ $$
 
 ### 1. 概率守恒与多元微积分变量替换
 
-设我们希望从一个简单的先验分布（如标准高斯分布 $\mathbf{z} \sim p_Z(\mathbf{z}) = \mathcal{N}(\mathbf{0}, I)$）出发，通过一个由深度神经网络参数化的可逆双射变换 $\mathbf{x} = g_\theta(\mathbf{z})$（其逆映射记为 $\mathbf{z} = f_\theta(\mathbf{x}) = g_\theta^{-1}(\mathbf{x})$），将简单分布推向复杂的数据分布 $p_X(\mathbf{x})$。
+设 $\mathbf{z}\sim\mathcal{N}(\mathbf{0},I_d)$ 的密度为 $p_Z$，并令 $g_\theta:\mathbb{R}^d\to\mathbb{R}^d$ 为 $C^1$ 微分同胚，逆映射为 $f_\theta$。对 $\mathbf{x}=g_\theta(\mathbf{z})$，概率质量守恒给出变量替换公式（Change of Variables Formula）：
 
-根据概率守恒公理，空间局部无穷小微元 $d\mathbf{x}$ 与其原像微元 $d\mathbf{z}$ 内包含的概率质量必须严格相等：
 $$
 p_X(\mathbf{x}) |d\mathbf{x}| = p_Z(\mathbf{z}) |d\mathbf{z}|
 $$
@@ -794,41 +781,41 @@ $$
 $$
 p_X(\mathbf{x}) = p_Z(f_\theta(\mathbf{x})) \cdot \left| \det J_{f_\theta}(\mathbf{x}) \right|
 $$
-两边取自然对数，得到用于最大似然训练（Maximum Likelihood Estimation, MLE）的目标函数：
+当密度为正时，单样本对数似然为
 $$
-\log p_X(\mathbf{x}) = \log p_Z(f_\theta(\mathbf{x})) + \log \left| \det J_{f_\theta}(\mathbf{x}) \right|
+\log p_X(\mathbf{x}) = \log p_Z(f_\theta(\mathbf{x})) + \log \left| \det J_{f_\theta}(\mathbf{x}) \right|.
 $$
-这个公式清晰地展现了行列式的物理本质：**第一项衡量映射后在标准先验中的概率高度，第二项则是雅可比行列式对空间局部的体积收缩/膨胀补偿！** 若空间被压缩（$|\det J| \lt 1$），则该处概率密度必定被挤压升高。
+最大似然估计（Maximum Likelihood Estimation, MLE）最大化观测样本的对数似然之和。若正向映射在 $\mathbf{z}$ 处压缩体积，即 $|\det J_{g_\theta}(\mathbf{z})|\lt 1$，逆映射的缩放因子为其倒数。当 $p_Z(\mathbf{z})\gt 0$ 时，有 $p_X(g_\theta(\mathbf{z}))\gt p_Z(\mathbf{z})$。
 
 ---
 
 ### 2. 高维灾难与 RealNVP 的分块三角雅可比设计
 
-对于 $512 \times 512$ 的三通道高清彩色图像，数据维度 $d = 512 \times 512 \times 3 \approx 786,432$。
+对于 $512 \times 512$ 的三通道高清彩色图像，数据维度 $d = 512 \times 512 \times 3 = 786{,}432$。
 如果 $f_\theta$ 是一个任意无约束的全连接网络，其雅可比矩阵 $J \in \mathbb{R}^{d \times d}$ 是一个包含近 $6 \times 10^{11}$ 个元素的庞然大物。直接用高斯消元法计算其行列式需要花费：
 $$
-O(d^3) \approx (8 \times 10^5)^3 \approx 5 \times 10^{17} \text{ 次浮点运算}
+\frac{2}{3}d^3 \approx 3.2 \times 10^{17} \text{ 次浮点运算}
 $$
 在每次反向传播训练中计算 $O(d^3)$ 的行列式是绝对不可能的工程灾难。
 
 **AI 领域的破局之策（RealNVP 仿射耦合层）**：
-Dinh 等人利用我们在第 18 讲学到的**分块三角矩阵行列式性质（性质 7）**，设计了**仿射耦合层（Affine Coupling Layer）**。
-将输入特征向量切分为两半 $\mathbf{x} = [\mathbf{x}_1, \mathbf{x}_2]^T$：
+Dinh 等人利用我们在第 18 讲习题 5 的**分块三角行列式公式**，设计了**仿射耦合层（Affine Coupling Layer）**。
+将输入特征向量切分为两半 $\mathbf{x}=(\mathbf{x}_1^T,\mathbf{x}_2^T)^T$，其中 $d$ 为偶数，两块均属于 $\mathbb{R}^{d/2}$：
 $$
 \begin{aligned}
 \mathbf{z}_1 &= \mathbf{x}_1 \\
 \mathbf{z}_2 &= \mathbf{x}_2 \odot \exp(s_\theta(\mathbf{x}_1)) + t_\theta(\mathbf{x}_1)
 \end{aligned}
 $$
-其中 $s_\theta$ 和 $t_\theta$ 可以是**任意复杂、不可逆的超深卷积残差网络**，$\odot$ 表示逐元素阿达马乘积。
-现在写出该变换关于输入的雅可比矩阵：
+取 $C^1$ 函数 $s_\theta,t_\theta:\mathbb{R}^{d/2}\to\mathbb{R}^{d/2}$。指数和阿达马积 $\odot$ 均逐元素计算。逆变换先恢复 $\mathbf{x}_1=\mathbf{z}_1$，再求 $\mathbf{x}_2=(\mathbf{z}_2-t_\theta(\mathbf{z}_1))\odot\exp(-s_\theta(\mathbf{z}_1))$。数据到潜变量的雅可比矩阵为
+
 $$
 J = \frac{\partial (\mathbf{z}_1, \mathbf{z}_2)}{\partial (\mathbf{x}_1, \mathbf{x}_2)} = \begin{bmatrix}
-I_{d/2} & O \\
+I_{d/2} & 0_{d/2\times d/2} \\
 \frac{\partial \mathbf{z}_2}{\partial \mathbf{x}_1} & \operatorname{diag}(\exp(s_\theta(\mathbf{x}_1)))
 \end{bmatrix}
 $$
-这是一个绝妙的**分块下三角矩阵**！根据第 18 讲性质 7，分块三角矩阵的行列式直接等于主对角线子块行列式的乘积：
+这是一个绝妙的**分块下三角矩阵**！由分块行列式公式，分块三角矩阵的行列式直接等于主对角线子块行列式的乘积：
 $$
 \det(J) = \det(I_{d/2}) \cdot \det(\operatorname{diag}(\exp(s_\theta(\mathbf{x}_1)))) = 1 \cdot \prod_{i=1}^{d/2} \exp(s_{\theta, i}(\mathbf{x}_1))
 $$
@@ -836,39 +823,41 @@ $$
 $$
 \log |\det(J)| = \sum_{i=1}^{d/2} s_{\theta, i}(\mathbf{x}_1)
 $$
-原本令人绝望的 $O(d^3)$ 恐怖行列式计算，被优雅的代数结构**秒杀降维至 $O(d)$ 的轻量逐项求和**！
+尺度函数的输出已知后，求和只需 $O(d)$ 次运算。
 
 ---
 
-### 3. 连续流匹配（Flow Matching）与雅可比迹导数恒等式
+### 3. 连续归一化流与瞬时体积变化率
 
-在最新的 Diffusion 和 Flow Matching（如 Stable Diffusion 3、FLUX.1）中，离散层流被泛化为由常微分方程（ODE）驱动的**连续归一化流（Continuous Normalizing Flows）**：
+流匹配（Flow Matching）通过回归训练连续归一化流（Continuous Normalizing Flow）的速度场。流映射本身由常微分方程定义：
 $$
-\frac{d \mathbf{x}_t}{dt} = \mathbf{v}_\theta(\mathbf{x}_t, t)
+\dot{\mathbf{x}}_t=\mathbf{v}_\theta(\mathbf{x}_t,t), \qquad \mathbf{x}_t=\phi_t(\mathbf{x}_0), \qquad \phi_0(\mathbf{x}_0)=\mathbf{x}_0.
 $$
-在连续时间演化下，局部体积元是如何随时间连续变化的？
-这里蕴含着纯数学中最深刻的矩阵微积分恒等式——**雅可比行列式导数恒等式（Jacobi's Formula）**：
-对任意可微方阵 $M(t)$，有 $\frac{d}{dt} \det(M(t)) = \operatorname{tr}\left(\operatorname{adj}(M(t)) \frac{d M(t)}{dt}\right)$。若 $M(t)$ 可逆：
+假设速度场及其空间导数连续，并且在所讨论的时间区间内，方程正向与反向均有唯一解。于是流映射的逆可微。其空间雅可比矩阵 $J_t=D_{\mathbf{x}_0}\phi_t(\mathbf{x}_0)$ 满足
 $$
-\frac{d}{dt} \log |\det M(t)| = \operatorname{tr}\left( M(t)^{-1} \frac{d M(t)}{dt} \right)
+\dot J_t=D_{\mathbf{x}}\mathbf{v}_\theta(\mathbf{x}_t,t)J_t,\qquad J_0=I_d.
 $$
-将空间流映射的切映射代入，立得连续时间下的瞬时体积变化率公式：
+
+对于可微方阵 $M(t)$，雅可比行列式求导公式（Jacobi's Formula）给出 $\frac{d}{dt}\det(M)=\operatorname{tr}(\operatorname{adj}(M)\dot M)$。当 $M(t)$ 可逆时，可得 $\frac{d}{dt}\log|\det(M)|=\operatorname{tr}(M^{-1}\dot M)$。代入 $\dot J_t$ 并利用迹的循环性质：
 $$
-\frac{d}{dt} \log |\det J_t| = \operatorname{div}(\mathbf{v}_\theta) = \operatorname{tr}\left( \frac{\partial \mathbf{v}_\theta}{\partial \mathbf{x}} \right)
+\frac{d}{dt}\log|\det(J_t)|
+=\operatorname{tr}\left(J_t^{-1}D_{\mathbf{x}}\mathbf{v}_\theta(\mathbf{x}_t,t)J_t\right)
+=\operatorname{div}\mathbf{v}_\theta(\mathbf{x}_t,t).
 $$
-流的微元体积扩张率等于速度场的**散度（Divergence）**，亦即速度场空间雅可比矩阵的**迹（Trace）**！由此推导出瞬时概率密度的连续性传输方程（Liouville Equation）：
+
+速度场的散度（Divergence）是其空间雅可比的迹，也是局部体积的相对变化率。概率守恒给出 $p_t(\mathbf{x}_t)|\det(J_t)|=p_0(\mathbf{x}_0)$。沿密度为正的轨迹求导，得到
 $$
-\frac{d}{dt} \log p_t(\mathbf{x}_t) = -\operatorname{div}(\mathbf{v}_\theta(\mathbf{x}_t, t)) = -\operatorname{tr}\left( \frac{\partial \mathbf{v}_\theta}{\partial \mathbf{x}} \right)
+\frac{d}{dt}\log p_t(\mathbf{x}_t)=-\operatorname{div}\mathbf{v}_\theta(\mathbf{x}_t,t).
 $$
-从高斯消元的行列式，到伴随矩阵与代数余子式，再到流匹配中瞬时体积微元的散度迹，线性代数的经典几何公理跨越三个世纪，化作了今天驱动最前沿生成式大模型的底层引擎。
+散度为正时，局部体积膨胀，沿轨迹的密度下降。
 
 ---
 
 ### 4. 动手实验：三角雅可比行列式与迹散度的数值验证
 
 下面的 PyTorch 实验完整验证了：
-1. RealNVP 耦合层中利用 $O(d)$ 对角和计算出的 $\log |\det J|$，与 Autograd 全量计算出的真实雅可比矩阵的 `torch.linalg.slogdet` 达到机器精度级别的一致；
-2. 验证瞬时时间导数下，行列式变化率精确等于雅可比矩阵的迹 $\operatorname{tr}(\nabla \mathbf{v})$。
+1. RealNVP 耦合层中利用 $O(d)$ 对角和计算出的 $\log |\det J|$，与 Autograd 全量计算出的真实雅可比矩阵的 `torch.linalg.slogdet` 在浮点容差内一致；
+2. 用一次前向欧拉步和一阶差分近似初始时刻的对数体积变化率 $\operatorname{tr}(D_{\mathbf{x}}\mathbf{v})$。
 
 <CollapsibleCode title="RealNVP 块三角雅可比行列式与流匹配散度迹数值验证" language="python">
 ```python
@@ -876,6 +865,7 @@ import torch
 import torch.nn as nn
 
 torch.manual_seed(42)
+torch.set_default_dtype(torch.float64)
 
 # =====================================================================
 # 实验一：RealNVP 仿射耦合层分块下三角雅可比行列式验证
@@ -884,7 +874,7 @@ class AffineCouplingLayer(nn.Module):
     def __init__(self, dim):
         super().__init__()
         self.d = dim // 2
-        # 任意复杂不可逆网络，输出尺度变换 s 与平移变换 t
+        # 输出尺度 s 和位移 t 的网络可以不可逆
         self.net = nn.Sequential(
             nn.Linear(self.d, 64),
             nn.Tanh(),
@@ -900,7 +890,7 @@ class AffineCouplingLayer(nn.Module):
         z1 = x1
         z2 = x2 * torch.exp(s) + t
         z = torch.cat([z1, z2], dim=0)
-        # 利用性质 7 得到的解析 log-det: O(d) 复杂度
+        # 利用三角矩阵对角元计算解析 log-det: O(d) 复杂度
         log_det_analytic = torch.sum(s)
         return z, log_det_analytic
 
@@ -911,12 +901,13 @@ x = torch.randn(dim)
 # 1. 解析快速计算
 z, log_det_analytic = coupling(x)
 
-# 2. 暴力构建全量 Autograd 雅可比矩阵 (O(d^3) 复杂度)
+# 2. 用 Autograd 构建完整雅可比矩阵
 def forward_fn(inp):
     out, _ = coupling(inp)
     return out
 
 J = torch.autograd.functional.jacobian(forward_fn, x)
+assert torch.count_nonzero(J[:dim // 2, dim // 2:]).item() == 0
 
 # 打印雅可比矩阵形态：右上角必须全为 0 (下三角块结构)
 print("=== RealNVP 雅可比矩阵结构 J (6x6) ===")
@@ -924,12 +915,13 @@ print(torch.round(J, decimals=3))
 
 # 3. 校验 slogdet
 sign, log_det_full = torch.linalg.slogdet(J)
+assert sign.item() == 1
 diff = torch.abs(log_det_analytic - log_det_full).item()
 
 print(f"\n解析 log|det(J)| = {log_det_analytic.item():.6f}")
 print(f"全量 slogdet(J)  = {log_det_full.item():.6f}")
-print(f"绝对误差: {diff:.2e} (完全符合机器精度！)")
-assert diff < 1e-6, "行列式理论计算与数值结果不吻合！"
+print(f"绝对误差: {diff:.2e}")
+assert diff < 1e-12, "行列式理论计算与数值结果不吻合！"
 
 # =====================================================================
 # 实验二：Jacobi 导数公式与速度场散度迹验证 (Continuous Flows)
@@ -947,11 +939,11 @@ def velocity_field(x):
 x0 = torch.tensor([1.0, -0.5, 0.8])
 dt = 1e-4
 
-# 时间前进一步的位移映射: phi_t(x) = x + dt * v(x)
+# 时间前进一步的位移映射: x + dt * v(x)
 def flow_map(x):
     return x + dt * velocity_field(x)
 
-# 初始雅可比 J(0) = I, J(dt) 为一步后的雅可比
+# 在 x0 处求欧拉步的雅可比矩阵
 J_dt = torch.autograd.functional.jacobian(flow_map, x0)
 _, log_det_dt = torch.linalg.slogdet(J_dt)
 
@@ -965,7 +957,8 @@ div_v_theory = torch.trace(grad_v)
 print(f"数值差分 d/dt log|det(J)|: {d_log_det_dt_numerical.item():.5f}")
 print(f"理论散度迹 tr(∇v):         {div_v_theory.item():.5f}")
 diff_flow = torch.abs(d_log_det_dt_numerical - div_v_theory).item()
-print(f"差分逼近误差: {diff_flow:.2e} (随 dt->0 趋向 0)")
+print(f"差分逼近误差: {diff_flow:.2e}")
+assert diff_flow < 2e-4
 ```
 </CollapsibleCode>
 

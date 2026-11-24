@@ -2,20 +2,24 @@ import * as React from 'react';
 import { MathDiagram } from './math-diagram';
 
 export function FourSubspacesBigPictureDiagram({
-  caption = 'Gilbert Strang 教授贯穿整门 MIT 18.06 的灵魂总图（**线性代数基本定理第一部分**）：任意矩阵 $A \\in \\mathbb{R}^{m\\times n}$（秩为 $r$）同时统帅左右两个世界里的四个基本子空间——左侧输入空间 $\\mathbb{R}^n$ 分裂为 $r$ 维**行空间 $\\operatorname{Row}(A)$** 与 $n-r$ 维**零空间 $\\operatorname{Null}(A)$**（维数和 $= n$）；右侧输出空间 $\\mathbb{R}^m$ 分裂为 $r$ 维**列空间 $\\operatorname{Col}(A)$** 与 $m-r$ 维**左零空间 $\\operatorname{Null}(A^T)$**（维数和 $= m$）。矩阵 $A$ 将整个零空间压扁为 $\\mathbf{0}$，同时在行空间与列空间之间建立一一对应的双射！',
+  lang = 'zh',
+  caption = '对实矩阵 $A\\in\\mathbb{R}^{m\\times n}$，输入空间为 $\\operatorname{Row}(A)\\oplus\\operatorname{Null}(A)$，输出空间为 $\\operatorname{Col}(A)\\oplus\\operatorname{Null}(A^T)$。每对空间互为正交补。多边形是示意图。箭头展示 $0\\lt r\\lt n$ 时两个非零输入分量的去向。',
 }: {
+  lang?: 'en' | 'zh';
   caption?: string;
 }) {
+  const isEnglish = lang === 'en';
+
   return (
     <MathDiagram
-      title="The Big Picture of Linear Algebra (Part I): Dimensions of the Four Subspaces"
+      title={isEnglish ? 'The Four Fundamental Subspaces' : '四个基本子空间全景图'}
       caption={caption}
     >
       <svg
         viewBox="0 0 720 295"
         className="w-full max-w-[720px] select-none text-foreground"
         role="img"
-        aria-label="Strang Big Picture of the Four Fundamental Subspaces in Rn and Rm"
+        aria-label={isEnglish ? 'The four fundamental subspaces and the action of A' : '四个基本子空间与矩阵 A 的作用'}
       >
         <defs>
           <marker id="l10-arrow-blue" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
@@ -29,7 +33,7 @@ export function FourSubspacesBigPictureDiagram({
         {/* ================= LEFT CROSS: INPUT SPACE R^n ================= */}
         <g transform="translate(26, 16)">
           <text x="140" y="16" textAnchor="middle" className="fill-current text-[13px] font-bold">
-            输入空间 ℝⁿ（总维数 = n）
+            {isEnglish ? 'Input space ℝⁿ' : '输入空间 ℝⁿ'}
           </text>
 
           {/* Upper-left diamond: Row Space C(A^T) */}
@@ -58,14 +62,6 @@ export function FourSubspacesBigPictureDiagram({
             dim = n − r
           </text>
 
-          {/* Origin 0 in R^n + orthogonal right-angle preview */}
-          <polyline
-            points="130,137 136,131 146,141"
-            fill="none"
-            stroke="currentColor"
-            strokeOpacity="0.6"
-            strokeWidth="1.4"
-          />
           <circle cx="140" cy="142" r="4.5" className="fill-current" />
           <text x="155" y="145" className="fill-current font-mono text-[10.5px] font-bold">0</text>
 
@@ -84,7 +80,7 @@ export function FourSubspacesBigPictureDiagram({
         {/* ================= MAPPING ARROWS BY MATRIX A ================= */}
         {/* Top bijection arrow: Row(A) -> Col(A) */}
         <path
-          d="M 192 84 C 305 42, 415 42, 524 84"
+          d="M 108 102 C 190 36, 520 36, 612 100"
           fill="none"
           className="stroke-blue-600 dark:stroke-blue-400"
           strokeWidth="2.4"
@@ -92,12 +88,12 @@ export function FourSubspacesBigPictureDiagram({
         />
         <rect x="292" y="34" width="136" height="22" rx="6" className="fill-background stroke-blue-500/50" />
         <text x="360" y="49" textAnchor="middle" className="fill-blue-700 dark:fill-blue-300 font-mono text-[10.5px] font-bold">
-          x_r ⟼ Ax_r (1-to-1!)
+          {isEnglish ? 'xᵣ ⟼ Axᵣ (bijection)' : 'xᵣ ⟼ Axᵣ（双射）'}
         </text>
 
         {/* Bottom collapse arrow: Null(A) -> 0 */}
         <path
-          d="M 198 194 C 308 184, 412 174, 548 159"
+          d="M 182 192 C 300 185, 405 174, 560 158"
           fill="none"
           className="stroke-emerald-600 dark:stroke-emerald-400"
           strokeWidth="2.2"
@@ -106,13 +102,13 @@ export function FourSubspacesBigPictureDiagram({
         />
         <rect x="294" y="166" width="132" height="22" rx="6" className="fill-background stroke-emerald-500/50" />
         <text x="360" y="181" textAnchor="middle" className="fill-emerald-700 dark:fill-emerald-300 font-mono text-[10.5px] font-bold">
-          Ax_n = 0 (零空间坍缩)
+          xₙ ⟼ Axₙ = 0
         </text>
 
         {/* ================= RIGHT CROSS: OUTPUT SPACE R^m ================= */}
         <g transform="translate(420, 16)">
           <text x="140" y="16" textAnchor="middle" className="fill-current text-[13px] font-bold">
-            输出空间 ℝᵐ（总维数 = m）
+            {isEnglish ? 'Output space ℝᵐ' : '输出空间 ℝᵐ'}
           </text>
 
           {/* Upper-right diamond: Column Space Col(A) */}
@@ -141,14 +137,6 @@ export function FourSubspacesBigPictureDiagram({
             dim = m − r
           </text>
 
-          {/* Origin 0 in R^m */}
-          <polyline
-            points="134,148 140,154 148,146"
-            fill="none"
-            stroke="currentColor"
-            strokeOpacity="0.6"
-            strokeWidth="1.4"
-          />
           <circle cx="140" cy="142" r="4.5" className="fill-current" />
           <text x="118" y="146" className="fill-current font-mono text-[10.5px] font-bold">0</text>
 

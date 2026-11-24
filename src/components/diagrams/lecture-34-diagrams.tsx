@@ -197,7 +197,7 @@ export function LeftRightAndPseudoinverseSubspaceBijectionDiagram({
 
           {/* Collapse 1: Null(A) -> 0 in R^m */}
           <path
-            d="M 274 260 Q 460 206 631 210"
+            d="M 274 260 Q 460 206 638 208"
             fill="none"
             className="stroke-amber-600 dark:stroke-amber-400"
             strokeWidth="2.1"
@@ -211,7 +211,7 @@ export function LeftRightAndPseudoinverseSubspaceBijectionDiagram({
 
           {/* Collapse 2: Null(A^T) -> 0 in R^n */}
           <path
-            d="M 646 292 Q 460 326 289 216"
+            d="M 646 292 Q 460 326 282 208"
             fill="none"
             className="stroke-purple-600 dark:stroke-purple-400"
             strokeWidth="2.1"
@@ -363,7 +363,7 @@ export function LeftRightAndPseudoinverseSubspaceBijectionDiagram({
             唯一满足全部四条 Penrose 条件的伪逆
           </text>
           <text x="757" y="415" textAnchor="middle" className="fill-muted-foreground text-[10px] font-mono">
-            统一左逆 (AᵀA)⁻¹Aᵀ 与右逆 Aᵀ(AAᵀ)⁻¹
+            列满秩取标准左逆，行满秩取标准右逆
           </text>
         </g>
       </svg>
@@ -479,22 +479,22 @@ export function MinimumNormLeastSquaresGeometryDiagram({
             Col(A)  (dim = r)
           </text>
 
-          {/* Origin in Col(A): (122, 266) */}
-          <circle cx="122" cy="266" r="3.8" className="fill-foreground" />
-          <text x="108" y="264" className="fill-foreground text-[11px] font-mono font-bold">
+          {/* Origin in Col(A): (122, 252) */}
+          <circle cx="122" cy="252" r="3.8" className="fill-foreground" />
+          <text x="108" y="249" className="fill-foreground text-[11px] font-mono font-bold">
             0
           </text>
 
           {/* Projection point p = (256, 252) */}
-          {/* Arbitrary Ax point = (336, 266) */}
+          {/* Arbitrary Ax point = (336, 252) */}
           {/* Target b point = (256, 128) */}
 
-          {/* Vector b: (122, 266) -> (256, 128) */}
+          {/* Vector b: (122, 252) -> (256, 128) */}
           <line
             x1="122"
-            y1="266"
-            x2="251"
-            y2="133"
+            y1="252"
+            x2="256"
+            y2="128"
             className="stroke-foreground/85"
             strokeWidth="2.3"
             markerEnd="url(#l34-geom-arrow-fg)"
@@ -503,12 +503,12 @@ export function MinimumNormLeastSquaresGeometryDiagram({
             b ∉ Col(A)
           </text>
 
-          {/* Projection vector p = AA^+ b = Ax^+: (122, 266) -> (256, 252) */}
+          {/* Projection vector p = AA^+ b = Ax^+: (122, 252) -> (256, 252) */}
           <line
             x1="122"
-            y1="266"
-            x2="248"
-            y2="253"
+            y1="252"
+            x2="256"
+            y2="252"
             className="stroke-emerald-600 dark:stroke-emerald-400"
             strokeWidth="2.6"
             markerEnd="url(#l34-geom-arrow-emerald)"
@@ -522,7 +522,7 @@ export function MinimumNormLeastSquaresGeometryDiagram({
             x1="256"
             y1="252"
             x2="256"
-            y2="135"
+            y2="128"
             className="stroke-purple-600 dark:stroke-purple-400"
             strokeWidth="2.4"
             markerEnd="url(#l34-geom-arrow-purple)"
@@ -533,7 +533,7 @@ export function MinimumNormLeastSquaresGeometryDiagram({
 
           {/* Right angle at p = (256, 252) */}
           <polyline
-            points="244,253 244,240 256,239"
+            points="244,252 244,240 256,240"
             fill="none"
             className="stroke-purple-600 dark:stroke-purple-400"
             strokeWidth="1.4"
@@ -543,17 +543,17 @@ export function MinimumNormLeastSquaresGeometryDiagram({
           <line
             x1="256"
             y1="252"
-            x2="334"
-            y2="266"
+            x2="336"
+            y2="252"
             className="stroke-emerald-600/65 dark:stroke-emerald-400/65"
             strokeWidth="1.5"
             strokeDasharray="3 3"
           />
           <line
             x1="336"
-            y1="266"
-            x2="261"
-            y2="134"
+            y1="252"
+            x2="256"
+            y2="128"
             className="stroke-amber-600 dark:stroke-amber-400"
             strokeWidth="1.6"
             strokeDasharray="4 3"
@@ -567,8 +567,8 @@ export function MinimumNormLeastSquaresGeometryDiagram({
           <text x="256" y="117" textAnchor="middle" className="fill-foreground text-[11.5px] font-mono font-bold">
             b
           </text>
-          <circle cx="336" cy="266" r="3.5" className="fill-amber-600 dark:fill-amber-400" />
-          <text x="344" y="274" className="fill-amber-700 dark:fill-amber-300 text-[10.5px] font-mono font-bold">
+          <circle cx="336" cy="252" r="3.5" className="fill-amber-600 dark:fill-amber-400" />
+          <text x="344" y="255" className="fill-amber-700 dark:fill-amber-300 text-[10.5px] font-mono font-bold">
             Ax
           </text>
 

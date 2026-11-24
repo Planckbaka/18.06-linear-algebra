@@ -12,7 +12,7 @@ At this point, a completely natural mathematical question arises: **Now that we 
 In this lecture, Prof. Gilbert Strang gives three striking and elegant answers:
 1. **The ultimate closed-form algebraic formula for the inverse**: Without any elimination, we can write the inverse matrix directly via the **adjugate matrix** as $A^{-1} = \frac{1}{\det A} C^T$;
 2. **A purely symbolic closed-form solution for linear systems**: **Cramer's Rule**, accompanied by a breathtaking one-line matrix-identity proof;
-3. **The true geometric measure of space**: The absolute value $|\det(A)|$ equals the **oriented volume** of an $n$-dimensional **parallelepiped**, while its sign strictly encodes the handedness (orientation) of the coordinate system.
+3. **The true geometric measure of space**: The absolute value $|\det(A)|$ equals the **unsigned volume** of an $n$-dimensional **parallelepiped**, while its sign strictly encodes the handedness (orientation) of the coordinate system.
 
 ---
 
@@ -22,16 +22,16 @@ In numerical computing, Gauss-Jordan elimination is the standard workhorse for c
 
 ### 1.1 Cofactor Matrix and Adjugate Matrix
 
-Recall from Lecture 19 that for $A \in \mathbb{R}^{n \times n}$, if we delete row $i$ and column $j$ to obtain the $(n-1) \times (n-1)$ submatrix $M_{ij}$, then the **cofactor** at position $(i, j)$ is defined as:
+Recall from Lecture 19 that for $A \in \mathbb{R}^{n \times n}$, if we delete row $i$ and column $j$ to obtain the $(n-1) \times (n-1)$ submatrix $M'_{ij}$, then the minor is $M_{ij}=\det(M'_{ij})$ and the **cofactor** at position $(i, j)$ is defined as:
 
 $$
-C_{ij} = (-1)^{i+j} \det(M_{ij})
+C_{ij} = (-1)^{i+j} \det(M'_{ij})
 $$
 
 Arranging all cofactors into an $n \times n$ matrix gives the **cofactor matrix** $C$.
 
 <DefinitionCard label="Definition" title="Cofactor Matrix and Adjugate Matrix">
-Let $A = [a_{ij}] \in \mathbb{R}^{n \times n}$ be a square matrix. Its **cofactor matrix** $C \in \mathbb{R}^{n \times n}$ has $(i, j)$ entry equal to the cofactor $C_{ij}$ of $A$:
+Let $A = [a_{ij}] \in \mathbb{R}^{n \times n}$ with $n \ge 1$. For $n=1$, the empty minor is $1$. Its **cofactor matrix** $C \in \mathbb{R}^{n \times n}$ has $(i, j)$ entry equal to the cofactor $C_{ij}$ of $A$:
 
 $$
 C = \begin{bmatrix}
@@ -42,7 +42,7 @@ C_{n1} & C_{n2} & \cdots & C_{nn}
 \end{bmatrix}
 $$
 
-The **transpose** $C^T$ of the cofactor matrix is called the **adjugate matrix** (or classical adjoint) of $A$, commonly denoted $\operatorname{adj}(A)$ or $A^*$:
+The **transpose** $C^T$ of the cofactor matrix is called the **adjugate matrix** (or classical adjoint) of $A$, denoted $\operatorname{adj}(A)$:
 
 $$
 \operatorname{adj}(A) \triangleq C^T = \begin{bmatrix}
@@ -67,7 +67,7 @@ $$
 A C^T = C^T A = \det(A) I_n
 $$
 
-Consequently, $A$ is invertible ($\det(A) \neq 0$) if and only if its inverse exists, and its closed-form inverse formula is:
+By the determinant criterion, $A$ is invertible exactly when $\det(A)\ne 0$. In that case,
 
 $$
 A^{-1} = \frac{1}{\det(A)} C^T = \frac{1}{\det(A)} \operatorname{adj}(A)
@@ -103,37 +103,25 @@ $$
 P_{ik} = a_{i1} C_{k1} + a_{i2} C_{k2} + \cdots + a_{in} C_{kn}
 $$
 
-This expression has a brilliant geometric and algebraic interpretation. Construct an auxiliary matrix $A^*$ by replacing row $k$ of $A$ with a copy of row $i$, while keeping all other rows unchanged:
+This expression has a brilliant geometric and algebraic interpretation. Let $\widetilde{A}$ be $A$ with row $k$ replaced by row $i$.
 
-$$
-A^* = \begin{bmatrix}
-\text{row}_1(A) \\
-\vdots \\
-\text{row}_i(A) \\
-\vdots \\
-\text{row}_i(A) \quad \leftarrow \text{row } k \text{ replaced by row } i \\
-\vdots \\
-\text{row}_n(A)
-\end{bmatrix}
-$$
-
-Now compute $\det(A^*)$ by Laplace expansion along its $k$-th row:
-- The entries of row $k$ of $A^*$ are $a_{i1}, a_{i2}, \dots, a_{in}$;
-- Deleting row $k$ of $A^*$ leaves the exact same $(n-1)$ rows as deleting row $k$ of $A$, so the cofactors of $A^*$ along row $k$ are still $C_{k1}, C_{k2}, \dots, C_{kn}$!
+Now compute $\det(\widetilde{A})$ by Laplace expansion along its $k$-th row:
+- The entries of row $k$ of $\widetilde{A}$ are $a_{i1}, a_{i2}, \dots, a_{in}$;
+- Deleting row $k$ of $\widetilde{A}$ leaves the exact same $(n-1)$ rows as deleting row $k$ of $A$, so the cofactors of $\widetilde{A}$ along row $k$ are still $C_{k1}, C_{k2}, \dots, C_{kn}$!
 
 Thus, the determinant of the auxiliary matrix is:
 
 $$
-\det(A^*) = \sum_{j=1}^n a_{ij} C_{kj} = P_{ik}
+\det(\widetilde{A}) = \sum_{j=1}^n a_{ij} C_{kj} = P_{ik}
 $$
 
-However, $A^*$ has **two identical rows** (row $i$ and row $k$). By Property 4 of determinants from Lecture 18 (two equal rows force the determinant to be zero):
+However, $\widetilde{A}$ has **two identical rows** (row $i$ and row $k$). By Property 4 of determinants from Lecture 18 (two equal rows force the determinant to be zero):
 
 $$
-\det(A^*) = 0 \implies P_{ik} = 0 \quad (\forall i \neq k)
+\det(\widetilde{A}) = 0 \implies P_{ik} = 0 \quad (\forall i \neq k)
 $$
 
-By an identical argument using column-wise Laplace expansion and column replacement, one shows $(C^T A)_{ik} = \det(A) \delta_{ik}$.
+By an identical argument using column-wise Laplace expansion and column replacement, one shows $(C^T A)_{ik} = \det(A) \delta_{ik}$, where $\delta_{ik}$ is $1$ for $i=k$ and $0$ otherwise.
 
 Combining both cases, $A C^T$ and $C^T A$ have $\det(A)$ on the diagonal and $0$ everywhere else:
 
@@ -178,7 +166,7 @@ $$
 \operatorname{adj}(A) = C^T = \begin{bmatrix} d & -b \\ -c & a \end{bmatrix}
 $$
 
-Since $\det(A) = ad - bc$, we immediately recover the familiar $2 \times 2$ inverse recipe ("swap the diagonal, negate the off-diagonal, divide by the determinant"):
+If $\det(A)=ad-bc\ne 0$, we immediately recover the familiar $2 \times 2$ inverse recipe ("swap the diagonal, negate the off-diagonal, divide by the determinant"):
 
 $$
 A^{-1} = \frac{1}{ad - bc} \begin{bmatrix} d & -b \\ -c & a \end{bmatrix}
@@ -289,7 +277,7 @@ Prof. Strang's classroom proof is widely celebrated as a gem of linear algebra e
 Construct a special matrix $X_j$ by replacing column $j$ of the identity matrix $I_n$ with the unknown solution vector $\mathbf{x}$:
 
 $$
-X_j = \begin{bmatrix} \mathbf{e}_1 & \cdots & \mathbf{x} & \cdots & \mathbf{e}_n \end{bmatrix} = \begin{bmatrix}
+X_j = \begin{bmatrix} \mathbf{e}_1 & \cdots & \mathbf{e}_{j-1} & \mathbf{x} & \mathbf{e}_{j+1} & \cdots & \mathbf{e}_n \end{bmatrix} = \begin{bmatrix}
 1 & & x_1 & & \\
 & \ddots & \vdots & & \\
 & & x_j & & \\
@@ -298,7 +286,7 @@ X_j = \begin{bmatrix} \mathbf{e}_1 & \cdots & \mathbf{x} & \cdots & \mathbf{e}_n
 \end{bmatrix}
 $$
 
-What is $\det(X_j)$? Expanding along row $j$ (or column $j$), all other entries outside the main diagonal are zero and the remaining diagonal entries are $1$, so clearly:
+What is $\det(X_j)$? Row $j$ has only one possibly nonzero entry, $x_j$. Its $(j,j)$-minor is the determinant of $I_{n-1}$, so expanding along row $j$ gives
 
 $$
 \det(X_j) = x_j
@@ -307,7 +295,7 @@ $$
 Now multiply $A$ on the right by $X_j$, using the column picture of matrix multiplication:
 
 $$
-A X_j = A \begin{bmatrix} \mathbf{e}_1 & \cdots & \mathbf{x} & \cdots & \mathbf{e}_n \end{bmatrix} = \begin{bmatrix} A \mathbf{e}_1 & \cdots & A \mathbf{x} & \cdots & A \mathbf{e}_n \end{bmatrix}
+A X_j = A \begin{bmatrix} \mathbf{e}_1 & \cdots & \mathbf{e}_{j-1} & \mathbf{x} & \mathbf{e}_{j+1} & \cdots & \mathbf{e}_n \end{bmatrix} = \begin{bmatrix} A \mathbf{e}_1 & \cdots & A \mathbf{x} & \cdots & A \mathbf{e}_n \end{bmatrix}
 $$
 
 Since $A \mathbf{e}_k = \mathbf{a}_k$ (column $k$ of $A$) and $A \mathbf{x} = \mathbf{b}$:
@@ -332,30 +320,32 @@ The entire proof takes a single matrix multiplication—no messy index sums, jus
 
 ### 2.3 Algorithmic Reality Check: Cramer's Rule vs. Gaussian Elimination
 
-Cramer's Rule is taught in every linear algebra course, yet in large-scale industrial computing (weather forecasting, finite element simulation, deep learning optimization), **using Cramer's Rule for numerical solving is strictly forbidden**. Why?
+Cramer's Rule is taught in every linear algebra course, yet in large-scale numerical problems such as finite element simulations, **computing each Cramer determinant separately is usually more expensive than solving the system by elimination**. How do the costs compare?
 
 Let us count the floating-point operations (FLOPs):
 - Solving an $n \times n$ system with Cramer's Rule requires computing **$n + 1$ determinants** ($\det(A)$ and $\det(B_1), \dots, \det(B_n)$).
-- If computed via cofactor expansion, each determinant takes $O(n!)$ operations, for a total of $O((n+1)!)$. Even for $n = 50$, $51! \approx 1.55 \times 10^{66}$—the fastest supercomputer on Earth could not finish before the heat death of the universe.
-- Even if each determinant is computed via Gaussian elimination ($O(\frac{1}{3}n^3)$ per determinant), $n + 1$ determinants require:
+- If computed via cofactor expansion, each determinant takes $O(n!)$ operations, for a total of $O((n+1)!)$. Even for $n = 50$, $51! \approx 1.55 \times 10^{66}$.
+- Even if each determinant is computed via Gaussian elimination ($O(n^3)$ per determinant), $n + 1$ determinants require:
 
 $$
-(n+1) \cdot \frac{1}{3} n^3 \approx \frac{1}{3} n^4 \text{ FLOPs}
+(n+1) \cdot \frac{2}{3} n^3 \approx \frac{2}{3} n^4 \text{ FLOPs}
 $$
 
-- By contrast, $PA = LU$ factorization solves the entire system with **one** elimination pass costing $\frac{1}{3}n^3$ FLOPs, followed by forward/back substitution in $O(n^2)$ operations—locking total cost at **$\frac{1}{3}n^3$**.
+- By contrast, $PA = LU$ factorization solves the entire system with **one** elimination pass costing $\frac{2}{3}n^3$ FLOPs, followed by forward/back substitution in $O(n^2)$ operations—giving a total cost of $\frac{2}{3}n^3+O(n^2)$ FLOPs.
 
 | Method | Operation Count (FLOPs) | Cost at $n = 10$ | Estimated Cost at $n = 1000$ | Best Use Case |
 | :--- | :--- | :--- | :--- | :--- |
-| **Cofactor Cramer's Rule** | $O((n+1)!)$ | $\approx 4 \times 10^7$ ops | Impossible ($10^{2567}$ ops) | Theoretical proof of concept |
-| **Elimination Cramer's Rule** | $O(n^4 / 3)$ | $\approx 3.3 \times 10^3$ ops | $\approx 3.3 \times 10^{11}$ ops (minutes) | Symbolic algebraic derivation |
-| **$LU$ Elimination** | $O(n^3 / 3)$ | $\approx 3.3 \times 10^2$ ops | $\approx 3.3 \times 10^8$ ops (milliseconds) | **Modern engineering standard** |
+| **Cofactor Cramer's Rule** | $O((n+1)!)$ | $\approx 4 \times 10^7$ terms | On the order of $10^{2570}$ terms | Theoretical proof of concept |
+| **Elimination Cramer's Rule** | $O(n^4)$ | $\approx 7.3 \times 10^3$ ops | $\approx 6.7 \times 10^{11}$ ops | Symbolic algebraic derivation |
+| **$LU$ Elimination** | $O(n^3)$ | $\approx 6.7 \times 10^2$ ops | $\approx 6.7 \times 10^8$ ops | **Modern engineering standard** |
+
+*These estimates use $(n+1)!$ to count the permutation terms across the $n+1$ determinants. The LU estimates use its leading FLOP count.*
 
 **Conclusion**: The true value of Cramer's Rule lies in **purely symbolic and analytical work** (for instance, when a matrix depends on parameters $k, t$, or when we need closed-form sensitivities $\frac{\partial x_j}{\partial b_i}$), not large-scale numerical computation.
 
 ---
 
-## 3. Oriented Volume $|\det(A)|$ and the $A = QR$ Altitude Decomposition
+## 3. Volume $|\det(A)|$ and Orientation and the $A = QR$ Altitude Decomposition
 
 Now we arrive at the visual climax of this lecture: **What is the geometric essence of the determinant?**
 
@@ -366,20 +356,20 @@ P = \left\{ \sum_{i=1}^n c_i \mathbf{a}_i \;\middle|\; 0 \le c_i \le 1 \right\}
 $$
 
 <TheoremCard label="Theorem" title="Oriented Volume Theorem">
-Let $A = [\mathbf{a}_1, \mathbf{a}_2, \dots, \mathbf{a}_n] \in \mathbb{R}^{n \times n}$. The geometric volume of the $n$-dimensional parallelepiped $P$ spanned by its column vectors (or row vectors) equals the absolute value of the determinant:
+Let $A = [\mathbf{a}_1, \mathbf{a}_2, \dots, \mathbf{a}_n] \in \mathbb{R}^{n \times n}$. The $n$-dimensional volume of the possibly degenerate parallelepiped $P$ spanned by its column vectors (or row vectors) equals the absolute value of the determinant:
 
 $$
 \operatorname{Vol}(P) = |\det(A)|
 $$
 
-Moreover, the sign of $\det(A)$ encodes the **orientation** (or **chirality / handedness**) of the basis:
-- $\det(A) \gt 0$: The basis has the same handedness as the standard Cartesian frame (right-handed);
-- $\det(A) \lt 0$: The basis includes an odd number of reflections (orientation reversed, left-handed);
+Moreover, the signed volume is $\det(A)$. For independent columns, its sign gives their orientation relative to the standard ordered basis:
+- $\det(A) \gt 0$: The ordered basis has the same orientation;
+- $\det(A) \lt 0$: The ordered basis has the opposite orientation;
 - $\det(A) = 0$: The parallelepiped collapses into a lower-dimensional subspace with zero volume (linearly dependent columns).
 </TheoremCard>
 
 <ProofCollapse title="Rigorous Proof: Path 1 — Gram-Schmidt Orthogonalization and A = QR">
-In Lecture 17, we saw that any invertible square matrix $A$ factors uniquely as $A = QR$, where:
+If $A$ is singular, its columns lie in a proper subspace, so both the $n$-dimensional volume and $|\det(A)|$ are zero. For invertible $A$, Lecture 17 gives the unique QR factorization. In this case the matrix $A$ factors uniquely as $A = QR$, where:
 - $Q \in \mathbb{R}^{n \times n}$ is an orthogonal matrix ($Q^T Q = I_n$);
 - $R \in \mathbb{R}^{n \times n}$ is upper triangular with positive diagonal entries ($r_{ii} \gt 0$).
 
@@ -389,7 +379,7 @@ $$
 |\det(A)| = |\det(Q)| \cdot |\det(R)|
 $$
 
-1. Since $Q^T Q = I_n$, we have $\det(Q^T Q) = (\det Q)^2 = \det(I_n) = 1$, so $|\det(Q)| = 1$ (orthogonal matrices represent pure rotations or reflections—they preserve lengths and volumes!).
+1. Since $Q^T Q = I_n$, we have $\det(Q^T Q) = (\det Q)^2 = \det(I_n) = 1$, so $|\det(Q)| = 1$ (orthogonal maps preserve lengths and volumes).
 2. Since $R$ is upper triangular, Property 7 from Lecture 18 tells us its determinant is the product of its diagonal entries:
 
 $$
@@ -416,22 +406,18 @@ $$
 \text{Vol}_{3D} = (\text{base area } r_{11} r_{22}) \times (\text{orthogonal height } r_{33}) = r_{11} r_{22} r_{33}
 $$
 
-By mathematical induction, $r_{ii}$ is geometrically the **perpendicular altitude** of $\mathbf{a}_i$ above the hyperplane spanned by $\mathbf{a}_1, \dots, \mathbf{a}_{i-1}$. Therefore, $\prod_{i=1}^n r_{ii}$ is the direct $n$-dimensional generalization of "base $\times$ height"!
+By mathematical induction, $r_{ii}$ is geometrically the **perpendicular altitude** of $\mathbf{a}_i$ relative to the subspace spanned by $\mathbf{a}_1, \dots, \mathbf{a}_{i-1}$. Therefore, $\prod_{i=1}^n r_{ii}$ is the direct $n$-dimensional generalization of "base $\times$ height"!
 </ProofCollapse>
 
-<ProofCollapse title="Rigorous Proof: Path 2 — Checking the Three Defining Axioms of Determinants">
-In Lecture 18, Prof. Strang emphasized that the determinant is the **unique** function $D(\mathbf{a}_1, \dots, \mathbf{a}_n)$ satisfying three axioms:
-1. **Axiom 1 (Identity)**: $D(I_n) = 1$.
-   Geometrically, the standard basis vectors $\mathbf{e}_1, \dots, \mathbf{e}_n$ span the unit $n$-cube, whose volume is $1$ by definition.
-2. **Axiom 2 (Sign reversal on swap)**: Swapping any two vectors reverses the handedness of the frame (e.g., swapping the $x$- and $y$-axes in 3D is a mirror reflection), flipping the sign of oriented volume.
-3. **Axiom 3 (Multilinearity)**:
-   - **Scaling**: Stretching one edge by a factor $c$ scales the box volume by $|c|$ (and reverses orientation if $c \lt 0$);
-   - **Additivity and shear invariance**: Adding a multiple of another edge to $\mathbf{a}_i$ ($\mathbf{a}_i \leftarrow \mathbf{a}_i + c \mathbf{a}_k$) corresponds to **Cavalieri's principle** (shearing parallel to the base)—the base and perpendicular height remain unchanged, so volume is strictly conserved!
+<ProofCollapse title="Geometric Proof via Signed Heights">
 
-Because any oriented volume function satisfying these three geometric properties must be identical to the determinant, the oriented volume is $\det(A)$ and the unsigned geometric volume is $|\det(A)|$.
+Fix all but one column. If the fixed columns are linearly dependent, every resulting parallelepiped has zero $n$-volume. Otherwise, they span an $(n-1)$-dimensional subspace. Choose its unit normal $\mathbf{n}$ so that the ordered columns have positive orientation when the missing column is $\mathbf{n}$. For a variable column $\mathbf{v}$, the signed volume is then the fixed base volume times the signed height $\mathbf{n}^T\mathbf{v}$. This is linear in $\mathbf{v}$, proving both scaling and additivity.
+
+Exchanging two columns preserves unsigned volume and reverses orientation when the columns form a basis. The standard ordered basis gives signed volume $1$. Thus signed volume satisfies the column versions of the three determinant axioms, so it equals $\det(A)$.
+
 </ProofCollapse>
 
-<CramersRuleAndVolumeDiagram caption="Geometric view of Cramer's Rule and oriented volume: replacing a column shears or scales the parallelepiped, and the ratio of signed volumes det(B_j)/det(A) directly gives the coordinate x_j." />
+<CramersRuleAndVolumeDiagram caption="Cramer's rule gives $x_1=\det(B_1)/\det(A)$ from two signed areas (left). The projected 3D drawing shows the Gram-Schmidt height $r_{33}$ above the base plane (right)." />
 
 ### 3.1 Classic Geometric Applications: Triangle Area and the Jacobian
 
@@ -465,7 +451,7 @@ This is precisely the determinant of the parallelogram spanned by the edge vecto
 
 #### The Jacobian Determinant in Multivariable Calculus
 
-When changing variables in a multiple integral from Cartesian coordinates $(x, y, z)$ to curvilinear coordinates $(u, v, w)$ via $\mathbf{x} = \mathbf{g}(u, v, w)$, the volume element $dx \, dy \, dz$ transforms by a local scaling factor:
+When changing variables in a multiple integral from Cartesian coordinates $(x, y, z)$ to curvilinear coordinates $(u, v, w)$ via $\mathbf{x} = \mathbf{g}(u, v, w)$, assume $\mathbf{g}$ is a $C^1$ diffeomorphism between the integration domains. The volume element transforms by a local scaling factor:
 
 $$
 dx \, dy \, dz = |\det(J)| \, du \, dv \, dw, \quad J = \frac{\partial (x, y, z)}{\partial (u, v, w)} = \begin{bmatrix}
@@ -483,9 +469,9 @@ $$
 
 <PitfallAlert title="Common Pitfalls & Transcript Errata">
 1. **Forgetting the transpose in the adjugate ($C^T$ vs. $C$)**:
-   Many beginners mistakenly write $A^{-1} = \frac{1}{\det A} C$. Remember: the cofactor matrix $C$ **must be transposed**! Only when $A$ is symmetric ($A = A^T$) is $C$ automatically symmetric ($C = C^T$). For a general non-symmetric matrix, omitting the transpose means the off-diagonal entries of $AC$ no longer correspond to a singular matrix with two equal rows, so they fail to cancel to $0$.
+   The adjugate is $C^T$. For an invertible $A$, the identity $C^T=\det(A)A^{-1}$ shows that $C=C^T$ exactly when $A=A^T$. For singular matrices, $C$ can be symmetric even if $A$ is not, for example when every cofactor is zero.
 2. **Treating $\det(A) \lt 0$ as an error or meaningless**:
-   When computing areas or volumes, students sometimes panic upon seeing a negative determinant. For unsigned geometric volume, take $|\det(A)|$. In differential geometry, physics, and computer graphics, however, the **sign** is priceless—it tells you whether a transformation caused a **mirror reflection (orientation reversal)**. If a 3D mesh transform has $\det(A) \lt 0$, the object is turned "inside-out" (surface normals flip), breaking lighting and backface culling.
+   The absolute value gives geometric volume. A negative determinant indicates that an invertible real linear map reverses orientation, for example by reversing the winding of a transformed mesh.
 3. **Applying Cramer's Rule when $\det(A) = 0$**:
    Cramer's Rule divides by $\det(A)$, so it requires $A$ to be nonsingular. When $\det(A) = 0$, the system has either no solution or infinitely many solutions. Even if $\det(B_j) = 0$ as well, $\frac{0}{0}$ is indeterminate—you cannot conclude anything from Cramer's Rule and must return to echelon elimination (Lectures 7–9).
 </PitfallAlert>
@@ -497,7 +483,7 @@ $$
 <InteractiveCanvasSlot
   id="l20-volume-and-cramer-sandbox"
   title="Oriented Volume and Cramer's Rule Interactive Sandbox"
-  description="Drag 2D/3D basis vectors to observe parallelepiped deformation in real time, volume preservation under shear, chirality reversal (sign flip of det) between right- and left-handed frames, and how column replacement in Cramer's Rule scales area ratios to yield x_j."
+  description="Use the sliders to vary the right-hand side and the second column in a 2D system. Compare signed areas and see what happens at a zero determinant."
 />
 
 ---
@@ -505,12 +491,12 @@ $$
 ## 6. Key Takeaways
 
 <KeyTakeaways title="Key Takeaways" items={[
-  "The adjugate matrix is the transpose of the cofactor matrix: \\operatorname{adj}(A) = C^T, satisfying the fundamental identity A C^T = C^T A = (\\det A) I_n.",
-  "The closed-form inverse A^{-1} = \\frac{1}{\\det A} C^T expresses every entry of A^{-1} analytically with \\det(A) in the denominator.",
-  "Off-diagonal entries of A C^T vanish because cross-row cofactor expansion equals the determinant of an auxiliary matrix with two identical rows, which is 0.",
-  "Cramer's Rule gives the symbolic solution x_j = \\frac{\\det(B_j)}{\\det(A)} to A \\mathbf{x} = \\mathbf{b}; Strang's one-line proof A[\\mathbf{e}_1 \\dots \\mathbf{x} \\dots \\mathbf{e}_n] = B_j showcases the power of \\det(AB) = \\det(A)\\det(B).",
-  "The volume of an n-dimensional parallelepiped is |\\det(A)|; via A = QR, this equals the product of Gram-Schmidt perpendicular altitudes \\prod r_{ii}.",
-  "The sign of \\det(A) encodes spatial orientation (\\det A \\gt 0 preserves handedness, \\det A \\lt 0 reflects), and the Jacobian determinant |\\det(J)| generalizes this volume scaling to multivariable calculus."
+  "The adjugate is the transpose of the cofactor matrix, $\\operatorname{adj}(A)=C^T$, and satisfies $AC^T=C^TA=\\det(A)I_n$.",
+  "For $\\det(A)\\ne 0$, the inverse is $A^{-1}=C^T/\\det(A)$.",
+  "Each off-diagonal entry of $AC^T$ is a cofactor expansion of a determinant with two identical rows, so it is zero.",
+  "Cramer's rule gives $x_j=\\det(B_j)/\\det(A)$ for an invertible $A$, where $B_j$ replaces column $j$ with $\\mathbf{b}$.",
+  "The $n$-dimensional volume is $|\\det(A)|$. For invertible $A$, this equals the product $\\prod_i r_{ii}$ of the positive Gram-Schmidt diagonal entries.",
+  "A positive determinant preserves orientation and a negative one reverses it. The Jacobian factor $|\\det(J)|$ gives the local volume scaling in a change of variables."
 ]} />
 
 ---
@@ -531,9 +517,9 @@ $$
 3. Given three points in the plane $P_1(1, 2)$, $P_2(4, 6)$, and $P_3(2, 8)$, use a $3 \times 3$ determinant to compute the area of $\triangle P_1 P_2 P_3$.
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
-  "Remember to transpose the cofactor matrix to get the adjugate: \\operatorname{adj}(A) = C^T.",
-  "The area of the parallelogram spanned by the columns of A is |\\det(A)|.",
-  "Use \\frac{1}{2}|\\det([x_i, y_i, 1])| for the triangle area; subtract row 1 from rows 2 and 3 to simplify before expanding."
+  "Remember to transpose the cofactor matrix to get the adjugate: $\\operatorname{adj}(A) = C^T$.",
+  "The area of the parallelogram spanned by the columns of A is $|\\det(A)|$.",
+  "In the triangle determinant, subtract row 1 from rows 2 and 3. Expand along the last column and take half the absolute value."
 ]} />
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
@@ -613,24 +599,24 @@ $$
 <ExerciseCard id="l20-ex2" tier="L2" tierLabel="L2 · Conceptual True/False" title="Transpose in the Adjugate Matrix">
 Determine whether the following statement is true or false, and provide a rigorous proof or counterexample.
 
+**Statement**: For any invertible matrix $A \in \mathbb{R}^{n \times n}$, because the cofactor $C_{ij}$ is obtained by deleting row $i$ and column $j$, the closed-form inverse formula $A^{-1} = \frac{1}{\det A} C$ always holds.
+
 <TrueFalseInteractive
   id="l20-tf1"
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! The cofactor matrix $C$ must be transposed to obtain the adjugate $\operatorname{adj}(A) = C^T$. Only when $A$ is symmetric does $C$ equal $C^T$."
+  quickFeedback={"False. The inverse uses the adjugate $C^T$. For invertible $A$, the untransposed formula works exactly when $A$ is symmetric."}
 />
-
-**Statement**: For any invertible matrix $A \in \mathbb{R}^{n \times n}$, because the cofactor $C_{ij}$ is obtained by deleting row $i$ and column $j$, the closed-form inverse formula $A^{-1} = \frac{1}{\det A} C$ always holds.
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
   "Write down a simple non-symmetric 2x2 matrix and compute A C directly.",
-  "For (A C)_{ik} = 0 when i \\neq k, check which row's cofactors must sit in column i of the right-hand factor."
+  "To make $(AC^T)_{ik}=0$ for $i\\ne k$, which row of cofactors must appear in column $k$ of $C^T$?"
 ]} />
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-Rows and columns meet orthogonally in matrix multiplication. Without transposing $C$, row $i$ of $A$ gets dotted with column $k$ of $C$ (cofactors from different rows), so the indices fail to align into a matrix with two equal rows.
+The dot product of row $i$ of $A$ with column $k$ of $C^T$ pairs that row with the cofactors from row $k$. This is the pairing used when expanding the determinant of a matrix whose row $k$ has been replaced by row $i$.
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -666,24 +652,24 @@ Row $i$ of $A$ is $(a_{i1}, \dots, a_{in})$. To obtain $\det(A)$ in the $(i, i)$
 <ExerciseCard id="l20-ex3" tier="L2" tierLabel="L2 · Conceptual True/False" title="Integer Matrices with Integer Inverses">
 Determine whether the following statement is true or false, and give a complete algebraic and number-theoretic justification.
 
+**Statement**: If every entry of a square matrix $A \in \mathbb{Z}^{n \times n}$ is an integer, then $A^{-1}$ exists and also has all integer entries ($A^{-1} \in \mathbb{Z}^{n \times n}$) if and only if $\det(A) = \pm 1$.
+
 <TrueFalseInteractive
   id="l20-tf2"
   correct={true}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="True! Because $A^{-1} = (1/\det A) C^T$ and $C^T$ is an integer matrix whenever $A$ is, $A^{-1}$ is an integer matrix if and only if $\det(A) = \pm 1$."
+  quickFeedback={"True. If both matrices are integral, the integer determinants satisfy $\\det(A)\\det(A^{-1})=1$. Conversely, $\\det(A)=\\pm 1$ gives the integer inverse $\\pm C^T$."}
 />
 
-**Statement**: If every entry of a square matrix $A \in \mathbb{Z}^{n \times n}$ is an integer, then $A^{-1}$ exists and also has all integer entries ($A^{-1} \in \mathbb{Z}^{n \times n}$) if and only if $\det(A) = \pm 1$.
-
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
-  "Necessity: use \\det(A)\\det(A^{-1}) = \\det(I) = 1 and remember which integers divide 1.",
-  "Sufficiency: use A^{-1} = \\frac{1}{\\det A} C^T and check whether every cofactor of an integer matrix is an integer."
+  "Necessity: use $\\det(A)\\det(A^{-1}) = 1$ and remember which integers divide 1.",
+  "Sufficiency: use $A^{-1} = C^T/\\det(A)$ and check whether every cofactor of an integer matrix is an integer."
 ]} />
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-For a fraction of integers to remain an integer, the denominator can only be $1$ or $-1$. Since the adjugate $C^T$ is built purely from additions, subtractions, and multiplications of integers, $C^T$ is guaranteed to be an integer matrix—the only possible obstacle is dividing by $\det(A)$.
+An integer matrix and its integer inverse must have integer volume factors whose product is $1$. Conversely, when $\det(A)=\pm1$, the adjugate formula divides integer cofactors by a unit in $\mathbb{Z}$.
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -711,7 +697,7 @@ $$
 
 **Sufficiency ($\impliedby$):**
 Suppose $A \in \mathbb{Z}^{n \times n}$ and $\det(A) = \pm 1$.
-Every cofactor is $C_{ij} = (-1)^{i+j} \det(M_{ij})$, where $M_{ij}$ is an $(n-1) \times (n-1)$ submatrix of integers. Hence every cofactor is an integer, so:
+Every cofactor is $C_{ij} = (-1)^{i+j} \det(M'_{ij})$, where $M'_{ij}$ is an $(n-1) \times (n-1)$ submatrix of integers. Hence every cofactor is an integer, so:
 
 $$
 \operatorname{adj}(A) = C^T \in \mathbb{Z}^{n \times n}
@@ -742,9 +728,9 @@ n, & \text{if } \operatorname{rank}(A) = n \\
 $$
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
-  "For Part 1, start from A \\operatorname{adj}(A) = (\\det A) I_n and take determinants of both sides.",
-  "Be careful when \\det(A) = 0: you cannot divide by 0, so handle the singular case separately using rank.",
-  "For Part 2, when \\operatorname{rank}(A) = n - 1, at least one (n-1) \\times (n-1) minor is nonzero so \\operatorname{adj}(A) \\neq O, while A \\operatorname{adj}(A) = O forces its columns into the 1D nullspace of A."
+  "For Part 1, start from $A\\operatorname{adj}(A) = \\det(A) I_n$ and take determinants of both sides.",
+  "Be careful when $\\det(A)=0$: you cannot divide by 0, so handle the singular case separately using rank.",
+  "When $\\operatorname{rank}(A)=n-1$, a nonzero minor gives $\\operatorname{adj}(A)\\ne 0$. Use $A\\operatorname{adj}(A)=0$ to bound its rank."
 ]} />
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
@@ -827,14 +813,14 @@ $$
 2. Re-prove this formula using the **thin $QR$ factorization** $A = Q_1 R$, where $Q_1 \in \mathbb{R}^{3 \times 2}$ has orthonormal columns ($Q_1^T Q_1 = I_2$) and $R \in \mathbb{R}^{2 \times 2}$ is upper triangular.
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
-  "Expand A^T A into the 2x2 matrix of dot products: [a1·a1, a1·a2; a2·a1, a2·a2].",
-  "Use ||a1||^2 ||a2||^2 - (a1·a2)^2 = ||a1||^2 ||a2||^2 (1 - \\cos^2\\theta) = ||a1 \\times a2||^2.",
-  "Substitute A = Q1 R into A^T A = R^T Q1^T Q1 R = R^T R, then take the determinant."
+  "The $(i,j)$ entry of $A^T A$ is $\\mathbf{a}_i^T\\mathbf{a}_j$. Use the $2\\times 2$ determinant formula.",
+  "If a column is zero, all three quantities vanish. For two nonzero columns, use $\\mathbf{a}_1\\cdot\\mathbf{a}_2 = \\|\\mathbf{a}_1\\|_2\\|\\mathbf{a}_2\\|_2\\cos\\theta$ and the cross-product formula.",
+  "For independent columns, substitute $A=Q_1R$ and use $Q_1^TQ_1=I_2$. Take the determinant of $A^TA=R^TR$."
 ]} />
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-When $A$ is rectangular, $A^T A$ folds the ambient space down to a square Gram matrix encoding all edge lengths and angles. Taking $\sqrt{\det(A^T A)}$ generalizes $|\det(A)|$ to $k$-dimensional surfaces in $\mathbb{R}^m$—and in differential geometry, it is the Riemannian area element $\sqrt{\det g}$.
+The Gram matrix $A^T A$ records the inner products between the columns of $A$. Taking $\sqrt{\det(A^T A)}$ generalizes $|\det(A)|$ to $k$-dimensional surfaces in $\mathbb{R}^m$—and in differential geometry, it is the Riemannian area element $\sqrt{\det g}$.
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -851,7 +837,7 @@ $$
 \det(A^T A) = \|\mathbf{a}_1\|^2 \|\mathbf{a}_2\|^2 - (\mathbf{a}_1 \cdot \mathbf{a}_2)^2
 $$
 
-Let $\theta$ be the angle between $\mathbf{a}_1$ and $\mathbf{a}_2$, so $\mathbf{a}_1 \cdot \mathbf{a}_2 = \|\mathbf{a}_1\| \|\mathbf{a}_2\| \cos\theta$:
+If either column is zero, the area, Gram determinant, and cross product are all zero. Otherwise let $\theta\in[0,\pi]$ be the angle between $\mathbf{a}_1$ and $\mathbf{a}_2$, so $\mathbf{a}_1 \cdot \mathbf{a}_2 = \|\mathbf{a}_1\| \|\mathbf{a}_2\| \cos\theta$:
 
 $$
 \det(A^T A) = \|\mathbf{a}_1\|^2 \|\mathbf{a}_2\|^2 (1 - \cos^2\theta) = \|\mathbf{a}_1\|^2 \|\mathbf{a}_2\|^2 \sin^2\theta
@@ -866,7 +852,7 @@ $$
 This is base $\|\mathbf{a}_1\|$ times perpendicular height $\|\mathbf{a}_2\|\sin\theta$—the exact area of the parallelogram, and also the magnitude of the cross product $\|\mathbf{a}_1 \times \mathbf{a}_2\|_2$.
 
 **Proof of Part 2 (Thin $QR$ Factorization):**
-Apply Gram-Schmidt to $A \in \mathbb{R}^{3 \times 2}$ to obtain the thin $QR$ factorization:
+If the columns are dependent, the area is zero and $A^T A$ is singular because $\operatorname{Null}(A^T A)=\operatorname{Null}(A)$. For independent columns, apply Gram-Schmidt to $A \in \mathbb{R}^{3 \times 2}$ to obtain the thin $QR$ factorization:
 
 $$
 A = Q_1 R = \begin{bmatrix} \mathbf{q}_1 & \mathbf{q}_2 \end{bmatrix} \begin{bmatrix} r_{11} & r_{12} \\ 0 & r_{22} \end{bmatrix}
@@ -890,7 +876,7 @@ $$
 \sqrt{\det(A^T A)} = r_{11} r_{22}
 $$
 
-In Gram-Schmidt, $r_{11} = \|\mathbf{a}_1\|_2$ is the base length and $r_{22} = \|\mathbf{a}_2 - \operatorname{proj}_{\mathbf{q}_1}\mathbf{a}_2\|_2$ is the perpendicular altitude! This generalizes directly to the $k$-dimensional surface volume element $dV = \sqrt{\det(J^T J)} \, du_1 \cdots du_k$ in $\mathbb{R}^m$.
+In Gram-Schmidt, $r_{11} = \|\mathbf{a}_1\|_2$ is the base length and $r_{22} = \|\mathbf{a}_2 - \operatorname{proj}_{\mathbf{q}_1}\mathbf{a}_2\|_2$ is the perpendicular altitude! This generalizes directly to the $k$-dimensional volume element of a regular parametrization with Jacobian $J\in\mathbb{R}^{m\times k}$ of full column rank, $dV = \sqrt{\det(J^T J)} \, du_1 \cdots du_k$ in $\mathbb{R}^m$.
 </SolutionRigorous>
 </DualSolution>
 </ExerciseCard>
@@ -915,9 +901,7 @@ The classical geometric theorem from Lecture 20—that the determinant measures 
 
 ### 1. Conservation of Probability and Change of Variables
 
-Suppose we start from a simple prior distribution (such as a standard Gaussian $\mathbf{z} \sim p_Z(\mathbf{z}) = \mathcal{N}(\mathbf{0}, I)$) and pass it through an invertible bijection parameterized by a neural network, $\mathbf{x} = g_\theta(\mathbf{z})$ (with inverse $\mathbf{z} = f_\theta(\mathbf{x}) = g_\theta^{-1}(\mathbf{x})$), to match a complex data distribution $p_X(\mathbf{x})$.
-
-By conservation of probability, the probability mass inside an infinitesimal volume $d\mathbf{x}$ must equal the mass inside its pre-image $d\mathbf{z}$:
+Let $\mathbf{z}\sim\mathcal{N}(\mathbf{0},I_d)$ have density $p_Z$. Let $g_\theta:\mathbb{R}^d\to\mathbb{R}^d$ be a $C^1$ diffeomorphism with inverse $f_\theta$. For $\mathbf{x}=g_\theta(\mathbf{z})$, conservation of probability mass gives the change-of-variables formula
 
 $$
 p_X(\mathbf{x}) |d\mathbf{x}| = p_Z(\mathbf{z}) |d\mathbf{z}|
@@ -929,29 +913,27 @@ $$
 p_X(\mathbf{x}) = p_Z(f_\theta(\mathbf{x})) \cdot \left| \det J_{f_\theta}(\mathbf{x}) \right|
 $$
 
-Taking the natural logarithm gives the exact Maximum Likelihood Estimation (MLE) training objective:
-
+For positive densities the per-sample log-likelihood is
 $$
-\log p_X(\mathbf{x}) = \log p_Z(f_\theta(\mathbf{x})) + \log \left| \det J_{f_\theta}(\mathbf{x}) \right|
+\log p_X(\mathbf{x}) = \log p_Z(f_\theta(\mathbf{x})) + \log \left| \det J_{f_\theta}(\mathbf{x}) \right|.
 $$
-
-This equation reveals the physical meaning of the determinant: **the first term evaluates the density in the simple prior, while the second term compensates for local volume contraction or expansion!** Wherever space is compressed ($|\det J| \lt 1$), probability density must increase.
+Maximum likelihood maximizes the sum over observed samples. If $g_\theta$ compresses volume at $\mathbf{z}$, so $|\det J_{g_\theta}(\mathbf{z})|\lt 1$, the inverse factor is its reciprocal, giving $p_X(g_\theta(\mathbf{z}))\gt p_Z(\mathbf{z})$ when $p_Z(\mathbf{z})\gt 0$.
 
 ---
 
 ### 2. The Curse of Dimensionality and RealNVP's Block-Triangular Jacobian
 
-For a $512 \times 512$ RGB image, the dimension is $d = 512 \times 512 \times 3 \approx 786,432$.
+For a $512 \times 512$ RGB image, the dimension is $d = 512 \times 512 \times 3 = 786{,}432$.
 If $f_\theta$ were an unconstrained fully connected network, its Jacobian $J \in \mathbb{R}^{d \times d}$ would contain nearly $6 \times 10^{11}$ entries. Computing its determinant by Gaussian elimination would cost:
 
 $$
-O(d^3) \approx (8 \times 10^5)^3 \approx 5 \times 10^{17} \text{ FLOPs}
+\frac{2}{3}d^3 \approx 3.2 \times 10^{17} \text{ FLOPs}
 $$
 
 Running an $O(d^3)$ determinant inside every backpropagation step is computationally impossible.
 
 **The AI Breakthrough (RealNVP Affine Coupling Layer)**:
-Dinh et al. exploited the **block-triangular determinant property** from Lecture 18 (Property 7) to design the **Affine Coupling Layer**. Split the input vector into two halves $\mathbf{x} = [\mathbf{x}_1, \mathbf{x}_2]^T$:
+Dinh et al. exploited the **block-triangular determinant property** from Lecture 18, Exercise 5 to design the **Affine Coupling Layer**. Split the input vector into two halves $\mathbf{x}=(\mathbf{x}_1^T,\mathbf{x}_2^T)^T$ with both blocks in $\mathbb{R}^{d/2}$ and $d$ even:
 
 $$
 \begin{aligned}
@@ -960,17 +942,16 @@ $$
 \end{aligned}
 $$
 
-Here $s_\theta$ and $t_\theta$ can be **arbitrarily complex, non-invertible deep convolutional or residual networks**, and $\odot$ denotes elementwise Hadamard multiplication.
-Now write the Jacobian of this transformation:
+Take $s_\theta,t_\theta:\mathbb{R}^{d/2}\to\mathbb{R}^{d/2}$ to be $C^1$. The exponential and $\odot$ act elementwise. The inverse recovers $\mathbf{x}_1=\mathbf{z}_1$ and then $\mathbf{x}_2=(\mathbf{z}_2-t_\theta(\mathbf{z}_1))\odot\exp(-s_\theta(\mathbf{z}_1))$. The data-to-latent Jacobian is
 
 $$
 J = \frac{\partial (\mathbf{z}_1, \mathbf{z}_2)}{\partial (\mathbf{x}_1, \mathbf{x}_2)} = \begin{bmatrix}
-I_{d/2} & O \\
+I_{d/2} & 0_{d/2\times d/2} \\
 \frac{\partial \mathbf{z}_2}{\partial \mathbf{x}_1} & \operatorname{diag}(\exp(s_\theta(\mathbf{x}_1)))
 \end{bmatrix}
 $$
 
-It is **block lower triangular**! By Property 7 from Lecture 18, the determinant of a block-triangular matrix is simply the product of the determinants of its diagonal blocks:
+It is **block lower triangular**! By the block-triangular formula, the determinant of a block-triangular matrix is simply the product of the determinants of its diagonal blocks:
 
 $$
 \det(J) = \det(I_{d/2}) \cdot \det(\operatorname{diag}(\exp(s_\theta(\mathbf{x}_1)))) = 1 \cdot \prod_{i=1}^{d/2} \exp(s_{\theta, i}(\mathbf{x}_1))
@@ -982,46 +963,41 @@ $$
 \log |\det(J)| = \sum_{i=1}^{d/2} s_{\theta, i}(\mathbf{x}_1)
 $$
 
-A hopeless $O(d^3)$ determinant calculation collapses into a lightweight **$O(d)$ elementwise sum**!
+Once the scale outputs are available, their sum costs $O(d)$.
 
 ---
 
-### 3. Continuous Flow Matching and Jacobi's Trace-Derivative Identity
+### 3. Continuous Normalizing Flows and the Instantaneous Volume Rate
 
-In modern Diffusion and Flow Matching models (such as Stable Diffusion 3 and FLUX.1), discrete layers are generalized to **Continuous Normalizing Flows** driven by an ordinary differential equation (ODE):
-
+Flow Matching trains the velocity field of a continuous normalizing flow by regression. The flow itself is defined by the ODE
 $$
-\frac{d \mathbf{x}_t}{dt} = \mathbf{v}_\theta(\mathbf{x}_t, t)
+\dot{\mathbf{x}}_t=\mathbf{v}_\theta(\mathbf{x}_t,t), \qquad \mathbf{x}_t=\phi_t(\mathbf{x}_0), \qquad \phi_0(\mathbf{x}_0)=\mathbf{x}_0.
 $$
-
-How does an infinitesimal volume element evolve continuously over time?
-Here lies one of the deepest identities in matrix calculus—**Jacobi's Formula**: for any differentiable square matrix $M(t)$, $\frac{d}{dt} \det(M(t)) = \operatorname{tr}\left(\operatorname{adj}(M(t)) \frac{d M(t)}{dt}\right)$. When $M(t)$ is invertible:
-
+Assume the velocity and its spatial derivative are continuous and the ODE has a unique forward and backward solution on the time interval in question. The flow maps have differentiable inverses. Their spatial Jacobian $J_t=D_{\mathbf{x}_0}\phi_t(\mathbf{x}_0)$ satisfies
 $$
-\frac{d}{dt} \log |\det M(t)| = \operatorname{tr}\left( M(t)^{-1} \frac{d M(t)}{dt} \right)
+\dot J_t=D_{\mathbf{x}}\mathbf{v}_\theta(\mathbf{x}_t,t)J_t,\qquad J_0=I_d.
 $$
 
-Applying this to the flow's Jacobian $J_t$ yields the instantaneous rate of volume change:
-
+For a differentiable square matrix $M(t)$, Jacobi's formula gives $\frac{d}{dt}\det(M)=\operatorname{tr}(\operatorname{adj}(M)\dot M)$. When $M(t)$ is invertible, $\frac{d}{dt}\log|\det(M)|=\operatorname{tr}(M^{-1}\dot M)$. Substitute $\dot J_t$ and use cyclicity of the trace:
 $$
-\frac{d}{dt} \log |\det J_t| = \operatorname{div}(\mathbf{v}_\theta) = \operatorname{tr}\left( \frac{\partial \mathbf{v}_\theta}{\partial \mathbf{x}} \right)
-$$
-
-The instantaneous volume expansion rate of the flow equals the **divergence** of the velocity field—namely, the **trace** of its spatial Jacobian! This immediately yields the continuous transport equation for log-density (the Liouville / continuity equation):
-
-$$
-\frac{d}{dt} \log p_t(\mathbf{x}_t) = -\operatorname{div}(\mathbf{v}_\theta(\mathbf{x}_t, t)) = -\operatorname{tr}\left( \frac{\partial \mathbf{v}_\theta}{\partial \mathbf{x}} \right)
+\frac{d}{dt}\log|\det(J_t)|
+=\operatorname{tr}\left(J_t^{-1}D_{\mathbf{x}}\mathbf{v}_\theta(\mathbf{x}_t,t)J_t\right)
+=\operatorname{div}\mathbf{v}_\theta(\mathbf{x}_t,t).
 $$
 
-From Gaussian elimination and determinants, to the adjugate matrix and cofactors, to the divergence-trace of instantaneous volume change in Flow Matching, the classical geometry of linear algebra spans three centuries to power today's frontier generative AI.
+The divergence is the fractional rate of change of local volume. Probability conservation gives $p_t(\mathbf{x}_t)|\det(J_t)|=p_0(\mathbf{x}_0)$. Along a trajectory with positive density, differentiating gives
+$$
+\frac{d}{dt}\log p_t(\mathbf{x}_t)=-\operatorname{div}\mathbf{v}_\theta(\mathbf{x}_t,t).
+$$
+Positive divergence expands volume and decreases density along the trajectory.
 
 ---
 
 ### 4. Hands-On Experiment: Numerical Verification of Triangular Jacobians and Trace-Divergence
 
 The PyTorch script below verifies two key results:
-1. The $O(d)$ analytical $\log |\det J|$ of a RealNVP coupling layer matches the full autograd Jacobian's `torch.linalg.slogdet` to machine precision;
-2. The instantaneous time derivative $\frac{d}{dt} \log |\det J_t|$ equals the trace of the velocity Jacobian $\operatorname{tr}(\nabla \mathbf{v})$.
+1. The $O(d)$ analytical $\log |\det J|$ of a RealNVP coupling layer matches the full autograd Jacobian's `torch.linalg.slogdet` within floating-point tolerance;
+2. A forward Euler map approximates the initial log-volume rate $\operatorname{tr}(D_{\mathbf{x}}\mathbf{v})$ with a first-order finite difference.
 
 <CollapsibleCode title="Numerical Verification of RealNVP Block-Triangular Jacobian and Flow Matching Trace-Divergence" language="python">
 ```python
@@ -1029,6 +1005,7 @@ import torch
 import torch.nn as nn
 
 torch.manual_seed(42)
+torch.set_default_dtype(torch.float64)
 
 # =====================================================================
 # Experiment 1: RealNVP Affine Coupling Block-Triangular Jacobian Check
@@ -1037,7 +1014,7 @@ class AffineCouplingLayer(nn.Module):
     def __init__(self, dim):
         super().__init__()
         self.d = dim // 2
-        # Arbitrary non-invertible network outputting scale s and shift t
+        # The scale-and-shift network can be non-invertible
         self.net = nn.Sequential(
             nn.Linear(self.d, 64),
             nn.Tanh(),
@@ -1053,7 +1030,7 @@ class AffineCouplingLayer(nn.Module):
         z1 = x1
         z2 = x2 * torch.exp(s) + t
         z = torch.cat([z1, z2], dim=0)
-        # Analytical log-det via Property 7: O(d) complexity
+        # Analytical log-det from the triangular diagonal: O(d) complexity
         log_det_analytic = torch.sum(s)
         return z, log_det_analytic
 
@@ -1064,12 +1041,13 @@ x = torch.randn(dim)
 # 1. Fast analytical computation
 z, log_det_analytic = coupling(x)
 
-# 2. Brute-force full Autograd Jacobian (O(d^3) complexity)
+# 2. Build the full Jacobian with autograd
 def forward_fn(inp):
     out, _ = coupling(inp)
     return out
 
 J = torch.autograd.functional.jacobian(forward_fn, x)
+assert torch.count_nonzero(J[:dim // 2, dim // 2:]).item() == 0
 
 # Print Jacobian structure: upper-right block must be all zeros
 print("=== RealNVP Jacobian Structure J (6x6) ===")
@@ -1077,12 +1055,13 @@ print(torch.round(J, decimals=3))
 
 # 3. Verify against slogdet
 sign, log_det_full = torch.linalg.slogdet(J)
+assert sign.item() == 1
 diff = torch.abs(log_det_analytic - log_det_full).item()
 
 print(f"\nAnalytic log|det(J)| = {log_det_analytic.item():.6f}")
 print(f"Full slogdet(J)      = {log_det_full.item():.6f}")
-print(f"Absolute error: {diff:.2e} (machine precision!)")
-assert diff < 1e-6, "Analytical and numerical log-det do not match!"
+print(f"Absolute error: {diff:.2e}")
+assert diff < 1e-12, "Analytical and numerical log-det do not match!"
 
 # =====================================================================
 # Experiment 2: Jacobi's Formula & Velocity Divergence Trace (Continuous Flows)
@@ -1100,11 +1079,11 @@ def velocity_field(x):
 x0 = torch.tensor([1.0, -0.5, 0.8])
 dt = 1e-4
 
-# One small forward Euler step: phi_t(x) = x + dt * v(x)
+# One small forward Euler step: x + dt * v(x)
 def flow_map(x):
     return x + dt * velocity_field(x)
 
-# Initial Jacobian J(0) = I, J(dt) after one small step
+# Jacobian of the Euler map at x0
 J_dt = torch.autograd.functional.jacobian(flow_map, x0)
 _, log_det_dt = torch.linalg.slogdet(J_dt)
 
@@ -1118,7 +1097,8 @@ div_v_theory = torch.trace(grad_v)
 print(f"Numerical d/dt log|det(J)|: {d_log_det_dt_numerical.item():.5f}")
 print(f"Theoretical trace tr(∇v):   {div_v_theory.item():.5f}")
 diff_flow = torch.abs(d_log_det_dt_numerical - div_v_theory).item()
-print(f"Finite-difference error: {diff_flow:.2e} (vanishes as dt -> 0)")
+print(f"Finite-difference error: {diff_flow:.2e}")
+assert diff_flow < 2e-4
 ```
 </CollapsibleCode>
 

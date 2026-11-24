@@ -7,15 +7,15 @@ textbookRef: "§4.4"
 
 In numerical computing and scientific engineering, if anyone asks which family of matrices mathematicians and computer scientists love most, the answer is without hesitation the **orthogonal matrix**. As Professor Gilbert Strang often exclaims at the blackboard: *"Orthogonality is numerical computing's best friend."*
 
-In Lectures 15 and 16, we derived the universal matrix formula for projecting onto a subspace, $P = A(A^TA)^{-1}A^T$, and the normal equations $A^TA\hat{\mathbf{x}} = A^T\mathbf{b}$ for solving least squares. While this framework is theoretically complete, it conceals a dangerous numerical landmine: the matrix $A^TA$ is not only expensive to invert, it also suffers from a fatal squaring of the condition number ($\kappa_2(A^TA) = \kappa_2(A)^2$), making it prone to catastrophic ill-conditioning whenever the basis vectors are slightly tilted or nearly linearly dependent.
+Lectures 15 and 16 derived the normal equations $A^TA\hat{\mathbf{x}}=A^T\mathbf{b}$. For full-column-rank $A\in\mathbb{R}^{m\times n}$, the projector is $P=A(A^TA)^{-1}A^T$. Forming $A^TA$ squares the 2-norm condition number, $\kappa_2(A^TA)=\kappa_2(A)^2$, which matters when the columns are nearly dependent.
 
-The core mission of this lecture is to eliminate that hazard at its root: **replace an arbitrary non-orthogonal basis with a "perfect basis" of mutually perpendicular unit vectors**. We will establish the rigorous theory of orthonormal vectors and orthogonal matrices, uncover the four golden advantages of isometric transformations, master the **Gram-Schmidt orthogonalization algorithm**, and witness one of the grandest factorizations in linear algebra—the **$A = QR$ factorization**.
+To solve least squares without forming $A^TA$, **replace an arbitrary non-orthogonal basis with a "perfect basis" of mutually perpendicular unit vectors**. We will establish the rigorous theory of orthonormal vectors and orthogonal matrices, uncover the four golden advantages of isometric transformations, master the **Gram-Schmidt orthogonalization algorithm**, and witness one of the grandest factorizations in linear algebra—the **$A = QR$ factorization**.
 
 ---
 
 ## 1. Rigorous Terminology: Orthonormal Vectors vs. Orthogonal Matrices
 
-Before diving into algebraic derivations, we must untangle three frequently confused definitions and a classic historical naming trap in linear algebra.
+Before diving into algebraic derivations, distinguish an orthonormal set of vectors, a matrix with orthonormal columns, and a square orthogonal matrix.
 
 <DefinitionCard
   label="Definition 17.1"
@@ -80,7 +80,7 @@ $$
    Every permutation matrix $P$ (having exactly one $1$ in each row and column, and $0$s elsewhere) is an orthogonal matrix, because reordering coordinate axes never alters the lengths of vectors or the angles between them; clearly $P^T P = I$.
 
 3. **Householder Reflection Matrix**:
-   Let $\mathbf{u} \in \mathbb{R}^n$ be a unit normal vector ($\|\mathbf{u}\|_2 = 1$). The mirror reflection matrix across the hyperplane perpendicular to $\mathbf{u}$ is:
+   Let $\mathbf{u} \in \mathbb{R}^n$ be a unit normal vector ($\|\mathbf{u}\|_2 = 1$). The mirror reflection matrix across the hyperplane $\mathbf{u}^\perp$ through the origin is:
 
 $$
 H = I_n - 2\mathbf{u}\mathbf{u}^T
@@ -113,7 +113,7 @@ Why do applied mathematics and numerical analysis favor orthogonal matrices so d
   title="Inner Product Preservation & Isometry Theorem"
 >
 
-Let $Q \in \mathbb{R}^{n\times n}$ be a square orthogonal matrix (or more generally, $Q \in \mathbb{R}^{m\times n}$ with $Q^T Q = I_n$). Then for all vectors $\mathbf{x}, \mathbf{y} \in \mathbb{R}^n$:
+Let $Q\in\mathbb{R}^{m\times n}$ with $m\ge n\ge 1$ and $Q^TQ=I_n$. Then for all $\mathbf{x},\mathbf{y}\in\mathbb{R}^n$:
 
 1. **Inner Product & Angle Preservation**:
 
@@ -121,7 +121,7 @@ $$
 (Q\mathbf{x})^T (Q\mathbf{y}) = \mathbf{x}^T \mathbf{y}
 $$
 
-That is, an orthogonal transformation preserves the inner product between any two vectors; in particular, the angle between $Q\mathbf{x}$ and $Q\mathbf{y}$ is identical to the angle between $\mathbf{x}$ and $\mathbf{y}$.
+This preserves all inner products and, when $\mathbf{x}$ and $\mathbf{y}$ are both nonzero, their angle.
 
 2. **Euclidean Norm Preservation (Isometry)**:
 
@@ -129,16 +129,16 @@ $$
 \|Q\mathbf{x}\|_2 = \|\mathbf{x}\|_2
 $$
 
-That is, an orthogonal transformation is a rigid-body motion (**isometry**): vector lengths are completely conserved before and after the transformation.
+Thus $Q$ is an isometry from $\mathbb{R}^n$ onto $\operatorname{Col}(Q)$.
 
-3. **Optimal Numerical Stability (Condition Number Equals 1)**:
-   In the $2$-norm, a square orthogonal matrix has operator norm $\|Q\|_2 = 1$, and its inverse $Q^{-1} = Q^T$ also has norm $1$. Thus the condition number of an orthogonal matrix achieves the theoretical absolute lower bound:
+3. **Condition Number Equals 1**:
+   When $m=n$, the operator 2-norms satisfy $\|Q\|_2=\|Q^{-1}\|_2=1$, with $Q^{-1}=Q^T$.
 
 $$
 \kappa_2(Q) = \|Q\|_2 \|Q^{-1}\|_2 = 1 \times 1 = 1
 $$
 
-Multiplying any vector by $Q$ never amplifies floating-point roundoff errors!
+For $m>n$, the $n$ singular values of $Q$ are also all $1$, so $\sigma_{\max}(Q)/\sigma_{\min}(Q)=1$. In exact arithmetic, an input perturbation keeps its norm under $Q$. Floating-point multiplication can still introduce rounding error.
 
 </TheoremCard>
 
@@ -162,7 +162,7 @@ $$
 Taking square roots on both sides (since norms are nonnegative) immediately yields $\|Q\mathbf{x}\|_2 = \|\mathbf{x}\|_2$.
 
 3. **Proof of angle conservation**:
-   By the definition of the cosine of the angle in Euclidean geometry:
+   Take nonzero $\mathbf{x},\mathbf{y}$. Their images are also nonzero by norm preservation, so the angle cosine is well-defined.
 
 $$
 \cos\theta(Q\mathbf{x}, Q\mathbf{y}) = \frac{(Q\mathbf{x})^T (Q\mathbf{y})}{\|Q\mathbf{x}\|_2 \|Q\mathbf{y}\|_2} = \frac{\mathbf{x}^T \mathbf{y}}{\|\mathbf{x}\|_2 \|\mathbf{y}\|_2} = \cos\theta(\mathbf{x}, \mathbf{y})
@@ -186,16 +186,16 @@ $$
 P = Q(Q^TQ)^{-1}Q^T = Q I_n Q^T = Q Q^T = \sum_{i=1}^{n} \mathbf{q}_i \mathbf{q}_i^T
 $$
 
-The entire projection matrix splits cleanly into the sum of $n$ mutually orthogonal rank-$1$ outer-product projections!
+Each summand projects onto one of the $n$ mutually orthogonal lines spanned by the columns of $Q$.
 
 2. **Completely Decoupled Least Squares Coordinates**:
-   For an overdetermined system $Q\mathbf{x} = \mathbf{b}$, the normal equations $Q^T Q \hat{\mathbf{x}} = Q^T\mathbf{b}$ reduce directly to:
+   For $\mathbf{b}\in\mathbb{R}^m$, the normal equations $Q^T Q \hat{\mathbf{x}} = Q^T\mathbf{b}$ reduce directly to:
 
 $$
 \hat{\mathbf{x}} = Q^T \mathbf{b} \iff \hat{x}_i = \mathbf{q}_i^T \mathbf{b} \quad (i = 1, \dots, n)
 $$
 
-Each coordinate $\hat{x}_i$ depends solely on a single inner product between the $i$-th basis vector $\mathbf{q}_i$ and the observation vector $\mathbf{b}$; the coordinates are completely decoupled from one another. If we add an $(n+1)$-st orthogonal feature vector to our model, the first $n$ coordinates $\hat{x}_1, \dots, \hat{x}_n$ **do not need to be recomputed at all**!
+Each coordinate $\hat{x}_i$ depends solely on a single inner product between the $i$-th basis vector $\mathbf{q}_i$ and the observation vector $\mathbf{b}$; the coordinates are completely decoupled from one another. If $n<m$ and we add a unit vector orthogonal to the existing column space, the first $n$ coordinates $\hat{x}_1, \dots, \hat{x}_n$ **do not need to be recomputed at all**!
 
 </TheoremCard>
 
@@ -238,7 +238,7 @@ That is the classic algorithm introduced at the end of the 19th century by Jørg
   title="Gram-Schmidt Orthogonalization Algorithm & Recursive Construction"
 >
 
-Let $\mathbf{a}_1, \mathbf{a}_2, \dots, \mathbf{a}_n \in \mathbb{R}^m$ be linearly independent vectors. Execute the following recursive steps:
+Let $\mathbf{a}_1, \mathbf{a}_2, \dots, \mathbf{a}_n \in \mathbb{R}^m$ be linearly independent, with $1\le n\le m$. Execute the following recursive steps:
 
 **Step 1 (Reference Direction)**:
 
@@ -246,13 +246,13 @@ $$
 \mathbf{v}_1 = \mathbf{a}_1, \quad \mathbf{q}_1 = \frac{\mathbf{v}_1}{\|\mathbf{v}_1\|_2}
 $$
 
-**Step 2 (Subtract the projection of $\mathbf{a}_2$ onto $\mathbf{q}_1$)**:
+**Step 2, if $n\\ge 2$ (Subtract the projection of $\mathbf{a}_2$ onto $\mathbf{q}_1$)**:
 
 $$
 \mathbf{v}_2 = \mathbf{a}_2 - (\mathbf{q}_1^T \mathbf{a}_2)\mathbf{q}_1, \quad \mathbf{q}_2 = \frac{\mathbf{v}_2}{\|\mathbf{v}_2\|_2}
 $$
 
-**Step $k$ (Subtract the projections of $\mathbf{a}_k$ onto all previous $\mathbf{q}_1, \dots, \mathbf{q}_{k-1}$)**:
+**Step $k$, for $3\\le k\\le n$ (Subtract the projections of $\mathbf{a}_k$ onto all previous $\mathbf{q}_1, \dots, \mathbf{q}_{k-1}$)**:
 
 $$
 \mathbf{v}_k = \mathbf{a}_k - \sum_{i=1}^{k-1} (\mathbf{q}_i^T \mathbf{a}_k)\mathbf{q}_i, \quad \mathbf{q}_k = \frac{\mathbf{v}_k}{\|\mathbf{v}_k\|_2}
@@ -309,7 +309,9 @@ By mathematical induction, the theorem holds for all $n$ steps.
 
 ## 4. One of the Crowning Peaks of Matrix Factorization: $A = QR$
 
-In Lecture 4, we learned that the matrix essence of Gaussian elimination is $A = LU$. In the theory of orthogonalization, Gilbert Strang reveals another foundational insight: **the matrix form of the Gram-Schmidt orthogonalization algorithm is the celebrated $A = QR$ factorization!**
+In Lecture 4, we factored Gaussian elimination as $A=LU$ when no row swaps were needed, and $PA=LU$ when row permutations were used. In the theory of orthogonalization, Gilbert Strang reveals another foundational insight: **the matrix form of the Gram-Schmidt orthogonalization algorithm is the celebrated $A = QR$ factorization!**
+
+For a full-column-rank matrix $A\in\mathbb{R}^{m\times n}$, the construction below gives the reduced QR factorization. With dependent columns, Gram–Schmidt can produce a zero residual. Skip that direction when constructing a basis of the column space.
 
 ### 1. How the Upper Triangular Matrix $R$ Emerges from Algebraic Reconstruction
 
@@ -513,13 +515,13 @@ $$
 R^T (Q^T Q) R \hat{\mathbf{x}} = R^T Q^T \mathbf{b}
 $$
 
-Since $Q^TQ = I_n$, the middle factor vanishes immediately:
+Since $Q^TQ=I_n$, the middle factor acts as the identity.
 
 $$
 R^T R \hat{\mathbf{x}} = R^T Q^T \mathbf{b}
 $$
 
-Because $A$ has full column rank, all diagonal entries $r_{ii} \gt 0$ of the upper triangular matrix $R$ are positive, so $R$ is invertible and its transpose $R^T$ is likewise invertible. Multiplying both sides on the left by $(R^T)^{-1}$ works a miracle:
+For the full-column-rank Gram–Schmidt factorization, $r_{ii}=\|\mathbf{v}_i\|_2>0$, so $R$ is invertible. Other sign conventions need only $r_{ii}\ne 0$. Cancel $R^T$ to obtain
 
 $$
 R \hat{\mathbf{x}} = Q^T \mathbf{b}
@@ -529,7 +531,7 @@ This single line represents one of the greatest leaps forward in scientific comp
 
 1. **No need to form $A^TA$**: We completely bypass the expensive matrix-matrix multiplication $A^TA$;
 2. **No matrix inversion required**: The right-hand side $\mathbf{d} = Q^T\mathbf{b}$ is a single matrix-vector product, and the left-hand side has an upper triangular matrix $R$, so **back-substitution** solves for $\hat{\mathbf{x}}$ in just $O(n^2)$ operations;
-3. **Eliminates the squared condition number disaster**: If the original matrix $A$ has condition number $\kappa_2(A) = 10^4$, forming $A^TA$ balloons the condition number to $\kappa_2(A^TA) = 10^8$, wiping out 8 decimal digits of floating-point precision. With $QR$ factorization, since $\kappa_2(Q) = 1$, the triangular factor preserves $\kappa_2(R) = \kappa_2(A) = 10^4$, keeping numerical precision intact!
+3. **Avoids squaring the condition number**. Since $A^TA=R^TR$, $A$ and $R$ have the same singular values. If $\kappa_2(A)=10^4$, then $\kappa_2(R)=10^4$, while $\kappa_2(A^TA)=10^8$. QR avoids that additional source of sensitivity. The actual error still depends on the factorization algorithm and the data.
 
 ---
 
@@ -541,7 +543,7 @@ This single line represents one of the greatest leaps forward in scientific comp
    - **Correction**: This is the #1 terminology trap for beginners! Consider the diagonal matrix $2I = \begin{bmatrix} 2 & 0 \\ 0 & 2 \end{bmatrix}$. Its two columns are obviously perpendicular, yet its inverse is $\frac{1}{2}I$, which is certainly not equal to its transpose $(2I)^T = 2I$! Moreover, $\|(2I)\mathbf{x}\|_2 = 2\|\mathbf{x}\|_2 \neq \|\mathbf{x}\|_2$, so it is neither length-preserving nor isometric. Always remember: **an orthogonal matrix strictly refers to a square matrix whose columns are orthonormal (both mutually orthogonal and unit length)!**
 
 2. **Pitfall 2: Confusing $Q^TQ = I_n$ with $QQ^T \neq I_m$ for a tall rectangular matrix $Q \in \mathbb{R}^{m\times n}$ ($m \gt n$)**
-   - **Correction**: Many students mistakenly assume that "orthonormal columns imply orthonormal rows." When $m \gt n$ (a tall, skinny matrix), $Q$ has only $n$ columns; its $m$ rows are vectors in $\mathbb{R}^n$. Putting $m \gt n$ vectors inside an $n$-dimensional space forces them to be linearly dependent, so they can never be mutually orthogonal! The product $QQ^T = P \in \mathbb{R}^{m\times m}$ is the **projection matrix** onto the $n$-dimensional column space; it has rank $n \lt m$ and $m-n$ zero eigenvalues, so it is never $I_m$! Only when $Q$ is **square** ($m = n$) does $Q Q^T = I_n$ hold.
+   - **Correction**: Many students mistakenly assume that "orthonormal columns imply orthonormal rows." When $m \gt n$ (a tall, skinny matrix), $Q$ has only $n$ columns; its $m$ rows are vectors in $\mathbb{R}^n$. Putting $m \gt n$ vectors inside an $n$-dimensional space forces them to be linearly dependent, so they cannot form an orthonormal set. They can be mutually orthogonal if some rows are zero. The product $QQ^T = P \in \mathbb{R}^{m\times m}$ is the **projection matrix** onto the $n$-dimensional column space; it has rank $n \lt m$ and $m-n$ zero eigenvalues, so it is never $I_m$! Only when $Q$ is **square** ($m = n$) does $Q Q^T = I_n$ hold.
 
 3. **Pitfall 3: Forgetting to subtract projections onto earlier basis vectors in Step 3 and beyond of Gram-Schmidt**
    - **Correction**: When computing the third orthogonal vector $\mathbf{v}_3$, some students only subtract the projection onto $\mathbf{q}_2$ ($\mathbf{a}_3 - (\mathbf{q}_2^T\mathbf{a}_3)\mathbf{q}_2$), assuming that "being orthogonal to the previous vector automatically makes it orthogonal to the one before that." That is completely false! Each new vector must **subtract its projections onto all previously constructed orthonormal basis vectors**: $\mathbf{v}_k = \mathbf{a}_k - \sum_{i=1}^{k-1}(\mathbf{q}_i^T\mathbf{a}_k)\mathbf{q}_i$.
@@ -558,7 +560,7 @@ This single line represents one of the greatest leaps forward in scientific comp
 <InteractiveCanvasSlot
   id="gram-schmidt-interactive"
   title="Interactive Gram-Schmidt De-Projection & QR Lab"
-  description="Drag the original non-orthogonal basis vectors $\mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3$ in real time to observe how the de-projected residuals $\mathbf{v}_k$ and orthonormal basis vectors $\mathbf{q}_k$ are constructed, and inspect how the upper triangular entries of $R$ reconstruct $A = QR$."
+  description="Adjust the angle and length of $\mathbf{a}_2$ and step through the two-vector construction in $\mathbb{R}^2$. Check $A=QR$ and see how a zero residual gives $r_{22}=0$ and leaves the second unit direction to be chosen by completing the basis."
 />
 
 ---
@@ -568,12 +570,12 @@ This single line represents one of the greatest leaps forward in scientific comp
 <KeyTakeaways
   title="Key Takeaways"
   items={[
-    "**Terminology Baseline**: Mutually perpendicular unit vectors form an orthonormal basis; an **orthogonal matrix** strictly means a **square** matrix with orthonormal columns, satisfying the two-sided inverse identity $Q^{-1} = Q^T$.",
+    "**Terminology Baseline**: Mutually perpendicular unit vectors form an orthonormal basis of their span. An **orthogonal matrix** strictly means a **square** matrix with orthonormal columns, satisfying the two-sided inverse identity $Q^{-1} = Q^T$.",
     "**Rigid-Body Isometry**: Orthogonal transformations preserve inner products $(Q\\mathbf{x})^T(Q\\mathbf{y}) = \\mathbf{x}^T\\mathbf{y}$ and Euclidean norms $\\|Q\\mathbf{x}\\|_2 = \\|\\mathbf{x}\\|_2$, achieving the optimal condition number $\\kappa_2(Q) = 1$.",
     "**Inversion-Free Projection & Decoupled Least Squares**: For a matrix $Q$ with orthonormal columns, the projection matrix simplifies without inversion to $P = QQ^T = \\sum \\mathbf{q}_i\\mathbf{q}_i^T$, and the normal equations decouple into independent inner-product coordinates $\\hat{x}_i = \\mathbf{q}_i^T\\mathbf{b}$.",
     "**Essence of Gram-Schmidt**: Sequentially strip from each vector its parallel projection components along all previously constructed orthonormal directions, keeping only the pure perpendicular residual and normalizing it.",
-    "**Upper Triangular Nature of $A = QR$**: In $A = QR$, the factor $R = Q^TA$ is upper triangular because $\\mathbf{q}_i \\perp \\operatorname{span}\\{\\mathbf{a}_1, \\dots, \\mathbf{a}_j\\}$ forces $r_{ij} = 0$ for all $i \\gt j$, while the diagonal entries are the residual norms $r_{jj} = \\|\\mathbf{v}_j\\|_2 \\gt 0$.",
-    "**Breakthrough in Least Squares**: Substituting $A = QR$ reduces the normal equations $A^TA\\hat{\\mathbf{x}} = A^T\\mathbf{b}$ to the triangular back-substitution system $R\\hat{\\mathbf{x}} = Q^T\\mathbf{b}$, completely eliminating the condition-number squaring disaster of $A^TA$!"
+    "**Upper Triangular Nature of $A = QR$**: In the full-column-rank Gram–Schmidt factorization, the factor $R = Q^TA$ is upper triangular because $\\mathbf{q}_i \\perp \\operatorname{span}\\{\\mathbf{a}_1, \\dots, \\mathbf{a}_j\\}$ forces $r_{ij} = 0$ for all $i \\gt j$, while the diagonal entries are the residual norms $r_{jj} = \\|\\mathbf{v}_j\\|_2 \\gt 0$.",
+    "**Least Squares via QR**: For full-column-rank $A=QR$, solve $R\\hat{\\mathbf{x}}=Q^T\\mathbf{b}$ by back-substitution. The triangular system has $\\kappa_2(R)=\\kappa_2(A)$."
   ]}
 />
 
@@ -739,7 +741,7 @@ Determine whether the following statement is true or false:
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! For a tall rectangular matrix $Q \in \mathbb{R}^{m\times n}$ ($m \gt n$), its transpose $Q^T \in \mathbb{R}^{n\times m}$ has a nontrivial left nullspace of dimension $m - n \gt 0$. Any nonzero vector $\mathbf{b}$ orthogonal to $\operatorname{Col}(Q)$ is crushed to the zero vector by $Q^T$ ($\|Q^T\mathbf{b}\|_2 = 0 \neq \|\mathbf{b}\|_2$)!"
+  quickFeedback="False! For a tall rectangular matrix $Q \in \mathbb{R}^{m\times n}$ ($m \gt n$), the left nullspace $\operatorname{Null}(Q^T)$ of $Q$ has dimension $m-n\gt0$. Any nonzero vector $\mathbf{b}$ orthogonal to $\operatorname{Col}(Q)$ is crushed to the zero vector by $Q^T$ ($\|Q^T\mathbf{b}\|_2 = 0 \neq \|\mathbf{b}\|_2$)!"
 />
 
 <ProgressiveHint
@@ -764,17 +766,17 @@ Forward multiplication $Q\mathbf{x}$ rigidly embeds the lower-dimensional space 
 
 **Explicit Counterexample and Subspace Proof**:
 Let $m = 2, n = 1$, and $Q = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \in \mathbb{R}^{2\times 1}$.
-Clearly $Q^T Q = \begin{bmatrix} 1 & 0 \end{bmatrix}\begin{bmatrix} 1 \\ 0 \end{bmatrix} = 1 = I_1$.
+Clearly $Q^T Q = \begin{bmatrix} 1 & 0 \end{bmatrix}\begin{bmatrix} 1 \\ 0 \end{bmatrix} = [1] = I_1$.
 
 Now take $\mathbf{b} = \begin{bmatrix} 0 \\ 1 \end{bmatrix} \in \mathbb{R}^2$, which has $\|\mathbf{b}\|_2 = 1$.
 Computing $Q^T \mathbf{b}$ gives:
 
 $$
-Q^T \mathbf{b} = \begin{bmatrix} 1 & 0 \end{bmatrix}\begin{bmatrix} 0 \\ 1 \end{bmatrix} = 0 \in \mathbb{R}^1 \implies \|Q^T\mathbf{b}\|_2 = 0 \neq 1
+Q^T \mathbf{b} = \begin{bmatrix} 1 & 0 \end{bmatrix}\begin{bmatrix} 0 \\ 1 \end{bmatrix} = \begin{bmatrix}0\end{bmatrix}=\mathbf{0} \implies \|Q^T\mathbf{b}\|_2 = 0 \neq 1
 $$
 
 **Algebraic Principle**:
-By orthogonal decomposition, any $\mathbf{b} \in \mathbb{R}^m$ splits uniquely as $\mathbf{b} = \mathbf{p} + \mathbf{e}$ with $\mathbf{p} \in \operatorname{Col}(Q)$ and $\mathbf{e} \in \operatorname{Null}(Q^T)$.
+Let $P=QQ^T$. By orthogonal decomposition, any $\mathbf{b} \in \mathbb{R}^m$ splits uniquely as $\mathbf{b} = \mathbf{p} + \mathbf{e}$ with $\mathbf{p} \in \operatorname{Col}(Q)$ and $\mathbf{e} \in \operatorname{Null}(Q^T)$.
 Computing the squared norm:
 
 $$
@@ -799,7 +801,7 @@ Let $Q_1, Q_2 \in \mathbb{R}^{n\times n}$ be $n\times n$ orthogonal matrices.
 
 1. Prove that the product $Q_1 Q_2$ is an orthogonal matrix;
 2. Prove that the inverse $Q_1^{-1}$ is an orthogonal matrix;
-3. Give a concrete counterexample showing that the sum $Q_1 + Q_2$ is generally **not** an orthogonal matrix (revealing why orthogonal matrices form the compact Lie group $O(n)$ under multiplication, but never a vector space!).
+3. Give a concrete counterexample showing that the sum $Q_1 + Q_2$ is generally **not** an orthogonal matrix (revealing why orthogonal matrices form the orthogonal group $O(n)$ under multiplication).
 
 <ProgressiveHint
   buttonPrefix="Unlock Hint"
@@ -857,7 +859,7 @@ $$
 $$
 
    Even worse, taking $Q_1 = I_n$ and $Q_2 = -I_n$ yields $Q_1 + Q_2 = O$ (the zero matrix), which is completely singular.
-   **Deeper Implication**: The set of all $n\times n$ orthogonal matrices forms the compact Lie group $O(n)$ (the **orthogonal group**), closed under multiplication and inversion and containing the identity $I_n$, but it is curved and not closed under addition—hence not a linear subspace of $\mathbb{R}^{n\times n}$.
+   **Deeper Implication**: The set of $n\times n$ orthogonal matrices contains the identity and is closed under multiplication and inversion. It forms the **orthogonal group** $O(n)$. The counterexample above rules out closure under addition.
 
 </SolutionRigorous>
 </DualSolution>
@@ -927,7 +929,7 @@ P = Q R \left( R^{-1} (R^T)^{-1} \right) R^T Q^T = Q (R R^{-1}) ((R^T)^{-1} R^T)
 $$
 
 2. **Proof of the recursive update $P_k = P_{k-1} + \mathbf{q}_k\mathbf{q}_k^T$**:
-   By the Gram-Schmidt theorem, the span of the first $k$ columns satisfies $\operatorname{span}\{\mathbf{a}_1, \dots, \mathbf{a}_k\} = \operatorname{span}\{\mathbf{q}_1, \dots, \mathbf{q}_k\}$.
+   Let $R_k$ be the leading $k\times k$ block of $R$. Upper triangularity gives $A_k=Q_kR_k$. Since $R_k$ is invertible, $\operatorname{Col}(A_k)=\operatorname{Col}(Q_k)$.
    Letting $Q_k = \begin{bmatrix} \mathbf{q}_1 & \cdots & \mathbf{q}_k \end{bmatrix} \in \mathbb{R}^{m\times k}$, Part 1 implies:
 
 $$
@@ -941,7 +943,7 @@ P_k = \begin{bmatrix} Q_{k-1} & \mathbf{q}_k \end{bmatrix} \begin{bmatrix} Q_{k-
 $$
 
 3. **Why non-orthogonal columns fail**:
-   If we use the unorthogonalized column $\mathbf{a}_k$ directly, since $\mathbf{a}_k$ is generally not perpendicular to $\operatorname{Col}(A_{k-1})$, its projection onto the previous subspace is nonzero ($P_{k-1}\mathbf{a}_k \neq \mathbf{0}$). Adding the rank-$1$ projection along $\mathbf{a}_k$ to $P_{k-1}$ introduces non-vanishing cross terms ($P_{k-1}\mathbf{a}_k\mathbf{a}_k^T \neq O$), violating idempotence ($P_k^2 \neq P_k$). Only after Gram-Schmidt removes the old projection and isolates the orthogonal unit vector $\mathbf{q}_k$ does the orthogonal direct sum $\operatorname{Col}(A_k) = \operatorname{Col}(A_{k-1}) \oplus \operatorname{span}\{\mathbf{q}_k\}$ allow rank-$1$ projection matrices to add linearly!
+   Write $\widetilde P=P_{k-1}+\mathbf{a}_k\mathbf{a}_k^T/\|\mathbf{a}_k\|_2^2$. By the sum criterion in Lecture 15, $\widetilde P$ is idempotent exactly when $P_{k-1}\mathbf{a}_k=\mathbf{0}$. Otherwise remove the old component with $\mathbf{v}_k=(I_m-P_{k-1})\mathbf{a}_k$ and use $\mathbf{q}_k=\mathbf{v}_k/\|\mathbf{v}_k\|_2$ in the update.
 
 </SolutionRigorous>
 </DualSolution>
@@ -957,30 +959,23 @@ $$
   paperRef="Su et al. (2021) RoFormer: Enhanced Transformer with Rotary Position Embedding · Saxe et al. (ICLR 2014) Exact solutions to the nonlinear dynamics of learning in deep linear neural networks"
 >
 
-In the frontier architectures of modern Large Language Models (LLMs such as LLaMA-1/2/3, Qwen-2/2.5, DeepSeek-V2/V3, Mistral, and Gemma) and deep neural networks, **orthogonal matrices** play two foundational roles:
+Rotary Position Embedding (RoPE) uses two-dimensional rotations to encode relative position. Orthogonal weight initialization uses isometry to preserve signal and gradient norms in deep linear networks.
 
-1. The de facto standard positional encoding in modern LLMs—**RoPE (Rotary Position Embedding)**;
-2. **Orthogonal Weight Initialization** for training ultra-deep neural networks.
+### 1. From Additive Position Encodings to Plane Rotations
 
-Remarkably, the mathematical engine powering today's multi-trillion-parameter foundation models is a direct application of the two simplest theorems from this lecture: **norm preservation (isometry)** and **inner product preservation** under orthogonal transformations!
-
----
-
-### 1. Why Do LLMs Need RoPE? From Additive Positions to 2D Orthogonal Rotations
-
-In Transformer self-attention, the Query vector $\mathbf{q}_m \in \mathbb{R}^d$ at token position $m$ and the Key vector $\mathbf{k}_n \in \mathbb{R}^d$ at token position $n$ interact via their inner product to compute the attention score:
+In Transformer self-attention, let $\mathbf{q}_m,\mathbf{k}_n\in\mathbb{R}^d$ denote the query at position $m$ and key at position $n$ before applying RoPE. We study their unscaled dot product. Scaled dot-product attention divides this by $\sqrt d$.
 
 $$
 \text{Score}(m, n) = \mathbf{q}_m^T \mathbf{k}_n
 $$
 
-In the original Transformer, positional information was injected by simply adding an absolute position vector: $\tilde{\mathbf{q}}_m = \mathbf{q}_m + \mathbf{p}_m$. Expanding the inner product produces messy cross terms like $\mathbf{q}_m^T\mathbf{p}_n$ and $\mathbf{p}_m^T\mathbf{k}_n$, preventing the attention head from cleanly isolating the **relative distance** $n - m$ between tokens.
+The original Transformer adds absolute position vectors to input embeddings. After distinct query and key projections, the positional contributions are $W_Q\mathbf{p}_m$ and $W_K\mathbf{p}_n$. Expanding the dot product gives cross terms between content and position.
 
-Su et al. (**RoFormer, 2021**) introduced a revolutionary geometric idea: **instead of adding a position vector, rotate the feature vector using an orthogonal matrix!**
+RoFormer applies position-dependent rotations to queries and keys so that the explicit positional factor in their dot product depends only on the offset.
 
 #### Constructing the 2D Block-Diagonal Orthogonal Matrix
 
-Pair up the $d$ coordinates of the hidden state into $d/2$ two-dimensional subspaces. Within the $i$-th 2D subspace, a token at sequence position $m$ is rotated by angle $m\theta_i$ using the $2\times 2$ orthogonal rotation matrix:
+Assume the head dimension $d$ is positive and even, and rotate all $d$ coordinates. Group the coordinates into $d/2$ pairs, rotating pair $i$ at position $m$ by $m\theta_i$. Queries and keys use the same frequencies $\theta_i$.
 
 $$
 R_{m, \theta_i} = \begin{bmatrix} \cos(m\theta_i) & -\sin(m\theta_i) \\ \sin(m\theta_i) & \cos(m\theta_i) \end{bmatrix} \in \mathbb{R}^{2\times 2}
@@ -989,21 +984,16 @@ $$
 Assembling all $d/2$ two-dimensional rotation blocks along the diagonal forms a $d\times d$ block-diagonal matrix:
 
 $$
-R_m = \begin{bmatrix}
-R_{m, \theta_1} & & & 0 \\
-& R_{m, \theta_2} & & \\
-& & \ddots & \\
-0 & & & R_{m, \theta_{d/2}}
-\end{bmatrix} \in \mathbb{R}^{d\times d}
+R_m = \operatorname{diag}(R_{m,\theta_1},\dots,R_{m,\theta_{d/2}})\in\mathbb{R}^{d\times d}
 $$
 
-Injecting positional information into the Query and Key vectors is simply multiplication by these orthogonal matrices: $\tilde{\mathbf{q}}_m = R_m \mathbf{q}$ and $\tilde{\mathbf{k}}_n = R_n \mathbf{k}$.
+Injecting positional information into the Query and Key vectors is simply multiplication by these orthogonal matrices: $\tilde{\mathbf{q}}_m = R_m \mathbf{q}_m$ and $\tilde{\mathbf{k}}_n = R_n \mathbf{k}_n$.
 
 ---
 
-### 2. Two-Line Derivation of RoPE's Superpowers Using Lecture 17 Theorems
+### 2. Norm Preservation and the Relative Position Factor
 
-#### Property 1: Exact Norm Conservation (Zero Numerical Explosion Across Long Contexts)
+#### 1. Norm Preservation in Exact Arithmetic
 
 Because every $2\times 2$ block is a standard rotation matrix satisfying $R_{m, \theta_i}^T R_{m, \theta_i} = I_2$, the full block-diagonal matrix satisfies:
 
@@ -1014,24 +1004,24 @@ $$
 Directly invoking **Theorem 17.1 (Norm Preservation / Isometry)**:
 
 $$
-\|\tilde{\mathbf{q}}_m\|_2 = \|R_m \mathbf{q}\|_2 = \|\mathbf{q}\|_2, \quad \|\tilde{\mathbf{k}}_n\|_2 = \|R_n \mathbf{k}\|_2 = \|\mathbf{k}\|_2
+\|\tilde{\mathbf{q}}_m\|_2 = \|R_m \mathbf{q}_m\|_2 = \|\mathbf{q}_m\|_2, \quad \|\tilde{\mathbf{k}}_n\|_2 = \|R_n \mathbf{k}_n\|_2 = \|\mathbf{k}_n\|_2
 $$
 
-**Physical Intuition**: Whether the context length $m$ extends to 32K, 128K, or 1M tokens, **orthogonal rotation never alters the Euclidean norm of the feature vectors!** This completely avoids the numerical drift and attention logit explosion that plagued additive positional encodings over long sequences.
+In exact arithmetic, rotation preserves the vector norms. By Cauchy–Schwarz, the absolute rotated dot product is at most $\|\mathbf{q}_m\|_2\|\mathbf{k}_n\|_2$. Computing angles, sines, and cosines in finite precision can still introduce numerical error.
 
-#### Property 2: Absolute Positions Collapse Automatically into Relative Distance $n - m$ Inside the Inner Product
+#### 2. The Explicit Positional Factor Depends on the Signed Offset $n-m$
 
 Let us compute the attention inner product after applying RoPE:
 
 $$
-\tilde{\mathbf{q}}_m^T \tilde{\mathbf{k}}_n = (R_m \mathbf{q})^T (R_n \mathbf{k}) = \mathbf{q}^T (R_m^T R_n) \mathbf{k}
+\tilde{\mathbf{q}}_m^T \tilde{\mathbf{k}}_n = (R_m \mathbf{q}_m)^T (R_n \mathbf{k}_n) = \mathbf{q}_m^T (R_m^T R_n) \mathbf{k}_n
 $$
 
 Look closely at the middle product $R_m^T R_n$!
 Because each $2\times 2$ rotation matrix belongs to the special orthogonal group $SO(2)$, its transpose is simply rotation by the negative angle: $R_{m, \theta_i}^T = R_{-m, \theta_i}$. By the group composition law for rotations:
 
 $$
-R_{-m, \theta_i} R_{n, \theta_i} = \begin{bmatrix} \cos(-m\theta_i) & -\sin(-m\theta_i) \\ \sin(-m\theta_i) & \cos(-m\theta_i) \end{bmatrix} \begin{bmatrix} \cos(n\theta_i) & -\sin(n\theta_i) \\ \sin(n\theta_i) & \cos(n\theta_i) \end{bmatrix} = \begin{bmatrix} \cos((n-m)\theta_i) & -\sin((n-m)\theta_i) \\ \sin((n-m)\theta_i) & \cos((n-m)\theta_i) \end{bmatrix} = R_{n-m, \theta_i}
+R_{m,\theta_i}^T R_{n,\theta_i}=R_{-m,\theta_i}R_{n,\theta_i}=R_{n-m,\theta_i}.
 $$
 
 Consequently, the full block-diagonal matrix satisfies:
@@ -1043,29 +1033,24 @@ $$
 Substituting this back into the attention inner product gives:
 
 $$
-\tilde{\mathbf{q}}_m^T \tilde{\mathbf{k}}_n = \mathbf{q}^T R_{n-m} \mathbf{k}
+\tilde{\mathbf{q}}_m^T \tilde{\mathbf{k}}_n = \mathbf{q}_m^T R_{n-m} \mathbf{k}_n
 $$
 
-**Here linear algebra reveals its ultimate elegance**: even though we apply orthogonal rotations indexed by the **absolute** positions $m$ and $n$ separately to the Query and Key vectors, inside the inner product **the absolute positions cancel out completely, collapsing into a single orthogonal rotation governed purely by the relative distance $n - m$!** That is the entire mathematical secret behind modern LLMs' relative position awareness and long-context extrapolation.
+The rotation factor $R_{n-m}$ depends only on the signed offset. The full score still depends on the content vectors $\mathbf{q}_m,\mathbf{k}_n$. This identity explains the relative-position term. Extrapolation quality beyond the training context is a separate empirical question.
 
 ---
 
-### 3. Orthogonal Weight Initialization and Dynamical Isometry in Ultra-Deep Networks
+### 3. Orthogonal Initialization in Deep Linear Networks
 
-In a very deep neural network (such as a 50-layer MLP or a long recurrent network), forward propagation multiplies an input vector through a long chain of weight matrices:
-
-$$
-\mathbf{h}_L = W_L W_{L-1} \cdots W_1 \mathbf{x}
-$$
-
-- Under standard Gaussian random initialization, if the largest singular value of each layer is slightly above $1$ (say $1.05$), multiplying across 100 layers amplifies the signal norm by $1.05^{100} \approx 131.5$ (exploding activations/gradients); if it is slightly below $1$ (say $0.95$), the norm decays to $0.95^{100} \approx 0.0059$ (vanishing activations/gradients).
-- **Saxe et al. (ICLR 2014)** proved the remarkable power of **Orthogonal Initialization**: by applying **Gram-Schmidt orthogonalization or $QR$ factorization** to a random Gaussian matrix and initializing each layer with its orthogonal factor $W_l = Q_l$ ($W_l^T W_l = I$), Theorem 17.1 guarantees:
+Consider a deep linear network with square weights $W_\ell\in\mathbb{R}^{d\times d}$, Jacobian $J=W_L\cdots W_1$, and output $\mathbf{h}_L=J\mathbf{x}$. Submultiplicativity gives
 
 $$
-\|\mathbf{h}_L\|_2 = \|W_L (W_{L-1} \cdots W_1 \mathbf{x})\|_2 = \|W_{L-1} \cdots W_1 \mathbf{x}\|_2 = \cdots = \|\mathbf{x}\|_2
+\|\mathbf{h}_L\|_2 \le \left(\prod_{\ell=1}^{L}\sigma_{\max}(W_\ell)\right)\|\mathbf{x}\|_2.
 $$
 
-Signal norms and backpropagated gradient norms remain strictly preserved across arbitrary network depth (**dynamical isometry**), enabling rapid convergence even in ultra-deep networks.
+If the largest singular value of each layer is $1.05$, the amplification factor across 100 layers is at most about $131.5$. Attaining that bound requires compatible singular directions across layers. If each largest singular value is at most $0.95$, every input shrinks to at most $0.95^{100}\approx 0.0059$ times its original norm.
+
+Initialize every layer with a square orthogonal matrix, for example the $Q$ factor of a square Gaussian matrix. Then $J^TJ=JJ^T=I_d$. Both forward signals and backward gradients preserve their norms, $\|J\mathbf{x}\|_2=\|\mathbf{x}\|_2$ and $\|J^T\mathbf{g}\|_2=\|\mathbf{g}\|_2$. All Jacobian singular values are exactly 1, an exact case of dynamical isometry. Saxe et al. study the training dynamics of deep linear networks. Nonlinear networks have activation derivatives in their Jacobians, so orthogonal weights alone give no such guarantee about the Jacobian or convergence rate.
 
 <CollapsibleCode title="Self-Contained PyTorch Experiment: Verifying RoPE Isometry, Relative-Position Collapse, and Deep Orthogonal Norm Conservation">
 
@@ -1116,7 +1101,7 @@ score_abs = (R_m @ q) @ (R_n @ k)
 score_rel = q @ (R_rel @ k)
 assert torch.allclose(score_abs, score_rel, atol=1e-6), "RoPE relative collapse failed!"
 
-print("✓ [RoPE Verified] Orthogonality R^T R = I, isometry ||Rq|| = ||q||, and relative-position collapse match to machine precision!")
+print("✓ [RoPE Verified] Orthogonality R^T R = I, isometry ||Rq|| = ||q||, and relative-position collapse agree within the stated tolerance.")
 
 # ==========================================
 # 2. Deep Network Orthogonal Initialization vs. Uncalibrated Gaussian Initialization
@@ -1128,7 +1113,7 @@ x_norm_initial = torch.norm(x).item()
 # 50-layer product of slightly mis-scaled Gaussian random matrices
 x_gaussian = x.clone()
 for _ in range(depth):
-    # Standard Gaussian initialization with a small scale perturbation
+    # Entries have standard deviation 1.05 / sqrt(d); layer spectral norms vary.
     W_g = torch.randn(d, d) * (1.05 / (d ** 0.5))
     x_gaussian = W_g @ x_gaussian
 
@@ -1140,8 +1125,8 @@ for _ in range(depth):
     x_orthogonal = Q @ x_orthogonal
 
 print(f"Initial input vector norm: {x_norm_initial:.4f}")
-print(f"Norm after 50 Gaussian layers: {torch.norm(x_gaussian).item():.4f} (severe distortion / explosion / decay)")
-print(f"Norm after 50 Orthogonal layers: {torch.norm(x_orthogonal).item():.4f} (strictly conserved via dynamical isometry!)")
+print(f"Norm after 50 Gaussian layers: {torch.norm(x_gaussian).item():.4f}")
+print(f"Norm after 50 Orthogonal layers: {torch.norm(x_orthogonal).item():.4f}")
 assert abs(torch.norm(x_orthogonal).item() - x_norm_initial) < 1e-4
 ```
 

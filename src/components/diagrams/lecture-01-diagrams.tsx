@@ -22,8 +22,8 @@ export function RowVsColumn2DDiagram({
   // Row picture lines
   const l1Start = toSvg(L0.x, L0.y, scale, -0.75, -1.5);
   const l1End = toSvg(L0.x, L0.y, scale, 2.05, 4.1);
-  const l2Start = toSvg(L0.x, L0.y, scale, -2.5, 0.25);
-  const l2End = toSvg(L0.x, L0.y, scale, 2.9, 2.95);
+  const l2Start = toSvg(L0.x, L0.y, scale, -3, 0);
+  const l2End = toSvg(L0.x, L0.y, scale, 2.9, (2.9 + 3) / 2);
   const sol = toSvg(L0.x, L0.y, scale, 1, 2);
   const solX = toSvg(L0.x, L0.y, scale, 1, 0);
   const solY = toSvg(L0.x, L0.y, scale, 0, 2);
@@ -52,7 +52,7 @@ export function RowVsColumn2DDiagram({
           <marker
             id="arrow-blue"
             viewBox="0 0 10 10"
-            refX="8.5"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -63,7 +63,7 @@ export function RowVsColumn2DDiagram({
           <marker
             id="arrow-emerald"
             viewBox="0 0 10 10"
-            refX="8.5"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -74,7 +74,7 @@ export function RowVsColumn2DDiagram({
           <marker
             id="arrow-rose"
             viewBox="0 0 10 10"
-            refX="8.5"
+            refX="10"
             refY="5"
             markerWidth="6.5"
             markerHeight="6.5"
@@ -120,7 +120,7 @@ export function RowVsColumn2DDiagram({
         })}
 
         {/* Axes Left */}
-        <line x1={40} y1={L0.y} x2={250} y2={L0.y} stroke="currentColor" strokeOpacity="0.45" strokeWidth="1.2" />
+        <line x1={39} y1={L0.y} x2={250} y2={L0.y} stroke="currentColor" strokeOpacity="0.45" strokeWidth="1.2" />
         <line x1={L0.x} y1={245} x2={L0.x} y2={40} stroke="currentColor" strokeOpacity="0.45" strokeWidth="1.2" />
         <text x="254" y={L0.y + 4} className="fill-current text-[11px] italic opacity-75">x</text>
         <text x={L0.x + 5} y="46" className="fill-current text-[11px] italic opacity-75">y</text>
@@ -221,6 +221,9 @@ export function RowVsColumn2DDiagram({
         {/* Axes Right */}
         <line x1={380} y1={R0.y} x2={615} y2={R0.y} stroke="currentColor" strokeOpacity="0.45" strokeWidth="1.2" />
         <line x1={R0.x} y1={245} x2={R0.x} y2={40} stroke="currentColor" strokeOpacity="0.45" strokeWidth="1.2" />
+
+        <text x="620" y={R0.y + 4} className="fill-current text-[11px] italic opacity-75">b₁</text>
+        <text x={R0.x + 5} y="46" className="fill-current text-[11px] italic opacity-75">b₂</text>
 
         {/* Parallelogram completion lines */}
         <line
@@ -329,13 +332,13 @@ export function SingularColumn2DDiagram({
         aria-label="Singular matrix column vectors collapsing onto a 1D line"
       >
         <defs>
-          <marker id="s-blue" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker id="s-blue" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 0 1.5 L 10 5 L 0 8.5 z" className="fill-blue-600 dark:fill-blue-400" />
           </marker>
-          <marker id="s-emerald" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker id="s-emerald" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 0 1.5 L 10 5 L 0 8.5 z" className="fill-emerald-600 dark:fill-emerald-400" />
           </marker>
-          <marker id="s-rose" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker id="s-rose" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 0 1.5 L 10 5 L 0 8.5 z" className="fill-rose-600 dark:fill-rose-400" />
           </marker>
         </defs>

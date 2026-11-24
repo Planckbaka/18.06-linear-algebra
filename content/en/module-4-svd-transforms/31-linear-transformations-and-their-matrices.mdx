@@ -50,7 +50,7 @@ Directly from the axioms—without touching a single matrix—we get two remarka
    $$
    T\left(\sum_{j=1}^k c_j \mathbf{v}_j\right) = \sum_{j=1}^k c_j T(\mathbf{v}_j)
    $$
-   In particular, sending a line $\mathbf{v}_0 + t\mathbf{d}$ ($t \in \mathbb{R}$) through $T$ produces $T(\mathbf{v}_0) + t T(\mathbf{d})$: a linear transformation always maps lines to lines (or to a single point if $T(\mathbf{d}) = \mathbf{0}_W$), and maps evenly spaced parallel grids to evenly spaced parallel grids.
+   In particular, sending a line $\mathbf{v}_0 + t\mathbf{d}$ ($t \in \mathbb{R}$) through $T$ produces $T(\mathbf{v}_0) + t T(\mathbf{d})$: a linear transformation always maps lines to lines (or to a single point if $T(\mathbf{d}) = \mathbf{0}_W$), and maps each parallel family of equally spaced lines to a parallel family of equally spaced lines whenever the image is nondegenerate.
 
 ---
 
@@ -100,13 +100,13 @@ Watch out for these four mappings—they are frequently mistaken for linear tran
 4. **Matrix Determinant**: $T(A) = \det(A) : \mathbb{R}^{n\times n} \to \mathbb{R}$ ($n \ge 2$).
    - **The flaw**: The determinant is linear in **one row or one column at a time** (it is *multilinear*), not as a function of the entire matrix: $\det(2I_2) = 2^2 \det(I_2) = 4 \ne 2\det(I_2)$, and $\det(I_2 + (-I_2)) = \det(O) = 0 \ne 1 + 1 = \det(I_2) + \det(-I_2)$.
 
-<LinearTransformationGeometryExamplesDiagram caption="Comparison of genuine geometric linear transformations (rotation, reflection, projection, shear) against nonlinear impostors (affine translation, Euclidean norm, elementwise squaring)." />
+<LinearTransformationGeometryExamplesDiagram caption="Rotation, reflection and orthogonal projection compared with affine translation and the Euclidean norm." />
 
 ---
 
 ## III. Kernel, Range, and "Unique Determination on a Basis"
 
-In matrix language, the nullspace $\operatorname{Null}(A)$ and column space $\operatorname{Col}(A)$ take center stage. For a coordinate-free linear transformation $T: V \to W$, they correspond to two intrinsic subspaces that do not depend on any basis.
+In matrix language, the nullspace $\operatorname{Null}(A)$ (Strang’s $N(A)$) and column space $\operatorname{Col}(A)$ (Strang’s $C(A)$) take center stage. For a coordinate-free linear transformation $T: V \to W$, they correspond to two intrinsic subspaces that do not depend on any basis.
 
 <DefinitionCard title="Kernel and Range (Image) of a Linear Transformation">
 
@@ -128,9 +128,9 @@ $$
 
 </DefinitionCard>
 
-Why is $\ker(T)$ guaranteed to be a subspace of $V$, and $\operatorname{Im}(T)$ a subspace of $W$? Check closure directly: if $\mathbf{v}_1, \mathbf{v}_2 \in \ker(T)$, then $T(c\mathbf{v}_1 + d\mathbf{v}_2) = cT(\mathbf{v}_1) + dT(\mathbf{v}_2) = c\mathbf{0}_W + d\mathbf{0}_W = \mathbf{0}_W$, so any linear combination stays in $\ker(T)$. Likewise, if $\mathbf{y}_1 = T(\mathbf{v}_1)$ and $\mathbf{y}_2 = T(\mathbf{v}_2)$ lie in $\operatorname{Im}(T)$, then $c\mathbf{y}_1 + d\mathbf{y}_2 = T(c\mathbf{v}_1 + d\mathbf{v}_2) \in \operatorname{Im}(T)$. Once we pick bases and represent $T$ by a matrix $A$, $\ker(T)$ will match $\operatorname{Null}(A)$ and $\operatorname{Im}(T)$ will match $\operatorname{Col}(A)$!
+Why is $\ker(T)$ guaranteed to be a subspace of $V$, and $\operatorname{Im}(T)$ a subspace of $W$? Both sets contain their respective zero vectors. Check closure directly: if $\mathbf{v}_1, \mathbf{v}_2 \in \ker(T)$, then $T(c\mathbf{v}_1 + d\mathbf{v}_2) = cT(\mathbf{v}_1) + dT(\mathbf{v}_2) = c\mathbf{0}_W + d\mathbf{0}_W = \mathbf{0}_W$, so any linear combination stays in $\ker(T)$. Likewise, if $\mathbf{y}_1 = T(\mathbf{v}_1)$ and $\mathbf{y}_2 = T(\mathbf{v}_2)$ lie in $\operatorname{Im}(T)$, then $c\mathbf{y}_1 + d\mathbf{y}_2 = T(c\mathbf{v}_1 + d\mathbf{v}_2) \in \operatorname{Im}(T)$. Once we pick bases and represent $T$ by a matrix $A$, $\ker(T)$ corresponds under input coordinates to $\operatorname{Null}(A)$, and $\operatorname{Im}(T)$ corresponds under output coordinates to $\operatorname{Col}(A)$.
 
-Next comes the fundamental theorem explaining why a finite matrix can completely capture a transformation acting on an infinite vector space:
+Next comes the fundamental theorem explaining why a finite matrix can completely capture a transformation acting on a finite-dimensional vector space:
 
 <TheoremCard title="Unique Determination of a Linear Transformation on a Basis">
 
@@ -267,7 +267,7 @@ Back in Module 1 (Lecture 3), we simply defined matrix multiplication by the "ro
 
 <TheoremCard title="Composition of Linear Transformations Equals Matrix Multiplication">
 
-Let $U, V, W$ be finite-dimensional real vector spaces with ordered bases $\mathcal{B}_U$ ($\dim p$), $\mathcal{B}_V$ ($\dim n$), and $\mathcal{B}_W$ ($\dim m$).
+Let $U, V, W$ be finite-dimensional real vector spaces with ordered bases $\mathcal{B}_U$ ($\dim U = p$), $\mathcal{B}_V$ ($\dim V = n$), and $\mathcal{B}_W$ ($\dim W = m$).
 Let $T: U \to V$ and $S: V \to W$ be linear transformations with matrix representations:
 
 $$
@@ -314,7 +314,7 @@ Theory comes alive on concrete examples. Let us look at two showcase examples th
 
 ### 1. Turning Calculus into Matrices: Differentiation $A_{\text{diff}}$ and Integration $A_{\text{int}}$
 
-Consider the space of real polynomials of degree at most $3$, $V = \mathcal{P}_3$ ($\dim = 4$), and degree at most $2$, $W = \mathcal{P}_2$ ($\dim = 3$). Equip them with the standard monomial ordered bases:
+Consider the space of real polynomials of degree at most $3$, $V = \mathcal{P}_3$ ($\dim V = 4$), and degree at most $2$, $W = \mathcal{P}_2$ ($\dim W = 3$). Equip them with the standard monomial ordered bases:
 
 $$
 \mathcal{B}_V = (1,\, t,\, t^2,\, t^3), \qquad \mathcal{B}_W = (1,\, t,\, t^2)
@@ -342,7 +342,7 @@ $$
 
 Translating back via $\mathcal{B}_W$ gives $5 - 6t + 12t^2 = p'(t)$!
 
-Better yet, all four fundamental subspaces spring to life immediately:
+Better yet, the kernel and image are visible directly:
 - **Nullspace**: $\operatorname{Null}(A_{\text{diff}}) = \operatorname{span}\{[1, 0, 0, 0]^T\}$, which corresponds to $\ker(D) = \operatorname{span}\{1\}$—the **constant polynomials**, whose derivative is zero!
 - **Column space**: $\operatorname{Col}(A_{\text{diff}}) = \mathbb{R}^3$, which corresponds to $\operatorname{Im}(D) = \mathcal{P}_2$—every quadratic polynomial is the derivative of some cubic! The matrix has full row rank $r = 3$, and $\dim \ker(D) + \dim \operatorname{Im}(D) = 1 + 3 = 4 = \dim \mathcal{P}_3$.
 
@@ -424,7 +424,7 @@ $$
 
 **The grand synthesis of the entire course clicks into place right here**:
 - When $V = W$ and we insist on using **the same basis for input and output** ($\mathcal{B}_V = \mathcal{B}_W$), changing bases produces a **similarity transformation** $S^{-1}AS$ (Lectures 22 and 29), whose ideal target is the eigenvalue diagonal matrix $\Lambda$ (or the Jordan normal form $J$ if eigenvectors are missing).
-- When we allow the input space $V$ and output space $W$ to **choose two independent orthonormal bases** $\mathcal{B}_V = (\mathbf{v}_1, \dots, \mathbf{v}_n)$ and $\mathcal{B}_W = (\mathbf{u}_1, \dots, \mathbf{u}_m)$, **every** linear transformation $T$ (with standard matrix $A \in \mathbb{R}^{m\times n}$) is represented by the pure diagonal singular value matrix $\Sigma = U^T A V$ (because $A\mathbf{v}_j = \sigma_j \mathbf{u}_j$, whose output coordinates are simply $\sigma_j \mathbf{e}_j$). That is the true "change-of-basis geometry" behind the Singular Value Decomposition from Lecture 30!
+- When we allow the input space $V$ and output space $W$ to **choose two independent orthonormal bases** $\mathcal{B}_V = (\mathbf{v}_1, \dots, \mathbf{v}_n)$ and $\mathcal{B}_W = (\mathbf{u}_1, \dots, \mathbf{u}_m)$, **every** linear transformation $T$ (with standard matrix $A \in \mathbb{R}^{m\times n}$) is represented by the pure diagonal singular value matrix $\Sigma = U^T A V$ (for $1\le j\le r=\operatorname{rank}(A)$, column $j$ is $\sigma_j\mathbf{e}_j\in\mathbb{R}^m$, and for $j>r$ it is $\mathbf{0}$). That is the true "change-of-basis geometry" behind the Singular Value Decomposition from Lecture 30!
 
 ---
 
@@ -471,7 +471,7 @@ From Lectures 22 to 29 we saw $S^{-1}AS$ so often that it is easy to assume ever
 
 <ProblemSet title="Intuition Problem Set" description="Think geometrically before computing: unlock progressive hints as needed, then compare the Geometric Intuition and Rigorous Proof tabs.">
 
-<ExerciseCard id="l31-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="Building a 2×3 Matrix Column by Column in Taylor and Skew Bases">
+<ExerciseCard id="l31-ex1" tier="L1" tierLabel="L1 · Quick Geometric Check" title="Building a 2×3 Matrix Column by Column in Taylor and Orthogonal Bases">
 
 Consider the linear transformation $T: \mathcal{P}_2 \to \mathbb{R}^2$ that evaluates a quadratic polynomial at two points:
 
@@ -479,7 +479,7 @@ $$
 T(p) = \begin{bmatrix} p(1) \\ p(0) \end{bmatrix}
 $$
 
-Equip the input space $V = \mathcal{P}_2$ with the Taylor ordered basis centered at $t = 1$, $\mathcal{B}_V = \big(1,\, t-1,\, (t-1)^2\big)$, and equip the output space $W = \mathbb{R}^2$ with the skew ordered basis $\mathcal{B}_W = (\mathbf{w}_1, \mathbf{w}_2)$ where:
+Equip the input space $V = \mathcal{P}_2$ with the Taylor ordered basis centered at $t = 1$, $\mathcal{B}_V = \big(1,\, t-1,\, (t-1)^2\big)$, and equip the output space $W = \mathbb{R}^2$ with the orthogonal ordered basis $\mathcal{B}_W = (\mathbf{w}_1, \mathbf{w}_2)$ where:
 
 $$
 \mathbf{w}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}, \qquad \mathbf{w}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
@@ -568,7 +568,7 @@ Determine whether the following statement is true or false:
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! Even when homogeneity holds for all positive and negative real scalars $c \in \mathbb{R}$, it never implies additivity $T(\mathbf{x}+\mathbf{y}) = T(\mathbf{x}) + T(\mathbf{y})$. A classic counterexample is $T(x_1, x_2) = (x_1^3 + x_2^3)^{1/3}$, which satisfies $T(c\mathbf{x}) = cT(\mathbf{x})$ yet $T(\mathbf{e}_1 + \mathbf{e}_2) = 2^{1/3} \ne 2 = T(\mathbf{e}_1) + T(\mathbf{e}_2)$."
+  quickFeedback="False! Even when homogeneity holds for all positive and negative real scalars $c \in \mathbb{R}$, it does not imply additivity $T(\mathbf{x}+\mathbf{y}) = T(\mathbf{x}) + T(\mathbf{y})$. A classic counterexample is $T(x_1, x_2) = \sqrt[3]{x_1^3 + x_2^3}$, which satisfies $T(c\mathbf{x}) = cT(\mathbf{x})$ yet $T(\mathbf{e}_1 + \mathbf{e}_2) = 2^{1/3} \ne 2 = T(\mathbf{e}_1) + T(\mathbf{e}_2)$."
 />
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
@@ -578,7 +578,7 @@ Determine whether the following statement is true or false:
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-A linear function on $\mathbb{R}^2$ must have **straight lines** as its level sets $T(x_1, x_2) = 1$. Homogeneity $T(c\mathbf{x}) = cT(\mathbf{x})$ only dictates linear scaling along each individual ray out of the origin—it has no control over whether the level curve $T = 1$ is straight or curved! Pick any origin-symmetric curve that is not a line (such as $x_1^3 + x_2^3 = 1$) as your $T = 1$ contour and extend radially by scaling, and you immediately get a homogeneous map that fails additivity.
+For a nonzero linear functional on $\mathbb{R}^2$, the level set $T(\mathbf{x})=1$ is an affine line parallel to its kernel. Full real homogeneity controls scaling along each line through the origin and pairs the $T=1$ contour with its reflection $T=-1$. The homogeneous cube-root example below has the curved contour $x_1^3+x_2^3=1$.
 </SolutionIntuition>
 <SolutionRigorous>
 The statement is **False**. Here is an explicit counterexample:
@@ -622,7 +622,7 @@ Determine whether the following statement is true or false:
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! Similarity $B = S^{-1} A S$ holds only when Bob also uses the same basis for input and output ($\mathcal{B}_1 = \mathcal{B}_2$). When $\mathcal{B}_1 \ne \mathcal{B}_2$, the transformation law is matrix equivalence $B = Q^{-1} A P$, which does not preserve trace or eigenvalues! For $T = \operatorname{id}$, taking $\mathcal{B}_1 = (\mathbf{e}_1, \mathbf{e}_2)$ and $\mathcal{B}_2 = (\mathbf{e}_2, \mathbf{e}_1)$ gives $A = I_2$ versus the swap matrix $B = [[0, 1], [1, 0]]$, which are never similar."
+  quickFeedback="False! Similarity $B = S^{-1} A S$ is guaranteed when Bob also uses the same basis for input and output ($\mathcal{B}_1 = \mathcal{B}_2$). When $\mathcal{B}_1 \ne \mathcal{B}_2$, the transformation law is matrix equivalence $B = Q^{-1} A P$, which need not preserve trace or eigenvalues! For $T = \operatorname{id}$, taking $\mathcal{B}_1 = (\mathbf{e}_1, \mathbf{e}_2)$ and $\mathcal{B}_2 = (\mathbf{e}_2, \mathbf{e}_1)$ gives $A = I_2$ versus the swap matrix $B = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$, which are never similar."
 />
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
@@ -706,7 +706,7 @@ $$
 \det(A_L) = 1 \cdot 1 \cdot 1 \cdot 1 = 1 \ne 0
 $$
 
-Therefore $A_L$ is invertible, $\ker(L) = \{0\}$, and $\operatorname{Im}(L) = \mathcal{P}_3$. Conclusion: for every $q \in \mathcal{P}_3$, $p'' - 2p' + p = q$ has a unique solution $p \in \mathcal{P}_3$.
+Therefore $A_L$ is invertible, $\ker(L) = \{\mathbf{0}\}$, and $\operatorname{Im}(L) = \mathcal{P}_3$. Conclusion: for every $q \in \mathcal{P}_3$, $p'' - 2p' + p = q$ has a unique solution $p \in \mathcal{P}_3$.
 
 **Part 2: Nilpotence and Solving the ODE via Operator Inversion**
 
@@ -756,7 +756,7 @@ Define the **transpose operator** $T: V \to V$ by $T(X) = X^T$.
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-To most people, "transpose" is just flipping a matrix across its diagonal. Viewed from Lecture 31, it is a textbook symmetric orthogonal linear operator on an $n^2$-dimensional space! Because $T^2 = I$, it splits $\mathbb{R}^{n\times n}$ cleanly into two orthogonal halves: symmetric matrices that stay put (eigenvalue $+1$) and skew-symmetric matrices that flip sign (eigenvalue $-1$). Every diagonal entry $E_{ii}$ stays fixed (contributing $+1$), while every off-diagonal pair $(E_{ij}, E_{ji})$ swaps (contributing one $+1$ and one $-1$, which cancel in the trace and multiply to $-1$ in the determinant). Seeing that lets you read off the dimensions, trace, and determinant without ever writing an $n^2 \times n^2$ matrix!
+To most people, "transpose" is just flipping a matrix across its diagonal. Viewed from Lecture 31, it is a self-adjoint orthogonal linear operator for the Frobenius inner product $\langle X,Y\rangle_F=\operatorname{tr}(X^T Y)$ on an $n^2$-dimensional space! Because $T^2 = \operatorname{id}$, it splits $\mathbb{R}^{n\times n}$ cleanly into two orthogonal subspaces: symmetric matrices that stay put (eigenvalue $+1$) and skew-symmetric matrices that flip sign (eigenvalue $-1$). Every diagonal entry $E_{ii}$ stays fixed (contributing $+1$), while every off-diagonal pair $(E_{ij}, E_{ji})$ swaps (contributing one $+1$ and one $-1$, which cancel in the trace and multiply to $-1$ in the determinant). Seeing that lets you read off the dimensions, trace, and determinant without ever writing an $n^2 \times n^2$ matrix!
 </SolutionIntuition>
 <SolutionRigorous>
 **Part 1: Linearity and $4 \times 4$ Standard Matrix**

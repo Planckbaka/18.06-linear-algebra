@@ -7,9 +7,9 @@ textbookRef: "§4.4"
 
 在数值计算与科学工程中，如果有人问哪种矩阵最受数学家与计算机科学家青睐，答案毫无疑问是**正交矩阵（Orthogonal Matrix）**。正如 Gilbert Strang 教授常在黑板上感叹的：*“正交性是数值计算最好的朋友（Orthogonality is numerical computing's best friend）。”*
 
-在第 15 讲与第 16 讲中，我们推导了向子空间投影的通用矩阵公式 $P = A(A^TA)^{-1}A^T$ 与求解最小二乘的正规方程组（Normal Equations）$A^TA\hat{\mathbf{x}} = A^T\mathbf{b}$。这个体系虽然完备，但藏着一颗巨大的数值暗雷：矩阵 $A^TA$ 不仅需要耗费高昂代价求逆，其条件数还会发生致命的平方效应（$\kappa_2(A^TA) = \kappa_2(A)^2$），在面对轻微倾斜或接近相关的基向量时极易发生病态崩溃。
+第 15、16 讲推导了正规方程组（Normal Equations）$A^TA\hat{\mathbf{x}}=A^T\mathbf{b}$。对满列秩的 $A\in\mathbb{R}^{m\times n}$，投影矩阵为 $P=A(A^TA)^{-1}A^T$，但形成 $A^TA$ 会把 2-范数条件数平方，即 $\kappa_2(A^TA)=\kappa_2(A)^2$。这在各列接近线性相关时尤其重要。
 
-本讲的核心任务，正是为了彻底消除这一隐患：**用一组彼此垂直、长度为 1 的“完美基向量”替换原始非正交基**。我们将建立标准正交向量组与正交矩阵的严格理论，剖析等距变换（Isometry）的四大黄金优势，掌握 **Gram-Schmidt 正交化算法**，并见证线性代数最宏伟的分解定理之一——**$A = QR$ 分解**。
+为了避免在最小二乘求解中形成 $A^TA$，我们可以**用一组彼此垂直、长度为 1 的“完美基向量”替换原始非正交基**。我们将建立标准正交向量组与正交矩阵的严格理论，剖析等距变换（Isometry）的四大黄金优势，掌握 **Gram-Schmidt 正交化算法**，并见证线性代数最宏伟的分解定理之一——**$A = QR$ 分解**。
 
 ---
 
@@ -80,7 +80,7 @@ $$
    任意置换矩阵 $P$（每行每列恰有一个 1，其余全为 0）都是正交矩阵，因为交换基向量的排列次序绝不改变向量的相对夹角与模长，显然 $P^T P = I$。
 
 3. **Householder 镜面反射矩阵（Householder Reflection Matrix）**：
-   设 $\mathbf{u} \in \mathbb{R}^n$ 为单位法向量（$\|\mathbf{u}\|_2 = 1$），则沿垂直于 $\mathbf{u}$ 的超平面的镜面反射变换矩阵为：
+   设 $\mathbf{u} \in \mathbb{R}^n$ 为单位法向量（$\|\mathbf{u}\|_2 = 1$），则关于过原点的超平面 $\mathbf{u}^\perp$ 的反射矩阵为
 
 $$
 H = I_n - 2\mathbf{u}\mathbf{u}^T
@@ -95,7 +95,7 @@ $$
    Householder 矩阵既对称又正交，是现代工业级数值软件中比 Gram-Schmidt 更稳定的正交分解工具。
 
 4. **Hadamard 归一化矩阵（Hadamard Matrix）**：
-   全由 $\pm 1$ 构成的正交方阵。例如 $2\times 2$ 与 $4\times 4$ 归一化 Hadamard 矩阵：
+   将元素为 $\pm 1$、各行两两正交的 $n$ 阶矩阵乘以 $1/\sqrt{n}$，得到正交方阵。例如 $2\times 2$ 与 $4\times 4$ 归一化 Hadamard 矩阵：
 
 $$
 H_2 = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}, \quad
@@ -113,7 +113,7 @@ $$
   termEn="Inner Product Preservation & Isometry Theorem"
 >
 
-设方阵 $Q \in \mathbb{R}^{n\times n}$ 为正交矩阵，则对任意向量 $\mathbf{x}, \mathbf{y} \in \mathbb{R}^n$：
+设 $Q\in\mathbb{R}^{m\times n}$，$m\ge n\ge 1$，且 $Q^TQ=I_n$。则对任意 $\mathbf{x},\mathbf{y}\in\mathbb{R}^n$：
 
 1. **保内积（Inner Product / Angle Preservation）**：
 
@@ -121,7 +121,7 @@ $$
 (Q\mathbf{x})^T (Q\mathbf{y}) = \mathbf{x}^T \mathbf{y}
 $$
 
-即正交变换保持任意两个向量之间的内积不变；特别地，两向量经过 $Q$ 变换后的夹角与变换前严格相等。
+因此内积保持不变。当 $\mathbf{x}$ 与 $\mathbf{y}$ 都非零时，夹角也保持不变。
 
 2. **保欧氏范数（Length / Norm Preservation & Isometry）**：
 
@@ -129,16 +129,16 @@ $$
 \|Q\mathbf{x}\|_2 = \|\mathbf{x}\|_2
 $$
 
-即正交变换是刚体变换（等距同构 Isometry），变换前后向量长度完全守恒。
+因此 $Q$ 是从 $\mathbb{R}^n$ 到 $\operatorname{Col}(Q)$ 的等距映射（Isometry）。
 
-3. **最优数值稳定性（Optimal Condition Number）**：
-   在 2-范数下，正交矩阵的算子范数等于 1（$\|Q\|_2 = 1$），且其逆矩阵 $Q^{-1} = Q^T$ 同样具有范数 1。因此正交矩阵的条件数达到理论下界绝对最优值：
+3. **条件数为 1（Condition Number Equals 1）**：
+   当 $m=n$ 时，在 2-范数下有 $\|Q\|_2=\|Q^{-1}\|_2=1$，其中 $Q^{-1}=Q^T$。
 
 $$
 \kappa_2(Q) = \|Q\|_2 \|Q^{-1}\|_2 = 1 \times 1 = 1
 $$
 
-这意味着将 $Q$ 乘以任何向量，浮点计算舍入误差绝不会被放大哪怕一倍！
+当 $m>n$ 时，$Q$ 的 $n$ 个奇异值也全为 1，因此比值 $\sigma_{\max}(Q)/\sigma_{\min}(Q)=1$。等距性意味着已有的输入扰动在精确算术下保持原范数，浮点运算本身仍可能引入舍入误差。
 
 </TheoremCard>
 
@@ -162,7 +162,7 @@ $$
 两边开平方根，因范数非负，立得 $\|Q\mathbf{x}\|_2 = \|\mathbf{x}\|_2$。
 
 3. **证明夹角守恒**：
-   根据 Euclidean 几何中夹角余弦的定义：
+   对非零 $\mathbf{x},\mathbf{y}$，等距性保证两个像亦非零。根据夹角余弦的定义，
 
 $$
 \cos\theta(Q\mathbf{x}, Q\mathbf{y}) = \frac{(Q\mathbf{x})^T (Q\mathbf{y})}{\|Q\mathbf{x}\|_2 \|Q\mathbf{y}\|_2} = \frac{\mathbf{x}^T \mathbf{y}}{\|\mathbf{x}\|_2 \|\mathbf{y}\|_2} = \cos\theta(\mathbf{x}, \mathbf{y})
@@ -186,16 +186,16 @@ $$
 P = Q(Q^TQ)^{-1}Q^T = Q I_n Q^T = Q Q^T = \sum_{i=1}^{n} \mathbf{q}_i \mathbf{q}_i^T
 $$
 
-即整个投影矩阵化为 $n$ 个相互正交的秩 1 外积投影切片之和！
+每一项都是向 $Q$ 的某一列张成的直线的秩 1 投影，这些直线两两正交。
 
 2. **完全解耦的最小二乘解（Decoupled Least Squares Coordinates）**：
-   对于超定方程组 $Q\mathbf{x} = \mathbf{b}$，正规方程组 $Q^T Q \hat{\mathbf{x}} = Q^T\mathbf{b}$ 直接退化为：
+   对任意 $\mathbf{b}\in\mathbb{R}^m$，正规方程组 $Q^T Q \hat{\mathbf{x}} = Q^T\mathbf{b}$ 直接退化为：
 
 $$
 \hat{\mathbf{x}} = Q^T \mathbf{b} \iff \hat{x}_i = \mathbf{q}_i^T \mathbf{b} \quad (i = 1, \dots, n)
 $$
 
-每个坐标分量 $\hat{x}_i$ 只取决于第 $i$ 个基向量 $\mathbf{q}_i$ 与观测向量 $\mathbf{b}$ 的单次内积，各分量彼此完全独立、解耦。若在模型中新增第 $n+1$ 个正交特征基，前面已经算好的 $n$ 个坐标分量**完全无需重新计算**！
+每个坐标分量 $\hat{x}_i$ 只取决于第 $i$ 个基向量 $\mathbf{q}_i$ 与观测向量 $\mathbf{b}$ 的单次内积，各分量彼此完全独立、解耦。若在 $n<m$ 时增添一个垂直于已有列空间的单位向量，前面已经算好的 $n$ 个坐标分量**完全无需重新计算**！
 
 </TheoremCard>
 
@@ -238,7 +238,7 @@ $$
   termEn="Gram-Schmidt Orthogonalization Algorithm"
 >
 
-设向量组 $\mathbf{a}_1, \mathbf{a}_2, \dots, \mathbf{a}_n \in \mathbb{R}^m$ 线性无关。执行如下递推步骤：
+设 $\mathbf{a}_1, \mathbf{a}_2, \dots, \mathbf{a}_n \in \mathbb{R}^m$ 线性无关，其中 $1\le n\le m$。执行如下递推步骤：
 
 **第 1 步（基准方向）**：
 
@@ -246,13 +246,13 @@ $$
 \mathbf{v}_1 = \mathbf{a}_1, \quad \mathbf{q}_1 = \frac{\mathbf{v}_1}{\|\mathbf{v}_1\|_2}
 $$
 
-**第 2 步（从 $\mathbf{a}_2$ 中减去在 $\mathbf{q}_1$ 上的投影）**：
+**第 2 步（若 $n\ge 2$，从 $\mathbf{a}_2$ 中减去在 $\mathbf{q}_1$ 上的投影）**：
 
 $$
 \mathbf{v}_2 = \mathbf{a}_2 - (\mathbf{q}_1^T \mathbf{a}_2)\mathbf{q}_1, \quad \mathbf{q}_2 = \frac{\mathbf{v}_2}{\|\mathbf{v}_2\|_2}
 $$
 
-**第 $k$ 步（从 $\mathbf{a}_k$ 中减去在前面所有 $\mathbf{q}_1, \dots, \mathbf{q}_{k-1}$ 上的投影）**：
+**第 $k$ 步（$3\le k\le n$，从 $\mathbf{a}_k$ 中减去在前面所有 $\mathbf{q}_1, \dots, \mathbf{q}_{k-1}$ 上的投影）**：
 
 $$
 \mathbf{v}_k = \mathbf{a}_k - \sum_{i=1}^{k-1} (\mathbf{q}_i^T \mathbf{a}_k)\mathbf{q}_i, \quad \mathbf{q}_k = \frac{\mathbf{v}_k}{\|\mathbf{v}_k\|_2}
@@ -274,7 +274,7 @@ $$
 我们对向量个数 $k$ 施加数学归纳法：
 
 1. **基础步（$k = 1$）**：
-   因 $\mathbf{a}_1$ 线性无关，$\mathbf{a}_1 \neq \mathbf{0}$，故 $\|\mathbf{v}_1\|_2 \gt 0$，$\mathbf{q}_1$ 单位化合法且 $\|\mathbf{q}_1\|_2 = 1$。显然 $\operatorname{span}\{\mathbf{q}_1\} = \operatorname{span}\{\mathbf{a}_1\}$。
+   因 $\mathbf{a}_1$ 属于线性无关的向量组，$\mathbf{a}_1 \neq \mathbf{0}$，故 $\|\mathbf{v}_1\|_2 \gt 0$，$\mathbf{q}_1$ 单位化合法且 $\|\mathbf{q}_1\|_2 = 1$。显然 $\operatorname{span}\{\mathbf{q}_1\} = \operatorname{span}\{\mathbf{a}_1\}$。
 
 2. **归纳假设**：
    假定对前 $k-1$ 步生成的向量组 $\mathbf{q}_1, \dots, \mathbf{q}_{k-1}$，它们已经两两标准正交，且 $\operatorname{span}\{\mathbf{q}_1, \dots, \mathbf{q}_{k-1}\} = \operatorname{span}\{\mathbf{a}_1, \dots, \mathbf{a}_{k-1}\}$。
@@ -309,7 +309,9 @@ $$
 
 ## 四、矩阵分解的最高峰之一：$A = QR$ 分解
 
-在第 04 讲中，我们学习了高斯消元背后的矩阵本质是 $A = LU$；而在正交化理论中，Gilbert Strang 再次展示了他无与伦比的洞察力——**Gram-Schmidt 正交化算法的矩阵形态，正是赫赫有名的 $A = QR$ 分解！**
+在第 04 讲中，我们将无需行交换的高斯消元写成 $A=LU$，需要行置换时则写成 $PA=LU$；而在正交化理论中，Gilbert Strang 再次展示了他无与伦比的洞察力——**Gram-Schmidt 正交化算法的矩阵形态，正是赫赫有名的 $A = QR$ 分解！**
+
+对满列秩矩阵 $A\in\mathbb{R}^{m\times n}$，本节构造的是薄 QR 分解（Reduced QR Factorization）。若输入列线性相关，Gram-Schmidt 会出现零残差，此时应跳过该方向来构造列空间的基。
 
 ### 1. 从代数重构看上三角矩阵 $R$ 的诞生
 
@@ -513,13 +515,13 @@ $$
 R^T (Q^T Q) R \hat{\mathbf{x}} = R^T Q^T \mathbf{b}
 $$
 
-由于 $Q^TQ = I_n$，中间项瞬间消失：
+中间因子 $Q^TQ=I_n$ 是单位矩阵，因此得到
 
 $$
 R^T R \hat{\mathbf{x}} = R^T Q^T \mathbf{b}
 $$
 
-因为 $A$ 满列秩，上三角矩阵 $R$ 的所有对角元 $r_{ii} \gt 0$，所以 $R$ 可逆，其转置 $R^T$ 同样可逆。我们在方程两边左乘 $(R^T)^{-1}$，奇迹发生了：
+在本讲的满列秩 Gram-Schmidt 分解中，$r_{ii}=\|\mathbf{v}_i\|_2>0$，所以 $R$ 可逆。其他符号约定只要求 $r_{ii}\ne 0$。约去 $R^T$ 得
 
 $$
 R \hat{\mathbf{x}} = Q^T \mathbf{b}
@@ -529,7 +531,7 @@ $$
 
 1. **完全不需要组装 $A^TA$**：完全绕开了 $A^TA$ 耗时的矩阵乘法；
 2. **完全不需要矩阵求逆**：右端项 $\mathbf{d} = Q^T\mathbf{b}$ 只是单次矩阵向量乘积，而左端是上三角矩阵 $R$，直接使用**回代（Back-Substitution）**在 $O(n^2)$ 步内即可精确解出 $\hat{\mathbf{x}}$；
-3. **消除条件数平方灾难**：若原始矩阵 $A$ 的条件数为 $\kappa_2(A) = 10^4$，组装 $A^TA$ 会导致条件数飙升至 $\kappa_2(A^TA) = 10^8$，直接损失 8 位有效浮点精度；而在 $QR$ 分解中，由于正交矩阵 $\kappa_2(Q) = 1$，三角矩阵保持 $\kappa_2(R) = \kappa_2(A) = 10^4$，精度丝毫不受损！
+3. **避免条件数平方**。因为 $A^TA=R^TR$，$A$ 与 $R$ 的奇异值相同。若 $\kappa_2(A)=10^4$，则 $\kappa_2(R)=10^4$，而 $\kappa_2(A^TA)=10^8$。QR 避免了组装正规方程引入的条件数平方。实际误差还取决于分解算法与数据。
 
 ---
 
@@ -541,7 +543,7 @@ $$
    - **勘误**：这是初学者最容易掉入的命名陷阱！考虑对角矩阵 $2I = \begin{bmatrix} 2 & 0 \\ 0 & 2 \end{bmatrix}$，它的两列显然相互垂直，但它的逆矩阵是 $\frac{1}{2}I$，根本不等于其转置 $(2I)^T = 2I$！而且 $\|(2I)\mathbf{x}\|_2 = 2\|\mathbf{x}\|_2 \neq \|\mathbf{x}\|_2$，既不保长，也不等距。必须铭记：**正交矩阵（Orthogonal Matrix）专指列向量既正交、又是单位向量（即标准正交）的方阵！**
 
 2. **陷阱 ②：混淆长方矩阵 $Q \in \mathbb{R}^{m\times n}$（$m \gt n$）的 $Q^TQ = I_n$ 与 $QQ^T \neq I_m$**
-   - **勘误**：很多同学误以为“列正交推出行也正交”。当 $m \gt n$（高瘦长方阵）时，$Q$ 只有 $n$ 列，它的行向量属于 $\mathbb{R}^n$ 但总共有 $m \gt n$ 行，在 $n$ 维空间里放 $m$ 个向量必然线性相关，根本不可能相互正交！乘积 $QQ^T = P \in \mathbb{R}^{m\times m}$ 是向 $n$ 维列空间投影的**投影矩阵**，其秩为 $n \lt m$，有 $m-n$ 个特征值为 0，绝对不等于 $I_m$！只有当 $Q$ 为**方阵**时，$Q Q^T = I_n$ 才成立。
+   - **勘误**：很多同学误以为“列正交推出行也正交”。当 $m \gt n$（高瘦长方阵）时，$Q$ 只有 $n$ 列，它的行向量属于 $\mathbb{R}^n$ 但总共有 $m \gt n$ 行，在 $n$ 维空间里放 $m$ 个向量必然线性相关，因此它们不可能构成标准正交组。若存在零行，仍可能两两正交。乘积 $QQ^T = P \in \mathbb{R}^{m\times m}$ 是向 $n$ 维列空间投影的**投影矩阵**，其秩为 $n \lt m$，有 $m-n$ 个特征值为 0，绝对不等于 $I_m$！只有当 $Q$ 为**方阵**时，$Q Q^T = I_n$ 才成立。
 
 3. **陷阱 ③：Gram-Schmidt 在第 3 步之后漏减更早的正交基**
    - **勘误**：计算第 3 个正交向量 $\mathbf{v}_3$ 时，有些同学只减去在 $\mathbf{q}_2$ 上的投影（$\mathbf{a}_3 - (\mathbf{q}_2^T\mathbf{a}_3)\mathbf{q}_2$），误以为“跟前一个正交了就自动跟前前一个正交”。大错特错！新向量必须**一次性减去在前面所有已生成正交基上的投影之和**：$\mathbf{v}_k = \mathbf{a}_k - \sum_{i=1}^{k-1}(\mathbf{q}_i^T\mathbf{a}_k)\mathbf{q}_i$。
@@ -558,7 +560,7 @@ $$
 <InteractiveCanvasSlot
   id="gram-schmidt-interactive"
   title="Gram-Schmidt 正交化去投影动态实验室"
-  description="交互式拖拽原始非正交基向量 $\mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3$，实时观察去投影向量 $\mathbf{v}_k$ 与单位正交基 $\mathbf{q}_k$ 的生成过程，动态核验上三角矩阵 $R$ 的元素变化与 $A = QR$ 重构。"
+  description="调整 $\mathbf{a}_2$ 的夹角与长度，在 $\mathbb{R}^2$ 中分步构造两个方向。核验 $A=QR$，并观察残差为零时如何补全标准正交基，此时 $r_{22}=0$。"
 />
 
 ---
@@ -567,12 +569,12 @@ $$
 
 <KeyTakeaways
   items={[
-    "**术语基线**：两两垂直且模长为 1 的向量称为标准正交基（Orthonormal Basis）；『正交矩阵（Orthogonal Matrix）』专指具有标准正交列的**方阵**，满足双侧逆 $Q^{-1} = Q^T$。",
-    "**刚体变换等距性**：正交变换保内积 $(Q\\mathbf{x})^T(Q\\mathbf{y}) = \\mathbf{x}^T\\mathbf{y}$，保模长 $\\|Q\\mathbf{x}\\|_2 = \\|\\mathbf{x}\\|_2$，条件数 $\\kappa_2(Q) = 1$，是数值稳定性最高的变换。",
+    "**术语基线**：两两垂直且模长为 1 的向量构成其张成空间的标准正交基（Orthonormal Basis）；『正交矩阵（Orthogonal Matrix）』专指具有标准正交列的**方阵**，满足双侧逆 $Q^{-1} = Q^T$。",
+    "**刚体变换等距性**：正交变换保内积 $(Q\\mathbf{x})^T(Q\\mathbf{y}) = \\mathbf{x}^T\\mathbf{y}$，保模长 $\\|Q\\mathbf{x}\\|_2 = \\|\\mathbf{x}\\|_2$，条件数 $\\kappa_2(Q) = 1$。",
     "**投影与最小二乘坍缩**：对于标准正交列矩阵 $Q$，投影矩阵免求逆化为 $P = QQ^T = \\sum \\mathbf{q}_i\\mathbf{q}_i^T$；正规方程完全解耦为独立内积坐标 $\\hat{x}_i = \\mathbf{q}_i^T\\mathbf{b}$。",
     "**Gram-Schmidt 几何精髓**：依次从每个向量中剔除其在前面所有已成基方向上的平行投影分量，保留纯净正交残差并归一化。",
-    "**$A = QR$ 分解的上三角本质**：$A = QR$ 中 $R = Q^TA$ 必然是上三角矩阵，因为构造保证 $\\mathbf{q}_i \\perp \\operatorname{span}\\{\\mathbf{a}_1, \\dots, \\mathbf{a}_j\\}$（当 $i \\gt j$ 时 $r_{ij} = 0$），对角线元素为残差模长 $r_{jj} = \\|\\mathbf{v}_j\\|_2 \\gt 0$。",
-    "**最小二乘求解飞跃**：正规方程 $A^TA\\hat{\\mathbf{x}} = A^T\\mathbf{b}$ 经 $A=QR$ 简化为直接回代方程 $R\\hat{\\mathbf{x}} = Q^T\\mathbf{b}$，彻底消除 $A^TA$ 的条件数平方灾难！"
+    "**$A = QR$ 分解的上三角本质**：对满列秩矩阵作 Gram–Schmidt 分解时， $R = Q^TA$ 必然是上三角矩阵，因为构造保证 $\\mathbf{q}_i \\perp \\operatorname{span}\\{\\mathbf{a}_1, \\dots, \\mathbf{a}_j\\}$（当 $i \\gt j$ 时 $r_{ij} = 0$），对角线元素为残差模长 $r_{jj} = \\|\\mathbf{v}_j\\|_2 \\gt 0$。",
+    "**用 QR 求解最小二乘**：对满列秩的 $A=QR$，用回代求解 $R\\hat{\\mathbf{x}}=Q^T\\mathbf{b}$。三角系统的条件数为 $\\kappa_2(R)=\\kappa_2(A)$。"
   ]}
 />
 
@@ -600,14 +602,14 @@ $$
 <ProgressiveHint
   hints={[
     "先计算秩 1 外积矩阵 $\\mathbf{u}\\mathbf{u}^T = \\frac{1}{3}\\begin{bmatrix} 1 & 1 & 1 \\\\ 1 & 1 & 1 \\\\ 1 & 1 & 1 \\end{bmatrix}$，注意标量乘法系数是 $2$。",
-    "Householder 矩阵的几何意义是关于垂直于 $\\mathbf{u}$ 的平面的镜面反射：反射一次翻转法向，反射两次必然回到原点自身（$H^2 = I$）。"
+    "Householder 矩阵的几何意义是关于垂直于 $\\mathbf{u}$ 的平面的镜面反射：反射一次翻转法向，每个向量反射两次都回到原来的位置（$H^2 = I$）。"
   ]}
 />
 
 <DualSolution>
 <SolutionIntuition>
 
-Householder 矩阵是高维空间里的“镜面反射镜”。当你把一面平放的镜子放在原点（法向量为 $\mathbf{u}$），任何向量 $\mathbf{x}$ 分解为平行于法向的 $(\mathbf{u}^T\mathbf{x})\mathbf{u}$ 与垂直于镜面的切向分量。反射变换保持切向分量不动，将法向分量取反：$\mathbf{x}' = \mathbf{x} - 2(\mathbf{u}^T\mathbf{x})\mathbf{u}$。镜子里的像既不会变大也不会变小，因此显然保长、保角，且照两次镜子必然复原（$H^2 = I$）！
+Householder 矩阵是高维空间里的“镜面反射镜”。当你把一面平放的镜子放在原点（法向量为 $\mathbf{u}$），任何向量 $\mathbf{x}$ 分解为平行于法向的 $(\mathbf{u}^T\mathbf{x})\mathbf{u}$ 与平行于镜面的切向分量。反射变换保持切向分量不动，将法向分量取反：$\mathbf{x}' = \mathbf{x} - 2(\mathbf{u}^T\mathbf{x})\mathbf{u}$。镜子里的像既不会变大也不会变小，因此显然保长、保角，且照两次镜子必然复原（$H^2 = I$）！
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -671,8 +673,8 @@ $$
 
 <ProgressiveHint
   hints={[
-    "尝试构造一个最简单的反例：比如一个对角矩阵，对角线元素都等于 2。",
-    "计算该反例的转置乘积 $A^T A$ 与逆矩阵 $A^{-1}$，观察它们是否相等。"
+    "尝试构造一个最简单的反例：比如一个对角矩阵，对角线元素分别为 2 和 3。",
+    "计算转置 $A^T$ 与逆矩阵 $A^{-1}$，比较两者。也可检查 $A^TA$ 是否为 $I_n$。"
   ]}
 />
 
@@ -721,7 +723,7 @@ $$
 <TrueFalseInteractive
   id="l17-tf2"
   correct={false}
-  quickFeedback="命题为假（False）！长方矩阵 $Q \in \mathbb{R}^{m\times n}$（$m \gt n$）的转置 $Q^T \in \mathbb{R}^{n\times m}$ 拥有维数为 $m - n \gt 0$ 的非平凡左零空间。任何垂直于列空间 $\operatorname{Col}(Q)$ 的向量 $\mathbf{b} \neq \mathbf{0}$ 都会被 $Q^T$ 彻底压扁为零向量（$\|Q^T\mathbf{b}\|_2 = 0 \neq \|\mathbf{b}\|_2$）！"
+  quickFeedback="命题为假（False）！长方矩阵 $Q \in \mathbb{R}^{m\times n}$（$m \gt n$）拥有维数为 $m - n \gt 0$ 的非平凡左零空间。任何垂直于列空间 $\operatorname{Col}(Q)$ 的向量 $\mathbf{b} \neq \mathbf{0}$ 都会被 $Q^T$ 彻底压扁为零向量（$\|Q^T\mathbf{b}\|_2 = 0 \neq \|\mathbf{b}\|_2$）！"
 />
 
 <ProgressiveHint
@@ -741,17 +743,17 @@ $$
 
 **形式化反例与子空间证明**：
 令 $m = 2, n = 1$，$Q = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \in \mathbb{R}^{2\times 1}$。
-核验 $Q^T Q = \begin{bmatrix} 1 & 0 \end{bmatrix}\begin{bmatrix} 1 \\ 0 \end{bmatrix} = 1 = I_1$ 成立。
+核验 $Q^T Q = \begin{bmatrix} 1 & 0 \end{bmatrix}\begin{bmatrix} 1 \\ 0 \end{bmatrix} = [1] = I_1$ 成立。
 
 取向量 $\mathbf{b} = \begin{bmatrix} 0 \\ 1 \end{bmatrix} \in \mathbb{R}^2$。显然 $\|\mathbf{b}\|_2 = 1$。
 但计算 $Q^T \mathbf{b}$：
 
 $$
-Q^T \mathbf{b} = \begin{bmatrix} 1 & 0 \end{bmatrix}\begin{bmatrix} 0 \\ 1 \end{bmatrix} = 0 \in \mathbb{R}^1 \implies \|Q^T\mathbf{b}\|_2 = 0 \neq 1
+Q^T \mathbf{b} = \begin{bmatrix} 1 & 0 \end{bmatrix}\begin{bmatrix} 0 \\ 1 \end{bmatrix} = \begin{bmatrix}0\end{bmatrix}=\mathbf{0} \implies \|Q^T\mathbf{b}\|_2 = 0 \neq 1
 $$
 
 **代数原理**：
-根据正交分解，任意 $\mathbf{b} \in \mathbb{R}^m$ 可唯一正交分解为 $\mathbf{b} = \mathbf{p} + \mathbf{e}$，其中 $\mathbf{p} \in \operatorname{Col}(Q)$，$\mathbf{e} \in \operatorname{Null}(Q^T)$。
+令 $P=QQ^T$。根据正交分解，任意 $\mathbf{b} \in \mathbb{R}^m$ 可唯一正交分解为 $\mathbf{b} = \mathbf{p} + \mathbf{e}$，其中 $\mathbf{p} \in \operatorname{Col}(Q)$，$\mathbf{e} \in \operatorname{Null}(Q^T)$。
 计算范数平方：
 
 $$
@@ -775,7 +777,7 @@ $$
 
 1. 证明乘积 $Q_1 Q_2$ 必为正交矩阵；
 2. 证明逆矩阵 $Q_1^{-1}$ 必为正交矩阵；
-3. 举出具体反例证明：和矩阵 $Q_1 + Q_2$ 一般**不是**正交矩阵（揭示正交矩阵集合在群论中构成紧致李群 $O(n)$，但绝不是向量空间！）。
+3. 举出具体反例证明：和矩阵 $Q_1 + Q_2$ 一般**不是**正交矩阵（说明这些矩阵在乘法下构成正交群 $O(n)$）。
 
 <ProgressiveHint
   hints={[
@@ -829,7 +831,7 @@ $$
 $$
 
    甚至取 $Q_1 = I_n, Q_2 = -I_n$ 时，$Q_1 + Q_2 = O$（全零矩阵），完全奇异。
-   **深刻推论**：全部 $n\times n$ 正交矩阵构成了李群 $O(n)$（正交群 Orthogonal Group），对矩阵乘法与求逆封闭，并包含单位元；但它在加法下不封闭，因而不是 $\mathbb{R}^{n\times n}$ 的线性子空间。
+   **深刻推论**：所有 $n\times n$ 正交矩阵包含单位阵，对矩阵乘法与求逆封闭，因此构成正交群（Orthogonal Group）$O(n)$。上述反例说明它对加法不封闭。
 
 </SolutionRigorous>
 </DualSolution>
@@ -893,7 +895,7 @@ P = Q R \left( R^{-1} (R^T)^{-1} \right) R^T Q^T = Q (R R^{-1}) ((R^T)^{-1} R^T)
 $$
 
 2. **证明投影递推关系 $P_k = P_{k-1} + \mathbf{q}_k\mathbf{q}_k^T$**：
-   由 Gram-Schmidt 定理，前 $k$ 个列向量 $\operatorname{span}\{\mathbf{a}_1, \dots, \mathbf{a}_k\} = \operatorname{span}\{\mathbf{q}_1, \dots, \mathbf{q}_k\}$。
+   设 $R_k$ 是 $R$ 左上角的 $k\times k$ 主子矩阵。由上三角结构可知 $A_k=Q_kR_k$，且 $R_k$ 可逆，因此 $\operatorname{Col}(A_k)=\operatorname{Col}(Q_k)$。
    令 $Q_k = \begin{bmatrix} \mathbf{q}_1 & \cdots & \mathbf{q}_k \end{bmatrix} \in \mathbb{R}^{m\times k}$，则由第 1 问结论：
 
 $$
@@ -907,7 +909,7 @@ P_k = \begin{bmatrix} Q_{k-1} & \mathbf{q}_k \end{bmatrix} \begin{bmatrix} Q_{k-
 $$
 
 3. **非正交基破缺原因**：
-   若直接使用未正交化的列 $\mathbf{a}_k$，因 $\mathbf{a}_k$ 与 $\operatorname{Col}(A_{k-1})$ 一般不垂直，其在旧空间中的投影 $P_{k-1}\mathbf{a}_k \neq \mathbf{0}$。如果直接相加，两个秩 1 算子会出现交叉耦合项（非零内积），导致 $P_k^2 \neq P_k$，丧失投影算子的幂等性。唯有通过 Gram-Schmidt 剔除旧投影、取得纯净垂直残差 $\mathbf{q}_k$ 之后，正交直和分解 $\operatorname{Col}(A_k) = \operatorname{Col}(A_{k-1}) \oplus \operatorname{span}\{\mathbf{q}_k\}$ 才能使投影矩阵完美逐项累加！
+   令 $\widetilde P=P_{k-1}+\mathbf{a}_k\mathbf{a}_k^T/\|\mathbf{a}_k\|_2^2$。由第 15 讲的投影和判据，$\widetilde P$ 幂等当且仅当 $P_{k-1}\mathbf{a}_k=\mathbf{0}$。否则先用 $\mathbf{v}_k=(I_m-P_{k-1})\mathbf{a}_k$ 去掉旧空间分量，再以 $\mathbf{q}_k=\mathbf{v}_k/\|\mathbf{v}_k\|_2$ 更新。
 
 </SolutionRigorous>
 </DualSolution>
@@ -923,30 +925,23 @@ $$
   paperRef="Su et al. (2021) RoFormer: Enhanced Transformer with Rotary Position Embedding · Saxe et al. (ICLR 2014) Exact solutions to the nonlinear dynamics of learning in deep linear neural networks"
 >
 
-在现代大语言模型（LLM，如 LLaMA-1/2/3、Qwen-2/2.5、DeepSeek-V2/V3、Mistral、Gemma）与深度神经网络的前沿架构中，**正交矩阵（Orthogonal Matrix）**扮演着两个举足轻重的基石角色：
+旋转位置编码（Rotary Position Embedding, RoPE）用二维正交块编码相对位置。正交权重初始化（Orthogonal Weight Initialization）则利用等距性控制深层线性网络的信号与梯度范数。
 
-1. 大模型主流位置编码的标准答案——**RoPE（Rotary Position Embedding，旋转位置编码）**；
-2. 深度网络极限深度下的**正交权重初始化（Orthogonal Initialization）**。
+### 1. 从加性位置编码到二维旋转
 
-令人惊叹的是，统治当今数万亿参数大模型的核心机理，正是本讲**正交变换保模长（Isometry）**与**保内积（Angle Preservation）**两条极简定理的直接落地！
-
----
-
-### 1. 为什么大模型需要 RoPE？从绝对加性到二维正交旋转
-
-在 Transformer 的自注意力计算中，第 $m$ 个词元（Token）的 Query 向量 $\mathbf{q}_m \in \mathbb{R}^d$ 与第 $n$ 个词元的 Key 向量 $\mathbf{k}_n \in \mathbb{R}^d$ 需要通过点积计算注意力分数：
+在 Transformer 自注意力（Self-Attention）中，令 $\mathbf{q}_m,\mathbf{k}_n\in\mathbb{R}^d$ 为位置 $m,n$ 上尚未施加 RoPE 的查询（Query）与键（Key）向量。这里先考察未缩放的点积，实际缩放点积注意力还会除以 $\sqrt d$。
 
 $$
 \text{Score}(m, n) = \mathbf{q}_m^T \mathbf{k}_n
 $$
 
-在原始 Transformer 中，位置信息是通过直接相加一个绝对位置向量实现的：$\tilde{\mathbf{q}}_m = \mathbf{q}_m + \mathbf{p}_m$。这种加法会在内积中产生 $\mathbf{q}_m^T\mathbf{p}_n$、$\mathbf{p}_m^T\mathbf{k}_n$ 等混乱的交叉项，无法让模型真正纯粹地感知词元之间的**相对距离** $n - m$。
+原始 Transformer 将绝对位置向量加到输入嵌入上，再经过查询与键各自的线性映射。因此，位置对查询与键的贡献通常分别为 $W_Q\mathbf{p}_m$ 和 $W_K\mathbf{p}_n$。展开点积会产生内容与位置的交叉项。
 
-苏剑林等人在 **RoFormer (2021)** 中提出了革命性的思想：**不要在向量上加东西，而是对向量施加正交旋转！**
+RoFormer 为查询与键施加位置相关的旋转，使点积中的显式位置因子只依赖位置差。
 
 #### 二维块对角正交矩阵的构造
 
-将 $d$ 维隐层特征向量两两配对，分成 $d/2$ 个二维子空间。在第 $i$ 个二维子空间内，针对位于序列第 $m$ 个位置的词元，施加一个以角度 $m\theta_i$ 旋转的 $2\times 2$ 旋转正交矩阵：
+设注意力头的维数 $d$ 为正偶数，并对全部 $d$ 个坐标施加旋转。将坐标分成 $d/2$ 对，位置 $m$ 在第 $i$ 对坐标上施加角度 $m\theta_i$ 的二维旋转。查询与键使用同一组频率 $\theta_i$。
 
 $$
 R_{m, \theta_i} = \begin{bmatrix} \cos(m\theta_i) & -\sin(m\theta_i) \\ \sin(m\theta_i) & \cos(m\theta_i) \end{bmatrix} \in \mathbb{R}^{2\times 2}
@@ -955,21 +950,16 @@ $$
 将所有 $d/2$ 个二维旋转矩阵拼成一个 $d\times d$ 的分块对角矩阵（Block-Diagonal Matrix）：
 
 $$
-R_m = \begin{bmatrix}
-R_{m, \theta_1} & & & 0 \\
-& R_{m, \theta_2} & & \\
-& & \ddots & \\
-0 & & & R_{m, \theta_{d/2}}
-\end{bmatrix} \in \mathbb{R}^{d\times d}
+R_m = \operatorname{diag}(R_{m,\theta_1},\dots,R_{m,\theta_{d/2}})\in\mathbb{R}^{d\times d}
 $$
 
-给 Query 向量注入位置编码，正是将其乘以正交矩阵：$\tilde{\mathbf{q}}_m = R_m \mathbf{q}$；同理给 Key 向量注入位置编码：$\tilde{\mathbf{k}}_n = R_n \mathbf{k}$。
+给 Query 向量注入位置编码，正是将其乘以正交矩阵：$\tilde{\mathbf{q}}_m = R_m \mathbf{q}_m$；同理给 Key 向量注入位置编码：$\tilde{\mathbf{k}}_n = R_n \mathbf{k}_n$。
 
 ---
 
-### 2. 用本讲定理两行推导 RoPE 的两大神级特性
+### 2. RoPE 的保范性与相对位置因子
 
-#### 特性 ①：向量范数严格守恒（绝对不破坏数值稳定性）
+#### ① 精确算术下的范数守恒
 
 由于每个二维子块都是标准的旋转矩阵，显然 $R_{m, \theta_i}^T R_{m, \theta_i} = I_2$，从而整个大矩阵满足：
 
@@ -977,27 +967,27 @@ $$
 R_m^T R_m = I_d \iff R_m \text{ 是实正交矩阵！}
 $$
 
-直接调用本讲**定理 2（保范性）**：
+直接调用本讲**定理 17.1（保范性）**：
 
 $$
-\|\tilde{\mathbf{q}}_m\|_2 = \|R_m \mathbf{q}\|_2 = \|\mathbf{q}\|_2, \quad \|\tilde{\mathbf{k}}_n\|_2 = \|R_n \mathbf{k}\|_2 = \|\mathbf{k}\|_2
+\|\tilde{\mathbf{q}}_m\|_2 = \|R_m \mathbf{q}_m\|_2 = \|\mathbf{q}_m\|_2, \quad \|\tilde{\mathbf{k}}_n\|_2 = \|R_n \mathbf{k}_n\|_2 = \|\mathbf{k}_n\|_2
 $$
 
-**物理直觉**：不管序列长度 $m$ 延伸到 32K、128K 还是 1M 词元，**正交旋转绝不改变特征向量的模长！**这彻底避免了传统长序列位置编码因累加导致的数值发散与注意力打分爆炸问题。
+在精确算术下，旋转本身不放大模长。由柯西–施瓦茨不等式，旋转后的点积绝对值至多为 $\|\mathbf{q}_m\|_2\|\mathbf{k}_n\|_2$。有限精度下计算角度、正弦与余弦仍会产生误差。
 
-#### 特性 ②：绝对位置在点积中自动坍缩为相对位置差 $n - m$
+#### ② 显式位置因子只依赖有符号位置差 $n-m$
 
 计算注入位置编码后的注意力内积分数：
 
 $$
-\tilde{\mathbf{q}}_m^T \tilde{\mathbf{k}}_n = (R_m \mathbf{q})^T (R_n \mathbf{k}) = \mathbf{q}^T (R_m^T R_n) \mathbf{k}
+\tilde{\mathbf{q}}_m^T \tilde{\mathbf{k}}_n = (R_m \mathbf{q}_m)^T (R_n \mathbf{k}_n) = \mathbf{q}_m^T (R_m^T R_n) \mathbf{k}_n
 $$
 
 现在请仔细观察核心中间项 $R_m^T R_n$！
-由于二维旋转矩阵属于二维正交群 $SO(2)$，其转置等于逆时针反向旋转：$R_{m, \theta_i}^T = R_{-m, \theta_i}$。利用旋转复合群法则：
+由于二维旋转矩阵属于二维特殊正交群 $SO(2)$，其转置将旋转角取负：$R_{m, \theta_i}^T = R_{-m, \theta_i}$。利用旋转复合群法则：
 
 $$
-R_{-m, \theta_i} R_{n, \theta_i} = \begin{bmatrix} \cos(-m\theta_i) & -\sin(-m\theta_i) \\ \sin(-m\theta_i) & \cos(-m\theta_i) \end{bmatrix} \begin{bmatrix} \cos(n\theta_i) & -\sin(n\theta_i) \\ \sin(n\theta_i) & \cos(n\theta_i) \end{bmatrix} = \begin{bmatrix} \cos((n-m)\theta_i) & -\sin((n-m)\theta_i) \\ \sin((n-m)\theta_i) & \cos((n-m)\theta_i) \end{bmatrix} = R_{n-m, \theta_i}
+R_{m,\theta_i}^T R_{n,\theta_i}=R_{-m,\theta_i}R_{n,\theta_i}=R_{n-m,\theta_i}.
 $$
 
 因此整个分块对角矩阵完全满足：
@@ -1009,30 +999,24 @@ $$
 代回内积公式：
 
 $$
-\tilde{\mathbf{q}}_m^T \tilde{\mathbf{k}}_n = \mathbf{q}^T R_{n-m} \mathbf{k}
+\tilde{\mathbf{q}}_m^T \tilde{\mathbf{k}}_n = \mathbf{q}_m^T R_{n-m} \mathbf{k}_n
 $$
 
-**线性代数的终极优雅在此刻展现**：虽然我们对 Query 与 Key 施加的是关于绝对序号 $m$ 与 $n$ 的正交旋转，但在点积的几何结构下，**绝对位置完全消失了，自动坍缩为纯粹关于相对距离 $n - m$ 的正交旋转作用！**这就是当今前沿大模型具备超强长文本外推与相对位置感知能力的全部数学秘密。
+显式旋转因子 $R_{n-m}$ 只取决于有符号位置差。完整分数还依赖内容向量 $\mathbf{q}_m,\mathbf{k}_n$。这一恒等式说明了相对位置编码的来源。模型能否在训练长度之外保持性能，需要另行检验。
 
 ---
 
-### 3. 极深层网络的正交权重初始化与动态等距（Dynamical Isometry）
+### 3. 深层线性网络中的正交初始化
 
-在极深深度神经网络（例如 50 层以上的深层全连接网络或深层 RNN）中，信号在前向传播时经过多层权重矩阵连乘：
-
-$$
-\mathbf{h}_L = W_L W_{L-1} \cdots W_1 \mathbf{x}
-$$
-
-- 若权重矩阵采用普通的高斯随机初始化（Gaussian Random Initialization），每个矩阵的最大奇异值如果稍大于 1（比如 1.05），经过 100 层连乘后信号模长会放大 $1.05^{100} \approx 131.5$ 倍（梯度爆炸）；若稍小于 1（比如 0.95），模长会衰减为 $0.95^{100} \approx 0.0059$（梯度消失）。
-- **Saxe et al. (ICLR 2014)** 证明了**正交初始化（Orthogonal Initialization）**的巨大威力：利用本讲的 **Gram-Schmidt 正交化或 QR 分解**，从高斯随机矩阵中提取正交因子 $Q$，并令每一层的初始权重满足 $W_l^T W_l = I$。
-- 根据本讲的保模长定理：
+考虑无激活函数的深层线性网络，令 $W_\ell\in\mathbb{R}^{d\times d}$，并设 $J=W_L\cdots W_1$、$\mathbf{h}_L=J\mathbf{x}$。由算子范数的次乘性，
 
 $$
-\|\mathbf{h}_L\|_2 = \|W_L (W_{L-1} \cdots W_1 \mathbf{x})\|_2 = \|W_{L-1} \cdots W_1 \mathbf{x}\|_2 = \cdots = \|\mathbf{x}\|_2
+\|\mathbf{h}_L\|_2 \le \left(\prod_{\ell=1}^{L}\sigma_{\max}(W_\ell)\right)\|\mathbf{x}\|_2.
 $$
 
-信号在经过任意深度的网络传递时，其向量范数都保持严格等距（Dynamical Isometry），使得误差回传通道畅通无阻，极大地加快了极深模型的收敛速度。
+若每层的最大奇异值为 $1.05$，100 层的放大倍数上界约为 $131.5$，是否达到上界取决于层间奇异方向的对齐。若每层的最大奇异值至多为 $0.95$，则任何输入的范数最多保留 $0.95^{100}\approx 0.0059$ 倍。
+
+若每层均初始化为方形正交矩阵，例如从高斯矩阵提取 QR 分解的正交因子，则 $J^TJ=JJ^T=I_d$。因此前向范数 $\|J\mathbf{x}\|_2=\|\mathbf{x}\|_2$，反向梯度也满足 $\|J^T\mathbf{g}\|_2=\|\mathbf{g}\|_2$。此时雅可比矩阵的所有奇异值均为 1，是动态等距（Dynamical Isometry）的精确情形。Saxe 等人研究的是深层线性网络的学习动力学。在非线性网络中，雅可比还含有激活函数的导数，单靠正交权重不能推出动态等距或收敛速度。
 
 <CollapsibleCode title="展开自包含 PyTorch 实验代码（核验 RoPE 正交保范性、相对位置坍缩与深层正交连乘范数守恒）">
 
@@ -1083,7 +1067,7 @@ score_abs = (R_m @ q) @ (R_n @ k)
 score_rel = q @ (R_rel @ k)
 assert torch.allclose(score_abs, score_rel, atol=1e-6), "RoPE relative collapse failed!"
 
-print("✓ [RoPE 验证成功] 正交性 RᵀR=I、保模长 ||Rq||=||q|| 与相对位置坍缩完全精确吻合！")
+print("✓ [RoPE 验证成功] 正交性 RᵀR=I、保模长 ||Rq||=||q|| 与相对位置恒等式均在给定容差内成立。")
 
 # ==========================================
 # 2. 验证深层网络正交权重初始化 vs. 普通高斯初始化
@@ -1095,7 +1079,7 @@ x_norm_initial = torch.norm(x).item()
 # 50 层高斯随机矩阵连乘
 x_gaussian = x.clone()
 for _ in range(depth):
-    # 标准高斯初始化 (带微小尺度扰动模拟未标定权重)
+    # 元素标准差为 1.05 / sqrt(d)，各层的谱范数随采样而变。
     W_g = torch.randn(d, d) * (1.05 / (d ** 0.5))
     x_gaussian = W_g @ x_gaussian
 
@@ -1107,8 +1091,8 @@ for _ in range(depth):
     x_orthogonal = Q @ x_orthogonal
 
 print(f"原始输入向量模长: {x_norm_initial:.4f}")
-print(f"50 层高斯连乘后模长: {torch.norm(x_gaussian).item():.4f} (发生严重形变/爆炸/弥散)")
-print(f"50 层正交连乘后模长: {torch.norm(x_orthogonal).item():.4f} (严格保持不变，完全守恒！)")
+print(f"50 层高斯连乘后模长: {torch.norm(x_gaussian).item():.4f}")
+print(f"50 层正交连乘后模长: {torch.norm(x_orthogonal).item():.4f}")
 assert abs(torch.norm(x_orthogonal).item() - x_norm_initial) < 1e-4
 ```
 

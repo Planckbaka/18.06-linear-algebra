@@ -15,7 +15,7 @@ export function LinearTransformationGeometryExamplesDiagram({
         viewBox="0 0 920 440"
         className="w-full h-auto font-sans select-none"
         role="img"
-        aria-label="Comparison between valid linear transformations in R2 (rotation, reflection, orthogonal projection preserving origin and parallel lines) and nonlinear impostors (affine translation shifting the origin and Euclidean norm violating additivity and homogeneity)"
+        aria-label="Comparison between valid linear transformations in R2 (rotation, reflection, orthogonal projection fixing the origin and collapsing a direction) and nonlinear impostors (affine translation shifting the origin and Euclidean norm violating additivity and homogeneity)"
       >
         <defs>
           <marker
@@ -115,7 +115,7 @@ export function LinearTransformationGeometryExamplesDiagram({
             strokeWidth="1"
           />
           <text x="303" y="81" textAnchor="middle" className="fill-blue-700 dark:fill-blue-300 text-[11.5px] font-bold">
-            ✓ 合法线性变换 T : ℝ² → ℝ²（必须固定原点 T(0) = 0，且保持直线与平行网格）
+            ✓ 合法线性变换 T : ℝ² → ℝ²（保持线性组合，固定原点 T(𝟎) = 𝟎）
           </text>
 
           {/* --- Sub-card 1: Rotation R_theta --- */}
@@ -150,7 +150,7 @@ export function LinearTransformationGeometryExamplesDiagram({
 
             {/* Rotated unit square (30 deg CCW) */}
             <polygon
-              points="100,232 138.1,210 116.1,171.9 78,193.9"
+              points="100,232 138.105,210 116.105,171.895 78,193.895"
               className="fill-blue-500/15 stroke-blue-600/60 dark:stroke-blue-400/60"
               strokeWidth="1.4"
             />
@@ -159,8 +159,8 @@ export function LinearTransformationGeometryExamplesDiagram({
             <line
               x1="100"
               y1="232"
-              x2="136.5"
-              y2="210.9"
+              x2="138.105"
+              y2="210"
               className="stroke-blue-600 dark:stroke-blue-400"
               strokeWidth="2.2"
               markerEnd="url(#l31-geom-arrow-blue)"
@@ -168,8 +168,8 @@ export function LinearTransformationGeometryExamplesDiagram({
             <line
               x1="100"
               y1="232"
-              x2="79"
-              y2="195.5"
+              x2="78"
+              y2="193.895"
               className="stroke-purple-600 dark:stroke-purple-400"
               strokeWidth="2.2"
               markerEnd="url(#l31-geom-arrow-purple)"
@@ -338,9 +338,9 @@ export function LinearTransformationGeometryExamplesDiagram({
             {/* Line L at 30 deg through (450, 244) */}
             <line
               x1="424"
-              y1="259"
+              y1="259.011"
               x2="544"
-              y2="190"
+              y2="189.729"
               className="stroke-emerald-600/75 dark:stroke-emerald-400/75"
               strokeWidth="2"
             />
@@ -352,8 +352,8 @@ export function LinearTransformationGeometryExamplesDiagram({
             <line
               x1="502"
               y1="244"
-              x2="490"
-              y2="223"
+              x2="489"
+              y2="221.483"
               className="stroke-muted-foreground"
               strokeWidth="1.2"
               strokeDasharray="2.5 2.5"
@@ -362,8 +362,8 @@ export function LinearTransformationGeometryExamplesDiagram({
             <line
               x1="450"
               y1="192"
-              x2="471"
-              y2="229"
+              x2="472.517"
+              y2="231"
               className="stroke-muted-foreground"
               strokeWidth="1.2"
               strokeDasharray="2.5 2.5"
@@ -374,8 +374,8 @@ export function LinearTransformationGeometryExamplesDiagram({
             <line
               x1="450"
               y1="244"
-              x2="487"
-              y2="222.6"
+              x2="489"
+              y2="221.483"
               className="stroke-blue-600 dark:stroke-blue-400"
               strokeWidth="2.5"
               markerEnd="url(#l31-geom-arrow-blue)"
@@ -383,8 +383,8 @@ export function LinearTransformationGeometryExamplesDiagram({
             <line
               x1="450"
               y1="244"
-              x2="470.5"
-              y2="232.1"
+              x2="472.517"
+              y2="231"
               className="stroke-purple-600 dark:stroke-purple-400"
               strokeWidth="2.5"
               markerEnd="url(#l31-geom-arrow-purple)"
@@ -408,13 +408,13 @@ export function LinearTransformationGeometryExamplesDiagram({
             </text>
 
             <text x="488" y="298" textAnchor="middle" className="fill-foreground text-[10px] font-mono">
-              P = uuᵀ  (奇异但仍是线性!)
+              P = uuᵀ，u = (cos 30°, sin 30°)ᵀ
             </text>
             <text x="488" y="315" textAnchor="middle" className="fill-emerald-600 dark:fill-emerald-400 text-[10px]">
-              P(0) = 0，垂直分量落入核 ker(P)
+              P(𝟎) = 𝟎，垂直分量落入零空间
             </text>
             <text x="488" y="331" textAnchor="middle" className="fill-muted-foreground text-[9.5px]">
-              线性不要求可逆，只需 P² = P 叠加
+              保持线性组合，且满足 P² = P
             </text>
           </g>
 
@@ -429,7 +429,7 @@ export function LinearTransformationGeometryExamplesDiagram({
             strokeWidth="1.2"
           />
           <text x="303" y="376" textAnchor="middle" className="fill-foreground text-[11px] font-semibold">
-            线性变换三大几何不变量：① 原点锚定 T(0) = 0  ② 直线仍为直线  ③ 等距平行网格保持等距平行
+            原点映为原点，直线的像可为直线或一点，非退化的平行线族保持平行
           </text>
           <text x="303" y="397" textAnchor="middle" className="fill-emerald-700 dark:fill-emerald-300 text-[10.5px] font-mono">
             重要推论：只要知道 T 对基底 e₁, e₂ 的作用，全空间任一点 x₁e₁ + x₂e₂ 的像即被唯一锁定！
@@ -568,8 +568,8 @@ export function LinearTransformationGeometryExamplesDiagram({
             <line
               x1="638"
               y1="384"
-              x2="690"
-              y2="332"
+              x2="692"
+              y2="330"
               className="stroke-rose-600 dark:stroke-rose-400"
               strokeWidth="2.2"
               markerEnd="url(#l31-geom-arrow-rose)"

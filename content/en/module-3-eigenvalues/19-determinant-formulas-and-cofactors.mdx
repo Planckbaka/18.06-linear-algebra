@@ -12,18 +12,12 @@ textbookRef: "§5.2"
 In Lecture 18, we built the determinant from three fundamental axioms (the identity matrix has determinant $1$, row exchanges reverse the sign, and the determinant is linear in each row separately) and derived seven deep geometric and algebraic properties. From those properties, we obtained the fastest numerical algorithm for computing determinants—**Gaussian Elimination**:
 
 $$
-\det(A) = (\pm 1) \prod_{i=1}^n d_i
+\det(A) = (-1)^k \prod_{i=1}^n d_i
 $$
 
-where the $d_i$ are the pivots produced by elimination, and the leading sign depends on whether we performed an even or odd number of row exchanges.
+where $d_i$ are the resulting diagonal entries and $k$ counts row exchanges. This formula uses row additions and swaps.
 
-However, numerical elimination hits a serious snag when we deal with **symbolic matrices**. In the upcoming eigenvalue lectures, we will need to solve the characteristic equation:
-
-$$
-\det(A - \lambda I) = 0
-$$
-
-Here, the entries of the matrix contain an unknown variable $\lambda$. If we try to force Gaussian elimination onto this matrix, the pivots will inevitably turn into ugly fractions with expressions like $a_{11}(\lambda)$ in the denominator. Not only is that algebraic division messy, but the whole elimination process breaks down whenever a pivot happens to hit zero for a particular root $\lambda$.
+For symbolic determinants such as $\det(A-\lambda I_n)$, ordinary elimination can introduce divisions by expressions in $\lambda$. Each division is valid only where its pivot is nonzero, so special parameter values require care. An explicit polynomial formula gives a division-free expression valid for every $\lambda$.
 
 What we urgently need is a **purely algebraic, explicit closed-form formula**:
 - It uses only addition and multiplication of the matrix entries—zero division;
@@ -70,19 +64,19 @@ $$
 Look closely at these 4 terms:
 1. **Term 1**: The second column is all $\mathbf{0}$, so the matrix is singular and its determinant is $0$.
 2. **Term 4**: The first column is all $\mathbf{0}$, so its determinant is also $0$.
-3. **Term 2**: Every row and every column has exactly one nonzero entry. Factoring out the scalars gives the main diagonal product:
+3. **Term 2**: Each row and column has exactly one selected position. Factoring out the scalars gives the main diagonal product:
 
    $$
    a_{11} a_{22} \det \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = + a_{11} a_{22} \det(I) = a_{11} a_{22}
    $$
 
-4. **Term 3**: Again, every row and column has one nonzero entry. Factoring out the scalars and swapping the two rows brings us back to the identity matrix:
+4. **Term 3**: Again, each row and column has one selected position. Factoring out the scalars and swapping the two rows brings us back to the identity matrix:
 
    $$
    a_{12} a_{21} \det \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} = a_{12} a_{21} \left( -\det \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} \right) = - a_{12} a_{21}
    $$
 
-Out of all $2^2 = 4$ terms, $4 - 2 = 2$ terms vanish automatically because of repeated columns, leaving only $2! = 2$ survivors. That gives us the familiar elementary formula:
+Out of all $2^2 = 4$ terms, $4 - 2 = 2$ terms vanish automatically because each has a zero column, leaving only $2! = 2$ survivors. That gives us the familiar elementary formula:
 
 $$
 \det(A) = a_{11} a_{22} - a_{12} a_{21}
@@ -116,7 +110,7 @@ $$
 (\sigma(1), \sigma(2), \dots, \sigma(n))
 $$
 
-So out of the massive $n^n$ terms, the number of surviving terms drops dramatically from $n^n$ down to $n!$!
+Exactly $n!$ permutation terms remain. Some may vanish when a selected entry is zero.
 
 Each surviving term corresponds to a **permutation matrix** $P_\sigma$:
 
@@ -151,7 +145,7 @@ Let $S_n$ denote the **symmetric group** on $\{1, 2, \dots, n\}$. An element $\s
 
 <TheoremCard label="Theorem 19.1" title="The Big Formula for Determinants (Leibniz Formula)">
 
-Let $\mathbb{F}$ be a field ($\mathbb{R}$ or $\mathbb{C}$), and let $A = [a_{ij}] \in \mathbb{F}^{n \times n}$. Then the determinant of $A$ is given explicitly by the signed sum over all $n!$ permutations:
+Let $\mathbb{F}\in\{\mathbb{R},\mathbb{C}\}$ and $n\ge 1$, and let $A = [a_{ij}] \in \mathbb{F}^{n \times n}$. Then the determinant of $A$ is given explicitly by the signed sum over all $n!$ permutations:
 
 $$
 \det(A) = \sum_{\sigma \in S_n} \operatorname{sgn}(\sigma) a_{1,\sigma(1)} a_{2,\sigma(2)} \cdots a_{n,\sigma(n)}
@@ -179,7 +173,7 @@ By Axiom 2 (the alternating property):
 1. If there exist $p \neq q$ with $j_p = j_q$, then two rows are identical, so $D(\mathbf{e}_{j_1}^T, \dots, \mathbf{e}_{j_n}^T) = 0$.
 2. Therefore, $D(\mathbf{e}_{j_1}^T, \dots, \mathbf{e}_{j_n}^T) \neq 0$ only when $(j_1, j_2, \dots, j_n)$ is a permutation $\sigma$ of $(1, 2, \dots, n)$.
 
-In that case, the matrix is the permutation matrix $P_\sigma$. We can sort $P_\sigma$ back to the identity matrix $I_n$ via a sequence of adjacent row swaps. Each adjacent swap removes exactly one inversion, so the total number of adjacent swaps is $\operatorname{inv}(\sigma)$. By Axiom 2:
+In that case, the matrix is the permutation matrix $P_\sigma$. We can sort $P_\sigma$ back to the identity matrix $I_n$ via a sequence of adjacent row swaps. Each swap of an adjacent inverted pair removes exactly one inversion, so the total number of adjacent swaps is $\operatorname{inv}(\sigma)$. By Axiom 2:
 
 $$
 D(\mathbf{e}_{\sigma(1)}^T, \dots, \mathbf{e}_{\sigma(n)}^T) = (-1)^{\operatorname{inv}(\sigma)} D(\mathbf{e}_1^T, \dots, \mathbf{e}_n^T) = \operatorname{sgn}(\sigma) \det(I_n) = \operatorname{sgn}(\sigma)
@@ -193,6 +187,8 @@ $$
 
 This completes the proof.
 
+Conversely, the signed sum defines a determinant. Each term uses one entry per row, so the sum is linear in each row separately. A row swap reindexes the sum by a transposition and reverses every sign. Only the identity permutation contributes at $I_n$, giving $1$.
+
 </ProofCollapse>
 
 ---
@@ -203,18 +199,18 @@ For a $3 \times 3$ matrix, there are $3! = 6$ permutations in total: $3$ even pe
 
 1. **Even permutations ($3$ terms, $\operatorname{sgn}(\sigma) = +1$)**:
    - $(1, 2, 3)$: $0$ inversions $\implies + a_{11} a_{22} a_{33}$ (main diagonal)
-   - $(2, 3, 1)$: $2$ inversions $\implies + a_{12} a_{23} a_{31}$ (cyclic shift right)
-   - $(3, 1, 2)$: $2$ inversions $\implies + a_{13} a_{21} a_{32}$ (cyclic shift left)
+   - $(2, 3, 1)$: $2$ inversions $\implies + a_{12} a_{23} a_{31}$ (cyclic shift left)
+   - $(3, 1, 2)$: $2$ inversions $\implies + a_{13} a_{21} a_{32}$ (cyclic shift right)
 2. **Odd permutations ($3$ terms, $\operatorname{sgn}(\sigma) = -1$)**:
    - $(1, 3, 2)$: $1$ inversion $\implies - a_{11} a_{23} a_{32}$ (swap columns 2 and 3)
    - $(2, 1, 3)$: $1$ inversion $\implies - a_{12} a_{21} a_{33}$ (swap columns 1 and 2)
    - $(3, 2, 1)$: $3$ inversions $\implies - a_{13} a_{22} a_{31}$ (anti-diagonal)
 
-<BigFormulaPermutationsDiagram caption="All 3! = 6 permutations of a 3x3 determinant: 3 even permutations (+1, solid diagonals) and 3 odd permutations (-1, dashed diagonals)." />
+<BigFormulaPermutationsDiagram caption="All 3! = 6 permutations of a 3x3 determinant: 3 even permutations contribute with a plus sign and 3 odd permutations with a minus sign." />
 
 Geometrically, these 6 terms match the famous **Sarrus' Rule** taught in high school: three downward diagonals from top-left to bottom-right (added), minus three downward anti-diagonals from top-right to bottom-left.
 
-**Warning**: That is purely a **low-dimensional coincidence** for $n = 2$ and $n = 3$!
+**Warning**: Sarrus’ rule is the diagonal rule for order three. The $2 \times 2$ diagonal formula is a separate two-term case.
 The moment you step up to a $4 \times 4$ matrix:
 - The Big Formula has $4! = 24$ terms;
 - Drawing diagonals Sarrus-style ($4$ main diagonals and $4$ anti-diagonals) captures at most $4 + 4 = 8$ terms;
@@ -242,7 +238,7 @@ The coefficient $C_{1j}$ multiplying $a_{1j}$ is called the **cofactor** of $a_{
 
 <DefinitionCard label="Definition 19.2" title="Minor and Cofactor">
 
-Let $A = [a_{ij}] \in \mathbb{F}^{n \times n}$ be an $n \times n$ matrix.
+For $\mathbb{F}\in\{\mathbb{R},\mathbb{C}\}$ and $n\ge 1$, let $A = [a_{ij}] \in \mathbb{F}^{n \times n}$ be an $n \times n$ matrix. For $n=1$, use the convention that the determinant of the empty matrix is $1$.
 1. **Submatrix**: Crossing out row $i$ and column $j$ of $A$ leaves an $(n-1) \times (n-1)$ submatrix, denoted $M'_{ij} \in \mathbb{F}^{(n-1) \times (n-1)}$.
 2. **Minor**: The determinant of $M'_{ij}$ is called the $(i, j)$-minor of $A$:
 
@@ -276,7 +272,7 @@ $$
 
 <TheoremCard label="Theorem 19.2" title="Laplace Expansion Theorem (Cofactor Expansion Along Any Row or Column)">
 
-Let $A \in \mathbb{F}^{n \times n}$. The determinant of $A$ can be expanded along any row $i$:
+Let $\mathbb{F}\in\{\mathbb{R},\mathbb{C}\}$, $n\ge 1$, and $A \in \mathbb{F}^{n \times n}$. The determinant of $A$ can be expanded along any row $i$:
 
 $$
 \det(A) = \sum_{j=1}^n a_{ij} C_{ij} = \sum_{j=1}^n (-1)^{i+j} a_{ij} M_{ij} \quad (\forall i \in \{1, 2, \dots, n\})
@@ -292,15 +288,17 @@ $$
 
 <ProofCollapse title="Rigorous Proof: The Sign (-1)^{i+j} and Grouping Terms in the Big Formula">
 
+For $n=1$ the formula is $\det([a_{11}])=a_{11}$ by the empty determinant convention.
+
 **Step 1: Show that the coefficient of $a_{11}$ is $M_{11}$.**
 
 Collect all terms in the Big Formula that contain $a_{11}$ (i.e., permutations with $\sigma(1) = 1$):
 
 $$
-\sum_{\substack{\sigma \in S_n \\ \sigma(1) = 1}} \operatorname{sgn}(\sigma) a_{11} a_{2,\sigma(2)} \cdots a_{n,\sigma(n)} = a_{11} \sum_{\tau \in S_{n-1}} \operatorname{sgn}(\tau) a_{2, \tau(2)} \cdots a_{n, \tau(n)}
+\sum_{\substack{\sigma \in S_n \\ \sigma(1) = 1}} \operatorname{sgn}(\sigma) a_{11} a_{2,\sigma(2)} \cdots a_{n,\sigma(n)} = a_{11} \sum_{\tau \in S_{n-1}} \operatorname{sgn}(\tau) \prod_{i=2}^n a_{i,\,1+\tau(i-1)}
 $$
 
-Because $\sigma(1) = 1$, the index $1$ forms no inversions with any later element, so the inversion count of $\sigma$ equals the inversion count of the induced permutation $\tau$ on $\{2, 3, \dots, n\}$, meaning $\operatorname{sgn}(\sigma) = \operatorname{sgn}(\tau)$.
+Because $\sigma(1) = 1$, the index $1$ forms no inversions with any later element, so the inversion count of $\sigma$ equals the inversion count of the permutation $\tau\in S_{n-1}$ given by $\tau(k)=\sigma(k+1)-1$, meaning $\operatorname{sgn}(\sigma) = \operatorname{sgn}(\tau)$.
 The sum in parentheses is literally the Big Formula for the $(n-1) \times (n-1)$ submatrix $M'_{11}$! Thus:
 
 $$
@@ -345,10 +343,10 @@ Summing over all $j = 1, \dots, n$ yields the expansion along row $i$. By $\det(
 
 | Method | Dense Matrix Complexity | Operations for $n = 10$ | Time for $n = 20$ (at $10^9$ ops/sec) | Best Use Case |
 | :--- | :--- | :--- | :--- | :--- |
-| **Recursive Cofactor Expansion** | $\mathcal{O}(n!)$ | $\approx 3.6 \times 10^6$ ops | $\approx 2.43 \times 10^{18}$ ops $\approx 77$ years! | Sparse matrices, symbolic matrices, tridiagonal recurrences |
-| **Gaussian Elimination ($PA = LU$)** | $\mathcal{O}\left(\frac{1}{3}n^3\right)$ | $\approx 333$ ops | $\approx 2\,667$ ops $\approx 2.7$ microseconds | Dense numerical matrices, large-scale engineering solvers |
+| **Recursive Cofactor Expansion** | $\mathcal{O}(n!)$ | $\approx 3.6 \times 10^6$ terms | $\approx 2.43 \times 10^{18}$ terms ($\approx 77$ years at one operation per term) | Sparse matrices, symbolic matrices, tridiagonal recurrences |
+| **Gaussian Elimination ($PA = LU$)** | $\mathcal{O}(n^3)$ | $\approx 667$ ops | $\approx 5\,333$ ops $\approx 5.3$ microseconds | Dense numerical matrices, large-scale engineering solvers |
 
-> **Key Insight**: Numerical libraries (like NumPy, SciPy, and MATLAB) 100% use Gaussian elimination ($LU$ factorization) under the hood for floating-point determinants. The real superpower of cofactors lies in **sparse structured matrices** and **theoretical proofs**.
+> **Key Insight**: For dense matrices, LU factorization takes about two-thirds of $n^3$ FLOPs when multiplication and subtraction count separately. The cofactor column uses $n!$ as a scale estimate for the number of terms. Cofactors are especially useful for sparse structure and symbolic proofs.
 
 ---
 
@@ -368,15 +366,15 @@ c & a & b & \cdots & 0 \\
 \end{bmatrix}_{n \times n}
 $$
 
-Let $D_n = \det(T_n)$.
+Let $D_n = \det(T_n)$ for $n\ge 1$ and set $D_0=1$ by the empty determinant convention. Then $D_1=a$.
 
-Expand along the first row, which has only two nonzero entries, $a$ and $b$:
+For $n\ge 2$, expand along the first row, whose only possibly nonzero entries are $a$ and $b$:
 
 $$
 D_n = a C_{11} + b C_{12} = a D_{n-1} + b (-1)^{1+2} M_{12} = a D_{n-1} - b M_{12}
 $$
 
-Now look at the submatrix for $M_{12}$:
+For $n=2$, $M_{12}=c=cD_0$. For $n\ge 3$, the submatrix has the following structure:
 
 $$
 M'_{12} = \begin{bmatrix}
@@ -388,7 +386,7 @@ c & b & 0 & \cdots & 0 \\
 \end{bmatrix}_{(n-1) \times (n-1)}
 $$
 
-Notice that its first column has only a single nonzero entry, $c$, at the top! Expanding $M_{12}$ down its first column gives:
+Notice that its first column is zero below its top entry $c$! Expanding $M_{12}$ down its first column gives:
 
 $$
 M_{12} = c (-1)^{1+1} D_{n-2} = c D_{n-2}
@@ -397,7 +395,7 @@ $$
 Substituting $M_{12}$ back into our equation immediately yields a clean **second-order linear homogeneous recurrence relation**:
 
 $$
-D_n = a D_{n-1} - b c D_{n-2}
+D_n = a D_{n-1} - bc D_{n-2} \quad (n\ge 2)
 $$
 
 ---
@@ -439,11 +437,11 @@ $$
 D_n = n + 1
 $$
 
-> **Mathematical Significance**: For every $n \ge 1$, $D_n = n + 1 \gt 0$. This means $K_n$ is always invertible, and as we will prove in Lecture 23, because all its leading principal minors are positive, $K_n$ is a **symmetric positive definite matrix**.
+> **Mathematical Significance**: For every $n \ge 1$, $D_n = n + 1 \gt 0$. This means $K_n$ is always invertible, and each leading principal submatrix is $K_k$ with determinant $k+1\gt 0$, so the real symmetric matrix $K_n$ is **positive definite** by Sylvester’s criterion (Lecture 28).
 
 ---
 
-### 3.2 Classic Example B: Strang's All-Ones Tridiagonal Matrix $T_n$ (Period-6 Singularity Cycle)
+### 3.2 Classic Example B: Strang's All-Ones Tridiagonal Matrix $T_n$ (Period-6 Determinant Cycle)
 
 Prof. Gilbert Strang famously brings up this gem in his MIT 18.06 lecture: a tridiagonal matrix with $1$'s on the main diagonal and $1$'s on both adjacent diagonals:
 
@@ -487,9 +485,9 @@ $$
 1, 0, -1, -1, 0, 1, \quad 1, 0, -1, -1, 0, 1, \dots
 $$
 
-<CofactorTridiagonalDiagram caption="Two-step cofactor expansion of a tridiagonal matrix yields D_n = a D_{n-1} - bc D_{n-2}, producing linear growth D_n = n+1 for K_n and a period-6 oscillation for the all-ones tridiagonal matrix." />
+<CofactorTridiagonalDiagram caption="Two cofactor expansions give $D_n=aD_{n-1}-bcD_{n-2}$. For $K_n$, this yields $D_n=n+1$. For the tridiagonal matrix with ones on all three diagonals, the determinants repeat every six steps." />
 
-> **Singularity Period**: $D_n = 0$ if and only if $n \equiv 2 \pmod 3$ (that is, $n = 2, 5, 8, 11, \dots$). In those dimensions, the columns of $T_n$ are linearly dependent and the matrix is singular! From the perspective of characteristic equations, the recurrence has characteristic polynomial $\lambda^2 - \lambda + 1 = 0$, whose roots are $e^{\pm i \pi/3}$ (sixth roots of unity on the unit circle)—which explains the period $6$ at a fundamental level.
+> **Singularity Period**: $D_n = 0$ if and only if $n \equiv 2 \pmod 3$ (that is, $n = 2, 5, 8, 11, \dots$). In those dimensions, the columns of $T_n$ are linearly dependent and the matrix is singular! From the perspective of characteristic equations, the recurrence has characteristic equation $\lambda^2 - \lambda + 1 = 0$, whose roots are $e^{\pm i \pi/3}$ (sixth roots of unity on the unit circle)—which explains the period $6$ at a fundamental level.
 
 ---
 
@@ -502,9 +500,9 @@ A very common beginner mistake is assuming that $4 \times 4$ (or larger) determi
 **This is completely false!**
 - A $3 \times 3$ matrix has $3! = 6$ permutations, which happens to match the $6$ diagonals;
 - A $4 \times 4$ matrix has $4! = 24$ permutations, whereas drawing diagonals can capture at most $4 + 4 = 8$ terms—missing $16$ terms ($66.7\%$ of the formula)!
-- For instance, $+a_{11} a_{22} a_{34} a_{43}$ corresponds to the even permutation $(1, 2, 4, 3)$: it takes the main diagonal in the top-left $2 \times 2$ block and the anti-diagonal in the bottom-right $2 \times 2$ block, so it never lies on any full wrap-around diagonal!
+- For instance, $-a_{11} a_{22} a_{34} a_{43}$ corresponds to the odd permutation $(1, 2, 4, 3)$: it takes the main diagonal in the top-left $2 \times 2$ block and the anti-diagonal in the bottom-right $2 \times 2$ block, so it never lies on any full wrap-around diagonal!
 
-**Rule**: For any $n \ge 4$, never use diagonal-product rules!
+**Rule**: For any $n \ge 4$, the Sarrus-style wraparound rule does not give the general determinant!
 
 </PitfallAlert>
 
@@ -517,15 +515,15 @@ C_{ij} = (-1)^{i+j} M_{ij}
 $$
 
 The minor $M_{ij}$ is purely the determinant of the $(n-1) \times (n-1)$ submatrix—no extra sign. The cofactor $C_{ij}$ **must** include the checkerboard sign $(-1)^{i+j}$.
-Whenever $i + j$ is odd (such as $C_{12}, C_{21}, C_{23}, C_{32}$), $C_{ij} = -M_{ij}$. Missing that minus sign will also ruin the adjugate matrix $A^*$ in inverse formulas.
+Whenever $i + j$ is odd (such as $C_{12}, C_{21}, C_{23}, C_{32}$), $C_{ij} = -M_{ij}$. Missing that minus sign will also ruin the adjugate matrix $\operatorname{adj}(A)$ in inverse formulas.
 
 </PitfallAlert>
 
 <PitfallAlert title="Misusing Cofactor Expansion on Dense Numerical Matrices">
 
 When writing numerical code or computing dense matrices by hand, do not blindly expand by cofactors.
-- For an unstructured dense matrix, recursive cofactor expansion takes super-exponential $\mathcal{O}(n!)$ time. At $n = 25$, $25! \approx 1.55 \times 10^{25}$ operations—not even all the computers on Earth could finish it in a lifetime!
-- **Best practice**: Always reduce dense numerical matrices to upper triangular form with Gaussian elimination ($\mathcal{O}(n^3/3)$) and multiply the pivots. Reserve cofactor expansion for sparse matrices (e.g., rows with only one or two nonzero entries) or symbolic/recurrence proofs.
+- For an unstructured dense matrix, recursive cofactor expansion takes super-exponential $\mathcal{O}(n!)$ time. At $n = 25$, the $25! \approx 1.55 \times 10^{25}$ permutation terms show the scale of that recursion.
+- **Best practice**: Always reduce dense numerical matrices to upper triangular form with Gaussian elimination ($\mathcal{O}(n^3)$) and multiply the pivots. Reserve cofactor expansion for sparse matrices (e.g., rows with only one or two nonzero entries) or symbolic/recurrence proofs.
 
 </PitfallAlert>
 
@@ -536,7 +534,7 @@ When writing numerical code or computing dense matrices by hand, do not blindly 
 <InteractiveCanvasSlot
   id="l19-cofactor-expansion-sandbox"
   title="Cofactor Expansion & Sparse Reduction Sandbox"
-  description="Select different rows or columns for Laplace expansion and dynamically compare the operation counts of Gaussian elimination versus cofactor expansion across sparse matrix structures."
+  description="Select a row for cofactor expansion of the second-difference matrix. Change its order to explore the tridiagonal determinant recurrence."
 />
 
 ---
@@ -546,12 +544,12 @@ When writing numerical code or computing dense matrices by hand, do not blindly 
 <KeyTakeaways
   title="Key Takeaways"
   items={[
-    "Using row-by-row linearity (Axiom 3), the Big Formula splits an n x n determinant into n! permutation terms: \\det(A) = \\sum_{\\sigma \\in S_n} \\operatorname{sgn}(\\sigma) a_{1,\\sigma(1)} \\cdots a_{n,\\sigma(n)}.",
-    "Sarrus' diagonal rule works only by coincidence for n = 2 and n = 3; for n \\ge 4, diagonals capture only 8 terms and miss 24 - 8 = 16 terms in the 4 x 4 case, so it must never be used.",
-    "The cofactor C_{ij} = (-1)^{i+j} M_{ij} packages all (n-1)! terms of the Big Formula containing a_{ij}; Laplace expansion lets us expand along any single row or column.",
-    "Algorithmic complexity splits sharply: recursive cofactor expansion is O(n!) on dense matrices, while Gaussian elimination is O(n^3/3); cofactors shine on sparse matrices, symbolic parameters, and recurrences.",
-    "Two consecutive cofactor expansions reduce a constant-diagonal tridiagonal matrix to a second-order homogeneous linear recurrence: D_n = a D_{n-1} - bc D_{n-2}.",
-    "The second-difference matrix K_n has determinants D_n = n + 1 \\gt 0 for all n, while Strang's all-ones tridiagonal matrix T_n oscillates with period 6 (1, 0, -1, -1, 0, 1, ...)."
+    "Expanding one row at a time gives the Leibniz formula $\\det(A)=\\sum_{\\sigma\\in S_n}\\operatorname{sgn}(\\sigma)\\prod_{i=1}^n a_{i,\\sigma(i)}$.",
+    "Sarrus' rule computes $3\\times 3$ determinants. The $2\\times 2$ case has its own two-term formula. For $n\\ge 4$, the wraparound rule misses $n!-2n$ terms.",
+    "The cofactor $C_{ij}=(-1)^{i+j}M_{ij}$ is the coefficient of $a_{ij}$ in the determinant polynomial. Expand along any row or column.",
+    "For dense matrices, recursive cofactor expansion takes $O(n!)$ arithmetic operations and Gaussian elimination takes $O(n^3)$. Cofactors are useful for sparse and symbolic matrices.",
+    "Constant-diagonal tridiagonal matrices satisfy $D_n=aD_{n-1}-bcD_{n-2}$ for $n\\ge 2$, with $D_0=1$ and $D_1=a$.",
+    "The second-difference matrix $K_n$ has determinant $n+1$. The tridiagonal matrix with ones on all three diagonals has determinants $1,0,-1,-1,0,1,\\dots$ of period six, starting at $n=1$."
   ]}
 />
 
@@ -588,7 +586,7 @@ $$
   buttonPrefix="Unlock Hint"
   hints={[
     "Look at the first row (or first column): it has only two nonzero entries. Expanding along row 1 splits the problem into just two 3 x 3 determinants.",
-    "Both resulting 3 x 3 submatrices are triangular—their determinants are simply the products of their main diagonals."
+    "Both resulting $3\\times 3$ submatrices are triangular. Multiply each one’s diagonal entries."
   ]}
 />
 
@@ -677,7 +675,7 @@ True or False: For any $4 \times 4$ matrix $A$, you can find $\det(A)$ by copyin
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="A 4x4 determinant has 4! = 24 permutation terms, whereas the diagonal method captures at most 8 terms and misses 16 terms (such as a_{11}a_{22}a_{34}a_{43}). Sarrus' rule fails completely for n \ge 4."
+  quickFeedback={"False. The wraparound rule uses only eight of the $24$ permutation terms. For $(1,2,4,3)$ the omitted term is $-a_{11}a_{22}a_{34}a_{43}$."}
 />
 
 <DualSolution
@@ -736,7 +734,7 @@ True or False: Let $A \in \mathbb{R}^{n \times n}$ ($n \ge 3$), and let $B$ be o
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="Crossing out the corresponding row and column leaves the exact same submatrix (M_{21}(B) = M_{11}(A)), but the checkerboard sign flips from (-1)^{1+1} = +1 to (-1)^{2+1} = -1. Thus C_{21}(B) = -C_{11}(A), not equal."
+  quickFeedback={"False. The minors agree, while the checkerboard sign flips, so $C_{21}(B)=-C_{11}(A)$. For $A=I_n$ these are $-1$ and $1$."}
 />
 
 <DualSolution
@@ -747,7 +745,7 @@ True or False: Let $A \in \mathbb{R}^{n \times n}$ ($n \ge 3$), and let $B$ be o
 <SolutionIntuition>
 A cofactor has two pieces: the submatrix determinant (minor $M_{ij}$) and the checkerboard sign $(-1)^{i+j}$.
 Crossing out row 2 and column 1 of $B$ leaves the exact same rows and columns as crossing out row 1 and column 1 of $A$ (namely, rows $2$ through $n$ and columns $2$ through $n$ of $A$). So the minors are identical: $M_{21}(B) = M_{11}(A)$.
-However, the entry's row index changed from $1$ to $2$, flipping the position sign from $(-1)^{1+1} = +1$ to $(-1)^{2+1} = -1$. Therefore $C_{21}(B) = -C_{11}(A)$, and the claim of equality is false.
+However, the entry's row index changed from $1$ to $2$, flipping the position sign from $(-1)^{1+1} = +1$ to $(-1)^{2+1} = -1$. Therefore $C_{21}(B) = -C_{11}(A)$, and the cofactors agree only if both are zero.
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -783,7 +781,7 @@ $$
 C_{21}(B) = - C_{11}(A)
 $$
 
-The statement misses the sign flip from the changed row index, so it is **False**.
+For $A=I_n$, the cofactors are $1$ and $-1$, so the universal claim is false. For a zero minor, both cofactors are zero.
 </SolutionRigorous>
 </DualSolution>
 
@@ -821,7 +819,7 @@ Let $x_1, x_2, \dots, x_n \in \mathbb{R}$.
   buttonPrefix="Unlock Hint"
   hints={[
     "For the 3 x 3 case, use elementary row operations to clear the 1s in column 1: subtract row 1 from row 2, and subtract row 1 from row 3.",
-    "For the n x n case, replace the last row with a variable x and expand along that row to get a polynomial P(x). Whenever x = x_i, two rows are identical, so x_i must be a root of P(x)!"
+    "For the n x n case, replace the last row with a variable $x$ and expand along that row to get a polynomial $f(x)$. When $x=x_i$, two rows coincide, so $f(x_i)=0$."
   ]}
 />
 
@@ -832,7 +830,7 @@ Let $x_1, x_2, \dots, x_n \in \mathbb{R}$.
 >
 <SolutionIntuition>
 The Vandermonde determinant is one of the cleanest formulas in algebra. Whenever any two nodes coincide ($x_i = x_j$), two rows of the matrix become identical, forcing the determinant to be $0$. By the Factor Theorem, the polynomial must contain the factor $(x_j - x_i)$.
-For order $n$, there are $\binom{n}{2}$ such pairs, whose product has total degree $0 + 1 + 2 + \dots + (n-1) = \frac{n(n-1)}{2}$—which already matches the degree of the main diagonal term! All that remains is matching the leading coefficient, which is $1$.
+With the first $n-1$ nodes fixed and distinct, the last row gives a polynomial of degree at most $n-1$ with those nodes as roots. Its $x^{n-1}$ coefficient is $V_{n-1}$, giving the product one node at a time.
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -915,13 +913,13 @@ $$
 f(x) = C_{n, n} \prod_{i=1}^{n-1} (x - x_i) = V_{n-1} \prod_{i=1}^{n-1} (x - x_i)
 $$
 
-(By continuity of polynomials, this identity holds even when some $x_i$ coincide.) Setting $x = x_n$ gives:
+If two of the first $n-1$ nodes coincide, both $f(x)$ and $V_{n-1}$ are zero because of identical rows. Setting $x = x_n$ gives:
 
 $$
 V_n = V_{n-1} \prod_{i=1}^{n-1} (x_n - x_i)
 $$
 
-By mathematical induction, we conclude:
+Starting from $V_1=1$ (the empty product), induction gives:
 
 $$
 V_n = \prod_{1 \le i \lt j \le n} (x_j - x_i)
@@ -963,8 +961,8 @@ $$
 <ProgressiveHint
   buttonPrefix="Unlock Hint"
   hints={[
-    "Plug into the general tridiagonal recurrence D_n = a D_{n-1} - bc D_{n-2} with a = 1, b = 1, and c = -1.",
-    "Notice that bc = (1)(-1) = -1, so subtracting bc D_{n-2} turns into adding D_{n-2}!"
+    "Use $a=1$, $b=1$, and $c=-1$ in the tridiagonal recurrence $D_n=aD_{n-1}-bcD_{n-2}$.",
+    "Since $bc=-1$, the term $-bcD_{n-2}$ becomes $+D_{n-2}$."
   ]}
 />
 
@@ -983,7 +981,7 @@ That flips the subtraction into addition, turning the determinant recurrence dir
 <SolutionRigorous>
 **Part 1: Derive the recurrence relation**
 
-Expand $\det(F_n)$ along row 1:
+For $n\ge 3$, expand $\det(F_n)$ along row 1:
 
 $$
 D_n = 1 \cdot C_{11} + 1 \cdot C_{12} = (-1)^{1+1} M_{11} + (-1)^{1+2} M_{12} = M_{11} - M_{12}

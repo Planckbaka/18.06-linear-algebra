@@ -5,7 +5,7 @@ videoEpisode: "P31"
 textbookRef: "§8.1–8.2"
 ---
 
-在此前的三十讲中，我们的出发点几乎总是**先写下一个具体矩阵 $A \in \mathbb{R}^{m \times n}$**，然后再去研究乘积 $\mathbf{x} \mapsto A\mathbf{x}$ 的列空间、零空间、正交投影、特征分解与奇异值分解。但在今天这讲中，Gilbert Strang 教授把镜头整个翻转过来，提出了线性代数最核心的抽象视角：**先有不依赖任何坐标系的“线性变换”，后有依赖于基底选择的“矩阵”**。
+在此前的三十讲中，我们的出发点几乎总是**先写下一个具体矩阵 $A \in \mathbb{R}^{m \times n}$**，然后再去研究乘积 $\mathbf{x} \mapsto A\mathbf{x}$ 的列空间（Column Space）、零空间（Nullspace）、正交投影（Orthogonal Projection）、特征分解与奇异值分解（Singular Value Decomposition, SVD）。但在今天这讲中，Gilbert Strang 教授把镜头整个翻转过来，提出了线性代数最核心的抽象视角：**先有不依赖任何坐标系的“线性变换”，后有依赖于基底选择的“矩阵”**。
 
 想想看：平面上“绕原点逆时针旋转 $30^\circ$”、三维空间里“向某张过原点的平面作正交投影”、微积分里“对多项式求导 $\frac{d}{dt}$”——在还没有画坐标轴、没有挑基底之前，这些几何动作和函数算子本身就已经客观存在了！
 
@@ -50,7 +50,7 @@ $$
    $$
    T\left(\sum_{j=1}^k c_j \mathbf{v}_j\right) = \sum_{j=1}^k c_j T(\mathbf{v}_j)
    $$
-   同时，把直线 $\mathbf{v}_0 + t\mathbf{d}$（$t \in \mathbb{R}$）送入 $T$，得到 $T(\mathbf{v}_0) + t T(\mathbf{d})$：线性变换永远把直线映成直线（当 $T(\mathbf{d}) = \mathbf{0}_W$ 时退化为一个点），把平行等距的网格映成平行等距的网格。
+   同时，把直线 $\mathbf{v}_0 + t\mathbf{d}$（$t \in \mathbb{R}$）送入 $T$，得到 $T(\mathbf{v}_0) + t T(\mathbf{d})$：线性变换永远把直线映成直线（当 $T(\mathbf{d}) = \mathbf{0}_W$ 时退化为一个点），同一族平行等距的直线在非退化情形下仍映成平行等距的直线。
 
 ---
 
@@ -99,7 +99,7 @@ $$
 
 ## 三、核空间、值域与“基底完全决定律”
 
-在矩阵语言里，我们有极其核心的零空间 $\operatorname{Null}(A)$ 与列空间 $\operatorname{Col}(A)$。对于无坐标的抽象线性变换 $T: V \to W$，它们对应两个不依赖任何基底的内蕴子空间。
+在矩阵语言里，我们有极其核心的零空间 $\operatorname{Null}(A)$（Strang 记为 $N(A)$）与列空间 $\operatorname{Col}(A)$（Strang 记为 $C(A)$）。对于无坐标的抽象线性变换 $T: V \to W$，它们对应两个不依赖任何基底的内蕴子空间。
 
 <DefinitionCard title="线性变换的核与值域" termEn="Kernel & Range (Image) of a Linear Transformation">
 
@@ -308,7 +308,7 @@ $$
 
 ### 1. 把微积分变成矩阵：求导 $A_{\text{diff}}$ 与定积分 $A_{\text{int}}$
 
-考虑三次及以下实多项式空间 $V = \mathcal{P}_3$（$\dim = 4$）和二次及以下实多项式空间 $W = \mathcal{P}_2$（$\dim = 3$）。分别选用自然单项式有序基：
+考虑三次及以下实多项式空间 $V = \mathcal{P}_3$（$\dim V=4$）和二次及以下实多项式空间 $W = \mathcal{P}_2$（$\dim W=3$）。分别选用自然单项式有序基：
 
 $$
 \mathcal{B}_V = (1,\, t,\, t^2,\, t^3), \qquad \mathcal{B}_W = (1,\, t,\, t^2)
@@ -401,7 +401,7 @@ $$
 
 **全课程的大一统图景在此合拢**：
 - 当算子满足 $V = W$ 且我们坚持输入输出**共用同一组基**（$\mathcal{B}_V = \mathcal{B}_W$）时，换基对应第 22 讲和第 29 讲的**相似变换（Similarity Transformation）** $S^{-1}AS$，理想目标就是特征对角阵 $\Lambda$（若亏损则退而求其次到若尔当标准形 $J$）；
-- 而当我们可以放开手脚，允许输入空间 $V$ 与输出空间 $W$ **分别挑选各自独立的两组标准正交基** $\mathcal{B}_V = (\mathbf{v}_1, \dots, \mathbf{v}_n)$ 与 $\mathcal{B}_W = (\mathbf{u}_1, \dots, \mathbf{u}_m)$ 时，任何线性变换 $T$（对应标准基矩阵 $A \in \mathbb{R}^{m\times n}$）在这对奇异基下的表示矩阵都是纯对角的奇异值矩阵 $\Sigma = U^T A V$（因为 $A\mathbf{v}_j = \sigma_j \mathbf{u}_j$，其输出坐标恰好是 $\sigma_j \mathbf{e}_j$）——这就是第 30 讲奇异值分解（SVD）最本质的“换基几何”！
+- 而当我们可以放开手脚，允许输入空间 $V$ 与输出空间 $W$ **分别挑选各自独立的两组标准正交基** $\mathcal{B}_V = (\mathbf{v}_1, \dots, \mathbf{v}_n)$ 与 $\mathcal{B}_W = (\mathbf{u}_1, \dots, \mathbf{u}_m)$ 时，任何线性变换 $T$（对应标准基矩阵 $A \in \mathbb{R}^{m\times n}$）在这对奇异基下的表示矩阵都是纯对角的奇异值矩阵 $\Sigma = U^T A V$（当 $1\le j\le r=\operatorname{rank}(A)$ 时，第 $j$ 列为 $\sigma_j\mathbf{e}_j\in\mathbb{R}^m$；当 $j\gt r$ 时，第 $j$ 列为 $\mathbf{0}$）——这就是第 30 讲奇异值分解（SVD）最本质的“换基几何”！
 
 ---
 
@@ -448,7 +448,7 @@ $$
 
 <ProblemSet title="第 31 讲 课后习题集" description="涵盖非标准基下矩阵表示的逐列构造、线性公理的反例甄别、等价与相似变换辨析、微积分微分算子的幂零逆，以及矩阵空间转置算子的维数分解。">
 
-<ExerciseCard id="l31-ex1" tier="L1" title="在非标准泰勒基与斜基下逐列构造 2×3 表示矩阵">
+<ExerciseCard id="l31-ex1" tier="L1" title="在非标准泰勒基与正交基下逐列构造 2×3 表示矩阵">
 
 考虑线性变换 $T: \mathcal{P}_2 \to \mathbb{R}^2$，定义为对二次及以下多项式在两个点处求值：
 
@@ -464,7 +464,7 @@ $$
 
 <ProgressiveHint hints={[
   "逐一将 $\\mathcal{B}_V$ 的三个基向量代入 $T(p) = [p(1), p(0)]^T$，注意 $(t-1)$ 和 $(t-1)^2$ 在 $t=1$ 处均等于 $0$。",
-  "对于任意目标向量 $[y_1, y_2]^T \\in \\mathbb{R}^2$，求它在斜基 $\\mathcal{B}_W$ 下的坐标 $(c_1, c_2)$，只需解 $c_1 \\mathbf{w}_1 + c_2 \\mathbf{w}_2 = [y_1, y_2]^T$，利用对称加减即可心算：$c_1 = (y_1 + y_2)/2$，$c_2 = (y_1 - y_2)/2$。",
+  "对于任意目标向量 $[y_1, y_2]^T \\in \\mathbb{R}^2$，求它在正交基 $\\mathcal{B}_W$ 下的坐标 $(c_1, c_2)$，只需解 $c_1 \\mathbf{w}_1 + c_2 \\mathbf{w}_2 = [y_1, y_2]^T$，利用对称加减即可心算：$c_1 = (y_1 + y_2)/2$，$c_2 = (y_1 - y_2)/2$。",
   "求出 $\\operatorname{Null}(A)$ 的基向量 $[0, 1, 1]^T$ 后，别忘了把它还原成 $\\mathcal{P}_2$ 中的具体多项式 $1\\cdot(t-1) + 1\\cdot(t-1)^2$！"
 ]} />
 
@@ -526,7 +526,7 @@ $$
 <TrueFalseInteractive
   id="l31-tf1"
   correct={false}
-  quickFeedback={"错误！齐次性即使对全部正负实数 $c \\in \\mathbb{R}$ 成立，也绝不自动蕴含可加性 $T(\\mathbf{x}+\\mathbf{y}) = T(\\mathbf{x}) + T(\\mathbf{y})$。经典反例是 $T(x_1, x_2) = (x_1^3 + x_2^3)^{1/3}$，它满足 $T(c\\mathbf{x}) = cT(\\mathbf{x})$，但 $T(\\mathbf{e}_1 + \\mathbf{e}_2) = 2^{1/3} \\neq 2 = T(\\mathbf{e}_1) + T(\\mathbf{e}_2)$。"}
+  quickFeedback={"错误！齐次性即使对全部正负实数 $c \\in \\mathbb{R}$ 成立，也绝不自动蕴含可加性 $T(\\mathbf{x}+\\mathbf{y}) = T(\\mathbf{x}) + T(\\mathbf{y})$。经典反例是 $T(x_1, x_2) = \\sqrt[3]{x_1^3 + x_2^3}$，它满足 $T(c\\mathbf{x}) = cT(\\mathbf{x})$，但 $T(\\mathbf{e}_1 + \\mathbf{e}_2) = 2^{1/3} \\neq 2 = T(\\mathbf{e}_1) + T(\\mathbf{e}_2)$。"}
 />
 
 <ProgressiveHint hints={[
@@ -536,7 +536,7 @@ $$
 
 <DualSolution>
 <SolutionIntuition>
-线性变换要求函数的等高线 $T(x_1, x_2) = 1$ 在二维平面上必须是一条**直线**；而齐次性 $T(c\mathbf{x}) = cT(\mathbf{x})$ 只管“从原点出发沿着某一条固定方向往外走时成正比”，根本管不住等高线本身是直的还是弯的！随便画一条关于原点对称但不直的曲线（比如三次曲线 $x_1^3 + x_2^3 = 1$ 或星形线）作为等高线 $T=1$，再按比例向外辐射放大，就能造出无数满足全实数齐次性却不满足可加性的非线性反例。
+对 $\mathbb{R}^2$ 上的非零线性泛函，等高线 $T(\mathbf{x})=1$ 是与零空间平行的仿射直线。全实数齐次性只控制沿过原点直线的缩放，并将 $T=1$ 的等高线经中心反射送到 $T=-1$。下面的立方根反例满足齐次性，但它的等高线 $x_1^3+x_2^3=1$ 是曲线。
 </SolutionIntuition>
 <SolutionRigorous>
 该命题**错误**。反例如下：
@@ -578,7 +578,7 @@ $$
 <TrueFalseInteractive
   id="l31-tf2"
   correct={false}
-  quickFeedback={"错误！只有当乙同学也保证输入输出共用同一组基（$\\mathcal{B}_1 = \\mathcal{B}_2$）时，才成立相似变换 $B = S^{-1} A S$；当 $\\mathcal{B}_1 \\ne \\mathcal{B}_2$ 时，变换律是一般的矩阵等价 $B = Q^{-1} A P$，它连迹和特征值都不保！例如取恒等算子 $T = \\operatorname{id}$，当 $\\mathcal{B}_1 = (\\mathbf{e}_1, \\mathbf{e}_2)$ 而 $\\mathcal{B}_2 = (\\mathbf{e}_2, \\mathbf{e}_1)$ 时，有 $A = I_2$ 但 $B = \\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix}$，两者绝不相似。"}
+  quickFeedback={"错误！当乙同学也保证输入输出共用同一组基（$\\mathcal{B}_1 = \\mathcal{B}_2$）时，换基公式保证相似关系 $B = S^{-1} A S$；当 $\\mathcal{B}_1 \\ne \\mathcal{B}_2$ 时，变换律是一般的矩阵等价 $B = Q^{-1} A P$，它可能改变迹和特征值！例如取恒等算子 $T = \\operatorname{id}$，当 $\\mathcal{B}_1 = (\\mathbf{e}_1, \\mathbf{e}_2)$ 而 $\\mathcal{B}_2 = (\\mathbf{e}_2, \\mathbf{e}_1)$ 时，有 $A = I_2$ 但 $B = \\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix}$，两者绝不相似。"}
 />
 
 <ProgressiveHint hints={[
@@ -635,7 +635,7 @@ $$
 
 <DualSolution>
 <SolutionIntuition>
-求导算子把多项式每求导一次就降一次，求导 4 次就把所有三次以下的多项式全部送回零点（$D^4 = 0$），这正是第 29 讲里“若尔当幂零块”在微积分里的天然原型！既然 $D$ 的特征值全为 $0$，那么 $I - D$ 的特征值就全为 $1 \ne 0$，当然绝对可逆！更妙的是，平时无限不收敛的几何级数 $(1-x)^{-1} = 1 + x + x^2 + \cdots$，因为 $D^4 = 0$ 而在第 4 项处**精准截断**，变成了有限多项式 $I + D + D^2 + D^3$，直接把微分方程求特解变成了算几次导数的口算游戏！
+求导算子把多项式每求导一次就降一次，求导 4 次就把所有三次以下的多项式全部送回零点（$D^4 = 0$），这正是第 29 讲里“若尔当幂零块”在微积分里的天然原型！既然 $D$ 的特征值全为 $0$，那么 $I - D$ 的特征值就全为 $1 \ne 0$，当然绝对可逆！更妙的是，形式几何级数 $(1-x)^{-1} = 1 + x + x^2 + \cdots$，因为 $D^4 = 0$ 而在第 4 项处**精准截断**，变成了有限多项式 $I + D + D^2 + D^3$，直接把微分方程求特解变成了算几次导数的口算游戏！
 </SolutionIntuition>
 <SolutionRigorous>
 **第 1 问：$L$ 的矩阵表示与无计算可逆性判定**
@@ -658,7 +658,7 @@ $$
 \det(A_L) = 1 \times 1 \times 1 \times 1 = 1 \ne 0
 $$
 
-因此 $A_L$ 可逆，$\ker(L) = \{0\}$ 且 $\operatorname{Im}(L) = \mathcal{P}_3$。结论：对任意 $q \in \mathcal{P}_3$，方程 $p'' - 2p' + p = q$ 在 $\mathcal{P}_3$ 中恒有唯一三次多项式解。
+因此 $A_L$ 可逆，$\ker(L) = \{\mathbf{0}\}$ 且 $\operatorname{Im}(L) = \mathcal{P}_3$。结论：对任意 $q \in \mathcal{P}_3$，方程 $p'' - 2p' + p = q$ 在 $\mathcal{P}_3$ 中恒有唯一三次多项式解。
 
 **第 2 问：幂零性与算子逆求特解**
 
@@ -708,7 +708,7 @@ $$
 
 <DualSolution>
 <SolutionIntuition>
-“转置”在普通人的眼里只是一个“把矩阵横竖翻一下”的符号操作，但站在第 31 讲的高度来看，它是 $n^2$ 维矩阵空间上一个完美的正交对称线性算子！它满足 $T^2 = I$（对合算子），把矩阵空间正交劈成两半：保持不动的对称矩阵（特征值 $+1$）和翻号的反对称矩阵（特征值 $-1$）。对角元在转置下纹丝不动（贡献 $+1$），每一对非对角元 $(E_{ij}, E_{ji})$ 在转置下互换位置（贡献一个 $+1$ 和一个 $-1$，迹相互抵消为 $0$，行列式贡献一个 $-1$）——看穿这一点，不用写出 $n^2 \times n^2$ 矩阵就能秒杀它的维数、迹与行列式！
+“转置”在普通人的眼里只是一个“把矩阵横竖翻一下”的符号操作，但站在第 31 讲的高度来看，它是 $n^2$ 维矩阵空间上一个完美的正交对称线性算子！它满足 $T^2 = \operatorname{id}$（对合算子），把矩阵空间正交劈成两半：保持不动的对称矩阵（特征值 $+1$）和翻号的反对称矩阵（特征值 $-1$）。对角元在转置下纹丝不动（贡献 $+1$），每一对非对角元 $(E_{ij}, E_{ji})$ 在转置下互换位置（贡献一个 $+1$ 和一个 $-1$，迹相互抵消为 $0$，行列式贡献一个 $-1$）——看穿这一点，不用写出 $n^2 \times n^2$ 矩阵就能秒杀它的维数、迹与行列式！
 </SolutionIntuition>
 <SolutionRigorous>
 **第 1 问：线性性验证与 $4 \times 4$ 标准基表示矩阵**

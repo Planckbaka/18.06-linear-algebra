@@ -64,7 +64,7 @@ $$
 
 请盯紧两个平方括号外面的系数：
 - 第一个系数是 $d_1 = a$；
-- 第二个系数是 $d_2 = c - \frac{b^2}{a} = \frac{ac - b^2}{a} = \frac{\det(A_2)}{\det(A_1)}$！
+- 第二个系数是 $d_2 = c - \frac{b^2}{a} = \frac{ac - b^2}{a} = \frac{\det(A)}{a}$！
 
 这**正是对矩阵 $A = \begin{bmatrix} a & b \\ b & c \end{bmatrix}$ 做高斯消元时得到的两个主元（Pivots）**！写成对称消元分解 $A = L D L^T$ 就是：
 
@@ -204,7 +204,7 @@ $$
 ---
 
 **第五步：证明 $(3) \iff (4)$**
-核心事实：对矩阵 $A$ 执行无需行交换的高斯消元时，前 $k$ 步消元只用到左上角 $k \times k$ 子阵 $A_k$ 的行和列。若前 $k-1$ 个主元 $d_1, \dots, d_{k-1}$ 均非零，则 $A_k$ 可唯一分解为 $A_k = L_k D_k U_k$，其中 $L_k, U_k$ 均为主对角线全为 $1$ 的三角矩阵（故 $\det(L_k) = \det(U_k) = 1$），$D_k = \operatorname{diag}(d_1, \dots, d_k)$。两边取行列式得：
+核心事实：对矩阵 $A$ 执行无需行交换的高斯消元时，前 $k$ 个主元可仅从左上角的 $k \times k$ 子阵 $A_k$ 算出。若前 $k-1$ 个主元 $d_1, \dots, d_{k-1}$ 均非零，则 $A_k$ 可分解为 $A_k = L_k D_k U_k$，其中 $L_k, U_k$ 均为主对角线全为 $1$ 的三角矩阵（故 $\det(L_k) = \det(U_k) = 1$），$D_k = \operatorname{diag}(d_1, \dots, d_k)$。两边取行列式得：
 
 $$
 \det(A_k) = \det(L_k)\det(D_k)\det(U_k) = d_1 d_2 \cdots d_k
@@ -291,6 +291,8 @@ $$
 
 它的两个**顺序主子式**分别为 $\det(B_1) = 0 \ge 0$ 与 $\det(B_2) = 0 \ge 0$，全都满足"$\ge 0$"！然而它的特征值是 $0$ 和 $-1$，取 $\mathbf{x} = [0, 1]^T$ 得 $\mathbf{x}^T B \mathbf{x} = -1 \lt 0$，根本不是半正定！罪魁祸首在于那个**非顺序的 $1 \times 1$ 主子式**（第 2 行第 2 列）：$\det(B_{\{2\},\{2\}}) = -1 \lt 0$。这正是为什么判断半正定必须检验**全部**主子式均 $\ge 0$。
 
+若 $A$ 半正定，则将二次型限制在任意一组坐标上，得到的主子矩阵仍半正定，因此其行列式非负。反过来，若全部主子式非负，对任意 $\varepsilon\gt 0$ 按列展开 $\det(A_k+\varepsilon I_k)$，各系数为 $A_k$ 的主子式之和，且包含严格为正的 $\varepsilon^k$ 项。因此 $A+\varepsilon I_n$ 的顺序主子式均为正，由 Sylvester 判据可知其正定。在二次型中令 $\varepsilon\downarrow 0$，即得 $A\succeq 0$。
+
 ---
 
 ## 四、多元微积分极小值与等高椭球主轴几何
@@ -309,8 +311,8 @@ $$
 H(\mathbf{x}^*)_{ij} = \frac{\partial^2 f}{\partial x_i \partial x_j}(\mathbf{x}^*)
 $$
 
-由于二阶偏导数混合求导可交换（Clairaut 定理），$H(\mathbf{x}^*)$ 必然是一个**实对称矩阵**！于是高维多元函数的极值形态被完全归结为 Hessian 矩阵的定性：
-- 若 $H(\mathbf{x}^*) \succ 0$（**SPD**），则对任意非零微小扰动 $\Delta\mathbf{x}$，二阶主项 $\frac{1}{2}\Delta\mathbf{x}^T H \Delta\mathbf{x} \gt 0$，故 $\mathbf{x}^*$ 是**严格局部极小值点（Strict Local Minimum）**；
+由于二阶偏导数混合求导可交换（Clairaut 定理），$H(\mathbf{x}^*)$ 必然是一个**实对称矩阵**！在定义域内部的局部极小点处，沿任意直线的二阶导数都非负，因此 Hessian 必须半正定。在驻点处，二阶判别法给出以下结论。
+- 若 $H(\mathbf{x}^*) \succ 0$（**SPD**），则 $\Delta\mathbf{x}^T H\Delta\mathbf{x}\ge\lambda_{\min}(H)\|\Delta\mathbf{x}\|_2^2$，其中 $\lambda_{\min}(H)\gt 0$。当非零扰动足够小时，该下界压过泰勒余项，因此 $\mathbf{x}^*$ 是**严格局部极小值点（Strict Local Minimum）**；
 - 若 $H(\mathbf{x}^*) \prec 0$（负定），则 $\mathbf{x}^*$ 是**严格局部极大值点**；
 - 若 $H(\mathbf{x}^*)$ 不定（特征值有正有负），则沿正特征值方向升高、沿负特征值方向下降，$\mathbf{x}^*$ 是**鞍点（Saddle Point）**；
 - 若 $H(\mathbf{x}^*)$ 仅半正定（存在零特征值），二阶导数在该零特征向量方向失去支配力，须由三阶及以上高阶导数决定（例如 $x_1^2 + x_2^4$ 在原点为极小，而 $x_1^2 - x_2^4$ 或 $x_1^2 + x_2^3$ 在原点均非极小）。
@@ -684,7 +686,7 @@ $$
    $$
    并说明由此如何直接锁定 $\mathbf{x}^*$ 是 $P(\mathbf{x})$ 在全空间 $\mathbb{R}^n$ 上的唯一全局极小值点。
 2. **正定加权最小二乘与三维椭球体积**：
-   - (a) 在广义最小二乘问题中，设 $M \in \mathbb{R}^{m \times n}$ 列满秩（$\operatorname{rank}(M) = n$），使用正定权重矩阵 $W \succ 0$（例如统计中的协方差逆矩阵 $\Sigma^{-1}$）最小化加权平方误差 $J(\mathbf{x}) = (M\mathbf{x} - \mathbf{y})^T W (M\mathbf{x} - \mathbf{y})$。证明对应的加权正规方程 $(M^T W M)\hat{\mathbf{x}} = M^T W \mathbf{y}$ 中的系数矩阵 $M^T W M$ 必然为 SPD，从而最优解 $\hat{\mathbf{x}}$ 存在且唯一；
+   - (a) 在广义最小二乘问题中，设 $M \in \mathbb{R}^{m \times n}$ 列满秩（$\operatorname{rank}(M) = n$），给定 $\mathbf{y}\in\mathbb{R}^m$，使用正定权重矩阵 $W\in\mathbb{R}^{m\times m}$（例如统计中的协方差逆矩阵 $\Sigma^{-1}$）最小化加权平方误差 $J(\mathbf{x}) = (M\mathbf{x} - \mathbf{y})^T W (M\mathbf{x} - \mathbf{y})$。证明对应的加权正规方程 $(M^T W M)\hat{\mathbf{x}} = M^T W \mathbf{y}$ 中的系数矩阵 $M^T W M$ 必然为 SPD，从而最优解 $\hat{\mathbf{x}}$ 存在且唯一；
    - (b) 已知三维单位球体积为 $\frac{4}{3}\pi$。设三阶 SPD 矩阵 $A \in \mathbb{R}^{3 \times 3}$，导出三维实心椭球 $\{\mathbf{x} \in \mathbb{R}^3 \mid \mathbf{x}^T A \mathbf{x} \le 1\}$ 的体积公式（用 $\det(A)$ 表达）。
 
 <ProgressiveHint hints={[
@@ -786,12 +788,18 @@ $$
 \nabla_{\mathbf{x}} \log \mathcal{N}(\mathbf{x}; \boldsymbol{\mu}, \Sigma) = -\Sigma^{-1}(\mathbf{x} - \boldsymbol{\mu})
 $$
 
-**核心几何洞察**：为什么去噪扩散的得分向量 $-\Sigma^{-1}(\mathbf{x} - \boldsymbol{\mu})$ 并**不**直接沿着欧氏直线 $-(\mathbf{x} - \boldsymbol{\mu})$ 指向中心 $\boldsymbol{\mu}$？
-因为左乘正定矩阵 $\Sigma^{-1} = \sum_{i=1}^d \frac{1}{\lambda_i}\mathbf{q}_i \mathbf{q}_i^T$ 会对高方差平缓方向（$\lambda_i$ 大）轻柔牵引，而对低方差紧致约束方向（$\lambda_i$ 小，$\lambda_i^{-1}$ 极大）产生巨大的恢复力！当样本偏离真实图像/数据的薄流形法向时，$\Sigma^{-1}$ 的大特征值分量会猛烈地将噪声样本推回数据流形表面，随后才沿着流形切向缓慢游走。
+当 $c\gt 0$ 时，得分向量垂直于等密度椭球并指向内侧。若 $\mathbf{x}-\boldsymbol{\mu}$ 落在 $\Sigma$ 的一个特征子空间内，得分沿径向指向均值。沿 $\mathbf{q}_i$ 的得分分量为 $-\mathbf{q}_i^T(\mathbf{x}-\boldsymbol{\mu})/\lambda_i$，因此相同的偏移量在低方差方向上产生更大的得分分量。
+
+扩散模型使用随时间变化的边缘密度 $p_t$ 的得分。设 $\mathbf{x}_0$ 服从上述高斯分布，且 $\boldsymbol{\varepsilon}\sim\mathcal{N}(\mathbf{0},I_d)$ 与 $\mathbf{x}_0$ 独立。令 $\mathbf{x}_t=\alpha_t\mathbf{x}_0+\beta_t\boldsymbol{\varepsilon}$，则在 $\Sigma_t\succ 0$ 时有
+$$
+\Sigma_t=\alpha_t^2\Sigma+\beta_t^2 I_d,\qquad
+\nabla_{\mathbf{x}}\log p_t(\mathbf{x})=-\Sigma_t^{-1}(\mathbf{x}-\alpha_t\boldsymbol{\mu})
+$$
+固定 $\alpha_t$ 时，加入各向同性噪声会抬高协方差特征值，降低各方向的精度。得分给出密度上升的方向，完整的反向扩散动力学还取决于噪声过程。
 
 ### 2. 神经网络损失景观 Hessian 条件数、曲率峡谷与自然梯度（Fisher 矩阵）
 
-在深度学习优化中，将参数 $\boldsymbol{\theta} \in \mathbb{R}^P$ 在局部极小值 $\boldsymbol{\theta}^*$ 附近做二阶展开：
+设损失函数在驻点 $\boldsymbol{\theta}^*\in\mathbb{R}^P$ 附近二阶连续可微，并假设该点的 Hessian 正定。其局部二次模型为
 
 $$
 \mathcal{L}(\boldsymbol{\theta}) \approx \mathcal{L}(\boldsymbol{\theta}^*) + \frac{1}{2}(\boldsymbol{\theta} - \boldsymbol{\theta}^*)^T H (\boldsymbol{\theta} - \boldsymbol{\theta}^*), \qquad H = \nabla^2 \mathcal{L}(\boldsymbol{\theta}^*) \succ 0
@@ -801,7 +809,7 @@ $$
 - 沿着陡壁（$\lambda_{\max}$ 方向，短半轴 $1/\sqrt{\lambda_{\max}}$），一阶梯度极大；
 - 沿着谷底（$\lambda_{\min}$ 方向，长半轴 $1/\sqrt{\lambda_{\min}}$），一阶梯度微弱。
 
-这导致普通**梯度下降（Gradient Descent）** $\boldsymbol{\theta}_{k+1} = \boldsymbol{\theta}_k - \eta \nabla\mathcal{L}(\boldsymbol{\theta}_k)$ 陷入两难：步长 $\eta$ 稍大于 $2/\lambda_{\max}$，就会撞击陡壁发生震荡发散；步长被限制在 $\eta \lt 2/\lambda_{\max}$，沿谷底方向的收敛速度就会被拖慢 $\kappa(H)$ 倍！
+对精确的 SPD 二次模型，固定步长 $\eta$ 的梯度下降在第 $i$ 个特征方向上将每一步的误差乘以 $1-\eta\lambda_i(H)$。对所有初始点都收敛的充要条件为 $0\lt\eta\lt 2/\lambda_{\max}(H)$。取 $\eta=1/\lambda_{\max}(H)$ 时，最慢方向的收缩因子为 $1-1/\kappa(H)$。
 
 **二阶预条件与自然梯度（Natural Gradient）的破局**：
 如何把狭长病态峡谷瞬间"白化"成各向同性的正圆碗？
@@ -810,7 +818,7 @@ $$
   $$
   F(\boldsymbol{\theta}) = \mathbb{E}_{\mathbf{x} \sim p_{\boldsymbol{\theta}}}\!\left[ \nabla_{\boldsymbol{\theta}} \log p_{\boldsymbol{\theta}}(\mathbf{x})\, \nabla_{\boldsymbol{\theta}} \log p_{\boldsymbol{\theta}}(\mathbf{x})^T \right]
   $$
-  回顾本讲第 3 节：**任何外积平方 $\mathbf{g}\mathbf{g}^T$ 的期望天然满足 $\mathbf{v}^T F \mathbf{v} = \mathbb{E}[(\mathbf{v}^T \nabla\log p)^2] \ge 0$**！因此 Fisher 矩阵 $F$ 无需任何额外约束就**天生实对称半正定（$F \succeq 0$）**，加上微小阻尼项 $F + \epsilon I$ 即严格正定（SPD）！现代自适应与二阶优化器（从对角近似的 Adam，到 Kronecker 分块预条件的 K-FAC、Shampoo $G_L^{-1/4} G G_R^{-1/4}$，乃至正交化矩阵梯度的 Muon）本质上都在用高效的 SPD/正交变换驯服病态曲率椭球。
+  若参数得分具有有限二阶矩，则 $\mathbf{v}^T F\mathbf{v}=\mathbb{E}[(\mathbf{v}^T\nabla_{\boldsymbol{\theta}}\log p_{\boldsymbol{\theta}}(\mathbf{x}))^2]\ge 0$，所以 $F$ 实对称半正定。若模型支持集固定，并满足对归一化积分作两次微分的正则条件，则 $F=-\mathbb{E}_{p_{\boldsymbol{\theta}}}[\nabla_{\boldsymbol{\theta}}^2\log p_{\boldsymbol{\theta}}(\mathbf{x})]$。这是关于模型分布的期望，一般与观测训练损失的 Hessian 不同。$F$ 可逆时，自然梯度步为 $-\eta F^{-1}\nabla\mathcal{L}$；加入 $\epsilon\gt 0$ 的阻尼后，$F+\epsilon I_P$ 正定，对应更新为 $-\eta(F+\epsilon I_P)^{-1}\nabla\mathcal{L}$。
 
 <CollapsibleCode language="python" title="gaussian_ellipsoid_score_and_hessian.py">
 ```python

@@ -5,13 +5,13 @@ videoEpisode: "P16"
 textbookRef: "§4.3"
 ---
 
-In engineering measurements, physics experiments, and statistical modeling, we almost always face an **overdetermined system** with far more equations than unknowns: $A\mathbf{x} = \mathbf{b}$, where $A \in \mathbb{R}^{m\times n}$ and $m \gt n$. Because real-world measurements inevitably carry noise and perturbations, the observation vector $\mathbf{b}$ almost never lands strictly inside the column space $\operatorname{Col}(A)$ spanned by the columns of $A$—so the system $A\mathbf{x} = \mathbf{b}$ has strictly no solution!
+In engineering measurements, physics experiments, and statistical modeling, we almost always face an **overdetermined system** with far more equations than unknowns: $A\mathbf{x} = \mathbf{b}$, where $A \in \mathbb{R}^{m\times n}$ and $m \gt n$. Noise or model mismatch can push the observation vector $\mathbf{b}$ outside $\operatorname{Col}(A)$. Exactly in that case, $A\mathbf{x}=\mathbf{b}$ is inconsistent.
 
 Faced with an unsolvable system, neither engineering nor mathematics gives up. Professor Gilbert Strang states a guiding principle that runs through the entire course:
 
 > **"When $A\mathbf{x} = \mathbf{b}$ has no solution, do not despair and do not throw away equations arbitrarily—replace the unsolvable $A\mathbf{x} = \mathbf{b}$ with the closest solvable system $A\hat{\mathbf{x}} = \mathbf{p}$!"**
 
-This closest solvable target $\mathbf{p}$ is precisely the **orthogonal projection** of $\mathbf{b}$ onto the column space $\operatorname{Col}(A)$, while the resulting error vector $\mathbf{e} = \mathbf{b} - \mathbf{p}$ lies strictly in the left nullspace $\operatorname{Null}(A^T)$. In this lecture, we start from the "dual geometric worlds" of data fitting, derive the **normal equations** along two independent paths—zero-calculus subspace Pythagoras and multivariable calculus gradients—thoroughly prove the cornerstone theorem $\operatorname{Null}(A^TA) = \operatorname{Null}(A)$, and develop the complete theory of the orthogonal projection matrix $P = A(A^TA)^{-1}A^T$.
+This closest solvable target $\mathbf{p}$ is precisely the **orthogonal projection** of $\mathbf{b}$ onto the column space $\operatorname{Col}(A)$, while the resulting error vector $\mathbf{e} = \mathbf{b} - \mathbf{p}$ lies strictly in the left nullspace $\operatorname{Null}(A^T)$. In this lecture, we start from the "dual geometric worlds" of data fitting, derive the **normal equations** along two independent paths—zero-calculus subspace Pythagoras and multivariable calculus gradients—thoroughly prove the cornerstone theorem $\operatorname{Null}(A^TA) = \operatorname{Null}(A)$, and derive the orthogonal projection matrix $P = A(A^TA)^{-1}A^T$ for full-column-rank $A$.
 
 ---
 
@@ -23,6 +23,8 @@ In fact, the very same least-squares problem unfolds simultaneously in two compl
 
 <LeastSquaresDualGeometryDiagram caption="Dual geometry of least squares: minimizing the sum of squared vertical residuals e_i = b_i - (C + D t_i) in the 2D data plane (left) is identical to projecting the vector b orthogonally onto the 2D column space Col(A) in R^m (right)." />
 
+In this section, assume $m\ge 2$ with at least two distinct $t_i$ so the two columns of the design matrix are independent. If all $t_i=t_0$, the column space is one-dimensional. The fitted values are still unique, with any coefficients satisfying $C+Dt_0=\bar b$.
+
 ### Perspective ①: Data Space (The $t$-$b$ Scatter Plane in $\mathbb{R}^2$)
 
 In the two-dimensional data-fitting plane, we are given $m$ observed data points $(t_1, b_1), (t_2, b_2), \dots, (t_m, b_m)$. We want to find the best-fitting straight line:
@@ -31,7 +33,7 @@ $$
 b = C + Dt
 $$
 
-If all $m$ data points were strictly collinear, they would satisfy the linear system exactly:
+If all observations lie on a line of the form $b=C+Dt$, its coefficients satisfy the system exactly.
 
 $$
 \begin{cases}
@@ -52,7 +54,7 @@ C + D t_m = b_m
 \begin{bmatrix} b_1 \\ b_2 \\ \vdots \\ b_m \end{bmatrix}
 $$
 
-In reality, however, the data points inevitably scatter on both sides of any line. For any candidate parameter vector $\mathbf{x} = \begin{bmatrix} C & D \end{bmatrix}^T$, the model prediction given by the line at each time $t_i$ is $p_i = C + D t_i$.
+For noisy data, the observations may deviate from this model. For any candidate parameter vector $\mathbf{x} = \begin{bmatrix} C & D \end{bmatrix}^T$, the model prediction given by the line at each time $t_i$ is $p_i = C + D t_i$.
 
 The discrepancy between the actual observation $b_i$ and the model prediction $p_i$ is called the **vertical residual of the $i$-th sample**:
 
@@ -72,7 +74,7 @@ Now switch to the grand perspective of linear algebra. Let the first column of t
 
 - The entire system of equations reads $A\mathbf{x} = \mathbf{b}$, where $A = \begin{bmatrix} \mathbf{a}_1 & \mathbf{a}_2 \end{bmatrix} \in \mathbb{R}^{m\times 2}$.
 - No matter how freely the parameters $\mathbf{x} = \begin{bmatrix} C & D \end{bmatrix}^T$ vary, the matrix-vector product $A\mathbf{x} = C\mathbf{a}_1 + D\mathbf{a}_2$ **can only sweep out a two-dimensional plane living inside $\mathbb{R}^m$**—namely, the column space $\operatorname{Col}(A) = \operatorname{span}\{\mathbf{a}_1, \mathbf{a}_2\}$!
-- When the data points do not lie on a single line, the target vector $\mathbf{b} \notin \operatorname{Col}(A)$ floats outside the column-space plane.
+- When the data points do not lie on a single line of the form $b=C+Dt$, the target vector $\mathbf{b} \notin \operatorname{Col}(A)$ floats outside the column-space plane.
 - The squared Euclidean norm of the error vector $\mathbf{e} = \mathbf{b} - A\mathbf{x} \in \mathbb{R}^m$ is literally:
 
 $$
@@ -88,7 +90,7 @@ The foot of that perpendicular is the optimal prediction vector $\mathbf{p} = A\
 
 ## 2. The Only Way Out When $A\mathbf{x} = \mathbf{b}$ Has No Solution: Orthogonal Decomposition $\mathbf{b} = \mathbf{p} + \mathbf{e}$
 
-Recall Part 2 of the Fundamental Theorem of Linear Algebra from Lecture 14: in the output space $\mathbb{R}^m$, the column space $\operatorname{Col}(A)$ and the left nullspace $\operatorname{Null}(A^T)$ are **orthogonal complements** of each other:
+Apply Part II of the Fundamental Theorem of Linear Algebra from Lecture 14 to any real $A\in\mathbb{R}^{m\times n}$. In the output space $\mathbb{R}^m$, the column space $\operatorname{Col}(A)$ and the left nullspace $\operatorname{Null}(A^T)$ are **orthogonal complements** of each other:
 
 $$
 \mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T), \quad \operatorname{Col}(A) \perp \operatorname{Null}(A^T)
@@ -100,10 +102,10 @@ $$
 \mathbf{b} = \mathbf{p} + \mathbf{e}, \quad \text{where } \mathbf{p} \in \operatorname{Col}(A), \; \mathbf{e} \in \operatorname{Null}(A^T)
 $$
 
-<OrthogonalDecompositionPythagorasDiagram caption="Orthogonal direct-sum decomposition of b in R^m: b splits uniquely into a solvable column-space projection p in Col(A) and an unsolvable noise vector e in Null(A^T), forming a right triangle that obeys ||b||^2 = ||p||^2 + ||e||^2." />
+<OrthogonalDecompositionPythagorasDiagram caption="Orthogonal direct-sum decomposition of b in R^m: b splits uniquely into a solvable column-space projection p in Col(A) and a residual vector e in Null(A^T). Their squared norms obey ||b||^2 = ||p||^2 + ||e||^2." />
 
 - **The solvable component $\mathbf{p}$**: Lies inside the column space, so it can always be expressed as a linear combination of the columns of $A$—that is, there exists a parameter vector $\hat{\mathbf{x}} \in \mathbb{R}^n$ such that $A\hat{\mathbf{x}} = \mathbf{p}$ holds strictly!
-- **The unsolvable error $\mathbf{e}$**: Lies inside the left nullspace, so no linear combination of the columns of $A$ can explain any part of it. It represents pure measurement noise or modeling discrepancy.
+- **The unsolvable error $\mathbf{e}$**: Lies inside the left nullspace, so no linear combination of the columns of $A$ can explain any part of it. It measures the part of the observed data unexplained by the chosen model.
 
 Because $\mathbf{p} \perp \mathbf{e}$, their inner product vanishes ($\mathbf{p}^T \mathbf{e} = 0$), and by the Pythagorean theorem, the squared norm of the observation vector splits cleanly:
 
@@ -145,7 +147,7 @@ $$
 Substituting the definition of the residual $\mathbf{e} = \mathbf{b} - A\hat{\mathbf{x}}$ into this equation gives:
 
 $$
-A^T (\mathbf{b} - A\hat{\mathbf{x}}) = \mathbf{0} \implies A^T A \hat{\mathbf{x}} = A^T \mathbf{b}
+A^T (\mathbf{b} - A\hat{\mathbf{x}}) = \mathbf{0} \iff A^T A \hat{\mathbf{x}} = A^T \mathbf{b}
 $$
 
 #### Strict Optimality Proof via the Pythagorean Theorem (No Second Derivatives Needed)
@@ -183,7 +185,7 @@ Equality holds if and only if $\|A\mathbf{x} - \mathbf{p}\|_2 = 0 \iff A\mathbf{
 
 ### Path B: Multivariable Calculus and Matrix Differentiation (Scalar & Vector Gradients)
 
-Now let us cross-check using the gradient machinery of classical analysis. Expand the objective function as a **quadratic form** in the vector $\mathbf{x}$:
+Now let us cross-check using the gradient machinery of classical analysis. Expand the objective function as a quadratic function of the vector $\mathbf{x}$:
 
 $$
 E(\mathbf{x}) = \|A\mathbf{x} - \mathbf{b}\|_2^2 = (A\mathbf{x} - \mathbf{b})^T (A\mathbf{x} - \mathbf{b})
@@ -247,10 +249,10 @@ $$
 Setting the gradient vector equal to the zero vector:
 
 $$
-\nabla_{\mathbf{x}} E(\mathbf{x}) = 2 A^T A \mathbf{x} - 2 A^T \mathbf{b} = \mathbf{0} \implies A^T A \hat{\mathbf{x}} = A^T \mathbf{b}
+\nabla E(\hat{\mathbf{x}}) = 2 A^T A \hat{\mathbf{x}} - 2 A^T \mathbf{b} = \mathbf{0} \iff A^T A \hat{\mathbf{x}} = A^T \mathbf{b}
 $$
 
-The Hessian matrix of the objective function with respect to $\mathbf{x}$ is $\nabla^2 E(\mathbf{x}) = 2 A^T A$. Whenever $A^TA$ is positive definite (full rank), the stationary point is guaranteed to be the unique strict global minimum! Both derivation paths arrive at the exact same destination.
+The Hessian is $\nabla^2 E(\mathbf{x})=2A^TA$, which is positive semidefinite since $\mathbf{v}^TA^TA\mathbf{v}=\|A\mathbf{v}\|_2^2\ge 0$. Every stationary point is therefore a global minimizer. The Hessian is positive definite exactly when $A$ has full column rank, in which case the minimizer is unique.
 
 ---
 
@@ -365,8 +367,8 @@ And $\operatorname{rank}(A) = n$ is equivalent to the $n$ columns of $A$ being l
 > [!NOTE]
 > **Field Warning (Why Must the Entries Be Real Numbers in $\mathbb{R}$?)**:
 > In Step 1 above, deducing $A\mathbf{x} = \mathbf{0}$ from $\|A\mathbf{x}\|_2^2 = (A\mathbf{x})^T(A\mathbf{x}) = 0$ relies crucially on the fact that squares of real numbers are non-negative. If we work over the complex field $\mathbb{C}$ and use the unconjugated transpose $A^TA$, the theorem fails immediately!
-> For example, take $A = \begin{bmatrix} 1 & i \end{bmatrix} \in \mathbb{C}^{1\times 2}$. For $\mathbf{x} = \begin{bmatrix} 1 \\ i \end{bmatrix}$, we have $A\mathbf{x} = 1 + i^2 = 0$, whereas for $\mathbf{y} = \begin{bmatrix} 1 \\ -i \end{bmatrix}$, $A\mathbf{y} = 2 \neq 0$ even though $A^T A \mathbf{y} = \mathbf{0}$!
-> Over the complex numbers $\mathbb{C}$, you must replace the ordinary transpose with the **Hermitian (conjugate) transpose $A^H A$** for the theorem to hold.
+> For example, take $A=\begin{bmatrix}1 \\ i\end{bmatrix}\in\mathbb{C}^{2\times 1}$. Then $A^TA=[1+i^2]=[0]$, although the one column of $A$ is nonzero. Hence $\operatorname{Null}(A^TA)=\mathbb{C}^1$ and $\operatorname{Null}(A)=\{\mathbf{0}\}$.
+> Over $\mathbb{C}$ use the conjugate transpose $A^H$. Then $\mathbf{x}^HA^HA\mathbf{x}=\|A\mathbf{x}\|_2^2$, so the results hold with $A^HA$.
 
 </ProofCollapse>
 
@@ -443,7 +445,7 @@ $$
   P\mathbf{y} = A (A^TA)^{-1} A^T (A\mathbf{u}) = A (A^TA)^{-1} (A^TA) \mathbf{u} = A\mathbf{u} = \mathbf{y}
   $$
 
-  Every vector inside the column space is an eigenvector of $P$ with eigenvalue $\lambda = 1$!
+  Every nonzero vector inside the column space is an eigenvector of $P$ with eigenvalue $\lambda = 1$!
 
 - If $\mathbf{z} \in \operatorname{Null}(A^T)$, meaning $A^T\mathbf{z} = \mathbf{0}$, substituting directly gives:
 
@@ -451,7 +453,7 @@ $$
   P\mathbf{z} = A (A^TA)^{-1} (A^T\mathbf{z}) = A (A^TA)^{-1} \mathbf{0} = \mathbf{0}
   $$
 
-  Every vector in the left nullspace is annihilated (mapped to zero) by $P$, corresponding to eigenvalue $\lambda = 0$!
+  Every nonzero vector in the left nullspace is an eigenvector with eigenvalue $\lambda=0$.
 
 #### 4. Trace-Rank Identity
 
@@ -471,7 +473,7 @@ The trace of an orthogonal projection matrix equals the exact dimension of the t
 
 To turn abstract formulas into muscle memory, let us work out the classic three-point line fit shown in Figure 1 (Prof. Strang's signature classroom example) completely by hand.
 
-Fit a straight line $b = C + Dt$ through the following three observed data points:
+Find the least-squares line $b=C+Dt$ for the following three observations.
 
 - $(t_1, b_1) = (1, 1)$
 - $(t_2, b_2) = (2, 2)$
@@ -648,13 +650,13 @@ Many beginners fall into a dangerous misconception: they treat multiplying both 
   A^T \mathbf{b} = A^T (\mathbf{p} + \mathbf{e}) = A^T \mathbf{p} + A^T \mathbf{e} = A^T \mathbf{p} + \mathbf{0} = A^T \mathbf{p}
   $$
 
-  **Left-multiplying by $A^T$ completely annihilates the unsolvable component $\mathbf{e}$ living in the left nullspace!** This is not an equivalent algebraic manipulation—it is an irreversible orthogonal projection filter!
+  **Left-multiplying by $A^T$ completely annihilates the unsolvable component $\mathbf{e}$ living in the left nullspace!** The identity $A^T\mathbf{b}=A^TP\mathbf{b}$ expresses this decomposition. When $\mathbf{b}\in\operatorname{Col}(A)$, we have $\mathbf{p}=\mathbf{b}$, so the normal equations and the original system have the same solutions.
 
 </PitfallAlert>
 
 <PitfallAlert title="Pitfall ②: When Columns of A Are Dependent, AᵀA Is Singular and x̂ Is Not Unique—Yet the Projection p Remains Strictly Unique!">
 
-If the columns of $A$ are linearly dependent ($\operatorname{rank}(A) \lt n$), then $A^TA$ is not invertible and the normal equations $A^TA\hat{\mathbf{x}} = A^T\mathbf{b}$ have infinitely many solutions. Specifically, if $\hat{\mathbf{x}}_0$ is one particular least-squares solution, then for any nonzero nullspace vector $\mathbf{x}_n \in \operatorname{Null}(A)$, $\hat{\mathbf{x}} = \hat{\mathbf{x}}_0 + \mathbf{x}_n$ is also a least-squares solution.
+If the columns of $A$ are linearly dependent ($\operatorname{rank}(A) \lt n$), then $A^TA$ is not invertible and the normal equations $A^TA\hat{\mathbf{x}} = A^T\mathbf{b}$ have infinitely many solutions. Specifically, if $\hat{\mathbf{x}}_0$ is one particular least-squares solution, then the complete set of solutions is $\hat{\mathbf{x}}_0+\operatorname{Null}(A)$. Indeed, the difference of two solutions to the normal equations lies in $\operatorname{Null}(A^TA)=\operatorname{Null}(A)$.
 
 However, remember this crucial fact: **even though the parameter vector $\hat{\mathbf{x}}$ is not unique, the projection vector $\mathbf{p} = A\hat{\mathbf{x}}$ is still globally and uniquely determined!**
 
@@ -674,8 +676,8 @@ In statistics and data analysis, many students mistakenly believe that least-squ
 
 **This is a classic conceptual confusion!**
 
-- **Ordinary Least Squares (OLS)**: Minimizes the **vertical residuals** $|b_i - \hat{b}_i|$ measured parallel to the $b$-axis. Here we assume the independent variable $t_i$ is a precisely controlled, noise-free input, and all random measurement error occurs in the dependent variable $b_i$.
-- **Total Least Squares (TLS) / Principal Component Analysis (PCA)**: If *both* $t_i$ and $b_i$ contain measurement noise, then we minimize the **perpendicular Euclidean distance** from each data point to the fitted line/manifold! That problem leads to eigenvalue decomposition of covariance matrices and the Singular Value Decomposition (SVD), which we will explore in Lecture 30.
+- **Ordinary Least Squares (OLS)** minimizes the sum of squared vertical residuals $\sum_i(b_i-\hat b_i)^2$, treating the $t_i$ as given predictors.
+- **Total Least Squares (TLS)** in equally scaled coordinates with the Euclidean metric minimizes the sum of squared perpendicular distances to the line. Its direction is a first principal component of the centered data. Vertical lines are also admissible.
 
 </PitfallAlert>
 
@@ -685,8 +687,8 @@ In statistics and data analysis, many students mistakenly believe that least-squ
 
 <InteractiveCanvasSlot
   id="least-squares-fitter"
-  title="Interactive Lab: Multi-Point Least-Squares Fitter & High-Dimensional Subspace Projection"
-  description="Drag observation points freely in the 2D data plane on the left to watch the optimal regression line adapt in real time and verify that the vertical residuals sum to zero ($\sum e_i = 0$); simultaneously inspect the right-hand subspace view to watch the orthogonal projection $\mathbf{p}$ of $\mathbf{b}$ onto $\operatorname{Col}(A)$ and the Pythagorean right triangle close dynamically."
+  title="Interactive Lab: Three-Point Least-Squares Fit"
+  description="Adjust the three observed heights at $t=0,1,2$. Watch how the line and vertical residuals change, and check both normal-equation conditions $\sum_i e_i=0$ and $\sum_i t_i e_i=0$."
 />
 
 ---
@@ -830,7 +832,7 @@ On a one-dimensional line, the projection vector $\mathbf{p}$ simply scales the 
 >
 <SolutionIntuition>
 
-The right-hand side $A^T\mathbf{b}$ of the normal equations always lies in $\operatorname{Col}(A^T)$. Since $\operatorname{Col}(A^TA) = \operatorname{Col}(A^T)$ for any real matrix $A$, the normal equations **are always consistent (a solution always exists)**.
+The right-hand side $A^T\mathbf{b}$ of the normal equations always lies in $\operatorname{Col}(A^T)$. Taking orthogonal complements in Theorem 16.1 and using symmetry of $A^TA$ gives $\operatorname{Col}(A^TA)=\operatorname{Col}(A^T)$, so the normal equations **are always consistent (a solution always exists)**.
 However, whether that solution is **unique** depends on whether the square matrix $A^TA$ is invertible. If the columns of $A$ are linearly dependent, there exist nonzero nullspace vectors $\mathbf{x}_n \in \operatorname{Null}(A)$, and the set of least-squares solutions forms an entire affine subspace $\hat{\mathbf{x}}_0 + \operatorname{Null}(A)$ with infinitely many solutions!
 
 </SolutionIntuition>
@@ -845,7 +847,7 @@ $$
 A = \begin{bmatrix} 1 & 1 \\ 1 & 1 \\ 1 & 1 \end{bmatrix}, \quad \mathbf{b} = \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix}
 $$
 
-Clearly, the two columns of $A$ are identical, so $\operatorname{rank}(A) = 1 \lt n = 2$.
+The two columns of $A$ are identical and nonzero, so $\operatorname{rank}(A)=1\lt 2$. Every vector in $\operatorname{Col}(A)$ has three equal entries, so $\mathbf{b}$ is outside the column space and the original system is inconsistent.
 
 Compute the normal system:
 
@@ -907,7 +909,7 @@ Thus, the normal equations have a unique solution if and only if $A$ has full co
 <SolutionIntuition>
 
 Not every projection is orthogonal! Imagine a ruler lying flat on a desk. When sunlight shines straight down from directly overhead, the shadow is an orthogonal projection; if sunlight shines at a $45^\circ$ angle, the shadow still projects points in space onto the line of the ruler, and points already on the ruler stay fixed ($P^2 = P$), but that is an **oblique projection**!
-Because oblique light rays are not perpendicular to the ruler, the error vector $\mathbf{b} - P\mathbf{b}$ is not orthogonal to the projected vector $P\mathbf{b}$. The projection direction is perpendicular to the subspace if and only if the matrix is also symmetric ($P^T = P$).
+For a point whose projection and residual are both nonzero in this planar example, the error vector $\mathbf{b} - P\mathbf{b}$ is not orthogonal to the projected vector $P\mathbf{b}$. The projection direction is perpendicular to the subspace if and only if the matrix is also symmetric ($P^T = P$).
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -942,7 +944,7 @@ $$
 
 The residual and the projection are not orthogonal!
 
-**Criterion**: $P$ is an orthogonal projection matrix onto a subspace $S \iff P^2 = P$ and $P^T = P$.
+**Criterion**. $P$ is an orthogonal projection if and only if $P^2=P=P^T$. To specify the target subspace $S$, also require $\operatorname{Col}(P)=S$.
 
 </SolutionRigorous>
 </DualSolution>
@@ -981,7 +983,7 @@ $$
 >
 <SolutionIntuition>
 
-An orthogonal projection $P$ keeps the component inside $S$ and kills the perpendicular component; $R = I - 2P$ flips the sign of the component inside $S$ (multiplies by $-1$) while leaving the perpendicular component in $S^\perp$ untouched (multiplies by $+1$). That is a **mirror reflection** across $S^\perp$!
+An orthogonal projection $P$ keeps the component inside $S$ and kills the perpendicular component; $R = I - 2P$ flips the sign of the component inside $S$ (multiplies by $-1$) while leaving the perpendicular component in $S^\perp$ untouched (multiplies by $+1$). This is reflection across $S^\perp$.
 Because a reflection preserves lengths and angles, its matrix must be orthogonal. Every basis vector in the $r$-dimensional subspace $S$ gets reversed (eigenvalue $-1$), while every basis vector in the $(m-r)$-dimensional orthogonal complement $S^\perp$ stays fixed (eigenvalue $+1$).
 
 </SolutionIntuition>
@@ -1016,10 +1018,10 @@ Because a reflection preserves lengths and angles, its matrix must be orthogonal
    R\mathbf{x} = (I_m - 2P)(\mathbf{x}_S + \mathbf{x}_{S^\perp}) = \mathbf{x}_S + \mathbf{x}_{S^\perp} - 2\mathbf{x}_S = -\mathbf{x}_S + \mathbf{x}_{S^\perp}
    $$
 
-   The matrix $R$ reverses the component parallel to $S$ while preserving the component in $S^\perp$. This is a **Householder reflection** across the mirror subspace $S^\perp$.
+   The matrix $R$ reverses the component parallel to $S$ while preserving the component in $S^\perp$. This is reflection across $S^\perp$. The usual Householder reflection is the case $r=1$.
 
-   - For any nonzero $\mathbf{v} \in S$, $P\mathbf{v} = \mathbf{v}$, so $R\mathbf{v} = \mathbf{v} - 2\mathbf{v} = -\mathbf{v}$. Hence $\lambda = -1$ is an eigenvalue with eigenspace $S$ and multiplicity $\dim(S) = r$.
-   - For any nonzero $\mathbf{w} \in S^\perp$, $P\mathbf{w} = \mathbf{0}$, so $R\mathbf{w} = \mathbf{w} - \mathbf{0} = \mathbf{w}$. Hence $\lambda = +1$ is an eigenvalue with eigenspace $S^\perp$ and multiplicity $\dim(S^\perp) = m - r$.
+   - For any nonzero $\mathbf{v} \in S$, $P\mathbf{v} = \mathbf{v}$, so $R\mathbf{v} = \mathbf{v} - 2\mathbf{v} = -\mathbf{v}$. If $r>0$, this gives eigenvalue $-1$ with multiplicity $r$.
+   - For any nonzero $\mathbf{w} \in S^\perp$, $P\mathbf{w} = \mathbf{0}$, so $R\mathbf{w} = \mathbf{w} - \mathbf{0} = \mathbf{w}$. If $r<m$, this gives eigenvalue $+1$ with multiplicity $m-r$.
 
 3. **Determinant Calculation**:
 
@@ -1043,7 +1045,7 @@ Because a reflection preserves lengths and angles, its matrix must be orthogonal
   title="Data Centering and Orthogonal Decoupling of the Normal Equations"
 >
 
-In statistics and machine learning, we fit a least-squares line $b = C + Dt$ to $m$ observed data points $(t_1, b_1), (t_2, b_2), \dots, (t_m, b_m)$. Denote the sample means of time and observations by:
+We fit a least-squares line $b = C + Dt$ to $m$ observed data points $(t_1, b_1), (t_2, b_2), \dots, (t_m, b_m)$. Assume $m\ge 2$ with at least two distinct $t_i$, so the slope is identifiable. Denote the sample means of time and observations by
 
 $$
 \bar{t} = \frac{1}{m} \sum_{i=1}^{m} t_i, \quad \bar{b} = \frac{1}{m} \sum_{i=1}^{m} b_i
@@ -1057,7 +1059,7 @@ $$
   buttonPrefix="Unlock Hint"
   hints={[
     "Look at the first row of the normal equations: $\\mathbf{1}^T A \\hat{\\mathbf{x}} = \\mathbf{1}^T \\mathbf{b}$. Remember that $\\mathbf{1}^T \\mathbf{1} = m$ and $\\mathbf{1}^T \\mathbf{t} = m\\bar{t}$.",
-    "The centered time vector is $\\mathbf{T} = \\mathbf{t} - \\bar{t}\\mathbf{1}$. Compute the inner product $\\mathbf{1}^T \\mathbf{T}$ to see the angle between the two columns of $A'$!"
+    "The centered time vector is $\\mathbf{t}_c = \\mathbf{t} - \\bar{t}\\mathbf{1}$. Compute the inner product $\\mathbf{1}^T \\mathbf{t}_c$ to see the angle between the two columns of $A'$!"
   ]}
 />
 
@@ -1069,7 +1071,7 @@ $$
 <SolutionIntuition>
 
 In the uncentered model, the first column is the all-ones vector $\mathbf{1}$ and the second column is the raw time vector $\mathbf{t}$. In general, these two vectors are not at a $90^\circ$ angle, so $A^TA$ is a dense matrix with nonzero off-diagonal entries, coupling the solve for the intercept $C$ and slope $D$.
-When we subtract the mean $\bar{t}$ from each time coordinate, the entries of the centered vector $\mathbf{T}$ sum to zero—meaning the new second column $\mathbf{T}$ is strictly orthogonal to the all-ones column $\mathbf{1}$! Because the two columns are now perpendicular, the normal equations decouple into two independent 1D projections, allowing $C'$ and $D$ to be solved separately! This is the most natural prototype of Gram-Schmidt orthogonalization, which we study in the next lecture.
+When we subtract the mean $\bar{t}$ from each time coordinate, the entries of the centered vector $\mathbf{t}_c$ sum to zero—meaning the new second column $\mathbf{t}_c$ is strictly orthogonal to the all-ones column $\mathbf{1}$! Because the two columns are now perpendicular, the normal equations decouple into two independent 1D projections, allowing $C'$ and $D$ to be solved separately! This is the most natural prototype of Gram-Schmidt orthogonalization, which we study in the next lecture.
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -1104,44 +1106,44 @@ When we subtract the mean $\bar{t}$ from each time coordinate, the entries of th
 
 2. **Prove that $A'^T A'$ is diagonal**:
 
-   Define the centered time vector $\mathbf{T} = \mathbf{t} - \bar{t}\mathbf{1} = \begin{bmatrix} t_1 - \bar{t} \\ \vdots \\ t_m - \bar{t} \end{bmatrix}$.
-   The new design matrix is $A' = \begin{bmatrix} \mathbf{1} & \mathbf{T} \end{bmatrix} \in \mathbb{R}^{m\times 2}$.
+   Define the centered time vector $\mathbf{t}_c = \mathbf{t} - \bar{t}\mathbf{1} = \begin{bmatrix} t_1 - \bar{t} \\ \vdots \\ t_m - \bar{t} \end{bmatrix}$.
+   The new design matrix is $A' = \begin{bmatrix} \mathbf{1} & \mathbf{t}_c \end{bmatrix} \in \mathbb{R}^{m\times 2}$.
    Compute the inner product of its two columns:
 
    $$
-   \mathbf{1}^T \mathbf{T} = \sum_{i=1}^{m} (t_i - \bar{t}) = \sum_{i=1}^{m} t_i - m\bar{t} = m\bar{t} - m\bar{t} = 0
+   \mathbf{1}^T \mathbf{t}_c = \sum_{i=1}^{m} (t_i - \bar{t}) = \sum_{i=1}^{m} t_i - m\bar{t} = m\bar{t} - m\bar{t} = 0
    $$
 
-   Because their dot product is zero, the columns $\mathbf{1}$ and $\mathbf{T}$ form an **orthogonal pair of vectors**!
+   Because their dot product is zero, the columns $\mathbf{1}$ and $\mathbf{t}_c$ form an **orthogonal pair of vectors**!
    Computing the normal matrix:
 
    $$
-   A'^T A' = \begin{bmatrix} \mathbf{1}^T \\ \mathbf{T}^T \end{bmatrix} \begin{bmatrix} \mathbf{1} & \mathbf{T} \end{bmatrix}
-   = \begin{bmatrix} \mathbf{1}^T \mathbf{1} & \mathbf{1}^T \mathbf{T} \\ \mathbf{T}^T \mathbf{1} & \mathbf{T}^T \mathbf{T} \end{bmatrix}
-   = \begin{bmatrix} m & 0 \\ 0 & \|\mathbf{T}\|_2^2 \end{bmatrix}
+   A'^T A' = \begin{bmatrix} \mathbf{1}^T \\ \mathbf{t}_c^T \end{bmatrix} \begin{bmatrix} \mathbf{1} & \mathbf{t}_c \end{bmatrix}
+   = \begin{bmatrix} \mathbf{1}^T \mathbf{1} & \mathbf{1}^T \mathbf{t}_c \\ \mathbf{t}_c^T \mathbf{1} & \mathbf{t}_c^T \mathbf{t}_c \end{bmatrix}
+   = \begin{bmatrix} m & 0 \\ 0 & \|\mathbf{t}_c\|_2^2 \end{bmatrix}
    $$
 
    The off-diagonal entries vanish identically, so $A'^T A'$ is strictly diagonal!
 
 3. **Completely Decoupled Closed-Form Formulas**:
 
-   Inverting a diagonal matrix simply reciprocates its diagonal entries:
+   At least two distinct $t_i$ imply $\mathbf{t}_c\ne\mathbf{0}$. Both diagonal entries are positive, so their reciprocals form the inverse.
 
    $$
-   (A'^T A')^{-1} = \begin{bmatrix} \frac{1}{m} & 0 \\ 0 & \frac{1}{\|\mathbf{T}\|_2^2} \end{bmatrix}
+   (A'^T A')^{-1} = \begin{bmatrix} \frac{1}{m} & 0 \\ 0 & \frac{1}{\|\mathbf{t}_c\|_2^2} \end{bmatrix}
    $$
 
    The right-hand side is:
 
    $$
-   A'^T \mathbf{b} = \begin{bmatrix} \mathbf{1}^T \mathbf{b} \\ \mathbf{T}^T \mathbf{b} \end{bmatrix} = \begin{bmatrix} m\bar{b} \\ \sum_{i=1}^m (t_i - \bar{t})b_i \end{bmatrix}
+   A'^T \mathbf{b} = \begin{bmatrix} \mathbf{1}^T \mathbf{b} \\ \mathbf{t}_c^T \mathbf{b} \end{bmatrix} = \begin{bmatrix} m\bar{b} \\ \sum_{i=1}^m (t_i - \bar{t})b_i \end{bmatrix}
    $$
 
    Multiplying directly, the two unknowns decouple into two independent 1D orthogonal projections:
 
    $$
    \hat{\mathbf{x}}' = \begin{bmatrix} C' \\ D \end{bmatrix} = (A'^T A')^{-1} A'^T \mathbf{b}
-   = \begin{bmatrix} \frac{1}{m} \cdot m\bar{b} \\ \frac{\mathbf{T}^T \mathbf{b}}{\mathbf{T}^T \mathbf{T}} \end{bmatrix}
+   = \begin{bmatrix} \frac{1}{m} \cdot m\bar{b} \\ \frac{\mathbf{t}_c^T \mathbf{b}}{\mathbf{t}_c^T \mathbf{t}_c} \end{bmatrix}
    = \begin{bmatrix} \bar{b} \\ \frac{\sum_{i=1}^{m} (t_i - \bar{t})b_i}{\sum_{i=1}^{m} (t_i - \bar{t})^2} \end{bmatrix}
    $$
 
@@ -1155,7 +1157,9 @@ When we subtract the mean $\bar{t}$ from each time coordinate, the entries of th
    C' = \bar{b} \implies C = C' - D\bar{t} = \bar{b} - D\bar{t}
    $$
 
-   **Geometric Takeaway**: Centering the explanatory variable is geometrically equivalent to replacing the original basis $\{\mathbf{1}, \mathbf{t}\}$ of $\operatorname{Col}(A)$ with an orthogonal basis $\{\mathbf{1}, \mathbf{T}\}$. Whenever the basis vectors of a subspace are mutually orthogonal, multidimensional least-squares projection collapses into the sum of independent 1D projections along each basis direction—the exact geometric foundation of all classical linear regression formulas in statistics.
+   **Geometric Takeaway**: Centering the explanatory variable is geometrically equivalent to replacing the original basis $\{\mathbf{1}, \mathbf{t}\}$ of $\operatorname{Col}(A)$ with an orthogonal basis $\{\mathbf{1}, \mathbf{t}_c\}$. Whenever the basis vectors of a subspace are mutually orthogonal, multidimensional least-squares projection collapses into the sum of independent 1D projections along each basis direction—the exact geometric foundation of all classical linear regression formulas in statistics.
+
+If all $t_i$ coincide, then $\mathbf{t}_c=\mathbf{0}$ and the diagonal matrix is singular. In that case $C'+D T_i=C'$, so $C'=\bar b$ and $D$ is arbitrary.
 
 </SolutionRigorous>
 </DualSolution>

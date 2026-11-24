@@ -2,20 +2,24 @@ import * as React from 'react';
 import { MathDiagram } from './math-diagram';
 
 export function DirectedGraphIncidenceDiagram({
-  caption = 'Gilbert Strang 经典的 **4 节点、5 条有向边网络** 及其 $5\\times 4$ 关联矩阵 $A$：每行对应一条有向边（起点标 $-1$、终点标 $+1$）。连通图的零空间 $\\operatorname{Null}(A) = \\operatorname{span}\\{\\mathbf{1}\\}$ 代表**全网等电势**（无电势差），而左零空间 $\\operatorname{Null}(A^T)$ 的 $\\dim = e - v + 1 = 2$ 个基向量恰好对应图中 **$2$ 个独立闭合环路 $\\mathcal{L}_1, \\mathcal{L}_2$**（基尔霍夫电流守恒 $A^T\\mathbf{y}=\\mathbf{0}$）！',
+  lang = 'zh',
+  caption = '每条边对应 $A$ 的一行，起点为 $-1$，终点为 $+1$。图中箭头为边的参考方向，环流箭头表示绕行方向，逆着参考方向时系数为 $-1$。本图的 $\\operatorname{Null}(A)=\\operatorname{span}\\{\\mathbf{1}\\}$，两个有界面对应的带符号环流构成 $\\operatorname{Null}(A^T)$ 的一组基。',
 }: {
+  lang?: 'en' | 'zh';
   caption?: string;
 }) {
+  const isEnglish = lang === 'en';
+
   return (
     <MathDiagram
-      title="Directed Graph, Incidence Matrix A & Kirchhoff's Four Subspaces"
+      title={isEnglish ? 'Oriented Graph and Its Incidence Matrix' : '定向图与关联矩阵'}
       caption={caption}
     >
       <svg
         viewBox="0 0 725 280"
         className="w-full max-w-[725px] select-none text-foreground"
         role="img"
-        aria-label="4-node 5-edge directed graph with loops L1 and L2, alongside its 5x4 incidence matrix A and physical dictionary"
+        aria-label={isEnglish ? 'Four-node graph with signed cycles L1 and L2 and its incidence matrix' : '四节点图及其带符号环路 L1、L2 与关联矩阵'}
       >
         <defs>
           <marker
@@ -46,7 +50,7 @@ export function DirectedGraphIncidenceDiagram({
         <g transform="translate(16, 14)">
           <rect x="0" y="0" width="320" height="252" rx="12" fill="currentColor" fillOpacity="0.025" stroke="currentColor" strokeOpacity="0.18" />
           <text x="160" y="23" textAnchor="middle" className="fill-current text-[12.5px] font-bold">
-            (a) 有向图 G (v = 4 节点, e = 5 边, f_有界 = 2 环)
+            {isEnglish ? '(a) Oriented graph with two bounded faces' : '(a) 定向图 G 与两个有界面'}
           </text>
 
           {/* Node coordinates:
@@ -58,7 +62,7 @@ export function DirectedGraphIncidenceDiagram({
 
           {/* Loop L1 indicator inside triangle (1-2-3) */}
           <path
-            d="M 112 162 A 22 22 0 1 1 142 162"
+            d="M 145 160 A 20 20 0 1 0 109 160"
             fill="none"
             className="stroke-amber-600 dark:stroke-amber-400"
             strokeWidth="1.6"
@@ -71,7 +75,7 @@ export function DirectedGraphIncidenceDiagram({
 
           {/* Loop L2 indicator inside triangle (2-3-4) */}
           <path
-            d="M 186 128 A 19 19 0 1 1 212 138"
+            d="M 182 133 A 18 18 0 1 1 214 133"
             fill="none"
             className="stroke-amber-600 dark:stroke-amber-400"
             strokeWidth="1.6"
@@ -118,7 +122,7 @@ export function DirectedGraphIncidenceDiagram({
           ))}
 
           <text x="160" y="238" textAnchor="middle" className="fill-current font-mono text-[10.5px] opacity-85">
-            欧拉公式: v − e + f_总 = 4 − 5 + 3 = 2  (含外部无界域)
+            {isEnglish ? 'v − e + f = 4 − 5 + 3 = 2 (outer face included)' : 'v − e + f = 4 − 5 + 3 = 2（含外部无界面）'}
           </text>
         </g>
 
@@ -126,7 +130,7 @@ export function DirectedGraphIncidenceDiagram({
         <g transform="translate(352, 14)">
           <rect x="0" y="0" width="357" height="252" rx="12" fill="currentColor" fillOpacity="0.025" stroke="currentColor" strokeOpacity="0.18" />
           <text x="178" y="23" textAnchor="middle" className="fill-current text-[12.5px] font-bold">
-            (b) 5×4 关联矩阵 A 与电路物理字典
+            {isEnglish ? '(b) 5 × 4 incidence matrix A' : '(b) 5 × 4 关联矩阵 A'}
           </text>
 
           {/* Matrix header */}
@@ -177,7 +181,7 @@ export function DirectedGraphIncidenceDiagram({
           <g transform="translate(192, 48)" className="text-[10.5px]">
             <rect x="0" y="0" width="150" height="48" rx="6" className="fill-emerald-500/12 stroke-emerald-600/40 dark:stroke-emerald-400/40" />
             <text x="8" y="18" className="fill-emerald-800 dark:fill-emerald-200 font-mono font-bold">Null(A): dim = 1</text>
-            <text x="8" y="36" className="fill-current">基 (1,1,1,1)ᵀ 等电势零差</text>
+            <text x="8" y="36" className="fill-current">{isEnglish ? 'Basis (1,1,1,1)ᵀ' : '等电势基 (1,1,1,1)ᵀ'}</text>
 
             <rect x="0" y="58" width="150" height="52" rx="6" className="fill-amber-500/15 stroke-amber-600/40 dark:stroke-amber-400/40" />
             <text x="8" y="76" className="fill-amber-800 dark:fill-amber-200 font-mono font-bold">Null(Aᵀ): dim = 2</text>
@@ -188,13 +192,13 @@ export function DirectedGraphIncidenceDiagram({
           {/* Bottom physical summary bar */}
           <rect x="16" y="170" width="325" height="68" rx="8" fill="currentColor" fillOpacity="0.04" stroke="currentColor" strokeOpacity="0.16" />
           <text x="26" y="190" className="fill-current font-mono text-[10.5px] font-semibold">
-            • e = Ax : 节点电势 x ⟶ 边电势差 e (Col(A): KVL 环路电压和=0)
+            {isEnglish ? 'e = Ax has zero signed sums around cycles (KVL)' : 'e = Ax 的带符号环路和为零（KVL）'}
           </text>
           <text x="26" y="209" className="fill-current font-mono text-[10.5px] font-semibold">
-            • Aᵀy = 0 : 边电流 y 满足基尔霍夫电流守恒 (KCL: 流入 = 流出)
+            {isEnglish ? 'Aᵀy = 0 gives zero net inflow (KCL)' : 'Aᵀy = 0 给出零净流入（KCL）'}
           </text>
           <text x="26" y="228" className="fill-blue-700 dark:fill-blue-300 font-mono text-[10.5px] font-bold">
-            • Row(A) 基 : r = v − 1 = 3 条无环边 ⟺ 图的一棵生成树 (Spanning Tree)!
+            {isEnglish ? 'Spanning-tree rows give a basis of Row(A)' : '生成树的 3 条边给出 Row(A) 的一组基'}
           </text>
         </g>
       </svg>

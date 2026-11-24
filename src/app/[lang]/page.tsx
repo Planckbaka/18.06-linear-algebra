@@ -70,8 +70,8 @@ export default async function LangHomePage({
 
           <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
             {isZh
-              ? '全套 35 讲中文主课与 35 个交互式数学实验台已全部上线：全面勘误网传听课记录的维度遗漏与概念偏差，每讲标配自适应亮暗色静态 SVG + 实时交互实验台 + 5–6 道「少算多想」直觉题；并在正文之外严格隔离挂载 15 篇 Transformer、Diffusion、LoRA、Mamba 强数学同构课后选读。'
-              : 'All 35 Chinese sessions and 35 interactive linear algebra sandboxes are now live — built to eliminate missing hypotheses and typos of informal transcripts with column-picture intuition, zero-rote-calculation exercises, and 15 strictly isolated Frontier AI bridges.'}
+              ? '全套 35 讲中英双语主课与 35 个交互式数学实验台已全部上线：全面勘误网传听课记录的维度遗漏与概念偏差，每讲标配自适应亮暗色静态 SVG + 实时交互实验台 + 5–6 道「少算多想」直觉题；并在正文之外严格隔离挂载 15 篇 Transformer、Diffusion、LoRA、Mamba 强数学同构课后选读。'
+              : 'All 35 bilingual (EN & ZH) sessions and 35 interactive linear algebra sandboxes are now live — built to eliminate missing hypotheses and typos of informal transcripts with column-picture intuition, zero-rote-calculation exercises, and 15 strictly isolated Frontier AI bridges.'}
           </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

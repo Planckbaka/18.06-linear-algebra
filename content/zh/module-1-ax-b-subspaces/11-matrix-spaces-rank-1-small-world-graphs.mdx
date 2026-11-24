@@ -16,7 +16,7 @@ Gilbert Strang 在第 11 讲开篇便带你迈出这决定性的一步：考察�
 
 ### 子空间的交与和：Grassmann 维数公式
 
-既然 $S$ 与 $U$ 的**交集（Intersection）** $S \cap U = D$ 是 $3$ 维子空间，那么它们的**并集（Union）** $S \cup U$ 呢？正如第 06 讲所警示，并集**不是**子空间（把一个非对角的对称阵与一个非对角的上三角阵相加，结果既不对称也不上三角！）。真正对线性组合封闭的自然构造是**和空间（Sum of Subspaces）** $S + U$：
+两个子空间的并集是子空间，当且仅当一个包含另一个。若互不包含，取 $\mathbf{s}\in S\setminus U$ 与 $\mathbf{u}\in U\setminus S$。若 $\mathbf{s}+\mathbf{u}$ 属于其中一个子空间，从和中减去该子空间内的向量，就会推出另一个向量也属于它，产生矛盾。这里 $E_{12}+E_{21}\in S\setminus U$，$E_{12}\in U\setminus S$，两者之和 $2E_{12}+E_{21}$ 却既不对称也不上三角。同时包含 $S$ 与 $U$ 的最小子空间是和空间（Sum of Subspaces）
 
 $$
 S + U \triangleq \{ A_1 + A_2 \mid A_1 \in S,\; A_2 \in U \}
@@ -61,13 +61,13 @@ $$
 \frac{d^2 y}{dx^2} + y = 0
 $$
 
-把光滑函数 $y(x)$ 看作向量，线性微分算子 $\mathcal{L}(y) = y'' + y$ 满足 $\mathcal{L}(c_1 y_1 + c_2 y_2) = c_1 \mathcal{L}(y_1) + c_2 \mathcal{L}(y_2)$。因此，该方程的**全体解构成的集合恰好是算子 $\mathcal{L}$ 的零空间（Nullspace）**！它的基是谁？正是你熟悉的 $\cos x$ 与 $\sin x$（在复数域上也可以选 $e^{ix}$ 与 $e^{-ix}$）！通解写作
+在含有 $0$ 的开区间 $I\subseteq\mathbb{R}$ 上，考虑 $\mathcal{L}:C^2(I,\mathbb{R})\to C(I,\mathbb{R})$。线性微分算子 $\mathcal{L}(y) = y'' + y$ 满足 $\mathcal{L}(c_1 y_1 + c_2 y_2) = c_1 \mathcal{L}(y_1) + c_2 \mathcal{L}(y_2)$。因此，该方程的**全体解构成的集合恰好是算子 $\mathcal{L}$ 的零空间（Nullspace）**！它的基是谁？正是你熟悉的 $\cos x$ 与 $\sin x$（在复数域上也可以选 $e^{ix}$ 与 $e^{-ix}$）！通解写作
 
 $$
 y(x) = c_1 \cos x + c_2 \sin x
 $$
 
-这句微积分教材里的“通解公式”，翻译成 18.06 的语言只有一句话：**二阶齐次线性微分方程的解空间是一个 $2$ 维向量子空间（维数 $2$ 正好等于二阶导数所需的 $2$ 个初始自由度 $y(0), y'(0)$），而 $\{\cos x, \sin x\}$ 是它的一组基！**
+初值为 $y(0)=c_1$ 与 $y'(0)=c_2$。由该方程的初值问题存在唯一性，$\{\cos x,\sin x\}$ 是一组基，实解空间维数为 $2$。一般地，在一个区间上写成标准形式且系数连续的二阶齐次线性常微分方程，其解空间也是二维的。
 
 ---
 
@@ -83,8 +83,8 @@ $$
 
 <InteractiveCanvasSlot
   id="l11-rank1-builder"
-  title="交互实验室预留：秩 1 外积切片叠加器（A = ∑ uᵢvᵢᵀ）"
-  description="二期将在此嵌入秩 1 矩阵积木工作台：拖动列向量 u_i 与行向量 v_i^T 实时生成秩 1 切片，逐步累加观察矩阵秩如何从 1 爬升至 r，直观感受低秩近似的几何本质。"
+  title="交互实验：矩阵分解与秩"
+  description="调整 $2\times 2$ 实矩阵的各个元素，观察它的对称部分、反对称部分、行列式与秩。当秩为 $1$ 时，沙盒会显示外积分解。"
 />
 
 <TheoremCard id="thm-11-2" title="秩 1 外积刻画定理、秩 r 原子分解与秩次可加不等式">
@@ -106,7 +106,7 @@ $$
 <ProofCollapse title="展开严格证明：从主列分解 A = CR₀ 到秩次可加不等式">
 1. **秩 1 刻画**：若 $A = \mathbf{u}\mathbf{v}^T$（$\mathbf{u},\mathbf{v}\neq\mathbf{0}$），因 $\mathbf{v}$ 至少有一分量 $v_j \neq 0$，第 $j$ 列 $v_j \mathbf{u} \neq \mathbf{0}$，而任意第 $k$ 列均为 $v_k \mathbf{u} \in \operatorname{span}\{\mathbf{u}\}$，故 $\operatorname{Col}(A) = \operatorname{span}\{\mathbf{u}\}$，$\operatorname{rank}(A) = 1$。反之若 $\operatorname{rank}(A) = 1$，取 $\operatorname{Col}(A)$ 的非零基向量 $\mathbf{u}$，则 $A$ 的每一列 $\mathbf{a}_k$ 都是 $\mathbf{u}$ 的标量倍 $\mathbf{a}_k = v_k \mathbf{u}$（不全为零），令 $\mathbf{v} = (v_1,\dots,v_n)^T \neq \mathbf{0}$ 即得 $A = \mathbf{u}\mathbf{v}^T$。
 2. **秩 $r$ 原子分解与最小性**：
-   - **构造 $r$ 项分解（经典 $A = CR_0$ 分解）**：设 $\operatorname{rank}(A) = r \ge 1$，令 $C \in \mathbb{R}^{m\times r}$ 由 $A$ 的 $r$ 个线性无关主列组成。因 $A$ 的每一列 $\mathbf{a}_j$ 均可由主列唯一线性表出，收集组合系数构成矩阵 $F \in \mathbb{R}^{r\times n}$（事实上 $F$ 正是 $\operatorname{rref}(A)$ 删去底部零行后的前 $r$ 个非零行 $R_0$！），即有 $A = C F = \sum_{k=1}^r \mathbf{u}_k \mathbf{v}_k^T$（第 03 讲外积乘法视角）。
+   - **构造 $r$ 项分解（经典 $A = CR_0$ 分解）**：设 $\operatorname{rank}(A) = r \ge 1$，令 $C \in \mathbb{R}^{m\times r}$ 由 $A$ 的 $r$ 个线性无关主列组成。因 $A$ 的每一列 $\mathbf{a}_j$ 均可由主列唯一线性表出，收集组合系数构成矩阵 $F \in \mathbb{R}^{r\times n}$，得到 $A=CF=\sum_{k=1}^r\mathbf{u}_k\mathbf{v}_k^T$。对 $A=CF$ 施行相同的行变换可得 $R=(EC)F$，其中 $EC=\begin{bmatrix}I_r\\0\end{bmatrix}$ 由 $R$ 的主列组成。因此 $F$ 是 $R$ 的前 $r$ 行，并且其主列组成 $I_r$，故 $F$ 行满秩。
    - **先证第 3 条（秩次可加不等式）**：对任意 $\mathbf{y} \in \operatorname{Col}(A + B)$，存在 $\mathbf{x}$ 使 $\mathbf{y} = (A+B)\mathbf{x} = A\mathbf{x} + B\mathbf{x} \in \operatorname{Col}(A) + \operatorname{Col}(B)$，故 $\operatorname{Col}(A + B) \subseteq \operatorname{Col}(A) + \operatorname{Col}(B)$！两边取维数并应用定理 11.1（Grassmann 公式）：
 
      $$
@@ -121,28 +121,30 @@ $$
 
 在结束本讲前，Strang 展示了两个精妙绝伦的小品：
 
-1. **$\mathbb{R}^4$ 中分量之和为零的子空间**：考察集合 $S = \{ \mathbf{v} = (v_1, v_2, v_3, v_4)^T \in \mathbb{R}^4 : v_1 + v_2 + v_3 + v_4 = 0 \}$。它是不是子空间？当然是！因为标量方程 $v_1 + v_2 + v_3 + v_4 = 0$ 就是 $1 \times 4$ 行矩阵 $A = \begin{bmatrix} 1 & 1 & 1 & 1 \end{bmatrix}$ 的零空间方程 $A\mathbf{v} = 0$！既然 $A$ 的秩 $r = 1$，立刻无需任何计算读出 $A$ 的全部四个基本子空间：
+1. **$\mathbb{R}^4$ 中分量之和为零的子空间**：考察集合 $S = \{ \mathbf{v} = (v_1, v_2, v_3, v_4)^T \in \mathbb{R}^4 : v_1 + v_2 + v_3 + v_4 = 0 \}$。它是不是子空间？当然是！因为标量方程 $v_1 + v_2 + v_3 + v_4 = 0$ 就是 $1 \times 4$ 行矩阵 $A = \begin{bmatrix} 1 & 1 & 1 & 1 \end{bmatrix}$ 的零空间方程 $A\mathbf{v} = \mathbf{0}$！既然 $A$ 的秩 $r = 1$，立刻无需任何计算读出 $A$ 的全部四个基本子空间：
    - **零空间 $S = \operatorname{Null}(A) \subseteq \mathbb{R}^4$**：维数 $4 - 1 = 3$（三维超平面），三个特解基为 $(-1,1,0,0)^T,\; (-1,0,1,0)^T,\; (-1,0,0,1)^T$；
    - **行空间 $\operatorname{Row}(A) \subseteq \mathbb{R}^4$**：维数 $r = 1$，基为全 $1$ 向量 $(1,1,1,1)^T$；
    - **列空间 $\operatorname{Col}(A) = \mathbb{R}^1$**：维数 $r = 1$，基为 $(1)$；
    - **左零空间 $\operatorname{Null}(A^T) \subseteq \mathbb{R}^1$**：维数 $m - r = 1 - 1 = 0$，仅含零标量 $\{0\}$（**注意零维子空间的基是空集 $\varnothing$，不是数字 $0$！**）。
 
-2. **小世界图（Small World Graphs）与下一讲的桥梁**：如果把世界上每个人看作一个节点（Node），互相认识的人之间连一条边（Edge），“六度分隔猜想（Six Degrees of Separation）”断言任意两人之间最多隔着 6 步边路径——因为在规则网格上只要随机添加极少数几条远程捷径（Shortcuts），整个网络的平均最短路径就会急剧坍缩！如何用矩阵精确编码一张图的所有节点、边与环路？这正是紧接着的第 12 讲《图、网络与关联矩阵》将为你揭晓的奇迹。
+2. **小世界图（Small-World Graphs）**：Watts–Strogatz 模型表明，少量随机重连可显著缩短典型路径长度，同时保留较高的聚类程度。下一讲将用关联矩阵编码图的边。[Watts 与 Strogatz（1998）](https://doi.org/10.1038/30918)
 
 <PitfallAlert title="常见直觉陷阱与网传笔记三大勘误">
-1. **误区一：误以为“全体秩 4 矩阵（或秩 1 矩阵）”构成矩阵空间 $M$ 的一个子空间！**
-   **绝对不是子空间（考试十考九中）！** 首先零矩阵的秩为 $0$，根本不在“秩 $k$（$k\ge 1$）矩阵集合”里；其次对加法完全不封闭：两个秩 $1$ 矩阵相加既可能升秩变成秩 $2$（如 $E_{11} + E_{22} = \operatorname{diag}(1,1)$），也可能抵消变成秩 $0$（如 $E_{11} + (-E_{11}) = 0$）！记住铁律：**指定正秩的矩阵集合、可逆矩阵集合、行列式为 1 的矩阵集合统统不是子空间！**
+1. **误区一：误以为“全体固定正秩矩阵”构成矩阵空间 $M$ 的一个子空间！**
+   **绝对不是子空间（考试十考九中）！** 首先零矩阵的秩为 $0$，根本不在“秩 $k$（$k\ge 1$）矩阵集合”里；其次对加法完全不封闭：两个秩 $1$ 矩阵相加既可能升秩变成秩 $2$（如 $E_{11} + E_{22}$ 的秩为 $2$），也可能抵消变成秩 $0$（如 $E_{11} + (-E_{11}) = 0$）！记住铁律：**指定正秩的矩阵集合、可逆矩阵集合、行列式为 1 的矩阵集合统统不是子空间！**
 2. **误区二：把零子空间 $\{\mathbf{0}\}$ 的维数当成 1，或者把它的基写成 $\{\mathbf{0}\}$**
    在线性代数严格定义中，零向量 $\mathbf{0}$ 自身就是线性相关的（$1\cdot\mathbf{0} = \mathbf{0}$ 存在非零系数），因此**任何基里绝对禁止包含零向量 $\mathbf{0}$**！平凡零子空间 $\{\mathbf{0}\}$（如上面的 $\operatorname{Null}(A^T)$）的**维数为 $0$**，它的基是**空集 $\varnothing$**（包含 $0$ 个向量）。
 3. **误区三：误以为 $\operatorname{rank}(A + B) = \operatorname{rank}(A) + \operatorname{rank}(B)$ 总成立**
    秩只有不等式 $\operatorname{rank}(A+B) \le \operatorname{rank}(A) + \operatorname{rank}(B)$，绝无一般等号！等号成立的充要条件是 $\operatorname{Col}(A) \cap \operatorname{Col}(B) = \{\mathbf{0}\}$ 且 $\operatorname{Row}(A) \cap \operatorname{Row}(B) = \{\mathbf{0}\}$（两个矩阵的列空间与行空间双双零交集）。
+
+   若其中一个矩阵为零，等式直接成立。其余情形可用秩分解证明充分性，写 $A=C_AF_A$、$B=C_BF_B$。列空间的零交集使 $[C_A\; C_B]$ 列满秩。$F_A,F_B$ 的行分别给出原行空间的基，因此行空间的零交集使 $\begin{bmatrix}F_A\\F_B\end{bmatrix}$ 行满秩。其乘积为 $A+B$，左因子单射、右因子满射，故乘积的秩为 $\operatorname{rank}(A)+\operatorname{rank}(B)$。必要性见习题 5。
 </PitfallAlert>
 
 <KeyTakeaways
   items={[
-    "矩阵空间 $M = \\mathbb{R}^{m\\times n}$（$\\dim = mn$）中的对称阵、上三角阵、对角阵、零迹阵均构成子空间，但**固定秩矩阵与可逆矩阵绝不构成子空间**。",
-    "**Grassmann 维数公式**：对同一向量空间的任意两子空间 $S, U$，恒有 $\\dim(S) + \\dim(U) = \\dim(S \\cap U) + \\dim(S + U)$（如 $3\\times 3$ 对称阵与上三角阵满足 $6 + 6 = 3 + 9$）。",
-    "**秩 1 原子分解定理**：一切秩 1 矩阵必具有外积形态 $\\mathbf{u}\\mathbf{v}^T$，且任意秩 $r$ 矩阵必能表为最少 $r$ 个秩 1 外积矩阵之和 $A = \\sum_{k=1}^r \\mathbf{u}_k\\mathbf{v}_k^T$。",
+    "在方阵空间 $M=\\mathbb{R}^{n\\times n}$ 中，对称阵、上三角阵、对角阵与零迹阵各自构成子空间。固定正秩矩阵集合与可逆矩阵集合都不含零矩阵。",
+    "**Grassmann 维数公式**：对同一向量空间的任意两个有限维子空间 $S, U$，恒有 $\\dim(S) + \\dim(U) = \\dim(S \\cap U) + \\dim(S + U)$（如 $3\\times 3$ 对称阵与上三角阵满足 $6 + 6 = 3 + 9$）。",
+    "**秩 1 原子分解定理**：一切秩 1 矩阵必具有外积形态 $\\mathbf{u}\\mathbf{v}^T$，且任意秩 $r$ 矩阵必能表为最少 $r$ 个秩 1 外积矩阵之和 $A = \\sum_{k=1}^r \\mathbf{u}_k\\mathbf{v}_k^T$，零矩阵对应空和。",
     "**矩阵秩次可加不等式**：$|\\operatorname{rank}(A) - \\operatorname{rank}(B)| \\le \\operatorname{rank}(A+B) \\le \\operatorname{rank}(A) + \\operatorname{rank}(B)$。"
   ]}
 />
@@ -188,20 +190,22 @@ $$
              \mathcal{B}_K = \left\{ E_{12} - E_{21},\; E_{13} - E_{31},\; E_{23} - E_{32} \right\}
              $$
 
-           - 迹算子 $\operatorname{tr}: M \to \mathbb{R}$ 满足线性性 $\operatorname{tr}(\alpha A + \beta B) = \alpha\operatorname{tr}(A) + \beta\operatorname{tr}(B)$，故 $Z = \ker(\operatorname{tr})$ 是秩 $1$ 线性泛函的零空间，由秩—零化度定理得 **$\dim(Z) = 9 - 1 = 8$**。
+           - 迹算子 $\operatorname{tr}: M \to \mathbb{R}$ 满足线性性 $\operatorname{tr}(\alpha A + \beta B) = \alpha\operatorname{tr}(A) + \beta\operatorname{tr}(B)$。由 $\operatorname{tr}(E_{11})=1$，迹算子的秩为 $1$。对其零空间 $Z=\ker(\operatorname{tr})$ 应用秩—零化度定理，得 **$\dim(Z) = 9 - 1 = 8$**。
 
-        2. **Grassmann 公式与正交型直和分解**：
+        2. **Grassmann 公式与直和分解**：
            设 $A \in S \cap K$，则 $A = A^T = -A \implies 2A = 0 \implies A = 0$，即 $S \cap K = \{0\}$，$\dim(S \cap K) = 0$。由定理 11.1（Grassmann 维数公式）：
 
            $$
            \dim(S + K) = \dim(S) + \dim(K) - \dim(S \cap K) = 6 + 3 - 0 = 9 = \dim(M)
            $$
 
-           故 $M = S \oplus K$！事实上，任意方阵 $A \in \mathbb{R}^{n\times n}$ 均可**唯一**分解为对称阵与反对称阵之和：
+           故 $M = S \oplus K$。对 $M$ 中的任意 $A$，这两个部分分别为
 
            $$
            A = \underbrace{\frac{A + A^T}{2}}_{\in S} + \underbrace{\frac{A - A^T}{2}}_{\in K}
            $$
+
+           这个公式也适用于任意阶实方阵。两项分别满足相应的转置关系，并且每一阶中，对称子空间与反对称子空间的交集都仅含零矩阵。
 
       </SolutionRigorous>
     </DualSolution>
@@ -234,7 +238,7 @@ $$
     <DualSolution>
       <SolutionIntuition>
 
-        把零矩阵请进来虽然让集合穿过了原点，而且任何一条穿过原点的单方向射线 $c A_1$ 都留在集合里（像一束刺向四面八方的针状圆锥面），但两根不同方向的针加在一起就会张开成二维平面，跳出圆锥面之外！在代数几何中，$\mathcal{R}_{\le k}$ 被称为**行列式簇（Determinantal Variety）**——它是弯曲的非线性锥面，绝不是平坦的线性子空间（除非 $k = 0$ 或 $k = \min(m,n)$）。
+        加入零矩阵后，对任意秩 $1$ 矩阵 $A_1$，整条直线 $\{cA_1:c\in\mathbb{R}\}$ 都留在集合内。$E_{11}$ 与 $E_{22}$ 张成的平面却包含秩为 $2$ 的和。当 $0\le k\le\min(m,n)$ 时，秩至多为 $k$ 的矩阵集合称为**行列式簇（Determinantal Variety）**。两个端点分别给出零子空间与整个矩阵空间。
 
       </SolutionIntuition>
       <SolutionRigorous>
@@ -251,7 +255,7 @@ $$
            拥有 $2$ 个非零主元，$\operatorname{rank}(A + B) = 2 \gt 1$，故 $A + B \notin \mathcal{R}_{\le 1}$，违背子空间的加法封闭性！
 
         2. **拼出 $I_4$ 的最小秩 1 项数**：
-           因 $\operatorname{rank}(I_4) = 4$，由定理 11.2 的秩次可加性，若 $I_4 = \sum_{i=1}^s M_i$（$M_i \in \mathcal{R}_{\le 1}$），则 $4 = \operatorname{rank}(I_4) \le \sum_{i=1}^s \operatorname{rank}(M_i) \le s$。另一方面，显式分解
+           因 $\operatorname{rank}(I_4) = 4$，由定理 11.2 的秩次可加性，若 $I_4 = \sum_{i=1}^s c_i M_i$（$M_i \in \mathcal{R}_{\le 1}$），则各项 $c_iM_i$ 仍至多为秩 $1$，故 $4 = \operatorname{rank}(I_4) \le \sum_{i=1}^s \operatorname{rank}(c_i M_i) \le s$。另一方面，显式分解
 
            $$
            I_4 = \mathbf{e}_1\mathbf{e}_1^T + \mathbf{e}_2\mathbf{e}_2^T + \mathbf{e}_3\mathbf{e}_3^T + \mathbf{e}_4\mathbf{e}_4^T = E_{11} + E_{22} + E_{33} + E_{44}
@@ -310,7 +314,7 @@ $$
            \dim(S \cap W) = 6 + 5 - \dim(S + W) \ge 11 - 9 = 2
            $$
 
-           当 $S + W = \mathbb{R}^9$ 时取到等号，故 $\dim(S \cap W)$ 最小为 **$2$**。
+           取 $S=\operatorname{span}\{\mathbf{e}_1,\ldots,\mathbf{e}_6\}$ 与 $W=\operatorname{span}\{\mathbf{e}_5,\ldots,\mathbf{e}_9\}$ 时，$S+W=\mathbb{R}^9$，下界可达。因此最小值为 **$2$**。
 
       </SolutionRigorous>
     </DualSolution>
@@ -322,7 +326,7 @@ $$
     title="秩 1 矩阵的代数魔术：为什么 A² = cA 恒成立？何时 I + uvᵀ 可逆？"
   >
     设 $\mathbf{u}, \mathbf{v} \in \mathbb{R}^n$ 为两个非零列向量，构造 $n \times n$ 秩 $1$ 方阵 $A = \mathbf{u}\mathbf{v}^T$。
-    1. **一行算出任意高次幂**：利用矩阵乘法结合律，证明 $A^2 = c A$，并明确指出标量常数 $c$ 的代数表达式与矩阵迹 $\operatorname{tr}(A)$ 的关系！特别地，什么时候非零秩 $1$ 矩阵满足幂零性 $A^2 = 0$？什么时候它是幂等投影矩阵 $A^2 = A$？
+    1. **一行算出任意高次幂**：利用矩阵乘法结合律，证明 $A^2 = c A$，并明确指出标量常数 $c$ 的代数表达式与矩阵迹 $\operatorname{tr}(A)$ 的关系！特别地，什么时候非零秩 $1$ 矩阵满足幂零性 $A^2 = 0$？什么时候它是幂等投影矩阵（可以是斜投影） $A^2 = A$？
     2. **Sherman-Morrison 秩 1 修正公式**：利用第 1 问的结论，验证并求出单位矩阵的秩 $1$ 扰动 $I_n + \mathbf{u}\mathbf{v}^T$ 的显式逆矩阵（假设 $1 + \mathbf{v}^T\mathbf{u} \neq 0$）！（提示：猜测逆矩阵具有 $I_n - \alpha \mathbf{u}\mathbf{v}^T$ 的同构形式，相乘解出标量 $\alpha$！）
 
     <ProgressiveHint
@@ -348,9 +352,9 @@ $$
            A^2 = (\mathbf{u}\mathbf{v}^T)(\mathbf{u}\mathbf{v}^T) = \mathbf{u} \underbrace{(\mathbf{v}^T\mathbf{u})}_{\text{标量 } c \in \mathbb{R}} \mathbf{v}^T = (\mathbf{v}^T\mathbf{u})\, \mathbf{u}\mathbf{v}^T = c A
            $$
 
-           其中标量 $c = \mathbf{v}^T\mathbf{u} = \sum_{i=1}^n u_i v_i$。因 $A$ 的第 $(i,j)$ 元为 $a_{ij} = u_i v_j$，其主对角线元素之和恰好为 $\operatorname{tr}(A) = \sum_{i=1}^n a_{ii} = \sum_{i=1}^n u_i v_i = \mathbf{v}^T\mathbf{u} = c$，故 **$A^2 = \operatorname{tr}(A)\,A$**！
+           其中标量 $c = \mathbf{v}^T\mathbf{u} = \sum_{i=1}^n u_i v_i$。因 $A$ 的第 $(i,j)$ 元为 $a_{ij} = u_i v_j$，其主对角线元素之和恰好为 $\operatorname{tr}(A) = \sum_{i=1}^n a_{ii} = \sum_{i=1}^n u_i v_i = \mathbf{v}^T\mathbf{u} = c$，故 **$A^2 = \operatorname{tr}(A)\,A$**。归纳可得，对任意整数 $k\ge 2$ 有 $A^k=c^{k-1}A$。
            - **幂零判据**：$A^2 = 0 \iff c = \mathbf{v}^T\mathbf{u} = 0$（即 $\mathbf{u}$ 与 $\mathbf{v}$ 正交，等价于 $\operatorname{Col}(A) \subseteq \operatorname{Null}(A)$）；
-           - **幂等判据**：$A^2 = A \iff c = \mathbf{v}^T\mathbf{u} = 1$。
+           - **幂等判据**：$A^2 = A \iff c = \mathbf{v}^T\mathbf{u} = 1$。此时 $A$ 沿 $\mathbf{v}^\perp$ 投影到 $\operatorname{span}\{\mathbf{u}\}$。
 
         2. **Sherman-Morrison 秩 1 逆矩阵公式**：
            设待定逆矩阵为 $B = I_n - \alpha \mathbf{u}\mathbf{v}^T$，与 $I_n + \mathbf{u}\mathbf{v}^T$ 相乘并代入 $(\mathbf{u}\mathbf{v}^T)^2 = (\mathbf{v}^T\mathbf{u})\mathbf{u}\mathbf{v}^T$：
@@ -374,7 +378,7 @@ $$
   <ExerciseCard
     id="l11-ex5"
     tier="L4"
-    title="MIT 18.06 Quiz 1 压轴级挑战：分块秩 1 拆解与秩和等号成立的充要条件"
+    title="MIT 18.06 Quiz 1 压轴级挑战：秩 1 分解与秩可加的必要条件"
   >
     1. **一眼看穿矩阵秩与原子分解**：无需做繁琐消元，求下面这个 $3 \times 3$ 规律数表矩阵 $A$ 的秩 $\operatorname{rank}(A)$，并将其显式写成最少个数的秩 $1$ 外积矩阵之和 $A = \sum_{k=1}^r \mathbf{u}_k \mathbf{v}_k^T$：
 
@@ -395,7 +399,7 @@ $$
     <DualSolution>
       <SolutionIntuition>
 
-        第 1 问是 Strang 最经典的“降维打击”示范：新手埋头一行行消元，高手一眼看出格子里填的是行号加列号 $a_{ij} = i + j$！“只依赖行号 $i$ 的矩阵”是一张秩 $1$ 竖条纹矩阵，“只依赖列号 $j$ 的矩阵”是一张秩 $1$ 横条纹矩阵，两张不平行的秩 $1$ 切片叠在一起，秩瞬间锁定为 $2$！第 2 问则是夹逼原理与 Grassmann 公式的绝妙联手：总秩要想一分不丢地相加，两边的列空间和行空间都绝对不能有任何一丁点方向重叠！
+        第 1 问是 Strang 最经典的“降维打击”示范：新手埋头一行行消元，高手一眼看出格子里填的是行号加列号 $a_{ij} = i + j$！这两个秩 $1$ 外积的列方向线性无关，行方向也线性无关。两项条件同时成立，故它们的和恰为秩 $2$。第 2 问则是夹逼原理与 Grassmann 公式的绝妙联手：总秩要想一分不丢地相加，两边的列空间和行空间都绝对不能有任何一丁点方向重叠！
 
       </SolutionIntuition>
       <SolutionRigorous>
@@ -434,81 +438,59 @@ $$
 
 <FrontierAIReading
   id="AI-04"
-  title="LoRA 低秩微调核心数学原理：为什么 r 个秩 1 矩阵之和足以撬动百亿参数大模型"
-  paperRef="Hu et al. (ICLR 2022) LoRA: Low-Rank Adaptation of Large Language Models · Aghajanyan et al. (ACL 2021) Intrinsic Dimensionality Explains the Effectiveness of Language Model Fine-Tuning"
+  title="LoRA：低秩权重更新与外积"
+  paperRef="Hu et al. (ICLR 2022) LoRA: Low-Rank Adaptation of Large Language Models"
 >
 
-当你微调一个百亿乃至千亿参数的大语言模型（如 Llama 3 或 DeepSeek）时，单是一层注意力投影权重 $W_0 \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}$（例如 $d_{\text{out}} = d_{\text{in}} = 4096$）就包含 $4096 \times 4096 \approx 1678$ 万个浮点数；如果对全量权重增量 $\Delta W \in \mathbb{R}^{4096 \times 4096}$ 做梯度更新并为每个下游任务保存一份副本，显存与磁盘瞬间爆炸！
+### 1. 用秩约束参数化权重增量
 
-2022 年横扫大模型工业界的 **LoRA（Low-Rank Adaptation）** 给出了一个直接镌刻在本讲**定理 11.2（秩 $r$ 原子外积分解定理）**之上的传世答案：**预训练大模型虽然本身是高秩满载的知识宝库，但它在适配特定下游任务时的参数变化量 $\Delta W$ 具有极低的“内禀秩（Intrinsic Rank）”！**
-
----
-
-### 1. 本讲定理 11.2 的工业级化身：$\Delta W = B A = \sum_{k=1}^{r} \mathbf{b}_k \mathbf{a}_k^T$
-
-冻结预训练底座矩阵 $W_0 \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}$ 不求梯度，LoRA 强制要求微调增量矩阵 $\Delta W$ 的秩至多为极小正整数 $r \ll \min(d_{\text{out}}, d_{\text{in}})$（工业界通常取 $r = 8$ 或 $16$！）。根据本讲**定理 11.2 第 2 条**，任何秩不超过 $r$ 的矩阵**充要地**可以参数化为一高瘦矩阵 $B \in \mathbb{R}^{d_{\text{out}} \times r}$ 与一矮胖矩阵 $A \in \mathbb{R}^{r \times d_{\text{in}}}$ 的乘积——即恰好 **$r$ 张秩 1 外积积木切片之和**：
+LoRA（Low-Rank Adaptation，低秩适配）冻结预训练权重 $W_0\in\mathbb{R}^{d_{\text{out}}\times d_{\text{in}}}$，学习因子 $B\in\mathbb{R}^{d_{\text{out}}\times r}$ 与 $A\in\mathbb{R}^{r\times d_{\text{in}}}$，其中 $r\ge 1$ 为所选的秩上界。取缩放系数 $s=\alpha/r$，有效权重为
 
 $$
-W' = W_0 + \Delta W = W_0 + B A = W_0 + \sum_{k=1}^{r} \mathbf{b}_k \mathbf{a}_k^T
+W'=W_0+\Delta W,\qquad
+\Delta W=sBA=s\sum_{k=1}^r\mathbf{b}_k\mathbf{a}_k^T.
 $$
 
-其中 $\mathbf{b}_k \in \mathbb{R}^{d_{\text{out}}}$ 是 $B$ 的第 $k$ 列，$\mathbf{a}_k^T \in \mathbb{R}^{1 \times d_{\text{in}}}$ 是 $A$ 的第 $k$ 行。来看这一分解带来的三重纯线性代数奇迹：
+$\mathbf{b}_k$ 是 $B$ 的第 $k$ 列，$\mathbf{a}_k^T$ 是 $A$ 的第 $k$ 行。每项的秩至多为 $1$，所以 $\operatorname{rank}(\Delta W)\le r$。当 $s\ne 0$ 时，通过秩分解和补零，任何秩至多为 $r$ 的增量都可写成此形式。秩上界 $r$ 是算法选定的建模约束。[Hu 等，第 4.1 节](https://arxiv.org/abs/2106.09685)
 
-1. **百倍以上的参数压缩比（矩阵空间维数骤降）**：
-   原本全量微调需在 $\dim(\mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}) = d_{\text{out}} d_{\text{in}}$ 维的全矩阵空间中搜索；引入秩 $r$ 分解后，待训练自由参数量骤降至 $r(d_{\text{out}} + d_{\text{in}})$！以 $d_{\text{out}} = d_{\text{in}} = 4096,\; r = 8$ 为例：
+### 2. 参数量与四子空间几何
 
-   $$
-   \frac{\text{Params}(B, A)}{\text{Params}(\Delta W_{\text{full}})} = \frac{8 \times (4096 + 4096)}{4096 \times 4096} = \frac{65{,}536}{16{,}777{,}216} = \frac{1}{256} \approx 0.39\%
-   $$
+全量微调会训练该权重的 $d_{\text{out}}d_{\text{in}}$ 个元素。LoRA 训练两个因子的 $r(d_{\text{out}}+d_{\text{in}})$ 个元素。对 $4096\times4096$ 的权重取 $r=8$，比例为 $65{,}536/16{,}777{,}216=1/256\approx0.39\%$。
 
-   不到千分之四的参数量，即可刻画任务所需的全部核心特征方向旋转！
+对输入 $\mathbf{x}\in\mathbb{R}^{d_{\text{in}}}$，校正项为 $sB(A\mathbf{x})$。它在 $\operatorname{Null}(A)$ 上为零，该空间维数至少为 $d_{\text{in}}-r$。若 $s\ne 0$，该线性层输出保持不变的全部输入构成 $\operatorname{Null}(BA)$。校正项属于维数至多为 $r$ 的 $\operatorname{Col}(B)$，且当 $s\ne0$ 时张成 $\operatorname{Col}(BA)$。
 
-2. **四个基本子空间的精密几何解读**：
-   当输入特征向量 $\mathbf{x} \in \mathbb{R}^{d_{\text{in}}}$ 流过该层时，前向传播变为：
+### 3. 初始化与推理
 
-   $$
-   \mathbf{h} = W_0 \mathbf{x} + B(A\mathbf{x}) = W_0 \mathbf{x} + \sum_{k=1}^{r} (\mathbf{a}_k^T \mathbf{x})\, \mathbf{b}_k
-   $$
+原论文以高斯分布初始化 $A$ 的元素，并令 $B=0$，因此有效权重从 $W_0$ 开始。对单个样本，设 $\mathbf{h}=W'\mathbf{x}$、$\mathbf{g}=\nabla_{\mathbf{h}}\mathcal{L}\in\mathbb{R}^{d_{\text{out}}}$，则 $\nabla_B\mathcal{L}=s\mathbf{g}(A\mathbf{x})^T$、$\nabla_A\mathcal{L}=s(B^T\mathbf{g})\mathbf{x}^T$。在初始化时，第一个梯度可以非零，第二个梯度为零。若两个因子都初始化为零，两个梯度都会消失。
 
-   - **输入侧零空间静默（$d_{\text{in}} - r$ 维免打扰区）**：因 $\dim\operatorname{Null}(A) \ge d_{\text{in}} - r = 4088$，对于绝大部分落在 $\operatorname{Null}(A)$ 中的通用特征 $\mathbf{x}_{\text{gen}}$，恒有 $A\mathbf{x}_{\text{gen}} = \mathbf{0}$，增量支路完全静默，预训练底座能力被原汁原味保留！唯有与 $r$ 个探测行向量 $\mathbf{a}_k$ 产生非零内积响应 $\mathbf{a}_k^T \mathbf{x} \neq 0$（即含有 $\operatorname{Row}(A)$ 分量）的任务相关特征，才会激活微调通路！
-   - **输出侧列空间定向注入（$r$ 维修正平面）**：因 $\operatorname{Col}(\Delta W) \subseteq \operatorname{Col}(B) = \operatorname{span}\{\mathbf{b}_1, \dots, \mathbf{b}_r\}$，所有微调修正信号都被严格约束在输出空间 $\mathbb{R}^{d_{\text{out}}}$ 的一个 $r$ 维极低维子空间内。
+固定适配器后，可预先计算 $W'=W_0+sBA$。由 $W'\mathbf{x}=W_0\mathbf{x}+sB(A\mathbf{x})$，合并后的推理和基础层一样只需一次矩阵乘法，两种计算方式的结果只相差浮点舍入误差。
 
-3. **非对称零初始化与“零推理延迟”矩阵空间加法合并**：
-   - **为什么必须 $A \sim \mathcal{N}(0, \sigma^2)$ 随机初始化、而 $B = 0$ 全零初始化？** 训练第 $0$ 步时，$B = 0 \implies \Delta W = B A = 0$，保证微调起点与预训练原模型 $W_0$ **严格逐点恒等**；同时因 $A \neq 0$，反向传播时对 $B$ 的梯度 $\nabla_B \mathcal{L} = (\nabla_{\mathbf{h}}\mathcal{L})\mathbf{x}^T A^T \neq 0$ 立刻非零，打破对称死锁！（若 $A, B$ 同时初始化为 $0$，则双方梯度互乘对方全死锁为 $0$！）
-   - **零推理开销合入底座**：部署上线时，得益于矩阵空间 $\mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}$ 对**矩阵加法封闭**（虽然固定秩集合不封闭：$W_0$ 满秩加上秩 $r$ 的 $BA$ 后仍是同尺寸矩阵 $W' = W_0 + BA \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}$！），由矩阵乘法分配律 $(W_0 + BA)\mathbf{x} = W_0\mathbf{x} + B(A\mathbf{x})$，我们只需离线算一次 $W' \leftarrow W_0 + BA$ 覆盖原权重，线上推理实现 **0.00 毫秒额外延迟**！
-
-<CollapsibleCode title="展开 PyTorch 张量维度对照核验（秩 1 外积切片累加恒等性、零空间静默与零延迟合并）">
+<CollapsibleCode title="PyTorch：外积求和、数值秩与合并">
 
 ```python
 import torch
 
 torch.manual_seed(1806)
+dtype = torch.float64
+d_out, d_in, r = 96, 128, 8
+s = 16 / r
+W_0 = torch.randn(d_out, d_in, dtype=dtype)
+A = torch.randn(r, d_in, dtype=dtype) * 0.02
+B = torch.zeros(d_out, r, dtype=dtype)
+assert not torch.count_nonzero(B @ A)
 
-d_out, d_in, r = 4096, 4096, 8
-W_0 = torch.randn(d_out, d_in)
+B = torch.randn(d_out, r, dtype=dtype) * 0.05
+delta_W = s * (B @ A)
+outer_sum = s * sum(B[:, k:k+1] @ A[k:k+1, :] for k in range(r))
+torch.testing.assert_close(delta_W, outer_sum)
+assert int(torch.linalg.matrix_rank(delta_W)) == r
 
-# LoRA 标准初始化: A 高斯随机初始化, B 全零初始化 (确保第 0 步 Delta_W == 0)
-A = torch.randn(r, d_in) * 0.02
-B = torch.zeros(d_out, r)
-assert torch.all(B @ A == 0), "Step 0 initialization must preserve W_0 exactly!"
-
-# 模拟微调收敛后的低秩适配器权重 B, A
-B_trained = torch.randn(d_out, r) * 0.05
-Delta_W = B_trained @ A  # (4096, 4096), 但内禀秩 <= 8!
-
-# 1. 验证本讲定理 11.2: BA 精确等于 r=8 张秩 1 外积矩阵 b_k @ a_k^T 之和!
-rank1_sum = sum(B_trained[:, k : k + 1] @ A[k : k + 1, :] for k in range(r))
-assert torch.allclose(Delta_W, rank1_sum, atol=1e-6)
-assert torch.linalg.matrix_rank(Delta_W).item() == r
-
-# 2. 验证参数压缩比 (1 / 256) 与零推理延迟合并恒等性 (W_0 + BA)x == W_0 x + B(Ax)
-compression = (B_trained.numel() + A.numel()) / W_0.numel()
-x = torch.randn(d_in, 16)  # 16 个输入 token 向量
-W_merged = W_0 + Delta_W
-out_branch = W_0 @ x + B_trained @ (A @ x)
-out_merged = W_merged @ x
-assert torch.allclose(out_branch, out_merged, atol=1e-4)
-print(f"Rank(Delta_W) = {r} | Param ratio = {compression:.4%} | Merge max diff = {(out_branch - out_merged).abs().max():.2e}")
+x = torch.randn(d_in, 16, dtype=dtype)
+out_branch = W_0 @ x + s * (B @ (A @ x))
+out_merged = (W_0 + delta_W) @ x
+torch.testing.assert_close(out_branch, out_merged)
+ratio = (B.numel() + A.numel()) / W_0.numel()
+print(f"Rank: {r} | Factor parameter ratio in this example: {ratio:.2%}")
 ```
 
 </CollapsibleCode>

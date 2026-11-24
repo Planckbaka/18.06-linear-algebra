@@ -5,9 +5,9 @@ videoEpisode: "P22"
 textbookRef: "§6.2"
 ---
 
-在上一讲中，我们学习了特征值（Eigenvalue）与特征向量（Eigenvector）的基本概念：矩阵作用于某些特殊向量时，不改变其几何方向，仅产生标量倍的伸缩（$A\mathbf{x} = \lambda \mathbf{x}$）。
+在上一讲中，我们学习了特征值（Eigenvalue）与特征向量（Eigenvector）的基本概念：矩阵作用于某些特殊向量时，只产生标量倍的伸缩，特征向量张成的一维子空间保持不变（$A\mathbf{x} = \lambda \mathbf{x}$）。
 
-如果我们将一个矩阵的所有特征向量收集起来，作为空间的一组全新坐标基底，会发生什么？答案是线性代数中最具威力、应用最广的结构性定理：**矩阵对角化（Diagonalization）**。
+如果我们能从矩阵的特征向量中选出一组基，并以它们作为坐标轴，会发生什么？答案是线性代数中最具威力、应用最广的结构性定理：**矩阵对角化（Diagonalization）**。
 
 对角化将复杂的矩阵运算彻底**解耦（Decouple）**。通过对角化，计算矩阵的高阶幂 $A^k$、求解多元离散差分方程（Difference Equations）以及分析动态系统的渐近稳定性，都会从原本错综复杂的全矩阵相乘，化简为彼此独立的单变量标量指数运算。
 
@@ -17,7 +17,7 @@ textbookRef: "§6.2"
 
 ### 列视角展开：对角化的代数起源
 
-设方阵 $A \in \mathbb{C}^{n \times n}$ 拥有 $n$ 个特征值 $\lambda_1, \lambda_2, \dots, \lambda_n$，对应的特征向量分别为 $\mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_n \in \mathbb{C}^n$。根据定义，对每一个特征对均有：
+设方阵 $A \in \mathbb{C}^{n \times n}$ 有 $n$ 个按代数重数（Algebraic Multiplicity）计数的特征值 $\lambda_1, \lambda_2, \dots, \lambda_n$，对列表中的每一项选取一个对应的非零特征向量，必要时可重复选取同一向量。将它们记为 $\mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_n \in \mathbb{C}^n$。根据定义，对每一个特征对均有：
 
 $$
 A \mathbf{x}_i = \lambda_i \mathbf{x}_i \quad (i = 1, 2, \dots, n)
@@ -29,7 +29,7 @@ $$
 S = \begin{bmatrix} \mathbf{x}_1 & \mathbf{x}_2 & \cdots & \mathbf{x}_n \end{bmatrix}
 $$
 
-现在，我们用矩阵乘法的**列视角（Column Picture）**计算乘积 $AS$：
+现在，我们用矩阵乘法的**列图像（Column Picture）**计算乘积 $AS$：
 
 $$
 AS = A \begin{bmatrix} \mathbf{x}_1 & \mathbf{x}_2 & \cdots & \mathbf{x}_n \end{bmatrix} = \begin{bmatrix} A\mathbf{x}_1 & A\mathbf{x}_2 & \cdots & A\mathbf{x}_n \end{bmatrix} = \begin{bmatrix} \lambda_1 \mathbf{x}_1 & \lambda_2 \mathbf{x}_2 & \cdots & \lambda_n \mathbf{x}_n \end{bmatrix}
@@ -87,7 +87,7 @@ $$
 
 ### 矩阵高阶幂 $A^k$ 的高速计算
 
-对角化最直观的威力体现在计算矩阵的幂 $A^k$ 上。如果直接按定义进行 $k$ 次矩阵乘法，需要进行 $k-1$ 次 $n \times n$ 的稠密矩阵相乘，计算复杂度高达 $O(k n^3)$，并且极其容易累积数值浮点误差。
+对角化最直观的威力体现在计算矩阵的幂 $A^k$ 上。若直接将 $k$ 个 $A$ 相乘，需要 $k-1$ 次 $n \times n$ 的稠密矩阵相乘，计算复杂度高达 $O(k n^3)$，并且极其容易累积数值浮点误差。
 
 但如果矩阵 $A$ 可对角化，我们将 $A = S \Lambda S^{-1}$ 代入平方运算中：
 
@@ -123,7 +123,9 @@ A^k = S \begin{bmatrix}
 \end{bmatrix} S^{-1}
 $$
 
-一旦完成一次特征分解，计算任意高阶幂（例如 $A^{1000}$）的计算量主要集中在求对角线的标量乘方，仅需 $O(n)$ 次标量幂与两次矩阵相乘，整体复杂度彻底与幂次 $k$ 解耦！
+已知 $S$ 与 $S^{-1}$ 后，构造完整的 $A^k$ 需要 $n$ 次标量乘方、$O(n^2)$ 的列缩放和一次稠密矩阵乘法。对单个向量施加 $A^k$ 时，只需两次矩阵–向量乘法与一次对角缩放。采用二进制快速幂时，每个标量乘方使用 $O(\log k)$ 次乘法；不作特征分解也可用 $O(\log k)$ 次矩阵乘法求幂。
+
+$k=0$ 时取 $A^0=\Lambda^0=I_n$，对奇异矩阵也成立。
 
 若矩阵 $A$ 还是可逆的（即所有特征值 $\lambda_i \ne 0$），这一公式还可以直接扩展到负整数幂：
 
@@ -150,7 +152,7 @@ $$
 设 $A \in \mathbb{C}^{n \times n}$，其特征多项式为 $p(\lambda) = \det(A - \lambda I_n)$。设 $\lambda_0$ 为 $A$ 的一个特征值：
 
 1. **代数重数（Algebraic Multiplicity, AM）**：
-   $\lambda_0$ 作为一元多项式方程 $p(\lambda) = 0$ 的根的重数。即多项式分解中含有因子 $(\lambda_0 - \lambda)^{\operatorname{AM}(\lambda_0)}$，记作 $\operatorname{AM}(\lambda_0)$。根据代数基本定理，所有特征值的代数重数之和恒等于 $n$：
+   $\lambda_0$ 作为一元多项式方程 $p(\lambda) = 0$ 的根的重数。即使 $(\lambda - \lambda_0)^r$ 整除 $p(\lambda)$ 的最大整数 $r$，记作 $\operatorname{AM}(\lambda_0)$。根据代数基本定理，各互异特征值的代数重数之和恒等于 $n$：
    $$
    \sum_{i} \operatorname{AM}(\lambda_i) = n
    $$
@@ -230,13 +232,13 @@ $$
 设 $\lambda_0$ 的几何重数为 $g = \operatorname{GM}(\lambda_0) = \dim \operatorname{Null}(A - \lambda_0 I_n) \ge 1$。
 取特征子空间 $\operatorname{Null}(A - \lambda_0 I_n)$ 的一组标准正交基 $\{\mathbf{q}_1, \dots, \mathbf{q}_g\}$。
 将其扩充为整个 $\mathbb{C}^n$ 空间的一组标准正交基 $\{\mathbf{q}_1, \dots, \mathbf{q}_g, \mathbf{q}_{g+1}, \dots, \mathbf{q}_n\}$，构造酉矩阵 $Q = \begin{bmatrix} Q_1 & Q_2 \end{bmatrix}$，其中 $Q_1 = [\mathbf{q}_1 \dots \mathbf{q}_g]$。
-由于 $Q_1$ 各列均为 $\lambda_0$ 的特征向量，有 $A Q_1 = \lambda_0 Q_1$。因此计算相似变换矩阵：
+若 $g=n$，则 $A=\lambda_0 I_n$，两种重数均为 $n$。若 $g\lt n$，由于 $Q_1$ 各列均为 $\lambda_0$ 的特征向量，有 $A Q_1 = \lambda_0 Q_1$。因此计算相似变换矩阵：
 
 $$
-Q^{-1} A Q = Q^* A Q = \begin{bmatrix} Q_1^* \\ Q_2^* \end{bmatrix} \begin{bmatrix} A Q_1 & A Q_2 \end{bmatrix} = \begin{bmatrix} Q_1^* (\lambda_0 Q_1) & Q_1^* A Q_2 \\ Q_2^* (\lambda_0 Q_1) & Q_2^* A Q_2 \end{bmatrix}
+Q^{-1} A Q = Q^H A Q = \begin{bmatrix} Q_1^H \\ Q_2^H \end{bmatrix} \begin{bmatrix} A Q_1 & A Q_2 \end{bmatrix} = \begin{bmatrix} Q_1^H (\lambda_0 Q_1) & Q_1^H A Q_2 \\ Q_2^H (\lambda_0 Q_1) & Q_2^H A Q_2 \end{bmatrix}
 $$
 
-注意到 $Q_1^* Q_1 = I_g$ 且 $Q_2^* Q_1 = 0$（正交性），上式化为分块上三角矩阵：
+注意到 $Q_1^H Q_1 = I_g$ 且 $Q_2^H Q_1 = 0$（正交性），上式化为分块上三角矩阵：
 
 $$
 Q^{-1} A Q = \begin{bmatrix} \lambda_0 I_g & B \\ 0 & C \end{bmatrix}
@@ -255,6 +257,8 @@ $$
 $$
 
 证毕。
+
+互异特征值的特征子空间构成直和。若从每个特征子空间取一个向量，且它们的和为零，那么每个非零项都是对应于互异特征值的特征向量。由第一部分的线性无关性，所有项都只能为零。因此，将各特征子空间的一组基合在一起，所得线性无关特征向量的总数正好是各几何重数之和。
 
 </ProofCollapse>
 
@@ -282,7 +286,7 @@ $$
 - 特征方程：$\det(A - \lambda I) = (1 - \lambda)^2 = 0 \implies \lambda_1 = \lambda_2 = 1$。代数重数 $\operatorname{AM}(1) = 2$。
 - 计算零空间：$A - 1 \cdot I_2 = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}$。其第二列为主元列，$\operatorname{rank}(A - I_2) = 1$。
 - 几何重数：$\operatorname{GM}(1) = 2 - \operatorname{rank}(A - I_2) = 2 - 1 = 1$。
-- 求解特征向量：$\begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_2 = 0$，特征向量只能是 $c \begin{bmatrix} 1 \\ 0 \end{bmatrix}$。
+- 求解特征向量：$\begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_2 = 0$，特征向量是 $c\begin{bmatrix}1\\0\end{bmatrix}$（$c\ne0$）。
 - 结论：几何重数仅为 1，严重低于代数重数 2（$\operatorname{GM} \lt \operatorname{AM}$）。整个平面只有一条特征直线（$x$ 轴），缺少第二个线性无关特征向量，矩阵 $S$ 无法拼满两列，因此**不可对角化**！
 
 <MultiplicityVsDefectiveDiagram />
@@ -333,7 +337,7 @@ $$
 \rho(A) = \max_{1 \le i \le n} |\lambda_i|
 $$
 
-观察模态展开式中的每一项 $\lambda_i^k$，当 $k \to \infty$ 时：
+当 $A$ 可对角化时，$\lambda_i^k$ 决定各模态的长期行为。$k=0$ 时，每个模态都保留初始振幅，包括 $\lambda_i=0$ 的模态。
 
 1. **渐近稳定（Decay to Zero）**：
    若 $\rho(A) \lt 1$（即所有特征值的模长均严格小于 1），则对每个 $i$ 都有 $|\lambda_i|^k \to 0$。因此对**任意**初始状态 $\mathbf{u}_0$，恒有：
@@ -341,12 +345,14 @@ $$
    \lim_{k \to \infty} \mathbf{u}_k = \mathbf{0}
    $$
 2. **存在非零稳态（Steady State）**：
-   若存在主特征值 $\lambda_1 = 1$，且其余特征值模长均满足 $|\lambda_i| \lt 1$（如正则马尔可夫转移矩阵）。随着 $k \to \infty$，所有阻尼模态 $\lambda_i^k \mathbf{x}_i \to \mathbf{0}$ 全部衰减消亡，系统最终收敛至不随时间变化的稳态：
+   若 $\lambda_1=1$ 是单特征值，且其余特征值模长均满足 $|\lambda_i| \lt 1$（如正则马尔可夫转移矩阵）。随着 $k \to \infty$，所有阻尼模态 $\lambda_i^k \mathbf{x}_i \to \mathbf{0}$ 全部衰减消亡，系统最终收敛至不随时间变化的稳态：
    $$
    \lim_{k \to \infty} \mathbf{u}_k = c_1 \mathbf{x}_1
    $$
 3. **指数发散（Explosion）**：
-   若谱半径 $\rho(A) \gt 1$（至少存在一个特征值 $|\lambda_i| \gt 1$），只要初态在该特征方向上的投影分量 $c_i \ne 0$，状态向量的范数 $\|\mathbf{u}_k\|$ 就会随 $k$ 指数级爆炸，系统失稳。
+   若谱半径 $\rho(A) \gt 1$（至少存在一个特征值 $|\lambda_i| \gt 1$），只要初态在特征基底下对应的坐标 $c_i \ne 0$，状态向量的范数 $\|\mathbf{u}_k\|$ 就会随 $k$ 指数级爆炸，系统失稳。
+
+渐近稳定判据也适用于亏损矩阵：$A^k\to 0$ 当且仅当 $\rho(A)\lt 1$。必要性可沿特征向量检验。充分性可由若尔当块 $\lambda I+N$ 得到：若 $N^m=0$，其幂只含 $\binom{k}{j}\lambda^{k-j}N^j$（$0\le j\le\min(k,m-1)$）。当 $0\lt|\lambda|\lt 1$ 时，指数衰减快于固定次数的多项式增长；$\lambda=0$ 的块有限步后归零。
 
 ### 经典案例：斐波那契数列的对角化求解
 
@@ -392,7 +398,7 @@ $$
 求解对应特征向量 $(A - \lambda_i I)\mathbf{x}_i = \mathbf{0}$：
 
 $$
-\begin{bmatrix} 1 - \lambda_i & 1 \\ 1 & -\lambda_i \end{bmatrix} \begin{bmatrix} x_{i,1} \\ x_{i,2} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_{i,1} - \lambda_i x_{i,2} = 0 \implies \mathbf{x}_i = \begin{bmatrix} \lambda_i \\ 1 \end{bmatrix}
+\begin{bmatrix} 1 - \lambda_i & 1 \\ 1 & -\lambda_i \end{bmatrix} \begin{bmatrix} x_{i,1} \\ x_{i,2} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies x_{i,1} - \lambda_i x_{i,2} = 0 \quad\left(\text{取 }\mathbf{x}_i = \begin{bmatrix} \lambda_i \\ 1 \end{bmatrix}\right)
 $$
 
 即：
@@ -487,7 +493,7 @@ $$
 
 其特征方程为 $\lambda^2 + 1 = 0 \implies \lambda = \pm i$。
 - **在实数域 $\mathbb{R}$ 上**：没有实特征值，不存在任何实特征向量，因此在 $\mathbb{R}$ 上**不可对角化**；
-- **在复数域 $\mathbb{C}$ 上**：拥有两个互异的复特征值 $\lambda_1 = i, \lambda_2 = -i$，对应的复特征向量为 $\mathbf{x}_1 = \begin{bmatrix} i \\ 1 \end{bmatrix}, \mathbf{x}_2 = \begin{bmatrix} -i \\ 1 \end{bmatrix}$，在 $\mathbb{C}$ 上**完全可对角化**！
+- **在复数域 $\mathbb{C}$ 上**：拥有两个互异的复特征值 $\lambda_1 = i, \lambda_2 = -i$，对应的复特征向量为 $\mathbf{x}_1 = \begin{bmatrix} 1 \\ -i \end{bmatrix}, \mathbf{x}_2 = \begin{bmatrix} 1 \\ i \end{bmatrix}$，在 $\mathbb{C}$ 上**完全可对角化**！
 
 ### 误区 4：误以为特征基底矩阵 $S$ 和对角阵 $\Lambda$ 是唯一的
 
@@ -513,10 +519,10 @@ $$
 
 <KeyTakeaways items={[
   "对角化核心恒等式：若矩阵 $A \\in \\mathbb{C}^{n \\times n}$ 拥有 $n$ 个线性无关的特征向量并组成矩阵 $S$，则 $AS = S\\Lambda$，从而 $A = S\\Lambda S^{-1}$ 且 $\\Lambda = S^{-1}AS$。",
-  "矩阵幂的高速计算：对角化将矩阵连乘解耦为对角线标量乘方 $A^k = S\\Lambda^k S^{-1} = S\\operatorname{diag}(\\lambda_1^k, \\dots, \\lambda_n^k)S^{-1}$，运算复杂度由 $O(k n^3)$ 锐减至 $O(n^3 + n)$。",
+  "已知特征分解后，对向量施加 $A^k = S\\Lambda^k S^{-1}$ 只需两次矩阵–向量乘法与 $n$ 次标量乘方。",
   "充分条件 vs 充要条件：$n$ 个互异特征值是可对角化的充分非必要条件；充要条件是每一个特征值的几何重数等于代数重数 $\\operatorname{GM}(\\lambda_i) = \\operatorname{AM}(\\lambda_i)$，即特征向量不亏损。",
   "可逆性与可对角化性正交无关：可逆性由特征值是否为零决定（$\\det(A) = \\prod \\lambda_i \\ne 0$），而可对角化性由特征向量能否张成 $\\mathbb{C}^n$ 决定。存在奇异可对角矩阵，也存在可逆不可对角矩阵。",
-  "离散动态系统的模态展开：差分方程 $\\mathbf{u}_{k+1} = A \\mathbf{u}_k$ 的通解为 $\\mathbf{u}_k = \\sum_{i=1}^n c_i \\lambda_i^k \\mathbf{x}_i$；系统的渐近稳定性由谱半径 $\\rho(A) = \\max |\\lambda_i| \\lt 1$ 唯一判定。",
+  "离散动态系统的模态展开：当 $A$ 可对角化时，差分方程 $\\mathbf{u}_{k+1} = A \\mathbf{u}_k$ 的通解为 $\\mathbf{u}_k = \\sum_{i=1}^n c_i \\lambda_i^k \\mathbf{x}_i$；系统的渐近稳定性由谱半径 $\\rho(A) = \\max |\\lambda_i| \\lt 1$ 唯一判定。",
   "斐波那契递推的对角化本质：二阶标量递推转化为一阶伴随矩阵系统，主导特征值 $\\lambda_1 = \\phi \\approx 1.618$ 决定了序列的指数增长阶与相邻项渐近比。"
 ]} />
 
@@ -535,8 +541,8 @@ $$
 
 <ProgressiveHint hints={[
   "计算特征多项式 $\\det(A - \\lambda I) = (1-\\lambda)^2 - 4 = 0$ 解出两根。",
-  "利用 $A\\mathbf{x} = \\lambda \\mathbf{x}$ 求解特征向量，并观察对称矩阵特征向量的正交性。",
-  "应用公式 $A^{10} = S \\Lambda^{10} S^{-1}$，先计算 $3^{10}$ 与 $(-1)^{10} = 1$ 的对角矩阵乘积。"
+  "利用 $A\\mathbf{x} = \\lambda \\mathbf{x}$ 求解特征向量，并利用实对称矩阵中互异特征值对应的特征向量相互正交。",
+  "应用公式 $A^{10} = S \\Lambda^{10} S^{-1}$，先计算对角元 $3^{10}$ 与 $(-1)^{10} = 1$。"
 ]} />
 
 <DualSolution>
@@ -554,6 +560,8 @@ $$
 解得 $\lambda_1 = 3, \lambda_2 = -1$。
 - 当 $\lambda_1 = 3$ 时，$(A - 3I)\mathbf{x}_1 = \begin{bmatrix} -2 & 2 \\ 2 & -2 \end{bmatrix}\mathbf{x}_1 = \mathbf{0} \implies \mathbf{x}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}$；
 - 当 $\lambda_2 = -1$ 时，$(A + I)\mathbf{x}_2 = \begin{bmatrix} 2 & 2 \\ 2 & 2 \end{bmatrix}\mathbf{x}_2 = \mathbf{0} \implies \mathbf{x}_2 = \begin{bmatrix} -1 \\ 1 \end{bmatrix}$。
+
+归一化后得到单位特征向量 $\frac{1}{\sqrt{2}}[1,1]^T$ 与 $\frac{1}{\sqrt{2}}[-1,1]^T$。计算矩阵幂时可使用对应的未归一化基。
 
 **第二步：构建 $S, \Lambda, S^{-1}$**
 
@@ -595,7 +603,7 @@ $$
 <TrueFalseInteractive
   id="l22-tf1"
   correct={false}
-  quickFeedback="错误！可逆性只要求所有特征值非零（det != 0），而可对角化性要求几何重数等于代数重数（特征向量不亏损）。反例：若尔当块矩阵 [1 1; 0 1] 是可逆的（det=1），但几何重数只有 1，不可对角化。"
+  quickFeedback="错误。剪切矩阵 $A=\begin{bmatrix}1&1\\0&1\end{bmatrix}$ 满足 $\det(A)=1$，且只有一个线性无关的特征向量。"
 />
 
 <ProgressiveHint hints={[
@@ -604,7 +612,7 @@ $$
 
 <DualSolution>
 <SolutionIntuition>
-可逆性关心的是核空间是否为零（是否有 $\lambda=0$）；可对角化性关心的是所有特征子空间的维数之和是否等于全空间维数。剪切矩阵可逆但只有一个独立特征方向。
+可逆性关心的是零空间是否为零（是否有 $\lambda=0$）；可对角化性关心的是所有特征子空间的维数之和是否等于全空间维数。剪切矩阵可逆但只有一个独立特征方向。
 </SolutionIntuition>
 <SolutionRigorous>
 命题为**假（False）**。
@@ -625,7 +633,7 @@ $$
 <TrueFalseInteractive
   id="l22-tf2"
   correct={false}
-  quickFeedback="错误！代数重数大于 1 时，只要其几何重数仍然等于代数重数，矩阵就完全可对角化。最简单的反例是单位矩阵 I_n，特征值全部相同，却早已是对角矩阵。"
+  quickFeedback="错误。可对角化要求每个特征值的几何重数都等于代数重数。当 $n\ge2$ 时，单位矩阵 $I_n$ 的唯一特征值 $1$ 的代数重数和几何重数均为 $n$。"
 />
 
 <ProgressiveHint hints={[
@@ -638,15 +646,15 @@ $$
 </SolutionIntuition>
 <SolutionRigorous>
 命题为**假（False）**。
-反例：考虑 $n \times n$ 单位矩阵 $I_n$。
-其特征多项式为 $p(\lambda) = (1 - \lambda)^n = 0$，特征值 $\lambda = 1$ 的代数重数达到最大值 $\operatorname{AM}(1) = n \gt 1$。
+反例：考虑 $n \times n$ 单位矩阵 $I_n$，其中 $n\ge2$。
+其特征多项式为 $p(\lambda) = (1 - \lambda)^n$，特征值 $\lambda = 1$ 的代数重数达到最大值 $\operatorname{AM}(1) = n \gt 1$。
 但计算其几何重数：
 
 $$
-\operatorname{GM}(1) = \dim \operatorname{Null}(I_n - 1 \cdot I_n) = \dim \operatorname{Null}(0) = n
+\operatorname{GM}(1) = \dim \operatorname{Null}(I_n - 1 \cdot I_n) = \dim \operatorname{Null}(0_{n\times n}) = n
 $$
 
-几何重数完美等于代数重数 $\operatorname{GM}(1) = \operatorname{AM}(1) = n$。任何一组标准正交基都是其特征基底，$I_n$ 显然是可对角化的。
+几何重数完美等于代数重数 $\operatorname{GM}(1) = \operatorname{AM}(1) = n$。任何一组基都是其特征基底，$I_n$ 显然是可对角化的。
 </SolutionRigorous>
 </DualSolution>
 
@@ -654,7 +662,7 @@ $$
 
 <ExerciseCard id="l22-ex4" tier="L3" title="代数重数 vs 几何重数分析：秩一微扰矩阵与幂矩阵">
 
-设 $\mathbf{u}, \mathbf{v} \in \mathbb{R}^n$ 为非零列向量，且满足 $\mathbf{v}^T \mathbf{u} \ne 0$。考虑秩一外积的标量位移矩阵：
+设 $n\ge 2$，且 $\mathbf{u}, \mathbf{v} \in \mathbb{R}^n$ 为非零列向量，且满足 $\mathbf{v}^T \mathbf{u} \ne 0$。考虑秩一外积的标量位移矩阵：
 
 $$
 A = \mathbf{u}\mathbf{v}^T + c I_n \quad (c \in \mathbb{R})
@@ -662,17 +670,17 @@ $$
 
 1. 证明 $A$ 拥有特征值 $\lambda_1 = c + \mathbf{v}^T \mathbf{u}$ 与 $\lambda_2 = c$；
 2. 求 $\lambda_2 = c$ 的代数重数与几何重数，并判定 $A$ 是否可对角化；
-3. 若某一般矩阵 $M$ 可对角化且特征对为 $(\mu_i, \mathbf{x}_i)$，证明 $M^k$ 的特征对必为 $(\mu_i^k, \mathbf{x}_i)$，即 $M^k$ 与 $M$ 拥有完全相同的特征向量。
+3. 对任意方阵 $M$、特征对 $(\mu_i,\mathbf{x}_i)$ 和整数 $k\ge 1$，证明 $(\mu_i^k,\mathbf{x}_i)$ 是 $M^k$ 的特征对。$M^k$ 能否有额外的特征向量？
 
 <ProgressiveHint hints={[
-  "将 $\\mathbf{u}$ 作用于矩阵 $A$，利用结合律 $(\\mathbf{u}\\mathbf{v}^T)\\mathbf{u} = \\mathbf{u}(\\mathbf{v}^T\\mathbf{u})$。",
-  "对于 $\\lambda_2 = c$，考察核空间 $\\operatorname{Null}(A - cI_n) = \\operatorname{Null}(\\mathbf{u}\\mathbf{v}^T)$，利用秩-零度定理计算其维数。",
+  "将矩阵 $A$ 作用于 $\\mathbf{u}$，利用结合律 $(\\mathbf{u}\\mathbf{v}^T)\\mathbf{u} = \\mathbf{u}(\\mathbf{v}^T\\mathbf{u})$。",
+  "对于 $\\lambda_2 = c$，考察零空间 $\\operatorname{Null}(A - cI_n) = \\operatorname{Null}(\\mathbf{u}\\mathbf{v}^T)$，利用秩-零度定理计算其维数。",
   "利用数学归纳法或由 $M\\mathbf{x} = \\mu\\mathbf{x}$ 连续左乘 $M$。"
 ]} />
 
 <DualSolution>
 <SolutionIntuition>
-秩一矩阵 $\mathbf{u}\mathbf{v}^T$ 只有一个非零奇异值/特征值 $\mathbf{v}^T \mathbf{u}$，其零空间维数高达 $n-1$（即所有与 $\mathbf{v}$ 正交的超平面向量）。加上标量对角阵 $cI_n$ 只会将所有特征值平移 $c$，而不改变任何特征向量！因此几何重数保持为 $n-1$，正好等于代数重数，矩阵必定可对角化。
+秩一矩阵 $\mathbf{u}\mathbf{v}^T$ 的唯一非零特征值为 $\mathbf{v}^T\mathbf{u}$，其零空间维数高达 $n-1$（即所有与 $\mathbf{v}$ 正交的超平面向量）。加上标量对角阵 $cI_n$ 只会将所有特征值平移 $c$，而不改变任何特征向量！因此几何重数保持为 $n-1$，正好等于代数重数，矩阵必定可对角化。
 </SolutionIntuition>
 <SolutionRigorous>
 **第一问：证明特征值**
@@ -689,7 +697,7 @@ $$
 A \mathbf{w} = (\mathbf{u}\mathbf{v}^T + c I_n)\mathbf{w} = \mathbf{u}(\mathbf{v}^T\mathbf{w}) + c\mathbf{w} = \mathbf{0} + c\mathbf{w} = c\mathbf{w}
 $$
 
-因此 $c$ 也是 $A$ 的特征值，对应特征向量为超平面 $\mathbf{v}^\perp$ 中的向量。
+因此 $c$ 也是 $A$ 的特征值，对应特征向量为超平面 $\mathbf{v}^\perp$ 中的非零向量。
 
 **第二问：重数与对角化判定**
 考察特征值 $\lambda_2 = c$ 的几何重数：
@@ -707,7 +715,7 @@ $$
 又因为 $\mathbf{v}^T \mathbf{u} \ne 0 \implies \lambda_1 = c + \mathbf{v}^T \mathbf{u} \ne c$，所以 $\lambda_1$ 贡献了至少 1 个互异的特征值。根据所有特征值的代数重数之和为 $n$：
 
 $$
-\operatorname{AM}(\lambda_1) + \operatorname{AM}(c) = n \implies \operatorname{AM}(c) \le n - 1
+\operatorname{AM}(\lambda_1) + \operatorname{AM}(c) \le n \implies \operatorname{AM}(c) \le n - 1
 $$
 
 结合基础不等式 $\operatorname{AM}(c) \ge \operatorname{GM}(c) = n - 1$，必有：
@@ -727,7 +735,7 @@ $$
 M^k \mathbf{x}_i = M (M^{k-1}\mathbf{x}_i) = M (\mu_i^{k-1}\mathbf{x}_i) = \mu_i^{k-1} (M \mathbf{x}_i) = \mu_i^{k-1} (\mu_i \mathbf{x}_i) = \mu_i^k \mathbf{x}_i
 $$
 
-故 $\mathbf{x}_i$ 依然是 $M^k$ 的特征向量，对应特征值为 $\mu_i^k$。
+若 $M$ 可对角化，它的一组特征基仍是 $M^k$ 的特征基。互异特征值取幂后可能重合。例如 $M=\operatorname{diag}(1,-1)$ 只有两条特征直线，而 $M^2=I_2$ 的特征向量包括所有非零向量。
 </SolutionRigorous>
 </DualSolution>
 
@@ -757,7 +765,7 @@ $$
 
 <DualSolution>
 <SolutionIntuition>
-任何二阶递推都等价于一个 $2 \times 2$ 伴随矩阵系统的演化。系统的极限行为完全被特征值的模长掌控。当判别式为 0 时（如 $a=1, b=-1/4$），特征值重合为 $1/2$，伴随矩阵将退化为不可对角化的若尔当块，解会出现形如 $k (1/2)^k$ 的久期项。稳定性要求两根都在复平面的开单位圆盘内，通过将圆盘映射到多项式系数，就能导出著名的三角形稳定域。
+任何二阶递推都等价于一个 $2 \times 2$ 伴随矩阵系统的演化。系统的极限行为完全被特征值的模长掌控。当判别式为 0 时（如 $a=1, b=-1/4$），特征值重合为 $1/2$，伴随矩阵相似于一个不可对角化的若尔当块，解可能出现形如 $k (1/2)^k$ 的久期项。稳定性要求两根都在复平面的开单位圆盘内，通过将圆盘映射到多项式系数，就能导出著名的三角形稳定域。
 </SolutionIntuition>
 <SolutionRigorous>
 **第一问：构建伴随矩阵**
@@ -809,7 +817,7 @@ $$
 \operatorname{GM}\left(\frac{1}{2}\right) = 2 - 1 = 1 \lt \operatorname{AM}\left(\frac{1}{2}\right)
 $$
 
-几何重数发生亏损，因此当 $a=1, b=-\frac{1}{4}$ 时，矩阵 $C$ **不可对角化**（对应特征向量仅有 $c \begin{bmatrix} 1/2 \\ 1 \end{bmatrix}$）。
+几何重数发生亏损，因此当 $a=1, b=-\frac{1}{4}$ 时，矩阵 $C$ **不可对角化**（对应特征向量是 $[1/2,1]^T$ 的所有非零倍数）。
 
 **第四问：渐近稳定三角形区域的推导**
 系统渐近稳定 $\iff \rho(C) \lt 1 \iff |\lambda_1| \lt 1$ 且 $|\lambda_2| \lt 1$。
@@ -819,37 +827,11 @@ $$
 \lambda_1 + \lambda_2 = a, \quad \lambda_1 \lambda_2 = -b
 $$
 
-分两种情况讨论：
-1. **若两根为共轭复根**（$\Delta = a^2 + 4b \lt 0$）：
-   两根模长相等，且 $|\lambda_1|^2 = |\lambda_2|^2 = \lambda_1 \lambda_2 = -b$。
-   因此 $|\lambda_i| \lt 1 \iff 0 \le -b \lt 1 \iff -1 \lt b \le 0$。
-   此时必然满足 $a^2 \lt -4b \le 4 \implies |a| \lt 2$。
-2. **若两根为实根**（$\Delta = a^2 + 4b \ge 0$）：
-   两个实根均严格落在区间 $(-1, 1)$ 内。根据二次函数的图像性质，充要条件是：
-   - 抛物线顶点在 $(-1, 1)$ 内：$-1 \lt \frac{a}{2} \lt 1 \implies |a| \lt 2$；
-   - 两端点函数值严格大于 0：
-     $$
-     p(1) = 1 - a - b \gt 0 \implies 1 - a - b \gt 0
-     $$
-     $$
-     p(-1) = 1 + a - b \gt 0 \implies 1 + a - b \gt 0
-     $$
-   - 乘积边界：$\lambda_1 \lambda_2 = -b \in (-1, 1) \implies |b| \lt 1$。
+若两根为非实共轭根，则 $-b=|\lambda_1|^2\gt 0$，且对任意实数 $x$ 有 $p(x)=|x-\lambda_1|^2\gt 0$，所以 $p(1)$ 和 $p(-1)$ 自动为正。此时稳定性等价于 $|b|\lt 1$。
 
-综合复根与实根的情况，三个不等式构成了充要条件：
+若两根均为实数且都在 $(-1,1)$ 内，则 $|b|=|\lambda_1\lambda_2|\lt 1$，且 $p(\pm1)\gt 0$。反过来，$p(1)\gt 0$ 意味着两根都小于 $1$ 或都大于 $1$，而后者会导致 $|\lambda_1\lambda_2|\gt 1$。同理，$p(-1)\gt 0$ 意味着两根都大于 $-1$ 或都小于 $-1$，而后者也与 $|b|\lt 1$ 矛盾。重复实根也包含在此论证中。
 
-$$
-\begin{cases}
-b \gt -1 \\
-1 - a - b \gt 0 \\
-1 + a - b \gt 0
-\end{cases}
-$$
-
-联立可知：
-- 上边界：$b \lt 1 - a$ 与 $b \lt 1 + a$（即 $b \lt 1 - |a|$）；
-- 下边界：$b \gt -1$。
-在 $(a, b)$ 平面上，三条直线 $b = -1$、$b = 1 - a$、$b = 1 + a$ 围成了一个顶点分别为 $(0, 1)$、$(-2, -1)$、$(2, -1)$ 的开三角形区域，证毕！
+三条不等式等价于 $-1\lt b\lt 1-|a|$，即顶点为 $(0,1),(-2,-1),(2,-1)$ 的开三角形。
 </SolutionRigorous>
 </DualSolution>
 
@@ -869,41 +851,26 @@ $$
 
 ### 线性代数核心映射：时间展开与矩阵幂的雅可比级联
 
-在循环神经网络（Recurrent Neural Network, RNN）或具有恒等直连的深层残差网络中，隐藏状态在时间维度上的向前传递可形式化为：
+在循环神经网络（Recurrent Neural Network, RNN）中，设隐藏状态 $\mathbf{h}_t\in\mathbb{R}^{d_h}$、输入 $\mathbf{x}_t\in\mathbb{R}^{d_x}$，并令 $W_{hh}\in\mathbb{R}^{d_h\times d_h}$、$W_{xh}\in\mathbb{R}^{d_h\times d_x}$。递推为：
 
 $$
 \mathbf{h}_t = \sigma(W_{hh} \mathbf{h}_{t-1} + W_{xh} \mathbf{x}_t)
 $$
 
-当我们使用时间反向传播算法（Backpropagation Through Time, BPTT）计算损失函数 $\mathcal{L}$ 对初始隐藏状态 $\mathbf{h}_0$ 的梯度时，根据多元微积分的链式法则：
+对于末端损失 $\mathcal{L}=\ell(\mathbf{h}_T)$，使用列梯度 $\mathbf{g}_t=\nabla_{\mathbf{h}_t}\mathcal{L}$。逐元素激活的雅可比为 $D_t=\operatorname{diag}(\sigma'(W_{hh}\mathbf{h}_{t-1}+W_{xh}\mathbf{x}_t))$，正向雅可比为 $J_t=D_tW_{hh}$。时间反向传播（Backpropagation Through Time, BPTT）依次使用转置：
 
 $$
-\frac{\partial \mathcal{L}}{\partial \mathbf{h}_0} = \frac{\partial \mathcal{L}}{\partial \mathbf{h}_T} \prod_{t=1}^T \frac{\partial \mathbf{h}_t}{\partial \mathbf{h}_{t-1}} = \frac{\partial \mathcal{L}}{\partial \mathbf{h}_T} \prod_{t=1}^T \left( W_{hh}^T D_t \right)
+\mathbf{g}_{t-1}=W_{hh}^T D_t\mathbf{g}_t,\qquad
+\mathbf{g}_0=J_1^T J_2^T\cdots J_T^T\mathbf{g}_T
 $$
 
-其中 $D_t = \operatorname{diag}\left(\sigma'(W_{hh} \mathbf{h}_{t-1} + W_{xh} \mathbf{x}_t)\right)$ 是激活函数的雅可比对角矩阵。
+在线性激活 $D_t=I$ 时，上式严格化为 $(W_{hh}^T)^{\,T}\mathbf{g}_T$，外层指数是时间步数。激活导数接近 $1$ 时，可将这一矩阵幂作为局部近似。在固定线性模型中，$\rho(W_{hh})\lt 1$ 保证任意末端梯度渐近衰减，而 $\rho(W_{hh})\gt 1$ 意味着存在增长方向。转置矩阵可对角化时，模态展开为 $\sum_i c_i\lambda_i^{\,T}\mathbf{x}_i$。非正规矩阵即使谱半径小于 $1$，也可能出现短暂放大。
 
-假设网络处于未饱和区域（激活导数近乎恒定 $D_t \approx I$），长程梯度传播的核心算子就退化为**权重矩阵的转置的高阶幂**：
-
-$$
-\prod_{t=1}^T W_{hh}^T \approx (W_{hh}^T)^T
-$$
-
-根据本讲所学的对角化展开，设 $W_{hh}^T = S \Lambda S^{-1}$：
-
-$$
-(W_{hh}^T)^T \mathbf{g} = \sum_{i=1}^n c_i \lambda_i^T \mathbf{x}_i
-$$
-
-这一代数展开彻底揭示了深度学习长程建模的核心困境：
-1. **梯度爆炸（Gradient Explosion）**：
-   若矩阵谱半径 $\rho(W_{hh}) = \max_i |\lambda_i| \gt 1$，只要主导特征方向上有非零分量，其振幅将以 $\lambda_{\max}^T$ 指数级急剧膨胀，数值发生溢出（NaN），网络训练瞬间崩溃。
-2. **梯度消失（Gradient Vanishing）**：
-   若谱半径 $\rho(W_{hh}) \lt 1$，所有模态均以 $\lambda_i^T \to 0$ 衰减，当步长 $T = 50$ 或 $100$ 时，梯度以几何级数湮灭至机器精度零点，模型彻底丧失捕捉长距离依赖的能力。
+对于非线性递推，梯度取决于各步 $D_t$。诱导欧氏范数给出 $\|\mathbf{g}_0\|_2\le\|\mathbf{g}_T\|_2\prod_{t=1}^T\|W_{hh}\|_2\|D_t\|_2$。其中 $\rho(W_{hh})\le\|W_{hh}\|_2=\sigma_{\max}(W_{hh})$，非正规矩阵可能使该不等式严格成立。
 
 ### 谱归一化（Spectral Normalization）与幂迭代算法
 
-为了确保深层模型（尤其是 GAN 判别器）处处满足 1-Lipschitz 连续性（限制梯度幅值波动），Miyato 等人提出了**谱归一化（Spectral Normalization）**技术：将网络权重矩阵直接除以其谱范数（最大奇异值 $\sigma_{\max}(W)$）：
+谱归一化（Spectral Normalization）将非零权重矩阵除以其最大奇异值，使该线性映射在欧氏范数下为 $1$-Lipschitz。若网络是这些线性映射与其他 $1$-Lipschitz 算子的复合，整个网络也满足该上界。
 
 $$
 W_{\text{SN}} = \frac{W}{\sigma_{\max}(W)}
@@ -917,19 +884,18 @@ $$
 \mathbf{u}_{k+1} = \frac{W \mathbf{v}_k}{\|W \mathbf{v}_k\|_2}, \quad \mathbf{v}_{k+1} = \frac{W^T \mathbf{u}_{k+1}}{\|W^T \mathbf{u}_{k+1}\|_2}
 $$
 
-为什么幂迭代收敛极快？将 $\mathbf{v}_0$ 在 $W^T W$ 的正交特征基底上展开：
+设 $W\in\mathbb{R}^{m\times n}$ 且 $n\ge2$，必要时将奇异值列表补零至 $n$ 项。假设 $\sigma_1\gt\sigma_2$ 且 $c_1=\mathbf{q}_1^T\mathbf{v}_0\ne 0$。将 $\mathbf{v}_0$ 在 $W^T W$ 的正交特征基底上展开：
 
 $$
 (W^T W)^k \mathbf{v}_0 = c_1 \sigma_1^{2k} \mathbf{q}_1 + c_2 \sigma_2^{2k} \mathbf{q}_2 + \dots = c_1 \sigma_1^{2k} \left[ \mathbf{q}_1 + \frac{c_2}{c_1} \left( \frac{\sigma_2}{\sigma_1} \right)^{2k} \mathbf{q}_2 + \dots \right]
 $$
 
-次大模态以比值 $\left( \frac{\sigma_2}{\sigma_1} \right)^{2k}$ **指数级衰减**！在连续梯度更新中，由于权重变化极其微小，上一步的特征向量是当前步极佳的热启动初值，因此**每步仅需执行 1 次幂迭代**，即可高度精确逼近真实的最大奇异值，使计算复杂度从 $O(n^3)$ 降至仅需一次矩阵-向量乘法的 $O(n^2)$！
+在上述条件下，方向误差由 $(\sigma_2/\sigma_1)^{2k}$ 控制。若最大奇异值重复，且初值在对应特征子空间上的分量非零，迭代趋向该分量归一化后的方向。热启动能提高单次迭代的效果，精度取决于谱间隙和权重变化。每一步需要两次矩阵–向量乘法；用估计值相除得到近似归一化。
 
 <CollapsibleCode language="python" title="PyTorch 实验：谱半径驱动的梯度爆炸/消失与幂迭代谱归一化模拟">
 ```python
 import torch
 import torch.nn as nn
-import matplotlib.pyplot as plt
 
 torch.manual_seed(42)
 
@@ -981,11 +947,13 @@ class PowerIterationSpectralNorm(nn.Module):
         self.weight = weight
         out_features, in_features = weight.shape
         # 初始化左右奇异向量缓冲区
-        self.register_buffer('u', nn.functional.normalize(torch.randn(out_features), dim=0))
-        self.register_buffer('v', nn.functional.normalize(torch.randn(in_features), dim=0))
+        self.register_buffer('u', nn.functional.normalize(weight.new_empty(out_features).normal_(), dim=0))
+        self.register_buffer('v', nn.functional.normalize(weight.new_empty(in_features).normal_(), dim=0))
         self.n_power_iterations = n_power_iterations
 
     def forward(self):
+        if self.n_power_iterations < 1:
+            raise ValueError("Use at least one power iteration.")
         u = self.u
         v = self.v
         W = self.weight
@@ -998,8 +966,10 @@ class PowerIterationSpectralNorm(nn.Module):
                 # u = normalize(W v)
                 u = nn.functional.normalize(torch.mv(W, v), dim=0, out=u)
             
-            # 估计最大奇异值 sigma = u^T W v
-            sigma = torch.dot(u, torch.mv(W, v))
+        # 固定估计的奇异向量，对 sigma 保留权重梯度
+        sigma = torch.dot(u.clone(), torch.mv(W, v.clone()))
+        if not torch.isfinite(sigma) or sigma <= 0:
+            raise ValueError("Spectral normalization requires a finite, positive estimate.")
             
         # 归一化权重
         return W / sigma, sigma
@@ -1010,13 +980,13 @@ true_sigma_max = torch.linalg.svdvals(test_W)[0].item()
 
 sn_layer = PowerIterationSpectralNorm(test_W, n_power_iterations=1)
 _, estimated_sigma_1 = sn_layer()
-sn_layer.n_power_iterations = 5
+sn_layer.n_power_iterations = 4
 _, estimated_sigma_5 = sn_layer()
 
 print("\n--- 谱范数估计精度验证 ---")
 print(f"真实最大奇异值 (精确 SVD): {true_sigma_max:.5f}")
 print(f"1 步幂迭代估计值:          {estimated_sigma_1.item():.5f} (相对误差: {abs(estimated_sigma_1.item()-true_sigma_max)/true_sigma_max:.2%})")
-print(f"5 步幂迭代估计值:          {estimated_sigma_5.item():.5f} (相对误差: {abs(estimated_sigma_5.item()-true_sigma_max)/true_sigma_max:.4%})")
+print(f"累计 5 步幂迭代估计值:          {estimated_sigma_5.item():.5f} (相对误差: {abs(estimated_sigma_5.item()-true_sigma_max)/true_sigma_max:.4%})")
 ```
 </CollapsibleCode>
 

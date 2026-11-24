@@ -10,20 +10,19 @@
 
 很多同学在考前会产生一个极好的疑问：“既然 $PA = LU$ 和 $EA = R$ 都是做高斯消元，为什么线性代数要发明两套记录方式？”答案在于它们各司其职，分别统治**大规模数值计算**与**精确子空间解剖**：
 
-1. **计算走廊 $PA = LU$（面向 $n \times n$ 可逆工程求解，复杂度 $\mathcal{O}(\frac{1}{3}n^3)$）**：
-   先用置换矩阵 $P$（满足 $P^T = P^{-1}$）预先排好行序避开零主元，再用自顶向下的行消元将 $PA$ 化为上三角阵 $U$。因为自顶向下消元没有交叉回代干扰，所有消元乘数 $\ell_{ij}$ 原封不动填入单位下三角矩阵 $L$！一旦花一次 $\frac{1}{3}n^3$ 代价分解好 $PA = LU$，面对成千上万个右侧向量 $\mathbf{b}$，每次只需两步三角回代（$L\mathbf{c} = P\mathbf{b}$ 与 $U\mathbf{x} = \mathbf{c}$），计算代价骤降至 $\mathcal{O}(n^2)$！
+1. **可逆 $n\times n$ 方阵的带主元 $LU$ 分解**。每一步先把一个非零元素交换到主元位置，再消去主元下方元素。$P$ 记录换行，$L$ 按最终行序存储消元乘数。后续换行时，$L$ 已计算出的各列也要对应换行。乘法与加法分别计数时，分解约需 $2n^3/3$ 次浮点运算。对每个新的 $\mathbf{b}$，先前代解 $L\mathbf{c}=P\mathbf{b}$，再回代解 $U\mathbf{x}=\mathbf{c}$，共需 $O(n^2)$ 次浮点运算。
 2. **结构走廊 $[A \mid I_m] \to [R \mid E]$（面向任意 $m \times n$ 矩阵的四子空间全景解剖）**：
-   继续向上消去主元上方元素并将主元归一，得到全宇宙唯一的**简化行阶梯形（Reduced Row Echelon Form, RREF）** $R = EA$（其中 $E \in \mathbb{R}^{m\times m}$ 可逆，自动记录了全部行变换配方）。主元个数 $r$ 一锤定音锁定四个基本子空间的全部维数与标准基！
+   继续向上消去主元上方元素并将主元归一，得到全宇宙唯一的**简化行阶梯形（Reduced Row Echelon Form, RREF）** $R = EA$（其中 $E \in \mathbb{R}^{m\times m}$ 可逆，自动记录了全部行变换配方）。主元个数决定四个子空间的维数。主元位置以及 $A$、$R$、$E$ 的元素则用于求出下表中的各组基。
 
-<DefinitionCard id="def-13-1" title="Quiz 1 核心速查表：初等变换下的子空间不变性与标准基提取铁律">
+<DefinitionCard id="def-13-1" title="Quiz 1 核心速查表：初等变换下的子空间不变性与求基规则">
 设 $A \in \mathbb{R}^{m\times n}$ 的秩为 $\operatorname{rank}(A) = r$，增广行最简化结果为 $[A \mid I_m] \to [R \mid E]$（即 $EA = R$，$E$ 可逆），且设 $Q \in \mathbb{R}^{n\times n}$ 为任意可逆列变换矩阵：
 
 1. **行变换左乘 $EA$（如 $A \to U \to R$）**：
    - **严格不变（输入侧 $\mathbb{R}^n$）**：$\operatorname{Row}(EA) = \operatorname{Row}(A)$，$\operatorname{Null}(EA) = \operatorname{Null}(A)$；
-   - **方向改变但维数不变（输出侧 $\mathbb{R}^m$）**：$\operatorname{Col}(EA) = E\operatorname{Col}(A) \neq \operatorname{Col}(A)$，$\operatorname{Null}((EA)^T) = E^{-T}\operatorname{Null}(A^T) \neq \operatorname{Null}(A^T)$。
+   - **维数不变，子空间可能改变（输出侧 $\mathbb{R}^m$）**：$\operatorname{Col}(EA) = E\operatorname{Col}(A)$，$\operatorname{Null}((EA)^T) = E^{-T}\operatorname{Null}(A^T)$。
 2. **列变换右乘 $AQ$（如列置换调整自由列顺序）**：
    - **严格不变（输出侧 $\mathbb{R}^m$）**：$\operatorname{Col}(AQ) = \operatorname{Col}(A)$，$\operatorname{Null}((AQ)^T) = \operatorname{Null}(A^T)$；
-   - **方向改变但维数不变（输入侧 $\mathbb{R}^n$）**：$\operatorname{Row}(AQ) = Q^T\operatorname{Row}(A)$，$\operatorname{Null}(AQ) = Q^{-1}\operatorname{Null}(A)$。
+   - **维数不变，子空间可能改变（输入侧 $\mathbb{R}^n$）**：$\operatorname{Row}(AQ) = Q^T\operatorname{Row}(A)$，$\operatorname{Null}(AQ) = Q^{-1}\operatorname{Null}(A)$。
 3. **四子空间取基口诀（背熟永不丢分）**：
    - $\operatorname{Row}(A) \subseteq \mathbb{R}^n$（$\dim = r$）：**直接抄 $R$ 的前 $r$ 个非零行**（竖写为列向量）；
    - $\operatorname{Null}(A) \subseteq \mathbb{R}^n$（$\dim = n - r$）：**直接从 $R\mathbf{x}=\mathbf{0}$ 解出 $n - r$ 个自由变量特解**（当主列在前即 $R = \begin{bmatrix} I_r & F \\ 0 & 0 \end{bmatrix}$ 时，零空间基矩阵为 $N = \begin{bmatrix} -F \\ I_{n-r} \end{bmatrix}$）；
@@ -39,8 +38,8 @@
 
 <InteractiveCanvasSlot
   id="l13-module1-rank-sandbox"
-  title="交互实验室预留：Module I 四类秩形态与乘积子空间包含沙盘"
-  description="二期将在此嵌入综合秩推理沙盘：自由调节 m, n, r 与级联乘积 A·B，实时观察 Col(AB) ⊆ Col(A)、Null(B) ⊆ Null(AB) 以及四类满秩/秩亏缺通解形态切换。"
+  title="交互实验：秩分解与可解性"
+  description="切换预设矩阵，对比其秩分解 $A=CR_0$、零空间维数，以及满秩条件如何判定解的存在性和唯一性。"
 />
 
 <TheoremCard id="thm-13-1" title="第一模块矩阵秩与子空间包含五大主宰定理（The Rank Arsenal）">
@@ -64,12 +63,14 @@
    |\operatorname{rank}(A) - \operatorname{rank}(B)| \le \operatorname{rank}(A + B) \le \operatorname{rank}(A) + \operatorname{rank}(B)
    $$
 
-   且 $\operatorname{rank}(A) = r \iff A$ 最少可写成 $r$ 个秩 $1$ 外积矩阵之和 $\sum_{k=1}^r \mathbf{u}_k \mathbf{v}_k^T$。
+   且 $\operatorname{rank}(A) = r \iff A$ 最少可写成 $r$ 个秩 $1$ 外积矩阵之和 $\sum_{k=1}^r \mathbf{u}_k \mathbf{v}_k^T$。零矩阵对应空和。
 4. **零乘积湮灭不等式（Sylvester 零化特例）**：若 $A \in \mathbb{R}^{m\times n}$ 与 $B \in \mathbb{R}^{n\times p}$ 满足 **$AB = 0$**，则 $B$ 的每一列都落在 $A$ 的零空间内，即 **$\operatorname{Col}(B) \subseteq \operatorname{Null}(A)$**！两边取维数立得：
 
    $$
-   AB = 0 \quad \Longrightarrow \quad \operatorname{rank}(B) \le \dim\operatorname{Null}(A) = n - \operatorname{rank}(A) \quad \Longleftrightarrow \quad \operatorname{rank}(A) + \operatorname{rank}(B) \le n
+   \bigl[AB=0 \iff \operatorname{Col}(B)\subseteq\operatorname{Null}(A)\bigr]\quad\text{且}\quad AB=0 \implies \operatorname{rank}(A)+\operatorname{rank}(B)\le n
    $$
+
+   若取 $A=B=\operatorname{diag}(1,0)$，秩之和等于 $n=2$，但 $AB=A\ne0$。因此秩上界只是 $AB=0$ 的必要条件。
 
    （特例：若 $n \times n$ 方阵满足幂零条件 $A^2 = 0$，令 $B = A$ 立得 $2\operatorname{rank}(A) \le n \implies \operatorname{rank}(A) \le \lfloor n/2 \rfloor$！）
 5. **单侧逆与形状刚性判据**：设 $A \in \mathbb{R}^{m\times n}$。
@@ -87,20 +88,20 @@
 </ProofCollapse>
 
 <PitfallAlert title="考前最后五分钟防丢分清单：Quiz 1 最致命的六大经典陷阱">
-1. **通解集合不是子空间**：当 $\mathbf{b} \neq \mathbf{0}$ 时，$A\mathbf{x} = \mathbf{b}$ 的解集 $\{\mathbf{x}_p + \mathbf{x}_n\}$ 不含原点 $\mathbf{0}$，是平移后的**仿射流形（Affine Flat）**，绝不是向量子空间！
-2. **维数相等 $\neq$ 子空间相等**：方阵恒有 $\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A) = r$，但除非对称或可逆，一般 $\operatorname{Row}(A) \neq \operatorname{Col}(A)$（反例 $\begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}$）。
-3. **$PA = LU$ 顺序别写串**：先置换再消元是 $PA = LU$；如果写成 $A = L_1 P_1 U_1$，矩阵性质完全不同！且行变换无须行交换的充要条件是各阶左上主子阵依次产生非零主元。
+1. **通解集合不是子空间**：当方程组有解且 $\mathbf{b} \neq \mathbf{0}$ 时，$A\mathbf{x} = \mathbf{b}$ 的解集 $\mathbf{x}_p+\operatorname{Null}(A)$ 不含原点 $\mathbf{0}$，是平移后的**仿射流形（Affine Flat）**，绝不是向量子空间！
+2. **维数相等 $\neq$ 子空间相等**：方阵恒有 $\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A) = r$，但一般 $\operatorname{Row}(A) \neq \operatorname{Col}(A)$（反例 $\begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}$）。
+3. **什么时候可以取 $P=I_n$？** 对可逆 $n\times n$ 方阵，按顺序在每个对角位置取得非零主元且不换行，当且仅当各阶顺序主子式均非零。若进行了换行，则记录为 $PA=LU$，三角求解的右端从 $P\mathbf{b}$ 开始。
 4. **RREF 里自由列也可能站在主列左边**：不要盲目套背 $N = \begin{bmatrix} -F \\ I \end{bmatrix}$ 的上下分块位置！如果第 2 列是自由列、第 3 列是主列（如第 07、10 讲算例），特解中的 $1$ 和 $0$ 必须严格填在**自由变量自己对应的行号**上！
 5. **实数域上 $\operatorname{rank}(A^T A) = \operatorname{rank}(A)$ 恒成立，但消元一般矩阵不能随便平方**：实矩阵永远满足 $\operatorname{Null}(A^T A) = \operatorname{Null}(A)$（因 $A^T A \mathbf{x} = \mathbf{0} \implies \mathbf{x}^T A^T A \mathbf{x} = \|A\mathbf{x}\|_2^2 = 0 \implies A\mathbf{x} = \mathbf{0}$！），但非对称方阵 $A^2$ 的秩完全可以比 $A$ 小（如 $\begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}^2 = 0$）！
-6. **固定秩矩阵与可逆矩阵不是子空间**：矩阵空间 $M$ 中对称阵、上三角阵、零迹阵是子空间；但“秩等于 $k$”、“秩不超过 $k$（$1\le k \lt \min(m,n)$）”以及“可逆阵”统统对加法不封闭！
+6. **矩阵空间中的秩约束**。秩为零的矩阵只有零矩阵。固定正秩矩阵集合与可逆矩阵集合都不含零矩阵。对 $1\le k\lt\min(m,n)$，秩至多为 $k$ 的矩阵集合含有零矩阵且对数乘封闭，但将 $E_{k+1,k+1}$ 加到 $\sum_{i=1}^k E_{ii}$ 上会得到秩 $k+1$。
 </PitfallAlert>
 
 <KeyTakeaways
   items={[
-    "**计算与结构双引擎**：求解可逆方阵线性方程组走 $PA = LU$（$\\mathcal{O}(n^3/3)$ 消元 + $\\mathcal{O}(n^2)$ 回代）；剖析长方形矩阵通解与四个子空间走 $[A \\mid I_m] \\to [R \\mid E]$。",
+    "**计算与结构双引擎**：求解可逆方阵线性方程组走 $PA = LU$（$O(n^3)$ 消元 + $\\mathcal{O}(n^2)$ 回代）；剖析长方形矩阵通解与四个子空间走 $[A \\mid I_m] \\to [R \\mid E]$。",
     "**四个基本子空间维数天平**：输入侧 $\\mathbb{R}^n$ 中 $\\dim\\operatorname{Row}(A) = r,\\; \\dim\\operatorname{Null}(A) = n - r$；输出侧 $\\mathbb{R}^m$ 中 $\\dim\\operatorname{Col}(A) = r,\\; \\dim\\operatorname{Null}(A^T) = m - r$。",
-    "**五大秩推理铁律**：$\\operatorname{rank}(AB) \\le \\min(\\operatorname{rank}A, \\operatorname{rank}B)$；$AB = 0 \\implies \\operatorname{rank}(A) + \\operatorname{rank}(B) \\le n$；$|\\operatorname{rank}A - \\operatorname{rank}B| \\le \\operatorname{rank}(A+B) \\le \\operatorname{rank}A + \\operatorname{rank}B$；实矩阵恒有 $\\operatorname{rank}(A^T A) = \\operatorname{rank}(A)$。",
-    "**网络关联矩阵物理闭环**：连通图（$v$ 点 $e$ 边）满足 $r = v - 1$，树无环（$e = v - 1$），独立环流维数 $e - v + 1 = f_{\\text{bounded}}$ 直接导出欧拉公式 $v - e + f = 2$。"
+    "**五大秩推理铁律**：$\\operatorname{rank}(AB) \\le \\min(\\operatorname{rank}(A), \\operatorname{rank}(B))$；$AB = 0 \\implies \\operatorname{rank}(A) + \\operatorname{rank}(B) \\le n$；$|\\operatorname{rank}(A) - \\operatorname{rank}(B)| \\le \\operatorname{rank}(A+B) \\le \\operatorname{rank}(A) + \\operatorname{rank}(B)$；实矩阵恒有 $\\operatorname{rank}(A^T A) = \\operatorname{rank}(A)$。",
+    "**网络关联矩阵物理闭环**：连通图（$v$ 点 $e$ 边）满足 $r = v - 1$，树无环（$e = v - 1$），对连通平面嵌入，环流空间维数 $e - v + 1 = f_{\\text{bounded}}$ 直接导出欧拉公式 $v - e + f = 2$。"
   ]}
 />
 
@@ -168,14 +169,14 @@
     tier="L2"
     title="真题第二题（概念陷阱一）：对任意实方阵 A，rank(A²) 一定等于 rank(A) 吗？"
   >
-    判断下列在历年 Quiz 1 中错误率超过 60% 的经典命题真伪：
+    判断下列命题真伪。
 
     > **命题**：对于任意 $n \times n$ 实方阵 $A$，因为实矩阵恒满足 $\operatorname{rank}(A^T A) = \operatorname{rank}(A)$，所以同理也必有 $\operatorname{rank}(A^2) = \operatorname{rank}(A)$。
 
     <TrueFalseInteractive
       id="l13-tf1"
       correct={false}
-      quickFeedback="大错特错！$A^T A$ 保秩是因为在实数域上 $\operatorname{Row}(A)$ 与 $\operatorname{Null}(A)$ 零交集，被 $A$ 映出来的非零向量 $A\mathbf{x}$ 绝不会落进 $\operatorname{Null}(A^T)$！但 $A^2 = A\cdot A$ 是把 $\operatorname{Col}(A)$ 直接喂给 $\operatorname{Null}(A)$——只要 $\operatorname{Col}(A)$ 躺进 $\operatorname{Null}(A)$ 里（如 $A = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}$），$A$ 的秩是 $1$，而 $A^2 = 0$ 的秩瞬间归零！"
+      quickFeedback="命题为假。由 $\mathbf{x}^TA^TA\mathbf{x}=\|A\mathbf{x}\|_2^2$ 可知 $A^TA$ 与 $A$ 的零空间相同，因而保秩。取 $A=\begin{bmatrix}0&1\\0&0\end{bmatrix}$，其列空间包含在 $\operatorname{Null}(A)$ 中，所以 $A^2=0_{2\times2}$，而 $A$ 的秩为 $1$。"
     />
 
     1. 给出一个非零 $2 \times 2$ 矩阵使 $A^2 = 0$，并从“列空间与零空间位置关系”解释为什么秩掉了 $1$；
@@ -264,7 +265,7 @@
            P^2 = (AB)(AB) = A(BA)B = A I_3 B = AB = P
            $$
 
-           故 $P = AB$ 是沿着 $\operatorname{Null}(B)$ 将 $\mathbb{R}^5$ 投射到 $3$ 维子空间 $\operatorname{Col}(A)$ 上的斜投影（当 $B = (A^TA)^{-1}A^T$ 时即为正交投影）矩阵！
+           由 $PA=A$ 与 $BP=B$ 可得 $\operatorname{Col}(P)=\operatorname{Col}(A)$、$\operatorname{Null}(P)=\operatorname{Null}(B)$。故 $P$ 沿 $\operatorname{Null}(B)$ 投影到 $\operatorname{Col}(A)$。残差 $(I_5-P)\mathbf{x}$ 对任意 $\mathbf{x}$ 均与 $\operatorname{Col}(A)$ 正交，当且仅当 $A^T(I_5-P)=0$。代入 $P=AB$，结合 $A$ 列满秩，得到正交投影的充要条件 $B=(A^TA)^{-1}A^T$。
 
       </SolutionRigorous>
     </DualSolution>
@@ -285,12 +286,12 @@
     同时已知系数矩阵 $A$ 有 **$m = 3$ 行**。请回答以下全部追问：
     1. 矩阵 $A$ 的精确形状 $m \times n$、矩阵的秩 $\operatorname{rank}(A) = r$，以及四个基本子空间的维数分别是多少？
     2. 写出 $A$ 的**唯一可能**的简化行阶梯形 $R = \operatorname{rref}(A)$！
-    3. 如果进一步告知：该方程组仅当右侧向量 $\mathbf{b} = (b_1, b_2, b_3)^T$ 满足相容性条件 $b_1 + b_2 - b_3 = 0$ 时才有解，请写出左零空间 $\operatorname{Null}(A^T)$ 的一组基，并构造出一组完全满足全部已知条件的具体矩阵 $A$ 与向量 $\mathbf{b}$！
+    3. 进一步假设任意候选右端 $\mathbf{b}=(b_1,b_2,b_3)^T$ 使方程组有解，当且仅当 $b_1+b_2-b_3=0$。请写出左零空间 $\operatorname{Null}(A^T)$ 的一组基，并构造出一组完全满足全部已知条件的具体矩阵 $A$ 与向量 $\mathbf{b}$！
 
     <ProgressiveHint
       hints={[
         "先数解向量 $\\mathbf{x}$ 有 $4$ 个分量 $\\implies$ 列数 $n = 4$！两个线性无关特解张成 $\\operatorname{Null}(A) \\implies \\dim\\operatorname{Null}(A) = n - r = 2 \\implies r = 4 - 2 = 2$！",
-        "观察两个特解中哪两个位置交替出现 $(1,0)$ 和 $(0,1)$：第 $2$ 分量和第 $4$ 分量！说明第 $2, 4$ 列是自由列，**第 $1, 3$ 列是主列**！把两个特解代入 $R\\mathbf{x}_n = \\mathbf{0}$ 立刻倒推出 $R$ 的全部元素！",
+        "用两个零空间向量写出 $R$ 的列关系。由于 $\\mathbf{e}_1$ 不在给定的零空间中，第 1 列非零。若第 4 列含第二个主元，第 2 行会迫使每个零空间向量满足 $x_4=0$。",
         "第 3 问：有解条件 $b_1 + b_2 - b_3 = 0 \\iff (1, 1, -1)\\mathbf{b} = 0$，说明 $(1, 1, -1)^T$ 正好躺进左零空间 $\\operatorname{Null}(A^T)$（且 $\\dim = 3 - 2 = 1$）！只需把 $R$ 的第 3 行替换成前两行之和（使 $\\text{row}_1 + \\text{row}_2 - \\text{row}_3 = \\mathbf{0}^T$），再算 $\\mathbf{b} = A\\mathbf{x}_p$ 即可完工！"
       ]}
     />
@@ -301,7 +302,7 @@
         这道题把第 06、07、08、10 讲串成了一颗璀璨的珍珠！
         - 通解里的 $\mathbf{x}_p = (2,0,0,0)^T$ 泄露了第 $1$ 列的秘密（$\mathbf{b} = 2\cdot\text{col}_1(A)$）；
         - 尾巴上挂着的两个特解泄露了整个零空间 $\operatorname{Null}(A)$，而因为 $\operatorname{Null}(R) = \operatorname{Null}(A)$，这等于直接把唯一简化行阶梯形 $R$ 送到你手上；
-        - 最后那句有解条件 $b_1 + b_2 - b_3 = 0$ 则把输出空间左零空间 $\operatorname{Null}(A^T)$ 的唯一法向量 $(1, 1, -1)^T$ 和盘托出！拼齐这两块拼图，矩阵 $A$ 无处遁形！
+        - 最后那句有解条件 $b_1 + b_2 - b_3 = 0$ 则把输出空间左零空间 $\operatorname{Null}(A^T)$ 的一个法向量 $(1, 1, -1)^T$ 和盘托出！拼齐这两块拼图，可据此构造满足条件的一组 $A$ 与 $\mathbf{b}$。
 
       </SolutionIntuition>
       <SolutionRigorous>
@@ -311,13 +312,13 @@
            四子空间维数：$\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A) = 2$，$\dim\operatorname{Null}(A) = 2$，$\dim\operatorname{Null}(A^T) = 3 - 2 = 1$。
 
         2. **唯一确定 $R = \operatorname{rref}(A)$**：
-           若第 $1$ 列是自由列，则特解无法由主列唯一消出上述形态；更严谨地，检查行空间与零空间正交性（或待定主列位置）：因 $\mathbf{s}_1$ 在第 $3,4$ 位为 $0$ 而第 $1,2$ 位非零，第 $1$ 个主元必在第 $1$ 列，第 $2$ 列为自由列（且 $r_{12} = 1$ 使 $-r_{12} = -1$）；第 $2$ 个主元必在第 $3$ 列（若在第 $4$ 列则第 $3$ 列自由却在 $\mathbf{s}_1$ 中未独立出现，且由 $\mathbf{s}_2 = (-3,0,-2,1)^T$ 知第 $3$ 主元行在第 $4$ 列元素为 $2$、第 $1$ 主元行在第 $4$ 列元素为 $3$）。核验：
+           记 $R$ 的第 $j$ 列为 $\mathbf{r}_j$。给定零空间中，向量的第 2、4 分量就是 $c_1,c_2$，因此仅零向量的这两个分量同时为零。故 $\mathbf{e}_1\notin\operatorname{Null}(A)$。因此 $\mathbf{r}_1\ne\mathbf{0}$，第 1 列含第一个主元。由 $R\mathbf{s}_1=\mathbf{0}$ 得 $\mathbf{r}_2=\mathbf{r}_1$。若第二个主元在第 4 列，则第 2 行必为 $[0,0,0,1]$，与 $R\mathbf{s}_2=\mathbf{0}$ 矛盾。故第 3 列含第二个主元，再由 $R\mathbf{s}_2=\mathbf{0}$ 得 $\mathbf{r}_4=3\mathbf{r}_1+2\mathbf{r}_3$。两主列分别为 $\mathbb{R}^3$ 中的 $\mathbf{e}_1,\mathbf{e}_2$。
 
            $$
            R = \begin{bmatrix} 1 & 1 & 0 & 3 \\ 0 & 0 & 1 & 2 \\ 0 & 0 & 0 & 0 \end{bmatrix}
            $$
 
-           确实满足 $R\mathbf{s}_1 = \mathbf{0},\; R\mathbf{s}_2 = \mathbf{0}$，且任何具有相同零空间的 $3\times 4$ RREF 必有相同行空间 $\operatorname{Row}(R)$，由 RREF 唯一性定理知此 $R$ **全宇宙唯一**！
+           两个主列与前述两个列关系决定了全部四列，因此这个简化行阶梯形唯一。
 
         3. **左零空间基与具体矩阵 $A, \mathbf{b}$ 构造**：
            相容性条件 $b_1 + b_2 - b_3 = 0 \iff \begin{bmatrix} 1 & 1 & -1 \end{bmatrix}\mathbf{b} = 0$，结合 $\dim\operatorname{Null}(A^T) = 1$，立得左零空间基为：
@@ -326,7 +327,7 @@
            \mathcal{B}_{\text{left-null}} = \left\{ \begin{bmatrix} 1 \\ 1 \\ -1 \end{bmatrix} \right\}
            $$
 
-           要使 $A = E^{-1} R$ 满足 $(1, 1, -1) A = \mathbf{0}^T$（即第 $3$ 行等于前两行之和），只需取可逆初等矩阵 $E^{-1} = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 1 & 1 & 1 \end{bmatrix}$ 左乘 $R$，并用特解 $\mathbf{x}_p = (2,0,0,0)^T$ 算出 $\mathbf{b} = A\mathbf{x}_p$：
+           要使 $A = E^{-1} R$ 满足 $(1, 1, -1) A = \mathbf{0}^T$（即第 $3$ 行等于前两行之和），只需取可逆的行变换矩阵 $E^{-1} = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 1 & 1 & 1 \end{bmatrix}$ 左乘 $R$，并用特解 $\mathbf{x}_p = (2,0,0,0)^T$ 算出 $\mathbf{b} = A\mathbf{x}_p$：
 
            $$
            A = \begin{bmatrix} 1 & 1 & 0 & 3 \\ 0 & 0 & 1 & 2 \\ 1 & 1 & 1 & 5 \end{bmatrix}, \qquad \mathbf{b} = A \begin{bmatrix} 2 \\ 0 \\ 0 \\ 0 \end{bmatrix} = \begin{bmatrix} 2 \\ 0 \\ 2 \end{bmatrix}
@@ -352,19 +353,19 @@
       hints={[
         "第 1 问：$A^2 = A \\cdot A = 0$ 意味着 $A$ 的每一列左乘 $A$ 都变成 $\\mathbf{0}$，即 $\\operatorname{Col}(A) \\subseteq \\operatorname{Null}(A)$！",
         "两边取维数：$r = \\dim\\operatorname{Col}(A) \\le \\dim\\operatorname{Null}(A) = 5 - r \\implies 2r \\le 5 \\implies r \\le 2.5$！因为秩是整数，最大只能是 $2$！",
-        "第 2 问构造秩 $2$ 的 $5\\times 5$ 幂零阵：只需把两个 $2\\times 2$ 幂零块 $\\begin{bmatrix} 0 & 1 \\\\ 0 & 0 \\end{bmatrix}$ 沿对角分块摆放（最后一格补 $0$），或者在右上角放一个 $2\\times 2$ 单位阵 $I_2$！第 3 问需要回忆一般 Frobenius / Sylvester 秩不等式或两步分拆 $(AB)C = 0$！"
+        "第 2 问构造秩 $2$ 的 $5\\times 5$ 幂零阵：只需把两个 $2\\times 2$ 幂零块 $\\begin{bmatrix} 0 & 1 \\\\ 0 & 0 \\end{bmatrix}$ 沿对角分块摆放（最后一格补 $0$），或者在右上角放一个 $2\\times 2$ 单位阵 $I_2$！第 3 问用 Sylvester 秩下界并分组 $(AB)C = 0$！"
       ]}
     />
 
     <DualSolution>
       <SolutionIntuition>
 
-        $A^2 = 0$ 要求整个列空间 $\operatorname{Col}(A)$（维数 $r$）必须乖乖钻进零空间 $\operatorname{Null}(A)$（维数 $5 - r$）的肚子里藏起来！如果 $r \ge 3$，列空间至少 $3$ 维，而零空间只剩至多 $5 - 3 = 2$ 维——一个 $3$ 维立体怎么可能塞进 $2$ 维平面里？所以 $2r \le 5$，秩最大只能到 $2$！至于三连乘 $ABC = 0$，每次相乘最多损失的秩不超过第二个矩阵的零空间维数 $6 - \operatorname{rank}$，两步累加立刻锁死上界 $12$！
+        $A^2 = 0$ 要求整个列空间 $\operatorname{Col}(A)$（维数 $r$）必须乖乖钻进零空间 $\operatorname{Null}(A)$（维数 $5 - r$）的肚子里藏起来！如果 $r \ge 3$，列空间至少 $3$ 维，而零空间只剩至多 $5 - 3 = 2$ 维——一个 $3$ 维立体怎么可能塞进 $2$ 维平面里？所以 $2r \le 5$，秩最大只能到 $2$！至于三连乘 $ABC = 0$，每次左乘最多损失的秩不超过左因子的零空间维数 $6 - \operatorname{rank}$，两步累加立刻锁死上界 $12$！
 
       </SolutionIntuition>
       <SolutionRigorous>
 
-        1. **幂零矩阵秩上界证明**：
+        1. **平方为零时的秩上界**：
            因 $A^2 = 0$，对任意 $\mathbf{y} = A\mathbf{x} \in \operatorname{Col}(A)$ 有 $A\mathbf{y} = A^2\mathbf{x} = \mathbf{0}$，故 $\operatorname{Col}(A) \subseteq \operatorname{Null}(A)$。设 $r = \operatorname{rank}(A)$，取维数得：
 
            $$
@@ -446,7 +447,7 @@
              M_1^{10} = 4^9 M_1 = 262{,}144 \, \mathbf{e}\mathbf{e}^T
              $$
 
-           - 考察对称矩阵 $B = I_4 - \frac{1}{4}\mathbf{e}\mathbf{e}^T$：注意到 $4B = \begin{bmatrix} 3 & -1 & -1 & -1 \\ -1 & 3 & -1 & -1 \\ -1 & -1 & 3 & -1 \\ -1 & -1 & -1 & 3 \end{bmatrix} = D_{K_4} - W_{K_4} = L_{K_4}$ 恰为 $4$ 节点连通完全图 $K_4$ 的图拉普拉斯矩阵 $A_{K_4}^T A_{K_4}$！由第 12 讲定理 12.1 及对称性 $B^T = B$：
+           - 考察对称矩阵 $B = I_4 - \frac{1}{4}\mathbf{e}\mathbf{e}^T$：注意到 $4B = \begin{bmatrix} 3 & -1 & -1 & -1 \\ -1 & 3 & -1 & -1 \\ -1 & -1 & 3 & -1 \\ -1 & -1 & -1 & 3 \end{bmatrix} = D_{K_4} - W_{K_4} = L_{K_4}$ 恰为 $4$ 节点连通完全图 $K_4$ 的图拉普拉斯矩阵 $A_{K_4}^T A_{K_4}$！此外 $B\mathbf{e}=\mathbf{0}$，且 $B$ 固定 $\mathbf{e}^\perp$ 内的每个向量，因此 $B$ 是到零和超平面的正交投影。由此直接读出
              - **秩**：$\operatorname{rank}(B) = \operatorname{rank}(L_{K_4}) = 4 - 1 = \mathbf{3}$；
              - **零空间与左零空间**：$\operatorname{Null}(B) = \operatorname{Null}(B^T) = \operatorname{span}\{(1,1,1,1)^T\}$（$\dim = 1$）；
              - **列空间与行空间**：$\operatorname{Col}(B) = \operatorname{Row}(B) = \{ \mathbf{x} \in \mathbb{R}^4 : x_1 + x_2 + x_3 + x_4 = 0 \}$（零和超平面，$\dim = 3$，基为 $\{(-1,1,0,0)^T, (-1,0,1,0)^T, (-1,0,0,1)^T\}$）。
@@ -467,7 +468,7 @@
            $$
 
            该 $2 \times 4$ 约束组秩为 $2$，故 $\dim\operatorname{Null}(M_2) = 4 - 2 = \mathbf{2}$，从而由秩—零化度定理得 **$\operatorname{rank}(M_2) = 4 - 2 = 2$**！
-           令自由变量 $(x_3, x_4) = (1, 0)$ 与 $(0, 1)$，读出 $\operatorname{Null}(M_2)$ 的一组标准基：
+           令自由变量 $(x_3, x_4) = (1, 0)$ 与 $(0, 1)$，读出 $\operatorname{Null}(M_2)$ 的一组基：
 
            $$
            \mathcal{B}_{\operatorname{Null}(M_2)} = \left\{ \begin{bmatrix} 1 \\ -2 \\ 1 \\ 0 \end{bmatrix}, \; \begin{bmatrix} 2 \\ -3 \\ 0 \\ 1 \end{bmatrix} \right\}

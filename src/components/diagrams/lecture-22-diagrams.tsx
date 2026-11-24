@@ -4,12 +4,12 @@ import { MathDiagram } from './math-diagram';
 /**
  * L22 Diagram 1: 对角化旁路与矩阵幂可换图 (Diagonalization Bypass for A^k)
  * Visualizes the commutative diagram A^k u_0 = S Λ^k S^{-1} u_0:
- * Top path: coupled physical space (hard continuous matrix multiplication)
- * Down-Right-Up bypass: project into modal coordinates via S^{-1}, decouple into scalar powers Λ^k,
+ * Top path: coupled physical space (repeated matrix–vector multiplication)
+ * Down-Right-Up bypass: change to modal coordinates via S^{-1}, decouple into scalar powers Λ^k,
  * and recombine via S.
  */
 export function DiagonalizationPipelineDiagram({
-  caption = '矩阵幂的对角化旁路：直接连乘 $A^k \\mathbf{u}_0$ 处于耦合物理基底空间；通过特征基底变换 $S^{-1}$ 解耦为对角模态 $\\Lambda^k$，最后由 $S$ 重构为 $\\mathbf{u}_k = \\sum c_i \\lambda_i^k \\mathbf{x}_i$',
+  caption = '当 $A=S\\Lambda S^{-1}$ 时，用 $S^{-1}$ 将 $\\mathbf{u}_0$ 写成特征基底坐标，逐个模态施加 $\\Lambda^k$，再用 $S$ 还原至原坐标。',
 }: {
   caption?: string;
 }) {
@@ -88,7 +88,7 @@ export function DiagonalizationPipelineDiagram({
           y="42"
           className="text-xs font-semibold fill-muted-foreground tracking-wide"
         >
-          耦合物理基底空间 (Coupled Physical Space) —— 坐标变量强交织，计算复杂度高
+          原坐标 (Original Coordinates)
         </text>
 
         {/* Top Node u_0 */}
@@ -229,7 +229,7 @@ export function DiagonalizationPipelineDiagram({
             textAnchor="middle"
             className="text-sm font-bold fill-blue-600 dark:fill-blue-400"
           >
-            u&#7522;
+            uₖ
           </text>
           <text
             x="0"
@@ -237,7 +237,7 @@ export function DiagonalizationPipelineDiagram({
             textAnchor="middle"
             className="text-[11px] font-medium fill-blue-600 dark:fill-blue-400"
           >
-            = A&#7522; u&#8320;
+            = Aᵏ u&#8320;
           </text>
         </g>
 
@@ -256,13 +256,13 @@ export function DiagonalizationPipelineDiagram({
           textAnchor="middle"
           className="text-[11px] font-medium fill-rose-600 dark:fill-rose-400"
         >
-          直接连乘 A&#7522; (困难路径：全矩阵相乘，计算量 O(k n&#179;))
+          逐步施加 A：k 次矩阵–向量乘法，O(k n²)
         </text>
 
         {/* Down Arrow: S^{-1} (Decomposition / Change of Basis) */}
         <g transform="translate(90, 120)">
           <path
-            d="M0,0 L0,95"
+            d="M0,0 L0,140"
             className="stroke-amber-600 dark:stroke-amber-400"
             strokeWidth="2.5"
             markerEnd="url(#l22-arrow-amber)"
@@ -282,7 +282,7 @@ export function DiagonalizationPipelineDiagram({
             textAnchor="middle"
             className="text-xs font-bold fill-amber-600 dark:fill-amber-400"
           >
-            S&#8315;&#185; 投影
+            S&#8315;&#185; 换基
           </text>
           <text
             x="67"
@@ -309,7 +309,7 @@ export function DiagonalizationPipelineDiagram({
           y="247"
           className="text-xs font-semibold fill-emerald-600 dark:fill-emerald-400 tracking-wide"
         >
-          特征基底解耦空间 (Decoupled Modal Space) —— 模态完全独立，标量并行幂运算
+          特征基底坐标 (Eigenbasis Coordinates)
         </text>
 
         {/* Bottom Node c */}
@@ -337,7 +337,7 @@ export function DiagonalizationPipelineDiagram({
             textAnchor="middle"
             className="text-[10px] fill-muted-foreground"
           >
-            [c&#8321;, c&#8322;, ..., c&#8345;]&#7511;
+            [c&#8321;, c&#8322;, ..., c&#8345;]ᵀ
           </text>
         </g>
 
@@ -347,7 +347,7 @@ export function DiagonalizationPipelineDiagram({
           <line
             x1="0"
             y1="8"
-            x2="480"
+            x2="530"
             y2="8"
             className="stroke-emerald-600/70 dark:stroke-emerald-400/70"
             strokeWidth="1.8"
@@ -359,14 +359,14 @@ export function DiagonalizationPipelineDiagram({
             textAnchor="middle"
             className="text-[11px] font-semibold fill-emerald-600 dark:fill-emerald-400"
           >
-            模态 1: c&#8321; &#8594; c&#8321; &#955;&#8321;&#7522; (标量乘方)
+            模态 1: c&#8321; &#8594; c&#8321; λ₁ᵏ (标量乘方)
           </text>
 
           {/* Mode 2 */}
           <line
             x1="0"
             y1="34"
-            x2="480"
+            x2="530"
             y2="34"
             className="stroke-teal-600/70 dark:stroke-teal-400/70"
             strokeWidth="1.8"
@@ -378,14 +378,14 @@ export function DiagonalizationPipelineDiagram({
             textAnchor="middle"
             className="text-[11px] font-semibold fill-teal-600 dark:fill-teal-400"
           >
-            模态 2: c&#8322; &#8594; c&#8322; &#955;&#8322;&#7522; (独立演化)
+            模态 2: c&#8322; &#8594; c&#8322; λ₂ᵏ (独立演化)
           </text>
 
           {/* Mode n */}
           <line
             x1="0"
             y1="58"
-            x2="480"
+            x2="530"
             y2="58"
             className="stroke-emerald-600/70 dark:stroke-emerald-400/70 stroke-dashed"
             strokeDasharray="4 3"
@@ -398,12 +398,12 @@ export function DiagonalizationPipelineDiagram({
             textAnchor="middle"
             className="text-[11px] font-medium fill-muted-foreground"
           >
-            模态 n: c&#8345; &#8594; c&#8345; &#955;&#8345;&#7522;
+            模态 n: c&#8345; &#8594; c&#8345; λₙᵏ
           </text>
         </g>
 
         {/* Central Operator Badge: Λ^k */}
-        <g transform="translate(380, 320)">
+        <g transform="translate(405, 345)">
           <rect
             x="-90"
             y="-14"
@@ -419,7 +419,7 @@ export function DiagonalizationPipelineDiagram({
             textAnchor="middle"
             className="text-xs font-bold fill-emerald-600 dark:fill-emerald-400"
           >
-            &#923;&#7522; = diag(&#955;&#8321;&#7522;, &#955;&#8322;&#7522;, ..., &#955;&#8345;&#7522;)
+            Λᵏ = diag(λ₁ᵏ, λ₂ᵏ, ..., λₙᵏ)
           </text>
         </g>
 
@@ -440,7 +440,7 @@ export function DiagonalizationPipelineDiagram({
             textAnchor="middle"
             className="text-xs font-bold fill-emerald-600 dark:fill-emerald-400"
           >
-            &#923;&#7522; c
+            Λᵏ c
           </text>
           <text
             x="0"
@@ -448,14 +448,14 @@ export function DiagonalizationPipelineDiagram({
             textAnchor="middle"
             className="text-[10px] fill-muted-foreground"
           >
-            [c&#8321;&#955;&#8321;&#7522;, ..., c&#8345;&#955;&#8345;&#7522;]&#7511;
+            [c&#8321;λ₁ᵏ, ..., c&#8345;λₙᵏ]ᵀ
           </text>
         </g>
 
         {/* Up Arrow: S (Reconstruction / Synthesis) */}
-        <g transform="translate(730, 215)">
+        <g transform="translate(730, 264)">
           <path
-            d="M0,0 L0,-95"
+            d="M0,0 L0,-147"
             className="stroke-purple-600 dark:stroke-purple-400"
             strokeWidth="2.5"
             markerEnd="url(#l22-arrow-purple)"
@@ -483,7 +483,7 @@ export function DiagonalizationPipelineDiagram({
             textAnchor="middle"
             className="text-[10px] fill-muted-foreground"
           >
-            u&#7522; = &#8721; c&#7522; &#955;&#7522;&#7522; x&#7522;
+            uₖ = &#8721; c&#7522; λᵢᵏ x&#7522;
           </text>
         </g>
       </svg>
@@ -515,7 +515,7 @@ export function MultiplicityVsDefectiveDiagram({
             id="l22-mvd-axis"
             markerWidth="5"
             markerHeight="5"
-            refX="4"
+            refX="5"
             refY="2.5"
             orient="auto"
           >
@@ -670,7 +670,7 @@ export function MultiplicityVsDefectiveDiagram({
               y="-42"
               className="text-[11px] font-bold fill-blue-600 dark:fill-blue-400"
             >
-              x&#8321; = [1, 1]&#7511;
+              x&#8321; = [1, 1]ᵀ
             </text>
 
             {/* Eigenvector 2: [-1, 1] */}
@@ -696,7 +696,7 @@ export function MultiplicityVsDefectiveDiagram({
               y="-42"
               className="text-[11px] font-bold fill-emerald-600 dark:fill-emerald-400"
             >
-              x&#8322; = [-1, 1]&#7511;
+              x&#8322; = [-1, 1]ᵀ
             </text>
           </g>
 
@@ -746,7 +746,7 @@ export function MultiplicityVsDefectiveDiagram({
             textAnchor="middle"
             className="text-xs font-bold fill-blue-600 dark:fill-blue-400"
           >
-            情况 2：有重数但满秩 (充要成立)
+            情况 2：重特征值且 GM = AM
           </text>
 
           {/* Subtitle & Matrix */}
@@ -992,18 +992,18 @@ export function MultiplicityVsDefectiveDiagram({
             <line
               x1="0"
               y1="0"
-              x2="52"
+              x2="42"
               y2="0"
               className="stroke-rose-600 dark:stroke-rose-400"
               strokeWidth="2.5"
               markerEnd="url(#l22-mvd-rose)"
             />
             <text
-              x="56"
+              x="48"
               y="-6"
               className="text-[11px] font-bold fill-rose-600 dark:fill-rose-400"
             >
-              x&#8321; = [1, 0]&#7511;
+              x&#8321; = [1, 0]ᵀ
             </text>
 
             {/* Shear effect on non-eigenvector */}
@@ -1016,7 +1016,7 @@ export function MultiplicityVsDefectiveDiagram({
               strokeWidth="1.5"
             />
             <path
-              d="M0,-42 Q20,-48 38,-42"
+              d="M0,-42 H42"
               fill="none"
               className="stroke-amber-500"
               strokeWidth="1.5"
@@ -1025,17 +1025,17 @@ export function MultiplicityVsDefectiveDiagram({
             <line
               x1="0"
               y1="0"
-              x2="40"
+              x2="42"
               y2="-42"
               className="stroke-amber-600 dark:stroke-amber-400 stroke-dashed"
               strokeWidth="1.5"
             />
             <text
-              x="42"
-              y="-45"
+              x="45"
+              y="-47"
               className="text-[10px] fill-amber-600 dark:fill-amber-400"
             >
-              剪切发生: [0, 1]&#7511; &#8594; [1, 1]&#7511;
+              A e₂ = [1, 1]ᵀ
             </text>
 
             <text
@@ -1044,7 +1044,7 @@ export function MultiplicityVsDefectiveDiagram({
               textAnchor="middle"
               className="text-[10px] font-medium fill-rose-600 dark:fill-rose-400"
             >
-              仅存一条不变特征直线，无法张成 &#8477;&#178;
+              唯一特征直线无法张成 &#8477;&#178;
             </text>
           </g>
 

@@ -299,7 +299,7 @@ export function GrandFinaleFourSubspacesFactorizationsDiagram({
 
           {/* Null(A) -> Output Origin 0 */}
           <path
-            d="M 316 232 C 415 232, 540 220, 638 195"
+            d="M 316 232 C 415 232, 540 220, 646 191"
             fill="none"
             className="stroke-emerald-600 dark:stroke-emerald-400"
             strokeWidth="2"
@@ -313,7 +313,7 @@ export function GrandFinaleFourSubspacesFactorizationsDiagram({
 
           {/* Null(A^T) -> Input Origin 0 */}
           <path
-            d="M 644 264 C 540 282, 410 278, 322 199"
+            d="M 644 264 C 540 282, 410 278, 314 191"
             fill="none"
             className="stroke-amber-600 dark:stroke-amber-400"
             strokeWidth="2"
@@ -357,20 +357,20 @@ export function GrandFinaleFourSubspacesFactorizationsDiagram({
             • 保持 Row(A) 与 Null(A) 不变
           </text>
           <text x="28" y="420" className="fill-foreground text-[9.8px] font-mono">
-            • det(A) = ± ∏ u_ii (主元判秩)
+            • 方阵：det(A) = det(P) ∏ uᵢᵢ
           </text>
           <text x="28" y="437" className="fill-foreground text-[9.8px] font-mono">
             • 求解 Ax = b，计算量 O(n³/3)
           </text>
           <text x="28" y="454" className="fill-rose-700 dark:fill-rose-300 text-[9.8px] font-mono">
-            • 注意：消元改变 Col(A) 与特征值
+            • 消元可能改变 Col(A) 与特征值
           </text>
           <rect x="27" y="468" width="204" height="44" rx="6" className="fill-blue-500/8 stroke-blue-500/30" />
           <text x="129" y="485" textAnchor="middle" className="fill-blue-700 dark:fill-blue-300 text-[9.8px] font-semibold">
             核心功能：消元主元定位四大子空间
           </text>
           <text x="129" y="502" textAnchor="middle" className="fill-muted-foreground text-[9.5px] font-mono">
-            L 存乘数无填充 · U 显式给出秩 r
+            L 记录消元乘数，主元个数给出秩 r
           </text>
         </g>
 
@@ -404,13 +404,13 @@ export function GrandFinaleFourSubspacesFactorizationsDiagram({
             适用：列满秩矩阵 A ∈ ℝᵐˣⁿ (r = n)
           </text>
           <text x="262" y="403" className="fill-foreground text-[9.8px] font-mono">
-            • QᵀQ = I_n，Q 为 Col(A) 正交基
+            • QᵀQ = Iₙ，Q 的列张成 Col(A)
           </text>
           <text x="262" y="420" className="fill-foreground text-[9.8px] font-mono">
             • 最小二乘解耦：R x̂ = Qᵀ b
           </text>
           <text x="262" y="437" className="fill-foreground text-[9.8px] font-mono">
-            • 几何超体积：|det A| = ∏ r_ii
+            • 列张成的体积：∏ |rᵢᵢ|
           </text>
           <text x="262" y="454" className="fill-emerald-700 dark:fill-emerald-300 text-[9.8px] font-mono">
             • 数值稳健：避免直接算病态 AᵀA
@@ -463,14 +463,14 @@ export function GrandFinaleFourSubspacesFactorizationsDiagram({
             • 对称阵：实 λᵢ + 正交特征基 Q
           </text>
           <text x="496" y="454" className="fill-amber-800 dark:fill-amber-300 text-[9.8px] font-mono">
-            • SPD：λᵢ &gt; 0 ⇔ xᵀAx &gt; 0 (RᵀR)
+            • 实对称：全正特征值 ⇔ SPD
           </text>
           <rect x="495" y="468" width="204" height="44" rx="6" className="fill-amber-500/8 stroke-amber-500/30" />
           <text x="597" y="485" textAnchor="middle" className="fill-amber-800 dark:fill-amber-300 text-[9.8px] font-semibold">
             核心功能：动力系统与二次型优化
           </text>
           <text x="597" y="502" textAnchor="middle" className="fill-muted-foreground text-[9.5px] font-mono">
-            Markov λ₁=1 · 亏损阵需 Jordan MJM⁻¹
+            Markov λ₁=1 · Jordan 形式适用于复方阵
           </text>
         </g>
 
@@ -501,7 +501,7 @@ export function GrandFinaleFourSubspacesFactorizationsDiagram({
             4. A = UΣVᵀ（奇异值分解）
           </text>
           <text x="730" y="384" className="fill-purple-700 dark:fill-purple-300 text-[10px] font-bold">
-            适用：地球上任意 m×n 矩阵（无限制!）
+            适用：任意实 m×n 矩阵
           </text>
           <text x="730" y="403" className="fill-foreground text-[9.8px] font-mono">
             • 统一四子空间全部标准正交基
@@ -520,7 +520,7 @@ export function GrandFinaleFourSubspacesFactorizationsDiagram({
             核心功能：全课程理论终极统一
           </text>
           <text x="831" y="502" textAnchor="middle" className="fill-muted-foreground text-[9.5px] font-mono">
-            σᵢ = √λᵢ(AᵀA) · Avᵢ = σᵢuᵢ (必同基锁定)
+            i ≤ r：σᵢ = √λᵢ(AᵀA)，Avᵢ = σᵢuᵢ
           </text>
         </g>
       </svg>

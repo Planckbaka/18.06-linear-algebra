@@ -255,7 +255,7 @@ export function Module4Quiz3SynthesisMapDiagram({
             列正交: Fₙᴴ Fₙ = n Iₙ
           </text>
           <text x="32" y="352" className="font-mono text-[10px] fill-foreground">
-            FFT 分治: O(n²) → ½n log₂n
+            基 2 FFT：O(n log n)（n 为 2 的幂）
           </text>
           <rect x="32" y="358" width="178" height="14" rx="3" className="fill-blue-500/10" />
           <text x="121" y="368" textAnchor="middle" className="font-mono text-[9.5px] fill-blue-700 dark:fill-blue-300">
@@ -302,7 +302,7 @@ export function Module4Quiz3SynthesisMapDiagram({
             ② λᵢ &gt; 0  ③ det(Aₖ) &gt; 0
           </text>
           <text x="258" y="148" className="font-mono text-[10px] fill-foreground">
-            ④ 主元 dᵢ &gt; 0  ⑤ A = RᵀR
+            ④ dᵢ &gt; 0  ⑤ A = RᵀR（R 列满秩）
           </text>
           <rect x="258" y="154" width="178" height="14" rx="3" className="fill-emerald-500/10" />
           <text x="347" y="164" textAnchor="middle" className="font-mono text-[9.5px] fill-emerald-700 dark:fill-emerald-300">
@@ -339,7 +339,7 @@ export function Module4Quiz3SynthesisMapDiagram({
             惯性指数 (n₊, n₋, n₀) 守恒
           </text>
           <text x="258" y="250" className="font-mono text-[10px] fill-foreground">
-            A = LDLᵀ: 主元正负号同 λᵢ
+            若 A = LDLᵀ 且 D 对角：D 与 A 同惯性
           </text>
           <rect x="258" y="256" width="178" height="14" rx="3" className="fill-emerald-500/10" />
           <text x="347" y="266" textAnchor="middle" className="font-mono text-[9.5px] fill-emerald-700 dark:fill-emerald-300">
@@ -427,7 +427,7 @@ export function Module4Quiz3SynthesisMapDiagram({
           </text>
           <rect x="484" y="154" width="178" height="14" rx="3" className="fill-amber-500/10" />
           <text x="573" y="164" textAnchor="middle" className="font-mono text-[9.5px] fill-amber-700 dark:fill-amber-300">
-            QᵀAQ 是相似与合同的唯一交集
+            正交换基使相似与合同公式一致
           </text>
 
           <line
@@ -501,7 +501,7 @@ export function Module4Quiz3SynthesisMapDiagram({
           </text>
           <rect x="484" y="358" width="178" height="14" rx="3" className="fill-amber-500/10" />
           <text x="573" y="368" textAnchor="middle" className="font-mono text-[9.5px] fill-amber-700 dark:fill-amber-300">
-            A ~ B ⟺ 全部幂次秩 rₖ(λ) 相等
+            同谱时：A ~ B ⟺ 各 λ 的 rₖ(λ) 相等
           </text>
         </g>
 
@@ -541,14 +541,14 @@ export function Module4Quiz3SynthesisMapDiagram({
             A ∈ ℝᵐˣⁿ, UᵀU = Iₘ, VᵀV = Iₙ
           </text>
           <text x="710" y="132" className="font-mono text-[10px] fill-foreground">
-            AᵀAvᵢ = σᵢ²vᵢ (σᵢ = √λᵢ &gt; 0)
+            AᵀAvᵢ = σᵢ²vᵢ（i ≤ r：σᵢ &gt; 0）
           </text>
           <text x="710" y="148" className="font-mono text-[10px] fill-foreground">
             符号绑定: uᵢ = (1/σᵢ) A vᵢ
           </text>
           <rect x="710" y="154" width="178" height="14" rx="3" className="fill-purple-500/10" />
           <text x="799" y="164" textAnchor="middle" className="font-mono text-[9.5px] fill-purple-700 dark:fill-purple-300">
-            圆变椭圆: Vᵀ 对齐 → Σ 拉伸 → U 定向
+            单位球体 → 可能退化的椭球体
           </text>
 
           <line
@@ -696,7 +696,7 @@ export function Module4Quiz3SynthesisMapDiagram({
             谱全正 ⇒ 能量碗极小与 Cholesky
           </text>
           <text x="347" y="421" textAnchor="middle" className="font-mono text-[9.5px] fill-muted-foreground">
-            λᵢ &gt; 0 ⇔ dᵢ &gt; 0 ⇔ xᵀAx &gt; 0
+            实对称：全正特征值 ⇔ 正定
           </text>
 
           <line
@@ -722,7 +722,7 @@ export function Module4Quiz3SynthesisMapDiagram({
             破除对称且亏损 ⇒ 必退让出 Jordan 块
           </text>
           <text x="573" y="421" textAnchor="middle" className="font-mono text-[9.5px] fill-muted-foreground">
-            单基 M⁻¹AM 至多化为块对角 J
+            复数域：M⁻¹AM = Jordan 标准形 J
           </text>
 
           <line

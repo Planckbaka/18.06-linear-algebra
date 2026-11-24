@@ -11,7 +11,7 @@ Welcome to the opening lecture of Module IV. Across the first three modules, we 
 2. **The defective (non-diagonalizable) hazard**: Even when all eigenvalues are real, a repeated root whose geometric multiplicity is smaller than its algebraic multiplicity (such as the shear matrix with rows $[1, 1]$ and $[0, 1]$) leaves us short of $n$ independent eigenvectors, so $S$ is not invertible.
 3. **The skewed basis hazard**: Even when $A$ is diagonalizable, the eigenvector matrix $S$ is generally not orthogonal, making $S^{-1}$ expensive to compute and prone to severe numerical ill-conditioning.
 
-Today's star—the **real symmetric matrix** $A = A^T \in \mathbb{R}^{n \times n}$—eliminates all three hazards in a single stroke! Prof. Gilbert Strang calls real symmetric matrices **"the most important matrices in linear algebra."** Whenever $A$ is real and symmetric, it **never has complex eigenvalues**, **never becomes defective (always diagonalizable)**, and its eigenvectors can always be chosen to form an **orthonormal basis** $Q$, elevating diagonalization to its purest, most symmetric form:
+Today's star—the **real symmetric matrix** $A = A^T \in \mathbb{R}^{n \times n}$—eliminates all three hazards in a single stroke! Prof. Gilbert Strang calls real symmetric matrices **"the most important matrices in linear algebra."** Whenever $A$ is real and symmetric, it **has only real eigenvalues**, **never becomes defective (always diagonalizable)**, and its eigenvectors can always be chosen to form an **orthonormal basis**, with basis matrix $Q$, elevating diagonalization to its purest, most symmetric form:
 
 $$
 A = Q \Lambda Q^T = \sum_{i=1}^n \lambda_i \mathbf{q}_i \mathbf{q}_i^T
@@ -96,7 +96,7 @@ $$
 \begin{bmatrix} 3 & 1 \\ 1 & 3 \end{bmatrix}\begin{bmatrix} 1 \\ 3 \end{bmatrix} = \begin{bmatrix} 6 \\ 10 \end{bmatrix}
 $$
 
-That is the entire geometric secret of a real symmetric matrix: **in its own orthonormal eigenbasis, a real symmetric matrix has no rotation and no shear—it is purely an independent scaling along a set of mutually perpendicular principal axes!**
+That is the entire geometric secret of a real symmetric matrix: **in its own orthonormal eigenbasis, a real symmetric matrix acts by independent signed scalings along mutually perpendicular axes. Negative eigenvalues reverse their components and zero eigenvalues erase them.**
 
 <SpectralRankOneProjectionsDiagram caption="Rank-one orthogonal projection picture: an input vector x is split orthogonally onto the perpendicular eigenaxes q1 and q2 via P1x and P2x, scaled independently by real eigenvalues lambda1 and lambda2, and recombined into Ax." />
 
@@ -461,7 +461,7 @@ $$
 
   This locks the multiplicity of the eigenvalue $0$ at $n_0(A)$ for all $t \in [0, 1]$!
 
-Order the $n$ real eigenvalues of $A(t)$ continuously as $\mu_1(t) \le \mu_2(t) \le \dots \le \mu_n(t)$. If any eigenvalue $\mu_k(t)$ tried to cross from positive at $t=0$ to negative at $t=1$, the Intermediate Value Theorem would produce some $t_* \in (0, 1)$ where $\mu_k(t_*) = 0$. That would give $A(t_*)$ an *extra* zero eigenvalue, forcing $\dim \operatorname{Null}(A(t_*)) \ge n_0(A) + 1$ and contradicting rank conservation! Thus **no nonzero eigenvalue can ever cross zero along the homotopy**, and the counts of positive, negative, and zero eigenvalues are strictly conserved from $t = 0$ to $t = 1$.
+The ordered eigenvalues $\mu_1(t) \le \cdots \le \mu_n(t)$ are continuous by the min–max principle for symmetric matrices. At any fixed $t_0$, the nonzero eigenvalues retain their signs in a sufficiently small neighborhood of $t_0$. The remaining $n_0(A)$ eigenvalues must stay zero there, since nullity is constant. Thus each sign count is locally constant and therefore constant on the connected interval $[0,1]$.
 
 #### Method 2: Subspace Dimension Proof (for general congruence $B = M^T A M$ with any invertible $M$)
 
@@ -518,7 +518,7 @@ $$
 A = \begin{bmatrix} 1 & 1 \\ 0 & 2 \end{bmatrix}
 $$
 
-It has two distinct real eigenvalues $\lambda_1 = 1$ and $\lambda_2 = 2$, so it is cleanly diagonalizable as $A = S\Lambda S^{-1}$. Yet its eigenvectors are $\mathbf{x}_1 = [1, 0]^T$ and $\mathbf{x}_2 = [1, 1]^T$, whose dot product is $\mathbf{x}_1^T \mathbf{x}_2 = 1 \ne 0$—**not orthogonal**! Only when $A$ is real symmetric (or more generally normal) do we get $S = Q$ and $S^{-1} = Q^T$.
+It has two distinct real eigenvalues $\lambda_1 = 1$ and $\lambda_2 = 2$, so it is cleanly diagonalizable as $A = S\Lambda S^{-1}$. Yet its eigenvectors are $\mathbf{x}_1 = [1, 0]^T$ and $\mathbf{x}_2 = [1, 1]^T$, whose dot product is $\mathbf{x}_1^T \mathbf{x}_2 = 1 \ne 0$—**not orthogonal**! Real orthogonal diagonalization with a real diagonal matrix is equivalent to $A = A^T$. For example, a $90^\circ$ rotation is real and normal but has eigenvalues $\pm i$, so it has no real orthogonal diagonalization.
 
 ### Pitfall 2: Dropping the Complex Conjugate in the Real-Eigenvalue Proof (The $\mathbf{x}^T A \mathbf{x}$ Trap)
 Some quick-reference notes attempt to prove $\lambda \in \mathbb{R}$ using "$\mathbf{x}^T A \mathbf{x} = \lambda \mathbf{x}^T \mathbf{x}$." As noted at the end of Proof 1, this is a **double fatal error**:
@@ -533,7 +533,7 @@ $$
 C = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
 $$
 
-  the $(1, 1)$ entry is zero, so $C = L D L^T$ does not exist. If you break symmetry by left-multiplying by a permutation $P$ to get $P C = I_2$, its pivots $(1, 1)$ do **not** match the eigenvalue signs $(1, -1)$ of $C$! **The right fix is a symmetric congruence $M^T C M$**: for example, with $M = [1, 1; 1, -1]$ (invertible), we get:
+  the first pivot is zero and the entry below it is nonzero. A unit lower triangular $L$ and diagonal $D$ would give $c_{12} = l_{21}d_1 = 0$, a contradiction. Left-multiplying by a permutation $P$ gives $PC = I_2$. This product is symmetric but its pivots $(1,1)$ have different sign counts from the eigenvalues $(1,-1)$ of $C$. **The right fix is a symmetric congruence $M^T C M$**: for example, with $M = [1, 1; 1, -1]$ (invertible), we get:
 
 $$
 M^T C M = \begin{bmatrix} 2 & 0 \\ 0 & -2 \end{bmatrix}
@@ -886,7 +886,7 @@ $$
 \mathbf{v}_3 = \begin{bmatrix} -2 \\ 2 \\ -1 \end{bmatrix} \quad (\text{check: } 1(-2)+2(2)+2(-1)=0,\;\; 2(-2)+1(2)-2(-1)=0)
 $$
 
-   Thus $\operatorname{Null}(A) = \operatorname{span}\{[-2, 2, -1]^T\}$.
+   With $\mathbf{q}_3 = \mathbf{v}_3/3$, the singleton $\{\mathbf{q}_3\}$ is an orthonormal basis for both $\operatorname{Null}(A)$ and $\operatorname{Null}(A^T)$. The pair $\{\mathbf{q}_1,\mathbf{q}_2\}$ is an orthonormal basis for both $\operatorname{Col}(A)$ and $\operatorname{Row}(A)$.
 
 **Part 2: Reconstructing $A$ via rank-1 spectral projections**
 
@@ -937,7 +937,7 @@ A = \begin{bmatrix} 0 & 1 & 1 \\ 1 & 0 & 1 \\ 1 & 1 & 0 \end{bmatrix}
 $$
 
    (a) Observing that $A = \mathbf{1}\mathbf{1}^T - I_3$ (where $\mathbf{1} = [1, 1, 1]^T$), find all three eigenvalues of $A$ without solving a cubic equation, and state its inertia.
-   (b) Because $a_{11} = 0$, $A$ has no $L D L^T$ factorization directly. Why can't we use the pivots of a one-sided row-permuted matrix $P A$ to determine the eigenvalue signs? Using the invertible matrix
+   (b) The first pivot is zero and $a_{21}=1$, so $A$ has no factorization with unit lower triangular $L$ and diagonal $D$. Why can't we use the pivots of a one-sided row-permuted matrix $P A$ to determine the eigenvalue signs? Using the invertible matrix
 
 $$
 M = \begin{bmatrix} 1 & 1 & 0 \\ 1 & -1 & 0 \\ 0 & 0 & 1 \end{bmatrix}
@@ -957,7 +957,7 @@ $$
   buttonPrefix="Unlock Hint"
   hints={[
     "Part 1(a): Compute $A\\mathbf{1}$ for $\\mathbf{1} = [1, 1, 1]^T$; then for any vector $\\mathbf{v} \\in \\mathbf{1}^\\perp$ (meaning $x_1+x_2+x_3=0$), compute $(\\mathbf{1}\\mathbf{1}^T - I_3)\\mathbf{v}$.",
-    "Part 1(b): Left-multiplying by $P$ destroys symmetry ($PA \\ne (PA)^T$), leaving the realm of congruence! Computing $M^T A M$ turns the $(1,1)$ entry into $2 \\ne 0$, allowing standard $LDL^T$ elimination.",
+    "Part 1(b): For a single row swap, compare $\\det(PA)$ with $\\det(A)$. Invertible real congruence multiplies the determinant by $\\det(M)^2$. Computing $M^T A M$ turns the $(1,1)$ entry into $2 \\ne 0$, allowing standard $LDL^T$ elimination.",
     "Part 2: Substitute $P = Q\\Lambda Q^T$ into $P^2 = P$ and use $Q^T Q = I_n$ to decouple the matrix equation into scalar equations $\\lambda_i^2 = \\lambda_i$."
   ]}
 />
@@ -968,7 +968,7 @@ $$
   rigorousLabel="Rigorous Proof / Construction"
 >
 <SolutionIntuition>
-Part 1 highlights a classic pitfall in practice: when a zero pivot sits in the $(1, 1)$ corner, a one-sided row swap destroys symmetry; you must break the deadlock **symmetrically** using a two-sided congruence $M^T A M$. In Part 2, the defining property of a projection—"projecting twice does nothing more than projecting once ($P^2 = P$)"—becomes transparent in the eigenbasis: since $P$ just scales each orthogonal axis by $\lambda_i$, doing it twice equals doing it once only if every axis is either **kept intact ($\lambda_i = 1$)** or **annihilated ($\lambda_i = 0$)**. The number of $1$'s is simultaneously the rank and the trace!
+Part 1 highlights a classic pitfall in practice: when a zero pivot sits in the $(1, 1)$ corner, a one-sided row swap can change inertia even when the product stays symmetric. To preserve inertia, use a two-sided congruence $M^T A M$. In Part 2, the defining property of a projection—"projecting twice does nothing more than projecting once ($P^2 = P$)"—becomes transparent in the eigenbasis: since $P$ just scales each orthogonal axis by $\lambda_i$, doing it twice equals doing it once only if every axis is either **kept intact ($\lambda_i = 1$)** or **annihilated ($\lambda_i = 0$)**. The number of $1$'s is simultaneously the rank and the trace!
 </SolutionIntuition>
 <SolutionRigorous>
 **Part 1: Spectrum and congruence factorization of a zero-pivot matrix**
@@ -990,7 +990,7 @@ $$
 Thus the eigenvalues are $(2, -1, -1)$, and the inertia is $(n_+, n_-, n_0) = (1, 2, 0)$.
 
 **(b) Why one-sided $PA$ fails, and symmetric congruence**:
-Left-multiplying by a permutation (say swapping rows 1 and 2 to get $P_{12} A$) produces a **non-symmetric** matrix that is neither similar nor congruent to $A$; its pivots do not obey Sylvester's Law of Inertia (a single row swap even flips the sign of the determinant, flipping the product of the pivots!).
+Swapping rows 1 and 2 gives $P_{12}A = \begin{bmatrix}1&0&1\\0&1&1\\1&1&0\end{bmatrix}$. This matrix is still symmetric in this example, but its pivots are $1,1,-2$ and its determinant is $-2$, whereas $\det(A)=2$. Similarity preserves the determinant and real invertible congruence preserves its sign, so neither relates $P_{12}A$ to $A$.
 
 Instead, use the **two-sided congruence** $B = M^T A M$. Note $\det(M) = -2 \ne 0$, so $M$ is invertible. Compute:
 

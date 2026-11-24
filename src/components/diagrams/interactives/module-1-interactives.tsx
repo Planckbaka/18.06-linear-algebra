@@ -41,6 +41,7 @@ function ControlSlider({
         max={max}
         step={step}
         value={value}
+        disabled={min === max}
         onChange={(e) => onChange(parseFloat(e.target.value))}
         className="h-1.5 w-full cursor-pointer accent-primary"
       />
@@ -80,13 +81,14 @@ function L01RowVsColInteractive() {
   const ax1 = a11 * x + a12 * y;
   const ax2 = a21 * x + a22 * y;
   const err = Math.hypot(ax1 - b1, ax2 - b2);
+  const matched = err <= 32 * Number.EPSILON * Math.max(1, Math.hypot(ax1, ax2), Math.hypot(b1, b2));
   const det = a11 * a22 - a12 * a21;
   const sol =
-    Math.abs(det) > 1e-6
+    det !== 0
       ? [(a22 * b1 - a12 * b2) / det, (-a21 * b1 + a11 * b2) / det]
       : null;
 
-  // Map math [-4, 4] -> SVG [20, 200]
+  // Use the same scale on both axes and flip the SVG y-axis.
   const toSvg = (mx: number, my: number): [number, number] => [110 + mx * 22, 110 - my * 22];
 
   const lineEndpoints = (c1: number, c2: number, rhs: number): [number, number, number, number] | null => {
@@ -108,10 +110,14 @@ function L01RowVsColInteractive() {
   const l1 = lineEndpoints(a11, a12, b1);
   const l2 = lineEndpoints(a21, a22, b2);
   const [px, py] = toSvg(x, y);
-  const [oX, oY] = toSvg(0, 0);
-  const [c1X, c1Y] = toSvg(x * a11, x * a21);
-  const [sumX, sumY] = toSvg(ax1, ax2);
-  const [bX, bY] = toSvg(b1, b2);
+  const extent = Math.max(Math.abs(x * a11), Math.abs(x * a21), Math.abs(ax1), Math.abs(ax2), Math.abs(b1), Math.abs(b2));
+  const colScale = Math.min(22, 84 / extent);
+  const toColSvg = (mx: number, my: number): [number, number] => [110 + mx * colScale, 110 - my * colScale];
+  const [oX, oY] = toColSvg(0, 0);
+  const [c1X, c1Y] = toColSvg(x * a11, x * a21);
+  const [sumX, sumY] = toColSvg(ax1, ax2);
+  const [bX, bY] = toColSvg(b1, b2);
+  const rowClipId = React.useId();
 
   return (
     <div className="space-y-3">
@@ -127,8 +133,8 @@ function L01RowVsColInteractive() {
             {presets[k].label}
           </Button>
         ))}
-        <Badge variant={err < 0.08 ? 'emerald' : 'amber'} className="ml-auto font-mono text-[10px]">
-          ‖Ax − b‖₂ = {fmt(err)} {err < 0.08 ? '✓ MATCHED' : ''}
+        <Badge variant={matched ? 'emerald' : 'amber'} className="ml-auto font-mono text-[10px]">
+          ‖Ax − b‖₂ {matched ? '= 0 ✓ 满足方程组' : `≈ ${fmt(err, 3)}`}
         </Badge>
       </div>
 
@@ -140,14 +146,14 @@ function L01RowVsColInteractive() {
           </div>
           <svg viewBox="0 0 220 220" className="w-full max-h-56 text-foreground">
             <defs>
-              <clipPath id="l01-clip-row">
+              <clipPath id={rowClipId}>
                 <rect x="16" y="16" width="188" height="188" rx="4" />
               </clipPath>
             </defs>
             <rect x="16" y="16" width="188" height="188" rx="4" className="fill-muted/20 stroke-border" />
             <line x1="16" y1="110" x2="204" y2="110" className="stroke-border" strokeDasharray="3 3" />
             <line x1="110" y1="16" x2="110" y2="204" className="stroke-border" strokeDasharray="3 3" />
-            <g clipPath="url(#l01-clip-row)">
+            <g clipPath={`url(#${rowClipId})`}>
               {l1 && <line x1={l1[0]} y1={l1[1]} x2={l1[2]} y2={l1[3]} className="stroke-blue-600 dark:stroke-blue-400" strokeWidth="2.2" />}
               {l2 && <line x1={l2[0]} y1={l2[1]} x2={l2[2]} y2={l2[3]} className="stroke-emerald-600 dark:stroke-emerald-400" strokeWidth="2.2" strokeDasharray={preset === 'coincident' ? '5 4' : undefined} />}
               {sol && (
@@ -174,7 +180,7 @@ function L01RowVsColInteractive() {
           <div className="mb-1 flex items-center justify-between text-[11px] font-medium">
             <span>列图像 Column Picture (b 空间)</span>
             <span className="font-mono text-muted-foreground">
-              Ax = [{fmt(ax1)}, {fmt(ax2)}]ᵀ
+              Ax = [{fmt(ax1, 4)}, {fmt(ax2, 4)}]ᵀ
             </span>
           </div>
           <svg viewBox="0 0 220 220" className="w-full max-h-56 text-foreground">
@@ -274,13 +280,13 @@ function L02EliminationStepper() {
       ],
     },
     {
-      name: '主元为 0 触发行交换 P',
+      name: '候选位置为 0，触发行交换 P',
       steps: [
         {
-          title: 'Step 0: 主元位置 (1,1) = 0！需要行交换',
-          note: '主元绝不允许为 0，使用置换矩阵 P₁₂ 交换 R1 ↔ R2。',
-          pivot: [0, 0] as [number, number] | null,
-          op: '警告: pivot = 0',
+          title: 'Step 0: (1,1) = 0，需要行交换',
+          note: '消元需要非零主元。使用置换矩阵 P₁₂ 交换 R1 ↔ R2，将非零元素移到 (1,1)。',
+          pivot: null,
+          op: '(1,1) = 0',
           mat: [
             [0, 2, 1, 5],
             [1, 3, 1, 6],
@@ -327,7 +333,7 @@ function L02EliminationStepper() {
       ],
     },
     {
-      name: '消元失败 (奇异矩阵)',
+      name: '跳过无主元列 (奇异矩阵)',
       steps: [
         {
           title: 'Step 0: 初始增广矩阵',
@@ -343,8 +349,8 @@ function L02EliminationStepper() {
         },
         {
           title: 'Step 1: R2 ← R2 − 2R1, R3 ← R3 − R1',
-          note: '第 2 列主元位置 (2,2) 变为 0！下方 (3,2) 也为 0，行交换也救不回第 2 列！',
-          pivot: [1, 1] as [number, number] | null,
+          note: '第 2 列剩余元素全为 0，跳过该列并继续寻找第 3 列的主元。',
+          pivot: null,
           op: '第 2 列无主元!',
           mat: [
             [1, 2, 1, 4],
@@ -486,7 +492,7 @@ function L03Rank1OuterSlicer() {
   const u = [u1, u2, u3];
   const v = [v1, v2, v3];
   const mat = u.map((ui) => v.map((vj) => ui * vj));
-  const isZero = u.every((x) => Math.abs(x) < 1e-6) || v.every((x) => Math.abs(x) < 1e-6);
+  const isZero = u.every((x) => x === 0) || v.every((x) => x === 0);
 
   return (
     <div className="space-y-3">
@@ -498,7 +504,7 @@ function L03Rank1OuterSlicer() {
           列缩放构造 (第 j 列 = vⱼ u)
         </Button>
         <Badge variant={isZero ? 'outline' : 'purple'} className="ml-auto font-mono text-[10px]">
-          rank(u vᵀ) = {isZero ? 0 : 1} · LoRA 同构基准
+          rank(u vᵀ) = {isZero ? 0 : 1}
         </Badge>
       </div>
 
@@ -552,7 +558,9 @@ function L03Rank1OuterSlicer() {
             </tbody>
           </table>
           <p className="mt-2 mb-0 text-center text-[11px] text-muted-foreground">
-            {mode === 'outer'
+            {isZero
+              ? '至少有一个因向量为零，行空间和列空间的维数均为 0。'
+              : mode === 'outer'
               ? `所有行都是 [${v.join(', ')}] 的倍数，所有列都是 [${u.join(', ')}]ᵀ 的倍数 ⇒ 维数为 1。`
               : `列 1 = (${v1})·u，列 2 = (${v2})·u，列 3 = (${v3})·u，全部共线！`}
           </p>
@@ -573,13 +581,13 @@ function L04LuPyramidCost() {
   const [l32, setL32] = React.useState(4);
 
   const luOps = (2 / 3) * n * n * n;
-  const invOps = 2 * n * n * n;
+  // Leading flops for LU, triangular inversion of U, and the solve X L = U⁻¹.
+  const invOps = luOps + (1 / 3) * n ** 3 + n ** 3;
   const solveOps = k * 2 * n * n;
   const totalLu = luOps + solveOps;
   const totalInv = invOps + k * 2 * n * n;
   const speedup = totalInv / totalLu;
 
-  // Compute L * [[1,0,0],[0,1,0],[0,0,1]] vs L^-1 fill-in at (3,1): l32*l21 - l31
   const fillIn31 = l32 * l21 - l31;
 
   return (
@@ -587,9 +595,9 @@ function L04LuPyramidCost() {
       <div className="grid gap-3 md:grid-cols-2">
         <div className="space-y-2.5 rounded-lg border bg-background/70 p-3">
           <div className="flex items-center justify-between text-xs font-semibold">
-            <span>计算复杂度金字塔 (n×n 系统, k 个右端项)</span>
+            <span>稠密可逆 n×n 系统，k 个右端项</span>
             <Badge variant="emerald" className="font-mono text-[10px]">
-              LU 加速 {fmt(speedup, 2)}×
+              估算运算量比（求逆 ÷ 直接求解）{fmt(speedup, 2)}×
             </Badge>
           </div>
           <ControlSlider label="矩阵规模 n" value={n} min={8} max={256} step={8} onChange={setN} />
@@ -597,8 +605,8 @@ function L04LuPyramidCost() {
           <div className="space-y-1.5 pt-1 text-[11px] font-mono">
             <div>
               <div className="flex justify-between">
-                <span>A = LU + k 次三角回代</span>
-                <span>{Math.round(totalLu).toLocaleString()} ops</span>
+                <span>PA = LU 后求解 k 对三角系统</span>
+                <span>{Math.round(totalLu).toLocaleString()} flops (主项)</span>
               </div>
               <div className="mt-0.5 h-2.5 w-full overflow-hidden rounded bg-muted">
                 <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (totalLu / totalInv) * 100)}%` }} />
@@ -606,8 +614,8 @@ function L04LuPyramidCost() {
             </div>
             <div>
               <div className="flex justify-between">
-                <span>先算 A⁻¹ 再乘 bᵢ</span>
-                <span>{Math.round(totalInv).toLocaleString()} ops</span>
+                <span>利用 LU 和三角结构求 A⁻¹，再乘 bᵢ</span>
+                <span>{Math.round(totalInv).toLocaleString()} flops (主项)</span>
               </div>
               <div className="mt-0.5 h-2.5 w-full overflow-hidden rounded bg-muted">
                 <div className="h-full bg-rose-500" style={{ width: '100%' }} />
@@ -618,7 +626,7 @@ function L04LuPyramidCost() {
 
         <div className="space-y-2 rounded-lg border bg-background/70 p-3">
           <div className="flex items-center justify-between text-xs font-semibold">
-            <span>为什么用 L 而不是 E = L⁻¹ ？(填零效应 Fill-in)</span>
+            <span>为什么用 L 而不是 E = L⁻¹ ？(非零填充 Fill-in)</span>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <ControlSlider label="ℓ₂₁" value={l21} min={-4} max={4} step={1} onChange={setL21} />
@@ -642,7 +650,7 @@ function L04LuPyramidCost() {
             </div>
           </div>
           <p className="mb-0 text-[11px] text-muted-foreground">
-            即使 ℓ₃₁ = 0（原本无需消元），只要 ℓ₂₁, ℓ₃₂ ≠ 0，L⁻¹ 左下角就会变成 ℓ₃₂·ℓ₂₁ = {l32 * l21}！
+            (L⁻¹)₃₁ = ℓ₃₂ℓ₂₁ − ℓ₃₁。若 ℓ₃₁ = 0 且 ℓ₃₂ℓ₂₁ ≠ 0，L⁻¹ 会在这个零位置产生非零元素。
           </p>
         </div>
       </div>
@@ -674,7 +682,7 @@ function L05SubspaceClosureTester() {
   > = {
     line0: {
       label: '过原点直线 y = x/2',
-      desc: '满足向量空间全部三条封闭公理的 ℝ² 真子空间。',
+      desc: '包含零向量，且对加法和实数数乘封闭，因此是 ℝ² 的真子空间。',
       contains: (x, y) => Math.abs(y - 0.5 * x) < 1e-6,
       makeVec: (t) => [t, 0.5 * t],
       zeroOk: true,
@@ -683,7 +691,7 @@ function L05SubspaceClosureTester() {
     },
     lineShift: {
       label: '平移直线 y = 0.5x + 1',
-      desc: '不包含零向量 (0,0)，且加法与数乘皆逃逸出该直线！',
+      desc: '不包含零向量。任意两向量相加会离开直线，取 c=0 可得到数乘的反例。',
       contains: (x, y) => Math.abs(y - (0.5 * x + 1)) < 1e-6,
       makeVec: (t) => [t, 0.5 * t + 1],
       zeroOk: false,
@@ -692,7 +700,7 @@ function L05SubspaceClosureTester() {
     },
     quadrant1: {
       label: '第一象限 {x≥0, y≥0}',
-      desc: '包含零向量且对加法封闭，但乘以负数 c < 0 会落入第三象限！',
+      desc: '包含零向量且对加法封闭。数乘的反例是 (−1)(1,1) = (−1,−1)，落在集合之外。',
       contains: (x, y) => x >= -1e-6 && y >= -1e-6,
       makeVec: (t, alt) => [Math.abs(t) + 0.5, alt ? 0.5 : 1.5],
       zeroOk: true,
@@ -700,7 +708,7 @@ function L05SubspaceClosureTester() {
       scaleOk: false,
     },
     axesUnion: {
-      label: '双坐标轴并集 x=0 ∪ y=0',
+      label: '双坐标轴并集 {x = 0} ∪ {y = 0}',
       desc: '包含零向量且对数乘封闭，但 (1,0) + (0,1) = (1,1) 不在任何轴上！',
       contains: (x, y) => Math.abs(x) < 1e-6 || Math.abs(y) < 1e-6,
       makeVec: (t, alt) => (alt ? [0, Math.abs(t) + 0.8] : [Math.abs(t) + 0.8, 0]),
@@ -718,7 +726,9 @@ function L05SubspaceClosureTester() {
 
   const sumIn = cur.contains(sum[0], sum[1]);
   const scaledIn = cur.contains(scaled[0], scaled[1]);
-  const toSvg = (mx: number, my: number): [number, number] => [120 + mx * 24, 110 - my * 24];
+  const plotScale = 17;
+  const xBound = 104 / plotScale;
+  const toSvg = (mx: number, my: number): [number, number] => [120 + mx * plotScale, 110 - my * plotScale];
 
   return (
     <div className="space-y-3">
@@ -745,10 +755,10 @@ function L05SubspaceClosureTester() {
               </>
             )}
             {subset === 'line0' && (
-              <line x1={toSvg(-4, -2)[0]} y1={toSvg(-4, -2)[1]} x2={toSvg(4, 2)[0]} y2={toSvg(4, 2)[1]} className="stroke-blue-500" strokeWidth="3" />
+              <line x1="16" y1={toSvg(0, -xBound / 2)[1]} x2="224" y2={toSvg(0, xBound / 2)[1]} className="stroke-blue-500" strokeWidth="3" />
             )}
             {subset === 'lineShift' && (
-              <line x1={toSvg(-4, -1)[0]} y1={toSvg(-4, -1)[1]} x2={toSvg(4, 3)[0]} y2={toSvg(4, 3)[1]} className="stroke-blue-500" strokeWidth="3" />
+              <line x1="16" y1={toSvg(0, 1 - xBound / 2)[1]} x2="224" y2={toSvg(0, 1 + xBound / 2)[1]} className="stroke-blue-500" strokeWidth="3" />
             )}
 
             {/* Vectors v, w, v+w, c*v */}
@@ -770,10 +780,10 @@ function L05SubspaceClosureTester() {
 
         <div className="flex flex-col justify-between space-y-2.5 rounded-lg border bg-background/70 p-3">
           <div className="space-y-1.5">
-            <div className="text-xs font-semibold">子空间三公理诊断</div>
+            <div className="text-xs font-semibold">子空间判定条件</div>
             <div className="flex flex-wrap gap-1.5">
               <Badge variant={cur.zeroOk ? 'emerald' : 'destructive'} className="font-mono text-[10px]">
-                {cur.zeroOk ? '✓' : '✗'} 零向量 0 ∈ S
+                {cur.zeroOk ? '✓' : '✗'} 零向量 𝟎 ∈ S
               </Badge>
               <Badge variant={cur.addOk ? 'emerald' : 'destructive'} className="font-mono text-[10px]">
                 {cur.addOk ? '✓' : '✗'} 加法封闭 v+w ∈ S
@@ -796,48 +806,49 @@ function L05SubspaceClosureTester() {
 }
 
 // ============================================================================
-// L06: Column Space C(A) & Null Space N(A) Dual Spaces
+// L06: Column Space Col(A) & Nullspace Null(A)
 // ============================================================================
 function L06ColNullDualSpaces() {
-  const [angleDeg, setAngleDeg] = React.useState(60);
+  const [angleOffset, setAngleOffset] = React.useState(33);
   const [scale2, setScale2] = React.useState(1.2);
   const [bx, setBx] = React.useState(1.5);
   const [by, setBy] = React.useState(1.0);
 
   const a1: [number, number] = [2, 1];
-  const rad = (angleDeg * Math.PI) / 180;
-  const a2: [number, number] = [scale2 * Math.cos(rad) * 2, scale2 * Math.sin(rad) * 2];
-
-  const det = a1[0] * a2[1] - a1[1] * a2[0];
-  const isDependent = Math.abs(det) < 0.15;
+  const isCollinear = angleOffset === 0;
+  const factor = (2 * scale2) / Math.hypot(...a1);
+  const rad = (angleOffset * Math.PI) / 180;
+  const a2: [number, number] = isCollinear
+    ? [factor * a1[0], factor * a1[1]]
+    : [factor * (2 * Math.cos(rad) - Math.sin(rad)), factor * (2 * Math.sin(rad) + Math.cos(rad))];
+  const isDependent = isCollinear || scale2 === 0;
   const rank = isDependent ? 1 : 2;
   const nullDim = 2 - rank;
-
-  // Check b in C(A)
-  const crossB = a1[0] * by - a1[1] * bx;
-  const bInCol = !isDependent || Math.abs(crossB) < 0.25;
+  const nullDirection: [number, number] = [-factor, 1];
+  const nullScale = 3.5 / Math.hypot(...nullDirection);
+  const bInCol = !isDependent || 2 * by === bx;
   const toSvg = (mx: number, my: number): [number, number] => [100 + mx * 22, 100 - my * 22];
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-1.5">
-        <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => { setAngleDeg(27); setScale2(1.1); }}>
+        <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => { setAngleOffset(0); setScale2(1.1); }}>
           对齐共线 (秩 1 退化)
         </Button>
-        <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => { setAngleDeg(75); setScale2(1.2); }}>
+        <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => { setAngleOffset(48); setScale2(1.2); }}>
           独立张成 (满秩 2)
         </Button>
         <Badge variant={rank === 2 ? 'emerald' : 'amber'} className="ml-auto font-mono text-[10px]">
-          dim C(A) = {rank}, dim N(A) = {nullDim} (和 = 2)
+          dim Col(A) = {rank}, dim Null(A) = {nullDim} (和 = 2)
         </Badge>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-lg border bg-background/70 p-2.5">
           <div className="mb-1 flex justify-between text-[11px] font-medium">
-            <span>列空间 C(A) ⊆ ℝ²</span>
+            <span>列空间 Col(A) ⊆ ℝ²</span>
             <Badge variant={bInCol ? 'emerald' : 'destructive'} className="text-[10px]">
-              b {bInCol ? '∈ C(A) 有解' : '∉ C(A) 无解'}
+              b {bInCol ? '∈ Col(A) 有解' : '∉ Col(A) 无解'}
             </Badge>
           </div>
           <svg viewBox="0 0 200 200" className="w-full max-h-48 text-foreground">
@@ -863,15 +874,15 @@ function L06ColNullDualSpaces() {
             <line x1={toSvg(0, 0)[0]} y1={toSvg(0, 0)[1]} x2={toSvg(a2[0], a2[1])[0]} y2={toSvg(a2[0], a2[1])[1]} className="stroke-emerald-600 dark:stroke-emerald-400" strokeWidth="2.5" />
             <circle cx={toSvg(bx, by)[0]} cy={toSvg(bx, by)[1]} r="4.5" className="fill-rose-500" />
             <text x="18" y="26" className="fill-current font-mono text-[10px]">
-              a₁=[2,1]ᵀ, a₂=[{fmt(a2[0], 1)},{fmt(a2[1], 1)}]ᵀ
+              a₁ = [2,1]ᵀ，a₂ ≈ [{fmt(a2[0], 3)},{fmt(a2[1], 3)}]ᵀ
             </text>
           </svg>
         </div>
 
         <div className="rounded-lg border bg-background/70 p-2.5">
           <div className="mb-1 flex justify-between text-[11px] font-medium">
-            <span>零空间 N(A) ⊆ ℝ² (Ax = 0)</span>
-            <span className="font-mono text-muted-foreground">{rank === 2 ? '{0} 原点' : '过原点直线'}</span>
+            <span>零空间 Null(A) ⊆ ℝ² (Ax = 𝟎)</span>
+            <span className="font-mono text-muted-foreground">{rank === 2 ? '{𝟎} 原点' : '过原点直线'}</span>
           </div>
           <svg viewBox="0 0 200 200" className="w-full max-h-48 text-foreground">
             <rect x="12" y="12" width="176" height="176" rx="4" className="fill-muted/20 stroke-border" />
@@ -879,10 +890,10 @@ function L06ColNullDualSpaces() {
             <line x1="100" y1="12" x2="100" y2="188" className="stroke-border" strokeDasharray="3 3" />
             {isDependent ? (
               <line
-                x1={toSvg(-2.5, 2.5 * (a1[0] / a2[0]))[0]}
-                y1={toSvg(-2.5, 2.5 * (a1[0] / a2[0]))[1]}
-                x2={toSvg(2.5, -2.5 * (a1[0] / a2[0]))[0]}
-                y2={toSvg(2.5, -2.5 * (a1[0] / a2[0]))[1]}
+                x1={toSvg(-nullScale * nullDirection[0], -nullScale * nullDirection[1])[0]}
+                y1={toSvg(-nullScale * nullDirection[0], -nullScale * nullDirection[1])[1]}
+                x2={toSvg(nullScale * nullDirection[0], nullScale * nullDirection[1])[0]}
+                y2={toSvg(nullScale * nullDirection[0], nullScale * nullDirection[1])[1]}
                 className="stroke-amber-500"
                 strokeWidth="3"
               />
@@ -890,14 +901,15 @@ function L06ColNullDualSpaces() {
               <circle cx="100" cy="100" r="6" className="fill-amber-500" />
             )}
             <text x="18" y="26" className="fill-amber-600 dark:fill-amber-400 font-mono text-[10px]">
-              {isDependent ? `x₂ = −${fmt(a1[0] / a2[0])} x₁` : '唯一解 x = (0, 0)ᵀ'}
+              {isDependent ? 'x₁ = −(‖a₂‖/‖a₁‖)x₂' : '唯一解 x = (0, 0)ᵀ'}
             </text>
           </svg>
         </div>
       </div>
 
-      <div className="grid gap-3 rounded-lg border bg-background/60 p-3 sm:grid-cols-3">
-        <ControlSlider label="第二列角度 θ₂" value={angleDeg} min={10} max={160} step={1} onChange={setAngleDeg} unit="°" />
+      <div className="grid gap-3 rounded-lg border bg-background/60 p-3 sm:grid-cols-2">
+        <ControlSlider label="构造第二列的旋转参数 θ" value={angleOffset} min={-45} max={135} step={1} onChange={setAngleOffset} unit="°" />
+        <ControlSlider label="第二列长度 ‖a₂‖/2" value={scale2} min={0} max={2} step={0.1} onChange={setScale2} />
         <ControlSlider label="目标向量 b₁" value={bx} min={-3} max={3} step={0.5} onChange={setBx} />
         <ControlSlider label="目标向量 b₂" value={by} min={-3} max={3} step={0.5} onChange={setBy} />
       </div>
@@ -908,80 +920,53 @@ function L06ColNullDualSpaces() {
 // ============================================================================
 // L07: RREF & Special Solutions Explorer
 // ============================================================================
+// These bounded integer presets are well separated from the pivot tolerance.
+function reducePresetMatrix(A: number[][]) {
+  const R = A.map((row) => [...row]);
+  const pivots: number[] = [];
+  const tolerance = 32 * Number.EPSILON * Math.max(...A.flat().map(Math.abs));
+
+  for (let col = 0; col < R[0].length && pivots.length < R.length; col++) {
+    const row = pivots.length;
+    let pivot = row;
+    for (let i = row + 1; i < R.length; i++) {
+      if (Math.abs(R[i][col]) > Math.abs(R[pivot][col])) pivot = i;
+    }
+    const divisor = R[pivot][col];
+    if (Math.abs(divisor) <= tolerance) continue;
+    [R[row], R[pivot]] = [R[pivot], R[row]];
+    R[row] = R[row].map((value) => value / divisor);
+    for (let i = 0; i < R.length; i++) {
+      if (i === row) continue;
+      const multiplier = R[i][col];
+      R[i] = R[i].map((value, j) => value - multiplier * R[row][j]);
+    }
+    pivots.push(col);
+  }
+  return { R, pivots };
+}
+
 function L07RrefSpecialSolutions() {
   const [preset, setPreset] = React.useState<'r2' | 'r3' | 'r1'>('r2');
 
   const configs = {
-    r2: {
-      name: '典型 3×4 秩 2 (主元列 1,3)',
-      pivots: [0, 2],
-      free: [1, 3],
-      A: [
-        [1, 2, 2, 2],
-        [2, 4, 6, 8],
-        [3, 6, 8, 10],
-      ],
-      R: [
-        [1, 2, 0, -2],
-        [0, 0, 1, 2],
-        [0, 0, 0, 0],
-      ],
-      specials: [
-        [-2, 1, 0, 0],
-        [2, 0, -2, 1],
-      ],
-    },
-    r3: {
-      name: '满行秩 3×4 秩 3 (自由列 4)',
-      pivots: [0, 1, 2],
-      free: [3],
-      A: [
-        [1, 0, 2, 3],
-        [2, 1, 4, 7],
-        [0, 2, 1, 4],
-      ],
-      R: [
-        [1, 0, 0, 1],
-        [0, 1, 0, 1],
-        [0, 0, 1, 1],
-      ],
-      specials: [[-1, -1, -1, 1]],
-    },
-    r1: {
-      name: '秩 1 退化 3×4 (自由列 2,3,4)',
-      pivots: [0],
-      free: [1, 2, 3],
-      A: [
-        [1, 3, -1, 2],
-        [2, 6, -2, 4],
-        [-1, -3, 1, -2],
-      ],
-      R: [
-        [1, 3, -1, 2],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-      ],
-      specials: [
-        [-3, 1, 0, 0],
-        [1, 0, 1, 0],
-        [-2, 0, 0, 1],
-      ],
-    },
+    r2: { name: '典型 3×4 秩 2 (主元列 1,3)', A: [[1, 2, 2, 2], [2, 4, 6, 8], [3, 6, 8, 10]] },
+    r3: { name: '满行秩 3×4 秩 3 (自由列 4)', A: [[1, 0, 2, 3], [2, 1, 4, 7], [0, 2, 1, 4]] },
+    r1: { name: '秩 1 退化 3×4 (自由列 2,3,4)', A: [[1, 3, -1, 2], [2, 6, -2, 4], [-1, -3, 1, -2]] },
   };
 
-  const cur = configs[preset];
-  const [cWeights, setCWeights] = React.useState<[number, number]>([1, -1]);
-
-  // Linear combination of special solutions in N(A)
-  const xN = [0, 1, 2, 3].map((idx) =>
-    cur.specials.reduce((acc, s, si) => acc + (si === 0 ? cWeights[0] : cWeights[1]) * s[idx], 0)
-  );
-  const residualNorm = Math.sqrt(
-    cur.A.reduce((sumSq, row) => {
-      const dot = row.reduce((d, val, j) => d + val * xN[j], 0);
-      return sumSq + dot * dot;
-    }, 0)
-  );
+  const { A } = configs[preset];
+  const { R, pivots } = reducePresetMatrix(A);
+  const free = A[0].map((_, j) => j).filter((j) => !pivots.includes(j));
+  const specials = free.map((j) => {
+    const vector = A[0].map((_, col) => Number(col === j));
+    pivots.forEach((col, row) => { vector[col] = -R[row][j]; });
+    return vector;
+  });
+  const [cWeights, setCWeights] = React.useState([1, -1, 0]);
+  const xN = A[0].map((_, j) => specials.reduce((sum, v, i) => sum + cWeights[i] * v[j], 0));
+  const residual = A.map((row) => row.reduce((sum, value, j) => sum + value * xN[j], 0));
+  const residualNorm = Math.hypot(...residual);
 
   return (
     <div className="space-y-3">
@@ -992,7 +977,7 @@ function L07RrefSpecialSolutions() {
           </Button>
         ))}
         <Badge variant="emerald" className="ml-auto font-mono text-[10px]">
-          r={cur.pivots.length}, n−r={cur.free.length} 个特解 · ‖Axₙ‖={fmt(residualNorm)}
+          r={pivots.length}, n−r={free.length} 个特解 · ‖Axₙ‖={fmt(residualNorm)}
         </Badge>
       </div>
 
@@ -1000,15 +985,15 @@ function L07RrefSpecialSolutions() {
         <div className="rounded-lg border bg-background/70 p-3">
           <div className="mb-1.5 flex items-center justify-between text-xs font-semibold">
             <span>简化行阶梯形 R = rref(A)</span>
-            <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400">主元列: {cur.pivots.map((i) => `c${i + 1}`).join(', ')}</span>
+            <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400">主元列: {pivots.map((i) => `c${i + 1}`).join(', ')}</span>
           </div>
           <table className="mx-auto border-collapse font-mono text-xs">
             <tbody>
-              {cur.R.map((row, r) => (
+              {R.map((row, r) => (
                 <tr key={r}>
                   {row.map((v, c) => {
-                    const isPiv = cur.pivots[r] === c && v === 1;
-                    const isFreeCol = cur.free.includes(c);
+                    const isPiv = pivots[r] === c && v === 1;
+                    const isFreeCol = free.includes(c);
                     return (
                       <td
                         key={c}
@@ -1020,7 +1005,7 @@ function L07RrefSpecialSolutions() {
                               : ''
                         }`}
                       >
-                        {v}
+                        {fmt(v)}
                       </td>
                     );
                   })}
@@ -1033,20 +1018,21 @@ function L07RrefSpecialSolutions() {
         <div className="rounded-lg border bg-background/70 p-3 space-y-2">
           <div className="text-xs font-semibold">零空间基 (Special Solutions) 线性组合验证</div>
           <div className="flex flex-wrap gap-1.5 font-mono text-[11px]">
-            {cur.specials.map((s, idx) => (
+            {specials.map((s, idx) => (
               <span key={idx} className="rounded border bg-muted/40 px-2 py-0.5">
-                s{idx + 1}=[{s.join(',')}]ᵀ
+                s{idx + 1}=[{s.map((v) => fmt(v)).join(',')}]ᵀ
               </span>
             ))}
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <ControlSlider label="组合系数 c₁" value={cWeights[0]} min={-2} max={2} step={0.5} onChange={(v) => setCWeights([v, cWeights[1]])} />
-            {cur.specials.length > 1 && (
-              <ControlSlider label="组合系数 c₂" value={cWeights[1]} min={-2} max={2} step={0.5} onChange={(v) => setCWeights([cWeights[0], v])} />
-            )}
+            {free.map((col, i) => (
+              <ControlSlider key={col} label={`系数 c${i + 1} (自由变量 x${col + 1})`}
+                value={cWeights[i]} min={-2} max={2} step={0.5}
+                onChange={(value) => setCWeights((weights) => weights.map((w, j) => j === i ? value : w))} />
+            ))}
           </div>
           <div className="rounded bg-emerald-500/10 px-2.5 py-1 font-mono text-[11px] text-emerald-700 dark:text-emerald-300">
-            xₙ = [{xN.map((v) => fmt(v)).join(', ')}]ᵀ ⇒ A xₙ = [0, 0, 0]ᵀ
+            xₙ = [{xN.map((v) => fmt(v)).join(', ')}]ᵀ ⇒ A xₙ = [{residual.map((v) => fmt(v)).join(', ')}]ᵀ
           </div>
         </div>
       </div>
@@ -1063,11 +1049,11 @@ function L08AffineSolutionShift() {
 
   // Equation: x1 + 2*x2 = rhs -> s = [-2, 1], minimum norm xp = [rhs/5, 2*rhs/5]
   const xp: [number, number] = [rhs / 5, (2 * rhs) / 5];
-  const s: [number, number] = [-1.4, 0.7]; // normalized null vector direction [-2,1]*0.7
+  const s: [number, number] = [-1.4, 0.7]; // Scaled null direction for the plot.
   const xn: [number, number] = [t * s[0], t * s[1]];
   const x: [number, number] = [xp[0] + xn[0], xp[1] + xn[1]];
 
-  const toSvg = (mx: number, my: number): [number, number] => [130 + mx * 26, 110 - my * 26];
+  const toSvg = (mx: number, my: number): [number, number] => [130 + mx * 24, 110 - my * 24];
 
   return (
     <div className="space-y-3">
@@ -1102,7 +1088,7 @@ function L08AffineSolutionShift() {
             <circle cx={toSvg(x[0], x[1])[0]} cy={toSvg(x[0], x[1])[1]} r="5" className="fill-rose-500" />
 
             <text x="20" y="28" className="fill-blue-600 dark:fill-blue-400 font-mono text-[10px]">
-              零空间 N(A): x₁ + 2x₂ = 0
+              零空间 Null(A): x₁ + 2x₂ = 0
             </text>
             <text x="20" y="40" className="fill-emerald-600 dark:fill-emerald-400 font-mono text-[10px]">
               仿射解集: x₁ + 2x₂ = {fmt(rhs)}
@@ -1111,13 +1097,13 @@ function L08AffineSolutionShift() {
         </div>
 
         <div className="flex flex-col justify-center space-y-3 rounded-lg border bg-background/70 p-3">
-          <ControlSlider label="右端项 b (决定仿射平移距离)" value={rhs} min={-3} max={4} step={0.5} onChange={setRhs} />
-          <ControlSlider label="零空间滑动参数 t (xₙ = t·s)" value={t} min={-2} max={2} step={0.25} onChange={setT} />
+          <ControlSlider label="右端项 b（有向平移量 b/√5）" value={rhs} min={-3} max={4} step={0.5} onChange={setRhs} />
+          <ControlSlider label="零空间参数 t（xₙ = t·(−1.4, 0.7)ᵀ）" value={t} min={-2} max={2} step={0.25} onChange={setT} />
           <div className="space-y-1 rounded border bg-muted/30 p-2.5 font-mono text-[11px]">
             <div>最短特解 x_p = [{fmt(xp[0])}, {fmt(xp[1])}]ᵀ</div>
-            <div>零空间位移 x_n = [{fmt(xn[0])}, {fmt(xn[1])}]ᵀ</div>
+            <div>零空间位移 x_n = [{fmt(xn[0], 3)}, {fmt(xn[1], 3)}]ᵀ</div>
             <div className="font-semibold text-rose-600 dark:text-rose-400">
-              通解 x = [{fmt(x[0])}, {fmt(x[1])}]ᵀ ⇒ x₁ + 2x₂ = {fmt(x[0] + 2 * x[1])}
+              通解 x = [{fmt(x[0], 3)}, {fmt(x[1], 3)}]ᵀ ⇒ x₁ + 2x₂ = {fmt(x[0] + 2 * x[1])}
             </div>
           </div>
         </div>
@@ -1138,9 +1124,9 @@ function L09BasisIndependenceExplorer() {
   const v2: [number, number] = [2 * Math.cos((theta2 * Math.PI) / 180), 2 * Math.sin((theta2 * Math.PI) / 180)];
   const v3: [number, number] = [1.5, 1.5];
   const det = v1[0] * v2[1] - v1[1] * v2[0];
-  const ind2 = Math.abs(det) > 0.25;
+  const ind2 = Math.abs(det) > 32 * Number.EPSILON * Math.hypot(...v1) * Math.hypot(...v2);
   const independent = ind2 && !addThird;
-  const spansR2 = ind2;
+  const spansR2 = ind2 || (addThird && theta1 !== 45);
   const isBasis = independent && spansR2;
 
   const target: [number, number] = [1.8, 1.6];
@@ -1157,7 +1143,7 @@ function L09BasisIndependenceExplorer() {
           加入第 3 个向量 v₃ (必线性相关)
         </Button>
         <Badge variant={isBasis ? 'emerald' : 'amber'} className="ml-auto font-mono text-[10px]">
-          {isBasis ? '✓ 构成 ℝ² 的一组基' : independent ? '线性无关但张成不足' : addThird ? '过完备 (线性相关)' : '共线退化'}
+          {isBasis ? '✓ 构成 ℝ² 的一组基' : spansR2 ? '张成 ℝ² 的线性相关组' : '共线退化'}
         </Badge>
       </div>
 
@@ -1174,7 +1160,7 @@ function L09BasisIndependenceExplorer() {
             )}
             <circle cx={toSvg(target[0], target[1])[0]} cy={toSvg(target[0], target[1])[1]} r="4.5" className="fill-amber-500" />
             <text x="20" y="28" className="fill-current font-mono text-[10px]">
-              det([v₁ v₂]) = {fmt(det)}
+              det([v₁ v₂]) ≈ {fmt(det)}
             </text>
           </svg>
         </div>
@@ -1192,10 +1178,10 @@ function L09BasisIndependenceExplorer() {
           </div>
           <div className="rounded border bg-muted/30 p-2 font-mono text-[11px]">
             {coords && !addThird
-              ? `唯一坐标分解: b = ${fmt(coords[0])} v₁ + ${fmt(coords[1])} v₂`
-              : addThird
-                ? '由于 3 个 ℝ² 向量必线性相关，b 的分解不再唯一！'
-                : 'v₁, v₂ 共线，无法表示垂直方向的向量 b。'}
+              ? `唯一坐标分解: b ≈ (${fmt(coords[0])}) v₁ + (${fmt(coords[1])}) v₂`
+              : spansR2
+                ? '这组向量张成 ℝ² 且线性相关，b 有无穷多种分解。'
+                : '所有向量共线，目标 b 不在这条直线上。'}
           </div>
         </div>
       </div>
@@ -1211,8 +1197,10 @@ function L10FourSubspacesCross() {
   const [n, setN] = React.useState(4);
   const [r, setR] = React.useState(2);
   const safeR = Math.min(r, m, n);
-  const [xrNorm, setXrNorm] = React.useState(1.5);
-  const [xnNorm, setXnNorm] = React.useState(1.2);
+  const [xrLength, setXrNorm] = React.useState(1.5);
+  const [xnLength, setXnNorm] = React.useState(1);
+  const xrNorm = safeR === 0 ? 0 : xrLength;
+  const xnNorm = safeR === n ? 0 : xnLength;
 
   return (
     <div className="space-y-3">
@@ -1224,19 +1212,19 @@ function L10FourSubspacesCross() {
 
       <div className="rounded-lg border bg-background/75 p-3">
         <svg viewBox="0 0 440 190" className="w-full max-h-52 text-foreground">
-          {/* Row Space C(A^T) */}
+          {/* Row space */}
           <rect x="20" y="20" width="135" height="68" rx="8" className="fill-blue-500/15 stroke-blue-500" strokeWidth="1.5" />
           <text x="87" y="46" textAnchor="middle" className="fill-blue-700 dark:fill-blue-300 font-semibold text-xs">
-            行空间 C(Aᵀ)
+            行空间 Row(A)
           </text>
           <text x="87" y="66" textAnchor="middle" className="fill-current font-mono text-[11px]">
             dim = r = {safeR}
           </text>
 
-          {/* Null Space N(A) */}
+          {/* Nullspace */}
           <rect x="20" y="102" width="135" height="68" rx="8" className="fill-amber-500/15 stroke-amber-500" strokeWidth="1.5" />
           <text x="87" y="128" textAnchor="middle" className="fill-amber-700 dark:fill-amber-300 font-semibold text-xs">
-            零空间 N(A)
+            零空间 Null(A)
           </text>
           <text x="87" y="148" textAnchor="middle" className="fill-current font-mono text-[11px]">
             dim = n−r = {n - safeR}
@@ -1245,19 +1233,19 @@ function L10FourSubspacesCross() {
             ⊥ 正交补 (ℝⁿ, 维数 {n})
           </text>
 
-          {/* Column Space C(A) */}
+          {/* Column space */}
           <rect x="285" y="20" width="135" height="68" rx="8" className="fill-emerald-500/15 stroke-emerald-500" strokeWidth="1.5" />
           <text x="352" y="46" textAnchor="middle" className="fill-emerald-700 dark:fill-emerald-300 font-semibold text-xs">
-            列空间 C(A)
+            列空间 Col(A)
           </text>
           <text x="352" y="66" textAnchor="middle" className="fill-current font-mono text-[11px]">
             dim = r = {safeR}
           </text>
 
-          {/* Left Null Space N(A^T) */}
+          {/* Left nullspace */}
           <rect x="285" y="102" width="135" height="68" rx="8" className="fill-purple-500/15 stroke-purple-500" strokeWidth="1.5" />
           <text x="352" y="128" textAnchor="middle" className="fill-purple-700 dark:fill-purple-300 font-semibold text-xs">
-            左零空间 N(Aᵀ)
+            左零空间 Null(Aᵀ)
           </text>
           <text x="352" y="148" textAnchor="middle" className="fill-current font-mono text-[11px]">
             dim = m−r = {m - safeR}
@@ -1267,22 +1255,21 @@ function L10FourSubspacesCross() {
           </text>
 
           {/* Mapping Arrows */}
-          <line x1="160" y1="54" x2="280" y2="54" className="stroke-emerald-600 dark:stroke-emerald-400" strokeWidth="2.2" />
+          <path d="M160 54 H280 M274 50 L280 54 L274 58" className="fill-none stroke-emerald-600 dark:stroke-emerald-400" strokeWidth="2.2" />
           <text x="220" y="44" textAnchor="middle" className="fill-emerald-700 dark:fill-emerald-300 font-mono text-[10px]">
             xᵣ ↦ Axᵣ = b (可逆双射)
           </text>
-          <line x1="160" y1="136" x2="275" y2="95" className="stroke-amber-500" strokeWidth="1.8" strokeDasharray="4 3" />
-          <text x="220" y="132" textAnchor="middle" className="fill-amber-600 dark:fill-amber-400 font-mono text-[10px]">
-            xₙ ↦ Axₙ = 0
+          <text x="220" y="140" textAnchor="middle" className="fill-amber-600 dark:fill-amber-400 font-mono text-[10px]">
+            xₙ ↦ Axₙ = 𝟎 ∈ Col(A)
           </text>
         </svg>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 rounded-lg border bg-background/60 p-3">
-        <ControlSlider label="行空间分量 ‖xᵣ‖" value={xrNorm} min={0} max={3} step={0.5} onChange={setXrNorm} />
-        <ControlSlider label="零空间分量 ‖xₙ‖" value={xnNorm} min={0} max={3} step={0.5} onChange={setXnNorm} />
+        <ControlSlider label="行空间分量 ‖xᵣ‖" value={xrNorm} min={0} max={safeR === 0 ? 0 : 3} step={0.5} onChange={setXrNorm} />
+        <ControlSlider label="零空间分量 ‖xₙ‖" value={xnNorm} min={0} max={safeR === n ? 0 : 3} step={0.5} onChange={setXnNorm} />
         <div className="sm:col-span-2 flex flex-wrap justify-between font-mono text-[11px] text-muted-foreground">
-          <span>勾股总长度 ‖x‖ = √(‖xᵣ‖² + ‖xₙ‖²) = {fmt(Math.hypot(xrNorm, xnNorm))}</span>
+          <span>‖x‖ = √(‖xᵣ‖² + ‖xₙ‖²) ≈ {fmt(Math.hypot(xrNorm, xnNorm))}</span>
           <span>右逆存在: {safeR === m ? '✓ (满行秩)' : '✗'} · 左逆存在: {safeR === n ? '✓ (满列秩)' : '✗'}</span>
         </div>
       </div>
@@ -1303,7 +1290,10 @@ function L11Rank1Builder() {
   const symOff = (b + c) / 2;
   const skewOff = (b - c) / 2;
   const det = a * d - b * c;
-  const rank = a === 0 && b === 0 && c === 0 && d === 0 ? 0 : Math.abs(det) < 1e-6 ? 1 : 2;
+  const rank = a === 0 && b === 0 && c === 0 && d === 0 ? 0 : det === 0 ? 1 : 2;
+  const u = a !== 0 || c !== 0 ? [a, c] : [b, d];
+  const row = Math.abs(u[0]) >= Math.abs(u[1]) ? 0 : 1;
+  const v = rank === 1 ? (row === 0 ? [a, b] : [c, d]).map((value) => value / u[row]) : null;
 
   return (
     <div className="space-y-3">
@@ -1343,7 +1333,9 @@ function L11Rank1Builder() {
             </div>
           </div>
           <p className="mb-0 font-sans text-[11px] text-muted-foreground">
-            {rank === 1 ? '此时 ad − bc = 0，M 为秩-1 矩阵（注：秩-1 矩阵集合对加法不封闭，不是子空间！）。' : '试着调节使 ad = bc（如 2×2=4, 1×4=4）即可构造秩-1 矩阵。'}
+            {v ? `秩 1 外积分解 M = uvᵀ，u = [${u.join(', ')}]ᵀ，v ≈ [${v.map((value) => fmt(value)).join(', ')}]ᵀ。`
+              : rank === 0 ? '零矩阵的秩为 0。'
+              : '令 ad = bc 并保留至少一个非零元素，即可得到秩 1 矩阵。'}
           </p>
         </div>
       </div>
@@ -1359,22 +1351,32 @@ function L12GraphKirchhoffExplorer() {
   const [x2, setX2] = React.useState(3);
   const [x3, setX3] = React.useState(5);
   const [x4, setX4] = React.useState(2);
-  const [includeBridge, setIncludeBridge] = React.useState(true);
+  const [includeE5, setIncludeE5] = React.useState(true);
+  const [includeE4, setIncludeE4] = React.useState(true);
 
-  // 4 nodes, 5 edges: e1(1->2), e2(2->3), e3(1->3), e4(1->4), e5(3->4)
-  const edges = [
-    { id: 'e1', from: 1, to: 2, diff: x2 - x1 },
-    { id: 'e2', from: 2, to: 3, diff: x3 - x2 },
-    { id: 'e3', from: 1, to: 3, diff: x3 - x1 },
-    { id: 'e4', from: 1, to: 4, diff: x4 - x1 },
-    ...(includeBridge ? [{ id: 'e5', from: 3, to: 4, diff: x4 - x3 }] : []),
+  const potentials = [x1, x2, x3, x4];
+  const endpoints = [
+    { id: 'e1', from: 1, to: 2 },
+    { id: 'e2', from: 2, to: 3 },
+    { id: 'e3', from: 1, to: 3 },
+    ...(includeE4 ? [{ id: 'e4', from: 1, to: 4 }] : []),
+    ...(includeE5 ? [{ id: 'e5', from: 3, to: 4 }] : []),
   ];
-
-  const loop1Sum = (x2 - x1) + (x3 - x2) - (x3 - x1);
-  const nodesCount = 4;
+  const incidence = endpoints.map(({ from, to }) =>
+    potentials.map((_, i) => Number(i + 1 === to) - Number(i + 1 === from))
+  );
+  const dot = (u: number[], v: number[]) => u.reduce((sum, value, i) => sum + value * v[i], 0);
+  const edges = endpoints.map((edge, i) => ({ ...edge, diff: dot(incidence[i], potentials) }));
+  const columns = potentials.map((_, i) => incidence.map((row) => row[i]));
+  const laplacian = columns.map((col) => columns.map((other) => dot(col, other)));
+  const laplacianX = laplacian.map((row) => dot(row, potentials));
+  const energy = edges.reduce((sum, edge) => sum + edge.diff ** 2, 0);
+  const loop1Sum = edges[0].diff + edges[1].diff - edges[2].diff;
+  const nodesCount = potentials.length;
+  const components = includeE4 || includeE5 ? 1 : 2; // Both optional edges attach vertex 4 to the fixed triangle.
   const edgesCount = edges.length;
-  const rankA = 3; // connected graph of 4 nodes has rank = n - 1 = 3
-  const independentLoops = edgesCount - rankA; // Euler: #loops = #edges - (#nodes - 1)
+  const rankA = nodesCount - components;
+  const independentLoops = edgesCount - rankA;
 
   const coords: Record<number, [number, number]> = {
     1: [55, 110],
@@ -1386,11 +1388,14 @@ function L12GraphKirchhoffExplorer() {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-1.5">
-        <Button size="sm" variant={includeBridge ? 'default' : 'outline'} className="h-7 text-[11px]" onClick={() => setIncludeBridge(!includeBridge)}>
-          {includeBridge ? '5 条边 (2 个独立回路)' : '4 条边 (1 个回路)'}
+        <Button size="sm" variant={includeE5 ? 'default' : 'outline'} className="h-7 text-[11px]" aria-pressed={includeE5} onClick={() => setIncludeE5(!includeE5)}>
+          边 e₅ (3 → 4)
+        </Button>
+        <Button size="sm" variant={includeE4 ? 'default' : 'outline'} className="h-7 text-[11px]" aria-pressed={includeE4} onClick={() => setIncludeE4(!includeE4)}>
+          边 e₄ (1 → 4)
         </Button>
         <Badge variant="emerald" className="ml-auto font-mono text-[10px]">
-          欧拉公式: {nodesCount} − {edgesCount} + {independentLoops} = 1 · KVL 环路和 = {loop1Sum}
+          节点 − 边 + 独立回路 = {nodesCount} − {edgesCount} + {independentLoops} = {components} 个弱连通分量
         </Badge>
       </div>
 
@@ -1403,6 +1408,8 @@ function L12GraphKirchhoffExplorer() {
               const [tx, ty] = coords[e.to];
               const mx = (sx + tx) / 2;
               const my = (sy + ty) / 2;
+              const angle = Math.atan2(ty - sy, tx - sx) * 180 / Math.PI;
+              const stroke = e.diff === 0 ? 'stroke-muted-foreground/50' : e.diff > 0 ? 'stroke-blue-500' : 'stroke-rose-500';
               return (
                 <g key={e.id}>
                   <line
@@ -1410,9 +1417,10 @@ function L12GraphKirchhoffExplorer() {
                     y1={sy}
                     x2={tx}
                     y2={ty}
-                    className={e.diff === 0 ? 'stroke-muted-foreground/50' : e.diff > 0 ? 'stroke-blue-500' : 'stroke-rose-500'}
+                    className={stroke}
                     strokeWidth={Math.min(5, 1.5 + Math.abs(e.diff) * 0.4)}
                   />
+                  <polyline points="-27,-4 -19,0 -27,4" transform={`translate(${tx} ${ty}) rotate(${angle})`} className={`fill-none ${stroke}`} strokeWidth="2" />
                   <rect x={mx - 20} y={my - 9} width="40" height="16" rx="4" className="fill-background/90 stroke-border" />
                   <text x={mx} y={my + 3} textAnchor="middle" className="fill-current font-mono text-[9px]">
                     {e.id}:{e.diff >= 0 ? `+${e.diff}` : e.diff}
@@ -1422,7 +1430,7 @@ function L12GraphKirchhoffExplorer() {
             })}
             {[1, 2, 3, 4].map((node) => {
               const [nx, ny] = coords[node];
-              const pot = [0, x1, x2, x3, x4][node];
+              const pot = potentials[node - 1];
               return (
                 <g key={node}>
                   <circle cx={nx} cy={ny} r="15" className="fill-background stroke-primary" strokeWidth="2" />
@@ -1439,7 +1447,7 @@ function L12GraphKirchhoffExplorer() {
         </div>
 
         <div className="space-y-2 rounded-lg border bg-background/70 p-3">
-          <div className="text-xs font-semibold">节点电势 x (零空间 dim N(A) = 1 为常数偏移)</div>
+          <div className="text-xs font-semibold">节点电势 x（每个弱连通分量的电势可独立平移）</div>
           <div className="grid grid-cols-2 gap-2">
             <ControlSlider label="节点 1 电势 x₁" value={x1} min={0} max={6} step={1} onChange={setX1} />
             <ControlSlider label="节点 2 电势 x₂" value={x2} min={0} max={6} step={1} onChange={setX2} />
@@ -1447,9 +1455,12 @@ function L12GraphKirchhoffExplorer() {
             <ControlSlider label="节点 4 电势 x₄" value={x4} min={0} max={6} step={1} onChange={setX4} />
           </div>
           <div className="rounded border bg-muted/30 p-2 font-mono text-[11px] space-y-0.5">
-            <div>rank(A) = {rankA} = #nodes − 1 (树骨架)</div>
-            <div>dim N(Aᵀ) = m − r = {edgesCount} − {rankA} = {independentLoops} (左零空间 = 电流回路)</div>
-            <div className="text-emerald-600 dark:text-emerald-400">回路1电势差: e₁ + e₂ − e₃ = {loop1Sum} (恒为 0！)</div>
+            <div>rank(A) = {rankA}，dim Null(A) = {components}</div>
+            <div>dim Null(Aᵀ) = m − r = {edgesCount} − {rankA} = {independentLoops}（守恒环流空间的维数）</div>
+            <div className="text-emerald-600 dark:text-emerald-400">回路电势差 (Ax)₁ + (Ax)₂ − (Ax)₃ = {loop1Sum}</div>
+            {includeE4 && includeE5 && <div>第二回路 (Ax)₃ + (Ax)₅ − (Ax)₄ = {edges[2].diff + edges[4].diff - edges[3].diff}</div>}
+            <div>L = AᵀA，Lx = [{laplacianX.join(', ')}]ᵀ</div>
+            <div>‖Ax‖² = xᵀLx = {energy}</div>
           </div>
         </div>
       </div>
@@ -1464,91 +1475,22 @@ function L13Module1RankSandbox() {
   const [preset, setPreset] = React.useState<'full' | 'r2' | 'r1' | 'tall'>('r2');
 
   const specs = {
-    full: {
-      label: '3×3 满秩 r=3',
-      m: 3,
-      n: 3,
-      r: 3,
-      A: [
-        [1, 0, 1],
-        [0, 2, 1],
-        [1, 1, 3],
-      ],
-      C: [
-        [1, 0, 1],
-        [0, 2, 1],
-        [1, 1, 3],
-      ],
-      R: [
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 0, 1],
-      ],
-      allB: true,
-      uniqX: true,
-    },
-    r2: {
-      label: '3×4 秩 r=2',
-      m: 3,
-      n: 4,
-      r: 2,
-      A: [
-        [1, 2, 1, 3],
-        [2, 4, 3, 7],
-        [3, 6, 4, 10],
-      ],
-      C: [
-        [1, 1],
-        [2, 3],
-        [3, 4],
-      ],
-      R: [
-        [1, 2, 0, 2],
-        [0, 0, 1, 1],
-      ],
-      allB: false,
-      uniqX: false,
-    },
-    r1: {
-      label: '3×3 秩 r=1',
-      m: 3,
-      n: 3,
-      r: 1,
-      A: [
-        [2, 4, -2],
-        [1, 2, -1],
-        [-3, -6, 3],
-      ],
-      C: [[2], [1], [-3]],
-      R: [[1, 2, -1]],
-      allB: false,
-      uniqX: false,
-    },
-    tall: {
-      label: '3×2 瘦长满列秩 r=2',
-      m: 3,
-      n: 2,
-      r: 2,
-      A: [
-        [1, 0],
-        [2, 1],
-        [0, 3],
-      ],
-      C: [
-        [1, 0],
-        [2, 1],
-        [0, 3],
-      ],
-      R: [
-        [1, 0],
-        [0, 1],
-      ],
-      allB: false,
-      uniqX: true,
-    },
+    full: { label: '3×3 满秩 r=3', A: [[1, 0, 1], [0, 2, 1], [1, 1, 3]] },
+    r2: { label: '3×4 秩 r=2', A: [[1, 2, 1, 3], [2, 4, 3, 7], [3, 6, 4, 10]] },
+    r1: { label: '3×3 秩 r=1', A: [[2, 4, -2], [1, 2, -1], [-3, -6, 3]] },
+    tall: { label: '3×2 瘦长满列秩 r=2', A: [[1, 0], [2, 1], [0, 3]] },
   };
 
-  const s = specs[preset];
+  const { A } = specs[preset];
+  const { R, pivots } = reducePresetMatrix(A);
+  const r = pivots.length;
+  const s = {
+    A, m: A.length, n: A[0].length, r,
+    C: A.map((row) => pivots.map((col) => row[col])),
+    R: R.slice(0, r),
+    allB: r === A.length,
+    uniqX: r === A[0].length,
+  };
 
   return (
     <div className="space-y-3">
@@ -1559,7 +1501,7 @@ function L13Module1RankSandbox() {
           </Button>
         ))}
         <Badge variant="purple" className="ml-auto font-mono text-[10px]">
-          A = C({s.m}×{s.r}) · R({s.r}×{s.n})
+          A = C({s.m}×{s.r}) · R({s.r}×{s.n}) = Σᵢ cᵢ rᵢᵀ
         </Badge>
       </div>
 
@@ -1577,18 +1519,18 @@ function L13Module1RankSandbox() {
           ))}
         </div>
         <div className="rounded-lg border bg-emerald-500/10 p-2.5">
-          <div className="mb-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">行阶梯 R ({s.r}×{s.n})</div>
+          <div className="mb-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">简化行阶梯形的非零行 R ({s.r}×{s.n})</div>
           {s.R.map((row, i) => (
-            <div key={i} className="text-center">[{row.join(', ')}]</div>
+            <div key={i} className="text-center">[{row.map((value) => fmt(value)).join(', ')}]</div>
           ))}
         </div>
       </div>
 
       <div className="flex flex-wrap gap-2 rounded-lg border bg-background/60 p-2.5 text-[11px] font-mono">
         <Badge variant={s.allB ? 'emerald' : 'outline'}>Ax=b 对所有 b 有解: {s.allB ? '✓ (r=m)' : '✗ (r<m)'}</Badge>
-        <Badge variant={s.uniqX ? 'emerald' : 'outline'}>Ax=0 仅零解: {s.uniqX ? '✓ (r=n)' : '✗ (r<n)'}</Badge>
+        <Badge variant={s.uniqX ? 'emerald' : 'outline'}>Ax=𝟎 仅零解: {s.uniqX ? '✓ (r=n)' : '✗ (r<n)'}</Badge>
         <span className="ml-auto text-muted-foreground">
-          dim N(A) = {s.n - s.r}, dim N(Aᵀ) = {s.m - s.r}
+          dim Null(A) = {s.n - s.r}, dim Null(Aᵀ) = {s.m - s.r}
         </span>
       </div>
     </div>

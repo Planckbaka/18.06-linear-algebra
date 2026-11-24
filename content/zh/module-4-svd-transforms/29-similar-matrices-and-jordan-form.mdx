@@ -44,7 +44,7 @@ $$
    B = M^{-1} A M = \begin{bmatrix} 1 & 0 \\ 0 & 2 \end{bmatrix} \begin{bmatrix} 2 & 0 \\ 0 & 8 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 1/2 \end{bmatrix} = \begin{bmatrix} 2 & 0 \\ 0 & 8 \end{bmatrix}
    $$
    特征值 $\{2, 8\}$ 纹丝不动！
-3. **罕见的美妙交集**：当且仅当换基矩阵 $M = Q$ 是实正交矩阵（$Q^T = Q^{-1}$）或复酉矩阵（$U^H = U^{-1}$）时，**合同变换与相似变换合二为一**：$Q^T A Q = Q^{-1} A Q$。这正是第 26 讲中实对称谱分解 $A = Q \Lambda Q^T$ 既能保留对称性、又能精确保留全部特征值的深层原因。
+3. **罕见的美妙交集**：若换基矩阵是实正交矩阵（$Q^T = Q^{-1}$）或复酉矩阵（$U^H = U^{-1}$），**合同变换与相似变换合二为一**：$Q^T A Q = Q^{-1} A Q$。若两种公式对所有 $A$ 都相同，取 $A=I_n$ 即得 $M^T M=I_n$（复数域为 $M^H M=I_n$）。这正是第 26 讲中实对称谱分解 $A = Q \Lambda Q^T$ 既能保留对称性、又能精确保留全部特征值的深层原因。
 
 ### 2. 相似关系的严格定义
 
@@ -67,7 +67,7 @@ $$
 
 </DefinitionCard>
 
-> **实数域 vs. 复数域注记**：若两个实矩阵 $A, B \in \mathbb{R}^{n\times n}$ 在复数域上相似（存在可逆复矩阵 $M \in \mathbb{C}^{n\times n}$ 使 $B = M^{-1}AM$），实际上必存在可逆**实**矩阵 $M_{\mathbb{R}} \in \mathbb{R}^{n\times n}$ 使 $B = M_{\mathbb{R}}^{-1} A M_{\mathbb{R}}$。不过为了保证所有特征值都在数域内存在并顺利写出 Jordan 分解，我们在本讲统一在复数域 $\mathbb{C}^{n \times n}$ 下陈述核心定理。
+> **实数域 vs. 复数域注记**：若两个实矩阵 $A, B \in \mathbb{R}^{n\times n}$ 在复数域上相似（存在可逆复矩阵 $M \in \mathbb{C}^{n\times n}$ 使 $B = M^{-1}AM$），实际上必存在可逆**实**矩阵 $M_{\mathbb{R}} \in \mathbb{R}^{n\times n}$ 使 $B = M_{\mathbb{R}}^{-1} A M_{\mathbb{R}}$。写 $M=X+iY$，其中 $X,Y$ 为实矩阵。由 $AM=MB$ 得 $AX=XB$ 与 $AY=YB$。实系数多项式 $\det(X+tY)$ 在 $t=i$ 处非零，因此存在实数 $t$ 使 $X+tY$ 可逆。为了保证所有特征值都在数域内存在并顺利写出 Jordan 分解，我们在本讲统一在复数域 $\mathbb{C}^{n \times n}$ 下陈述核心定理。
 
 <SimilarityOrbitAndInvariantsDiagram />
 
@@ -75,7 +75,7 @@ $$
 
 ## 二、相似不变量定理：什么在 $M^{-1}AM$ 下纹丝不动？
 
-既然同属一条相似轨道的矩阵本质上是同一个线性算子，那么属于算子自身的内在几何与谱属性，绝不应该随着坐标系矩阵 $M$ 的改变而变化。
+既然同属一条相似轨道的矩阵本质上是同一个线性算子，那么属于算子自身的与基底无关的代数性质，绝不应该随着坐标系矩阵 $M$ 的改变而变化。
 
 <TheoremCard title="相似不变量定理" termEn="Similarity Invariants Theorem">
 
@@ -237,7 +237,7 @@ $$
    0 & 0 & 0 & \cdots & \lambda
    \end{bmatrix}_{k \times k} = \lambda I_k + N_k
    $$
-   其中 $N_k$ 是超对角线全为 $1$ 的标准移位幂零矩阵（$N_k^k = 0$，但 $N_k^{k-1} \ne 0$）。当 $k = 1$ 时，$J_1(\lambda) = [\lambda]$ 就是普通的 $1 \times 1$ 对角元。
+   其中 $N_k$ 是超对角线全为 $1$ 的标准移位幂零矩阵（$N_k^k = O$，但 $N_k^{k-1} \ne O$）。当 $k = 1$ 时，$J_1(\lambda) = [\lambda]$ 就是普通的 $1 \times 1$ 对角元。
 
 2. **广义特征向量（Generalized Eigenvector）**：
    设 $A \in \mathbb{C}^{n \times n}$ 且 $\lambda$ 为其特征值。若非零向量 $\mathbf{v} \in \mathbb{C}^n$ 满足存在正整数 $m \ge 1$ 使：
@@ -330,9 +330,9 @@ $$
    $$
    \mathbb{C}^n = G_{\lambda_1} \oplus G_{\lambda_2} \oplus \dots \oplus G_{\lambda_r}
    $$
-   在各不变子空间的拼接基底下，$A$ 化为分块对角阵，每个 $m_i \times m_i$ 块可写成 $\lambda_i I_{m_i} + N_i$，其中 $N_i = (A - \lambda_i I_n)|_{G_{\lambda_i}}$ 是幂零算子（$N_i^{m_i} = 0$）。
+   在各不变子空间的拼接基底下，$A$ 化为分块对角阵，每个 $m_i \times m_i$ 块可写成 $\lambda_i I_{m_i} + N_i$，其中 $N_i = (A - \lambda_i I_n)|_{G_{\lambda_i}}$ 是幂零算子（$N_i^{m_i} = O$）。
 2. **对幂零算子 $N$ 按链分解（对维数 $m$ 作归纳）**：
-   只需证明任意幂零算子 $N: V \to V$（$N^m = 0$）都能找到由若干条互不相交的链 $\{\mathbf{v}, N\mathbf{v}, \dots, N^{k-1}\mathbf{v}\}$ 构成的基底。对空间维数 $\dim V$ 归纳：取像空间 $W = \operatorname{Im}(N)$，因为 $N$ 幂零且不可逆，故 $\dim W \lt \dim V$。由归纳假设，$N|_W$ 在 $W$ 中有一组链基底。将每条链的链头（必在 $\operatorname{Im}(N)$ 中）逆向回拉一个原像，将链延长 1 节，再在 $\operatorname{Null}(N)$ 中补齐尚未被像空间链尾覆盖的剩余特征方向（对应长度为 $1$ 的链），即可严密验证这组向量线性无关且总数恰好等于 $\dim V$！
+   只需证明任意幂零算子 $N: V \to V$（$N^m = O$）都能找到由若干条互不相交的链 $\{\mathbf{v}, N\mathbf{v}, \dots, N^{k-1}\mathbf{v}\}$ 构成的基底。对空间维数 $\dim V$ 归纳：取像空间 $W = \operatorname{Im}(N)$，因为 $N$ 幂零且不可逆，故 $\dim W \lt \dim V$。由归纳假设，$N|_W$ 在 $W$ 中有一组链基底。将每条链的链头（必在 $\operatorname{Im}(N)$ 中）逆向回拉一个原像，将链延长 1 节，再在 $\operatorname{Null}(N)$ 中补齐尚未被像空间链尾覆盖的剩余特征方向（对应长度为 $1$ 的链），即可严密验证这组向量线性无关且总数恰好等于 $\dim V$！
 
 #### 第二部分：唯一性严格证明（秩降计数公式）
 设 $A$ 相似于某 Jordan 标准形 $J$。我们来反推对于给定特征值 $\lambda_0$，尺寸恰好为 $m$ 的 Jordan 块究竟有多少个。
@@ -370,7 +370,7 @@ $$
 - **$3 + 1$ 分划**：$J_3(\lambda) \oplus J_1(\lambda)$
 - **$2 + 2$ 分划**：$J_2(\lambda) \oplus J_2(\lambda)$
 
-这两个矩阵拥有完全相同的特征多项式、相同的特征值、相同的迹、相同的行列式，甚至连**几何重数（特征向量个数）也一模一样**（都是 $2$）！但它们**绝对不相似**！怎么把它们区分开？唯一的方法就是按照上面证明的秩降定理，多算一次平方 $(A - \lambda I_4)^2$ 的秩！
+这两个矩阵拥有完全相同的特征多项式、相同的特征值、相同的迹、相同的行列式，甚至连**几何重数（特征向量个数）也一模一样**（都是 $2$）！但它们**绝对不相似**！怎么把它们区分开？一种方法是使用上面的秩降定理，多算一次平方 $(A - \lambda I_4)^2$ 的秩！
 
 让我们用两个具体的 $4 \times 4$ 矩阵来亲自验证：
 
@@ -398,7 +398,7 @@ $$
    $$
    B_2^2 = \begin{bmatrix} 0 & 1 & 0 & 1 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix}^2 = \begin{bmatrix} 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{bmatrix} \implies \operatorname{rank}(B_2^2) = 1
    $$
-   再算 $B_2^3 = B_2^2 B_2 = 0 \implies \operatorname{rank}(B_2^3) = 0$。
+   再算 $B_2^3 = B_2^2 B_2 = O \implies \operatorname{rank}(B_2^3) = 0$。
 
 3. **套用 Weyr 秩降计数公式还原标准形**：
    - 对于 $P_1$（秩序列 $r_0=4, r_1=2, r_2=0$）：
@@ -435,10 +435,10 @@ $$
 
 ### 1. 离散矩阵幂 $J_m(\lambda)^k$：组合数多项式权重
 
-因为 $\lambda I_m$ 与 $N_m$ 可交换，二项式定理直接成立；又因为 $N_m^m = 0$，级数在第 $m-1$ 项自动截断为有限和：
+因为 $\lambda I_m$ 与 $N_m$ 可交换，二项式定理直接成立；又因为 $N_m^m = O$，级数在第 $m-1$ 项自动截断为有限和：
 
 $$
-J_m(\lambda)^k = (\lambda I_m + N_m)^k = \sum_{j=0}^{m-1} \binom{k}{j} \lambda^{k-j} N_m^j \quad (k \ge m-1)
+J_m(\lambda)^k = (\lambda I_m + N_m)^k = \sum_{j=0}^{\min(k,m-1)} \binom{k}{j} \lambda^{k-j} N_m^j \quad (k\ge 0\text{ 为整数})
 $$
 
 以 $2 \times 2$ 与 $3 \times 3$ Jordan 块为例：
@@ -469,7 +469,7 @@ $$
 
 这就是常微分方程课程里学过“重根特征方程时为什么要乘上 $t$ 与 $t^2$”的**全部线性代数根源**！如果重根对应的特征向量足够（可对角化，块尺寸全为 $1$），解里**不会出现** $t e^{\lambda t}$；只有当几何重数亏损、出现 $m \times m$ 的 Jordan 块（$m \ge 2$）时，超对角线上的 $1$ 才会通过幂零矩阵指数 $e^{t N_m}$ 在解 $\mathbf{u}(t) = M e^{Jt} M^{-1}\mathbf{u}(0)$ 中精准生成 $t e^{\lambda t}, \dots, \frac{t^{m-1}}{(m-1)!} e^{\lambda t}$。
 
-物理上，当 $\operatorname{Re}(\lambda) = 0$（例如无阻尼振子的纯虚特征值 $\lambda = \pm i\omega$）且存在 $\ge 2\times 2$ Jordan 块时，解中会出现线性发散的振荡项 $t e^{i\omega t}$——这在力学与电路中正是**物理共振（Resonance）**！
+当 $\lambda=i\omega$ 且 $\omega\ne 0$ 时，非平凡 Jordan 块允许出现多项式增长的振荡项，例如二阶块中的 $t e^{i\omega t}$。是否出现该项取决于初值在对应广义特征向量上的分量。若 $\lambda=0$，则为不带振荡的多项式增长。
 
 ---
 
@@ -687,12 +687,12 @@ $$
 <ProgressiveHint hints={[
   "按第 4 行与第 3 行展开行列式 $\\det(A - \\lambda I_4)$，很快就能得到 $(1 - \\lambda)^2$ 乘以左上角 $2 \\times 2$ 块的行列式。",
   "计算 $B = A - I_4$，仔细数清线性无关行的数目得 $\\operatorname{rank}(B) = 2$；然后动手算一下 $B^2$ 的 16 个元素，看它是不是零矩阵！",
-  "若 $B^2 \\ne 0$，则最大 Jordan 块的尺寸至少为 $3$，这直接排除了 $2+2$ 分划！"
+  "若 $B^2 \\ne O$，则最大 Jordan 块的尺寸至少为 $3$，这直接排除了 $2+2$ 分划！"
 ]} />
 
 <DualSolution>
 <SolutionIntuition>
-看到 $A$ 的右下角是 $1, 1$ 的下三角块，很容易立刻剥出两个 $\lambda = 1$；左上角的 $2\times 2$ 块 $\begin{bmatrix} 0 & 1 \\ -1 & 2 \end{bmatrix}$ 迹为 $2$、行列式为 $1$，也是两个 $\lambda = 1$！所以所有四个特征值全都是 $1$。算出 $B = A - I_4$ 的秩为 $2$ 后，我们知道一共有 $4-2=2$ 个块（只能是 $3+1$ 或 $2+2$）。接下来只需检查 $B^2$ 是否全为零：如果 $B^2 \ne 0$，说明存在长度至少为 $3$ 的链，瞬间锁定是 $3+1$！
+看到 $A$ 的右下角是 $1, 1$ 的下三角块，很容易立刻剥出两个 $\lambda = 1$；左上角的 $2\times 2$ 块 $\begin{bmatrix} 0 & 1 \\ -1 & 2 \end{bmatrix}$ 迹为 $2$、行列式为 $1$，也是两个 $\lambda = 1$！所以所有四个特征值全都是 $1$。算出 $B = A - I_4$ 的秩为 $2$ 后，我们知道一共有 $4-2=2$ 个块（只能是 $3+1$ 或 $2+2$）。接下来只需检查 $B^2$ 是否全为零：如果 $B^2 \ne O$，说明存在长度至少为 $3$ 的链，瞬间锁定是 $3+1$！
 </SolutionIntuition>
 <SolutionRigorous>
 **第 1 问：特征多项式与代数重数**
@@ -759,7 +759,7 @@ $$
    -1 & 1 & 1 & 0 \\
    0 & 0 & 0 & 0 \\
    0 & 0 & 0 & 0
-   \end{bmatrix} = 0 \implies \operatorname{rank}(B^3) = 0
+   \end{bmatrix} = O \implies \operatorname{rank}(B^3) = 0
    $$
 
 **第 3 问：由 Weyr 秩降确定 Jordan 标准形**
@@ -783,7 +783,7 @@ J = \begin{bmatrix}
 0 & 0 & 0 & 1
 \end{bmatrix}
 $$
-**直觉解释**：$J_2(1) \oplus J_2(1)$ 满足 $(J - I_4)^2 = 0$（最大链长仅 $2$），而本例中 $B^2 \ne 0$，证明存在能够承受两次偏移仍不为零的 $3$ 阶广义特征向量（具体即 $\mathbf{e}_3$，满足 $B^2 \mathbf{e}_3 = [1, 1, 0, 0]^T \ne \mathbf{0}$），因此必须包含一个 $3\times 3$ 块。
+**直觉解释**：$J_2(1) \oplus J_2(1)$ 满足 $(J - I_4)^2 = O$（最大链长仅 $2$），而本例中 $B^2 \ne O$，证明存在能够承受两次偏移仍不为零的 $3$ 阶广义特征向量（具体即 $\mathbf{e}_3$，满足 $B^2 \mathbf{e}_3 = [1, 1, 0, 0]^T \ne \mathbf{0}$），因此必须包含一个 $3\times 3$ 块。
 </SolutionRigorous>
 </DualSolution>
 

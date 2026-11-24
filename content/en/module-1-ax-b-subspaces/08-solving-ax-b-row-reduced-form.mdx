@@ -5,7 +5,7 @@ videoEpisode: "P08"
 textbookRef: "§3.3"
 ---
 
-In Lecture 07, we completely mastered the nullspace construction for the homogeneous equation $A\mathbf{x} = \mathbf{0}$. Today, entering MIT 18.06 Lecture 08, we restore a nonzero target vector $\mathbf{b}$ to the right-hand side and bring the entire theory of linear systems together: **For an arbitrary $m\times n$ matrix, when does the inhomogeneous system $A\mathbf{x} = \mathbf{b}$ actually have a solution? Once a solution exists, what is the geometric structure of all solutions? And how does the rank $r$ of the matrix decisively govern the four fundamental regimes of "$0$ solutions, $1$ solution, or $\infty$ solutions"?**
+In Lecture 07, we completely mastered the nullspace construction for the homogeneous equation $A\mathbf{x} = \mathbf{0}$. Today, entering MIT 18.06 Lecture 08, we allow a general target vector $\mathbf{b}$ to the right-hand side and bring the entire theory of linear systems together: **For an arbitrary $m\times n$ matrix, when does the system $A\mathbf{x} = \mathbf{b}$ have a solution? Once a solution exists, what is the geometric structure of all solutions? And how does the rank $r$ of the matrix decisively govern the four fundamental regimes of "$0$ solutions, $1$ solution, or $\infty$ solutions"?**
 
 ---
 
@@ -39,7 +39,7 @@ $$
 \left[\begin{array}{cccc|c}
 \mathbf{1} & 2 & 2 & 2 & b_1 \\
 0 & 0 & \mathbf{2} & 4 & b_2 - 2b_1 \\
-0 & 0 & 0 & 0 & \mathbf{b_3 - b_2 - b_1}
+0 & 0 & 0 & 0 & \boxed{b_3 - b_2 - b_1}
 \end{array}\right]
 $$
 
@@ -115,12 +115,12 @@ Savor the four-dimensional geometry here: the nullspace $\operatorname{Null}(A)$
 
 Now let us step back and survey all possible real matrices $A \in \mathbb{R}^{m\times n}$. A matrix has $m$ rows, $n$ columns, and $r = \operatorname{rank}(A)$ pivots. Because each row contains at most one pivot and each column contains at most one pivot, we always have $r \le m$ and $r \le n$. Depending on **whether $r$ reaches its upper bound $m$ or $n$**, every matrix in the universe falls cleanly into one of **four—and only four—rank regimes**:
 
-<AffineSolutionAndFourRankCasesDiagram caption="Geometric structure of the affine solution flat x_p + Null(A) and the four fundamental rank regimes governing existence and uniqueness of solutions to Ax = b." />
+<AffineSolutionAndFourRankCasesDiagram lang="en" caption="The left panel illustrates a consistent system with a one-dimensional nullspace. Translating $\operatorname{Null}(A)$ by $\mathbf{x}_p$ gives the affine solution line. The right panel shows the four rank cases with pivot columns placed first." />
 
 <InteractiveCanvasSlot
   id="l08-affine-solution-shift"
-  title="Affine Solution Plane x_p + Null(A) & Four Rank Regimes Switcher"
-  description="Interactive sandbox: dynamically adjust the right-hand side vector $\mathbf{b}$ to observe how the solution line or plane $\mathbf{x}_p + \operatorname{Null}(A)$ in 3D space shifts parallel to the nullspace as $\mathbf{b}$ varies; toggle seamlessly between the four canonical matrix archetypes: Full Column Rank ($r=n$), Full Row Rank ($r=m$), Full Rank Invertible ($r=m=n$), and Rank Deficient."
+  title="Translating a Solution Line"
+  description="Vary the scalar right-hand side $b$ in $x_1+2x_2=b$ to translate the solution line. Vary the nullspace parameter to move along that line."
 />
 
 <DefinitionCard
@@ -137,9 +137,9 @@ Let the matrix $A \in \mathbb{R}^{m\times n}$ have rank $r = \operatorname{rank}
   label="Theorem 8.1"
   title="Complete Solution Structure & The Four Rank Regimes"
 >
-Let the real matrix $A \in \mathbb{R}^{m\times n}$ have rank $r = \operatorname{rank}(A)$:
+Let $A\in\mathbb{R}^{m\times n}$ have rank $r=\operatorname{rank}(A)$ and let $\mathbf{b}\in\mathbb{R}^m$.
 
-1. **Dual Equivalence Criterion for Solvability**: The system $A\mathbf{x} = \mathbf{b}$ is solvable $\iff$ **geometrically** $\mathbf{b} \in \operatorname{Col}(A)$ $\iff$ **algebraically** whenever augmented elimination reduces a row of $A$ to all zeros, the corresponding entry of $\mathbf{b}$ simultaneously reduces to $0$.
+1. **Solvability**. Let $E\in\mathbb{R}^{m\times m}$ be invertible with $EA=R=\operatorname{rref}(A)$. Then $A\mathbf{x}=\mathbf{b}$ is solvable exactly when $\mathbf{b}\in\operatorname{Col}(A)$, equivalently when the last $m-r$ entries of $E\mathbf{b}$ are zero. Necessity follows from the zero rows of $R$. When these entries vanish, set all free variables to zero and copy the first $r$ entries of $E\mathbf{b}$ into the pivot-variable slots.
 2. **Affine Complete Solution Decomposition**: Once a particular solution $\mathbf{x}_p$ satisfying $A\mathbf{x}_p = \mathbf{b}$ exists, the complete solution set of $A\mathbf{x} = \mathbf{b}$ is the shifted nullspace $\mathbf{x}_p + \operatorname{Null}(A) = \{\mathbf{x}_p + \mathbf{x}_n : \mathbf{x}_n \in \operatorname{Null}(A)\}$.
 3. **Number of Solutions and Canonical Form of $R = \operatorname{rref}(A)$ Across the Four Rank Regimes** (up to column permutation):
    - **① Full Column & Row Rank (Invertible Square Matrix) $r = m = n$**: $R = I_n$, $\operatorname{Null}(A) = \{\mathbf{0}\}$ and $\operatorname{Col}(A) = \mathbb{R}^n$ $\implies$ **always a unique solution ($1$ solution)** for every $\mathbf{b}$.
@@ -160,22 +160,19 @@ $$
 Since $E$ is invertible, multiplying both sides on the left by $E^{-1}$ immediately gives $A\mathbf{x}_p = E^{-1}(R\mathbf{x}_p) = E^{-1}(E\mathbf{b}) = \mathbf{b}$! Thus a solution exists for every $\mathbf{b} \in \mathbb{R}^m$ (and when $m \lt n$, because there are $n - m \ge 1$ linearly independent special solutions in the nullspace, there are necessarily infinitely many solutions).
 </ProofCollapse>
 
-<PitfallAlert title="Common Pitfalls & Transcript Errata">
-1. **Pitfall 1: "The particular solution $\mathbf{x}_p$ is unique—only the one obtained by setting all free variables to $0$ qualifies as a particular solution."**
-   **False!** Setting all free variables to $0$ is merely the **most convenient hand-calculation convention** for finding one particular solution, not the only one! In fact, **any point** $\tilde{\mathbf{x}}_p = \mathbf{x}_p + \mathbf{s}_1$ lying on the affine solution flat $\mathbf{x}_p + \operatorname{Null}(A)$ satisfies $A\tilde{\mathbf{x}}_p = \mathbf{b}$ and is completely qualified to serve as the particular solution: $\tilde{\mathbf{x}}_p + \operatorname{Null}(A) = \mathbf{x}_p + \operatorname{Null}(A)$ describes the exact same shifted plane!
-2. **Pitfall 2: Multiplying the particular solution $\mathbf{x}_p$ by an arbitrary constant and writing $c_0 \mathbf{x}_p + c_1 \mathbf{s}_1 + c_2 \mathbf{s}_2$! (A fatal exam mistake!)**
-   **Never multiply $\mathbf{x}_p$ by a free parameter $c_0$!** As soon as you multiply by $c_0 \neq 1$, the left-hand side produces $A(c_0\mathbf{x}_p + \mathbf{x}_n) = c_0 \mathbf{b} \neq \mathbf{b}$! The coefficient in front of $\mathbf{x}_p$ must be locked strictly at **$1$**; arbitrary constants $c_1, c_2 \in \mathbb{R}$ may only multiply the nullspace special solutions $\mathbf{s}_k$!
-3. **Pitfall 3: Concluding from "more equations $m$ than unknowns $n$ (an overdetermined system)" that there cannot be infinitely many solutions.**
-   The behavior of solutions **depends strictly on the rank $r$, never on the outer dimensions $m, n$ alone**! Even for a tall $100 \times 3$ matrix, if its rank is only $r = 2 \lt 3$ (placing it in Regime ④, Rank Deficient), then for any $\mathbf{b}$ lying in its two-dimensional column space plane, it still has **infinitely many solutions**! Only when you strictly know **full column rank $r = n$** can you rule out infinitely many solutions.
+<PitfallAlert title="Common Pitfalls">
+1. **Particular solutions**. Setting all free variables to zero selects one solution of a consistent system. Every vector in $\mathbf{x}_p+\operatorname{Null}(A)$ can also serve as the particular solution.
+2. **Scaling the particular solution**. For $\mathbf{x}_n\in\operatorname{Null}(A)$, $A(c\mathbf{x}_p+\mathbf{x}_n)=c\mathbf{b}$. When $\mathbf{b}\ne\mathbf{0}$, this equals $\mathbf{b}$ exactly when $c=1$.
+3. **Tall systems**. A $100\times 3$ matrix of rank $2$ has infinitely many solutions for each $\mathbf{b}\in\operatorname{Col}(A)$ and no solutions for other right-hand sides. For a consistent system, the solution count is governed by the number of free variables $n-r$.
 </PitfallAlert>
 
 <KeyTakeaways
   title="Key Takeaways"
   items={[
-    "The complete solution to $A\\mathbf{x} = \\mathbf{b}$ is always **$\\mathbf{x} = \\mathbf{x}_p + \\mathbf{x}_n$** (where $A\\mathbf{x}_p = \\mathbf{b}$ and $\\mathbf{x}_n \\in \\operatorname{Null}(A)$); the fastest way to find a particular solution $\\mathbf{x}_p$ by hand is to set all free variables equal to $0$.",
-    "**Never multiply $\\mathbf{x}_p$ by a free constant $c$!** When $\\mathbf{b} \\neq \\mathbf{0}$, the solution set is an affine flat obtained by shifting the nullspace by $\\mathbf{x}_p$, NOT a subspace.",
+    "If the system is consistent, its complete solution is **$\\mathbf{x} = \\mathbf{x}_p + \\mathbf{x}_n$** (where $A\\mathbf{x}_p = \\mathbf{b}$ and $\\mathbf{x}_n \\in \\operatorname{Null}(A)$); the fastest way to find a particular solution $\\mathbf{x}_p$ by hand is to set all free variables equal to $0$.",
+    "For a consistent system with $\\mathbf{b}\\neq\\mathbf{0}$, the solution set is an affine translate of the nullspace that excludes the origin.",
     "**Full column rank ($r = n$)** governs uniqueness (no free variables $\\implies 0$ or $1$ solution); **full row rank ($r = m$)** governs existence (no zero rows $\\implies 1$ or $\\infty$ solutions for every $\\mathbf{b}$).",
-    "**Full rank ($r = m = n$)** yields a unique solution for every $\\mathbf{b}$; **rank deficient ($r \\lt \\min(m, n)$)** yields either $0$ or $\\infty$ solutions, never a unique solution."
+    "**Invertible square case ($r = m = n$)** yields a unique solution for every $\\mathbf{b}$; **rank deficient ($r \\lt \\min(m, n)$)** yields either $0$ or $\\infty$ solutions, never a unique solution."
   ]}
 />
 
@@ -272,7 +269,7 @@ Determine whether the following statement is true or false:
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! The statement omits the crucial hypothesis of full column rank ($\operatorname{rank}(A) = 3$)! If the three columns of $A \in \mathbb{R}^{5\times 3}$ are collinear (for example, rank $r = 1 \lt 3$), the system still has $3 - 1 = 2$ free variables, and for $\mathbf{b} = \mathbf{0}$ (or any $\mathbf{b}$ in the column space) it immediately has infinitely many solutions!"
+  quickFeedback="False! The statement omits the crucial hypothesis of full column rank ($\operatorname{rank}(A) = 3$)! If $A\in\mathbb{R}^{5\times3}$ has rank $1$, the system still has $3 - 1 = 2$ free variables, and for $\mathbf{b} = \mathbf{0}$ (or any $\mathbf{b}$ in the column space) it immediately has infinitely many solutions!"
 />
 
 <ProgressiveHint
@@ -335,7 +332,7 @@ Determine whether the following statement is true or false:
 >
 <SolutionIntuition>
 
-The necessary and sufficient condition for a unique solution is **zero free variables ($r = n$)**. A short, wide matrix inherently has too few rows ($m \lt n$): even if every single row produces a pivot, the total number of pivots $r$ is at most $m$ and can never reach $n$! Because at least one free variable is always left roaming the nullspace, either $\mathbf{b} \notin \operatorname{Col}(A)$ and there are $0$ solutions, or you find one foothold $\mathbf{x}_p$ and adding the nullspace line immediately turns it into $\infty$ solutions!
+A consistent system has a unique solution exactly when there are **zero free variables ($r = n$)**. A short, wide matrix inherently has too few rows ($m \lt n$): even if every single row produces a pivot, the total number of pivots $r$ is at most $m$ and can never reach $n$! Because at least one free variable is always left roaming the nullspace, either $\mathbf{b} \notin \operatorname{Col}(A)$ and there are $0$ solutions, or you find one foothold $\mathbf{x}_p$ and adding scalar multiples of any nonzero nullspace vector produces infinitely many solutions.
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -400,6 +397,7 @@ $$
    - Because $\operatorname{Null}(A) \neq \{\mathbf{0}\}$, we have $n - r = 3 - r \ge 1 \implies r \le 2$;
    - Because there exists $\mathbf{u}$ with $A\mathbf{u} = \mathbf{b} \neq \mathbf{0}$, we know $A \neq 0 \implies r \ge 1$.
    Hence $r = \operatorname{rank}(A) \in \{\mathbf{1, 2}\}$ (both values are possible).
+   For explicit examples, $\mathbf{a}=(1,1,0)^T/3$ has dot product $1$ with both $\mathbf{u}$ and $\mathbf{v}$, and $\mathbf{h}=(-2,1,3)^T$ has dot product $0$ with both. The matrices $\mathbf{b}\mathbf{a}^T$ and $\mathbf{b}\mathbf{a}^T+\mathbf{z}\mathbf{h}^T$, with $\mathbf{z}$ independent of $\mathbf{b}$, map both inputs to $\mathbf{b}$ and have ranks $1$ and $2$, since $\mathbf{a}$ and $\mathbf{h}$ are independent.
 
 3. Since $A(3\mathbf{u}) = 3(A\mathbf{u}) = 3\mathbf{b}$ and $A\mathbf{s} = \mathbf{0}$, for every $c \in \mathbb{R}$ the vectors
 
@@ -428,7 +426,7 @@ $$
   buttonPrefix="Unlock Hint"
   hints={[
     "Part 1: The solution vector $\\mathbf{x}$ has $3$ components, so $A$ must have $n = 3$ columns! The nullspace part has $1$ free parameter $c$ (meaning $n - r = 1$), so $r = 3 - 1 = 2$! Since the rank is $2$, the minimum number of rows required is $m = 2$!",
-    "Parts 2 & 3: The single free variable sits in Column 3 (since the special solution $\\mathbf{s} = (1, 1, 1)^T$ has $1$ in its last entry), and the first two columns are pivot columns! Reverse-engineer the $2\\times 3$ matrix $R$ as in Lecture 07: put $I_2$ in the first two columns and $(-1, -1)^T$ in Column 3 so that $R(1,1,1)^T = \\mathbf{0}$; finally, multiply $R$ by $\\mathbf{x}_p = (2, 0, 0)^T$ to obtain the right-hand side vector $\\mathbf{d}$!"
+    "Parts 2 & 3: The single free variable sits in Column 3 (because a pivot in the last column would make the last row impose $x_3=0$ on the nullspace), and the first two columns are pivot columns! Reverse-engineer the $2\\times 3$ matrix $R$ as in Lecture 07: put $I_2$ in the first two columns and $(-1, -1)^T$ in Column 3 so that $R(1,1,1)^T = \\mathbf{0}$; finally, multiply $R$ by $\\mathbf{x}_p = (2, 0, 0)^T$ to obtain the right-hand side vector $\\mathbf{d}$!"
   ]}
 />
 
@@ -464,7 +462,7 @@ $$
    Verification: $A\mathbf{x} = \mathbf{b} \iff \begin{cases} x_1 - x_3 = 2 \\ x_2 - x_3 = 0 \end{cases} \iff \mathbf{x} = (2 + x_3,\; x_3,\; x_3)^T = (2,0,0)^T + x_3(1,1,1)^T$, matching completely!
 
 3. **Uniqueness Proof Under RREF**: Suppose the matrix itself is required to be a $2\times 3$ reduced row echelon matrix $R$:
-   - Since $r = 2$, there must be two pivots. If the pivot columns were Columns 1 and 3 (or Columns 2 and 3), the free column would be Column 2 (or Column 1). However, since $(1,1,1)^T \in \operatorname{Null}(R)$, if Column 2 were free then $R = \begin{bmatrix} 1 & a & 0 \\ 0 & 0 & 1 \end{bmatrix}$, which gives $R(1,1,1)^T = (1+a,\; 1)^T \neq (0,0)^T$, a contradiction! By the same reasoning, Column 1 cannot be the sole free column.
+   - Since $r=2$, if column 3 contained a pivot it would be the second pivot, so row 2 would be $[0,0,1]$. But that row does not annihilate $(1,1,1)^T\in\operatorname{Null}(R)$.
    - Therefore, the two pivot columns **must be Columns 1 and 2**, which uniquely determines $R = \begin{bmatrix} 1 & 0 & -1 \\ 0 & 1 & -1 \end{bmatrix}$; consequently, the right-hand side vector is also uniquely determined as $\mathbf{d} = R(2,0,0)^T = (2, 0)^T$!
 
 </SolutionRigorous>
@@ -475,85 +473,61 @@ $$
 
 <FrontierAIReading
   id="AI-03"
-  title="Null-Space Knowledge Editing in LLMs (AlphaEdit): Updating Facts with Zero Interference via x_p + x_n"
-  paperRef="Fang et al. (ICLR 2025 Oral) AlphaEdit: Null-Space Constrained Knowledge Editing for Language Models · Meng et al. (NeurIPS 2022) ROME"
+  title="AlphaEdit: Constraining a Linear Layer Update to a Nullspace"
+  paperRef="Fang et al. (ICLR 2025) AlphaEdit: Null-Space Constrained Knowledge Editing for Language Models"
 >
 
-Imagine a pressing real-world engineering challenge: a Large Language Model (LLM) trained at a cost of tens of millions of dollars stores a vast repository of accurate world knowledge (such as "The capital of France is Paris" or "The speed of light is approximately $3\times 10^8\text{ m/s}$"), but as time passes, certain facts change (for example, "a country inaugurates a new prime minister" or "an open-source library releases a new major version"). If you fine-tune the weights directly with gradient descent, updating just a few dozen new facts often causes catastrophic forgetting or cross-talk corruption of the model's existing knowledge!
+### 1. Preserving a linear layer on fixed keys
 
-**AlphaEdit**, winner of an **ICLR 2025 Oral (top paper award)**, presents a pure linear-algebraic solution that will make every reader of MIT 18.06 Lecture 08 cheer—**its entire core mechanism is an exact realization of Lecture 08's inhomogeneous complete solution decomposition $\mathbf{x} = \mathbf{x}_p + \mathbf{x}_n$ inside linear associative memory layers!**
-
-### 1. Viewing a Transformer FFN Layer as a Linear Key-Value Store $W K_0 = V_0$
-
-In a Transformer feed-forward network (FFN, consisting of two linear projections sandwiching a nonlinear activation), the second down-projection weight matrix $W \in \mathbb{R}^{d_{\text{out}} \times d_{\text{mid}}}$ acts as a **Linear Associative Memory**:
-- Suppose the intermediate activation key vectors corresponding to **$N_0$ existing facts we wish to strictly preserve** are stacked into the matrix $K_0 = \begin{bmatrix} \mathbf{k}_1 & \cdots & \mathbf{k}_{N_0} \end{bmatrix} \in \mathbb{R}^{d_{\text{mid}} \times N_0}$ (in practical LLMs, the effective rank of preserved activations satisfies $r_0 \lt d_{\text{mid}}$, meaning $K_0^T$ is a **short, wide matrix with plenty of free variables**!), and the current correct outputs are $V_0 = W K_0$;
-- Now we want to write one (or a batch of) **new facts**: when the new key matrix $K_1 \in \mathbb{R}^{d_{\text{mid}} \times N_1}$ is fed in, we want the updated weights $W' = W + \Delta W$ to output the new target values $V_1^*$!
-
----
-
-### 2. Isomorphism Between the Zero-Interference Constraint $\Delta W K_0 = 0$ and $\mathbf{x}_p + \mathbf{x}_n$
-
-Let us translate "learn the new facts while causing zero interference to old facts" into simultaneous matrix equations for the weight update $\Delta W$ (taking the transpose makes each column identical to our standard Lecture 08 system $A\mathbf{x} = \mathbf{b}$!):
-
-1. **Hard Zero-Interference Constraint on Old Memory (Homogeneous Nullspace Part)**:
+Fix a Transformer feed-forward down-projection $W\in\mathbb{R}^{d_{\text{out}}\times d_{\text{mid}}}$. Let $K_0\in\mathbb{R}^{d_{\text{mid}}\times N_0}$ stack the keys to preserve, with outputs $V_0=WK_0$. To keep these outputs unchanged after adding $\Delta W$, require
 
 $$
-(W + \Delta W) K_0 = W K_0 \quad \Longleftrightarrow \quad \Delta W \, K_0 = 0 \quad \Longleftrightarrow \quad K_0^T (\Delta W)^T = 0
+(W+\Delta W)K_0=WK_0
+\iff \Delta W K_0=0_{d_{\text{out}}\times N_0}
+\iff K_0^T(\Delta W)^T=0_{N_0\times d_{\text{out}}}.
 $$
 
-   Look at the rightmost equation: **it requires every row of the weight update $\Delta W$ (every column of its transpose) to lie strictly inside the nullspace $\operatorname{Null}(K_0^T)$ of the preserved key matrix!** As long as this holds, no matter how far $\Delta W$ moves inside that nullspace, whenever an old query $\mathbf{k}_j \in \operatorname{Col}(K_0)$ enters the layer, the perturbation term $\Delta W \mathbf{k}_j = \mathbf{0}$ vanishes identically—preserving prior memories with **mathematically zero error**!
+Let $Q\in\mathbb{R}^{d_{\text{mid}}\times q}$ have orthonormal columns spanning $\operatorname{Null}(K_0^T)$, where $q=d_{\text{mid}}-\operatorname{rank}(K_0)$. A nonzero admissible update requires $q>0$. The orthogonal projector is $P=QQ^T$, and $PK_0=0_{d_{\text{mid}}\times N_0}$. Every admissible update has the form $\Delta W=\widetilde{\Delta}P$, or equivalently $\Delta W=ZQ^T$ with $Z\in\mathbb{R}^{d_{\text{out}}\times q}$. This preserves the edited layer’s output on every fixed input in $\operatorname{Col}(K_0)$.
 
-2. **Hitting the New Fact Targets Exactly (Inhomogeneous Particular Solution Part)**:
-   Simultaneously, within the degrees of freedom permitted by $\operatorname{Null}(K_0^T)$, we require the new keys to match the inhomogeneous target residual $R_1 := V_1^* - W K_1$:
+### 2. Fitting new targets in the allowed subspace
 
-$$
-(W + \Delta W) K_1 = V_1^* \quad \Longleftrightarrow \quad \Delta W \, K_1 = R_1
-$$
-
-   How do we satisfy both conditions at once? Let $P_{\text{null}} \in \mathbb{R}^{d_{\text{mid}} \times d_{\text{mid}}}$ be the orthogonal projection matrix onto the left nullspace $\operatorname{Null}(K_0^T)$ of the preserved keys (so $P_{\text{null}} K_0 = 0$). Parameterize the update as $\Delta W = \tilde{\Delta} P_{\text{null}}$:
-   - On one hand, multiplying on the right by $K_0$ automatically satisfies $\Delta W K_0 = \tilde{\Delta}(P_{\text{null}} K_0) = 0$ (locked inside the nullspace!);
-   - On the other hand, the new-fact equation reduces to solving a short, wide full-row-rank system (**Regime ③, $r = m \lt n$**, from this lecture!) for the projected new keys $K_{1,\perp} := P_{\text{null}} K_1$:
+Given new keys $K_1\in\mathbb{R}^{d_{\text{mid}}\times N_1}$ and target outputs $V_1^*\in\mathbb{R}^{d_{\text{out}}\times N_1}$, put $B=Q^TK_1\in\mathbb{R}^{q\times N_1}$ and $R_1=V_1^*-WK_1$. Exact fitting reduces to
 
 $$
-\tilde{\Delta} (P_{\text{null}} K_1) = R_1
+ZB=R_1 \iff B^T Z^T=R_1^T.
 $$
 
-   As long as the new fact keys $K_1$ do not lie entirely inside the subspace spanned by the old keys ($P_{\text{null}} K_1 \neq 0$), this wide system has infinitely many exact solutions—writing the new facts $(W + \Delta W)K_1 = V_1^*$ with pinpoint accuracy while leaving every preserved fact $(W + \Delta W)K_0 = WK_0$ untouched to the last decimal place!
+By Theorem 8.1, this is solvable exactly when $\operatorname{Null}(B)\subseteq\operatorname{Null}(R_1)$. Indeed, each transposed row of $R_1$ must lie in $\operatorname{Col}(B^T)=\operatorname{Null}(B)^\perp$. Full column rank of $B$ permits every residual, whereas $B\ne 0$ only ensures some direction is available. For example, identical projected keys require identical residual columns. When the system is consistent, each transposed row of $Z$ is a particular solution plus a vector in $\operatorname{Null}(B^T)\subseteq\mathbb{R}^q$. Since $Z=\Delta WQ$, the update is unique if $q=\operatorname{rank}(B)$ and has free directions if $q>\operatorname{rank}(B)$.
 
-<CollapsibleCode title="PyTorch Tensor Dimension Verification (20-Line AlphaEdit Null-Space Knowledge Editing Prototype)">
+AlphaEdit builds a projector from low-eigenvalue directions of $K_0K_0^T$, using $\operatorname{Null}(K_0K_0^T)=\operatorname{Null}(K_0^T)$ for exact zeros. Its practical threshold gives approximate preservation, and the algorithm fits residuals with regularized least squares, including a penalty for perturbing previously edited keys in sequential editing. The calculation above concerns fixed keys at one linear layer. [Fang et al., Sections 3.1–3.3](https://arxiv.org/abs/2410.02355)
+
+<CollapsibleCode title="PyTorch: Exact-fit example with fixed keys">
 
 ```python
 import torch
 
 torch.manual_seed(1806)
-
+dtype = torch.float64
 d_mid, d_out = 128, 64
-N_old, N_new = 80, 4   # Preserve 80 old facts (r_0 = 80 < 128, leaving 48 nullspace degrees of freedom!), write 4 new facts
+n_old, n_new = 80, 4
+W = torch.randn(d_out, d_mid, dtype=dtype)
+K_0 = torch.randn(d_mid, n_old, dtype=dtype)
+K_1 = torch.randn(d_mid, n_new, dtype=dtype)
+V_1 = torch.randn(d_out, n_new, dtype=dtype)
 
-W = torch.randn(d_out, d_mid)
-K_0 = torch.randn(d_mid, N_old)        # Activation keys of old facts to preserve
-V_0_orig = W @ K_0                     # Original outputs on old facts
+U, _, _ = torch.linalg.svd(K_0, full_matrices=True)
+r_0 = int(torch.linalg.matrix_rank(K_0))
+Q = U[:, r_0:]                       # (d_mid, q)
+B = Q.T @ K_1                        # (q, n_new)
+assert int(torch.linalg.matrix_rank(B)) == n_new
+R_1 = V_1 - W @ K_1                  # (d_out, n_new)
+delta_W = (R_1 @ torch.linalg.pinv(B)) @ Q.T
+W_edited = W + delta_W
 
-K_1 = torch.randn(d_mid, N_new)        # Activation keys of new facts to edit
-V_1_target = torch.randn(d_out, N_new) # Desired target values for new facts
-
-# 1. Extract an orthonormal basis (128 x 48) of Null(K_0^T) and build the nullspace projector P_null: P_null @ K_0 == 0
-U, S, _ = torch.linalg.svd(K_0, full_matrices=True)
-U_null = U[:, N_old:]                  # (128, 48) orthonormal basis of the nullspace
-P_null = U_null @ U_null.T             # (128, 128) nullspace projection operator
-
-# 2. Solve for the new-fact particular solution inside the nullspace: Delta_W @ K_1 = V_1_target - W @ K_1, with rows locked in Null(K_0^T)
-R_1 = V_1_target - W @ K_1             # Target residual b for new facts
-K_1_proj = P_null @ K_1                # New keys projected onto the nullspace (128, 4)
-Delta_W = R_1 @ torch.linalg.pinv(K_1_proj) @ P_null  # Exact update constrained to the nullspace
-
-W_edited = W + Delta_W
-
-# 3. Dual verification: 100% exact hit on new facts, 0.000000 interference on all 80 old facts!
-new_err = torch.norm(W_edited @ K_1 - V_1_target).item()
-old_interference = torch.norm(W_edited @ K_0 - V_0_orig).item()
-assert new_err < 1e-4 and old_interference < 1e-5
-print(f"New fact error: {new_err:.2e} | Old memory interference: {old_interference:.2e}")
+new_err = torch.linalg.matrix_norm(W_edited @ K_1 - V_1).item()
+old_err = torch.linalg.matrix_norm(delta_W @ K_0).item()
+assert new_err < 1e-10 and old_err < 1e-10
+print(f"New key error: {new_err:.2e} | Fixed key change: {old_err:.2e}")
 ```
 
 </CollapsibleCode>

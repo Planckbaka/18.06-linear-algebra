@@ -155,11 +155,10 @@ export function Module2And3SynthesisMapDiagram({
             Row(A) &#8869; Null(A) in &#8477;&#8319;
           </text>
           <text x="34" y="106" className="font-mono text-[11px] fill-foreground">
-            Col(A) &#8869; Null(A&#7511;) in &#8477;&#7504;
+            Col(A) &#8869; Null(Aᵀ) in &#8477;ᵐ
           </text>
-          <rect x="180" y="80" width="98" height="18" rx="4" className="fill-blue-500/10" />
-          <text x="229" y="93" textAnchor="middle" className="font-mono text-[10px] fill-blue-600 dark:fill-blue-400">
-            dim=r, n-r, m-r
+          <text x="34" y="119" className="font-mono text-[10px] fill-blue-600 dark:fill-blue-400">
+            维数：Row、Col 为 r；Null 为 n−r；左零空间为 m−r
           </text>
         </g>
 
@@ -189,10 +188,10 @@ export function Module2And3SynthesisMapDiagram({
             正交投影与最小二乘 (Projection &amp; LS)
           </text>
           <text x="34" y="177" className="font-mono text-[11px] fill-foreground">
-            P = A(A&#7511;A)&#8315;&#185;A&#7511; (P&#178; = P, P&#7511; = P)
+            P = A(AᵀA)⁻¹Aᵀ（A 列满秩）
           </text>
           <text x="34" y="193" className="font-mono text-[11px] fill-foreground">
-            正规方程: A&#7511;A x&#770; = A&#7511;b
+            正规方程: AᵀA x&#770; = Aᵀb
           </text>
           <text x="34" y="209" className="font-mono text-[10px] fill-muted-foreground">
             b = p + e, p &#8712; Col(A), e &#8869; Col(A)
@@ -225,13 +224,13 @@ export function Module2And3SynthesisMapDiagram({
             正交基与 QR 分解 (Gram-Schmidt)
           </text>
           <text x="34" y="277" className="font-mono text-[11px] fill-foreground">
-            A = QR (Q&#7511;Q = I, R 为上三角)
+            A = QR（列满秩，QᵀQ = I，R 上三角）
           </text>
           <text x="34" y="293" className="font-mono text-[11px] fill-foreground">
-            求解正规方程化简: R x&#770; = Q&#7511;b
+            求解正规方程化简: R x&#770; = Qᵀb
           </text>
           <text x="34" y="309" className="font-mono text-[10px] fill-muted-foreground">
-            体积极值: Vol(A) = &#8719; r_ii (r_ii &gt; 0)
+            体积：Vol(A) = ∏ rᵢᵢ（rᵢᵢ &gt; 0）
           </text>
         </g>
 
@@ -261,10 +260,10 @@ export function Module2And3SynthesisMapDiagram({
             投影算子的谱视角 (Projection Spectrum)
           </text>
           <text x="34" y="377" className="font-mono text-[11px] fill-foreground">
-            Px = 1&#183;x (x &#8712; Col(A)) &#8658; &#955; = 1
+            λ = 1 的特征子空间：Col(A)（若非零）
           </text>
           <text x="34" y="393" className="font-mono text-[11px] fill-foreground">
-            Px = 0&#183;x (x &#8712; Null(A&#7511;)) &#8658; &#955; = 0
+            λ = 0 的特征子空间：Null(Aᵀ)（若非零）
           </text>
           <text x="34" y="409" className="font-mono text-[10px] fill-muted-foreground">
             迹与秩同一律: tr(P) = rank(A)
@@ -291,10 +290,10 @@ export function Module2And3SynthesisMapDiagram({
             det(I) = 1, 行交换反号, 各行线性
           </text>
           <text x="326" y="105" className="font-mono text-[11px] fill-foreground">
-            det(AB) = det(A)det(B), det(A&#7511;) = det(A)
+            det(AB) = det(A)det(B), det(Aᵀ) = det(A)
           </text>
           <text x="326" y="121" className="font-mono text-[10px] fill-muted-foreground">
-            三角消元: det(A) = &#177; det(U) = &#177; &#8719; d_i
+            EA = U ⟹ det(U) = det(E)det(A)
           </text>
         </g>
 
@@ -324,7 +323,7 @@ export function Module2And3SynthesisMapDiagram({
             代数余子式与几何超体积 (Cofactors &amp; Vol)
           </text>
           <text x="326" y="189" className="font-mono text-[11px] fill-foreground">
-            伴随逆阵: A&#8315;&#185; = C&#7511; / det(A)
+            det(A) ≠ 0 ⟹ A⁻¹ = Cᵀ / det(A)
           </text>
           <text x="326" y="205" className="font-mono text-[11px] fill-foreground">
             体积缩放: Vol(A&#937;) = |det(A)| Vol(&#937;)
@@ -374,7 +373,7 @@ export function Module2And3SynthesisMapDiagram({
             重数界限: GM(&#955;) &#8804; AM(&#955;)
           </text>
           <text x="326" y="378" className="font-mono text-[11px] fill-foreground">
-            对角化充要: GM(&#955;) = AM(&#955;), &#8704;&#955;
+            在 ℂ 上可对角化 ⇔ GM(λ) = AM(λ), ∀λ
           </text>
           <rect x="326" y="392" width="242" height="24" rx="4" className="fill-card stroke-amber-500/40" />
           <text x="447" y="408" textAnchor="middle" className="font-mono text-[10px] fill-amber-700 dark:fill-amber-300">
@@ -405,14 +404,14 @@ export function Module2And3SynthesisMapDiagram({
             相似变换守恒: tr, det, 谱完全不变
           </text>
           <text x="618" y="121" className="font-mono text-[10px] fill-muted-foreground">
-            解耦基底: 将耦合动力学投影至特征模态
+            解耦基底: 在特征基下计算独立模态
           </text>
         </g>
 
         {/* Branches from Card 8 downwards */}
         {/* Branch Arrow to Card 9 */}
         <path
-          d="M 680 136 L 680 148"
+          d="M 760 136 V 148"
           className="stroke-emerald-600 dark:stroke-emerald-400"
           strokeWidth="1.5"
           markerEnd="url(#l25-arrow-emerald)"
@@ -430,10 +429,10 @@ export function Module2And3SynthesisMapDiagram({
             strokeWidth="1.2"
           />
           <text x="618" y="168" className="text-xs font-semibold fill-emerald-700 dark:fill-emerald-300">
-            分支 1：离散动力系统与矩阵幂 (A&#7504;)
+            分支 1：离散动力系统与矩阵幂 (Aᵏ)
           </text>
           <text x="618" y="185" className="font-mono text-[11px] fill-foreground">
-            u_k = A&#7504; u_0 = S &#923;&#7504; S&#8315;&#185; u_0 = &#8721; c_i &#955;_i&#7504; x_i
+            uₖ = Aᵏ u₀；可对角化时 Aᵏ = SΛᵏS⁻¹
           </text>
           <text x="618" y="201" className="font-mono text-[11px] fill-foreground">
             谱半径控制渐近行为: &#961;(A) = max |&#955;_i|
@@ -446,7 +445,8 @@ export function Module2And3SynthesisMapDiagram({
 
         {/* Branch Arrow to Card 10 */}
         <path
-          d="M 680 234 L 680 246"
+          d="M 850 136 H 900 V 292 H 897"
+          fill="none"
           className="stroke-emerald-600 dark:stroke-emerald-400"
           strokeWidth="1.5"
           markerEnd="url(#l25-arrow-emerald)"
@@ -467,10 +467,10 @@ export function Module2And3SynthesisMapDiagram({
             分支 2：连续微分方程系统 (du/dt = Au)
           </text>
           <text x="618" y="283" className="font-mono text-[11px] fill-foreground">
-            u(t) = e&#7511;&#7511; u_0 = S e&#7504;&#7511; S&#8315;&#185; u_0 = &#8721; c_i e&#7504;&#8318;&#7511; x_i
+            u(t) = exp(At) u₀；若可对角化，模态为 e<tspan baselineShift="super" fontSize="8">λᵢt</tspan>
           </text>
           <text x="618" y="299" className="font-mono text-[11px] fill-foreground">
-            2&#215;2 稳定判据: tr(A) &lt; 0 且 det(A) &gt; 0
+            2×2 实矩阵判据: tr(A) &lt; 0 且 det(A) &gt; 0
           </text>
           <rect x="618" y="308" width="180" height="18" rx="4" className="fill-emerald-500/15" />
           <text x="708" y="321" textAnchor="middle" className="font-mono text-[10px] font-bold fill-emerald-700 dark:fill-emerald-300">
@@ -480,7 +480,8 @@ export function Module2And3SynthesisMapDiagram({
 
         {/* Branch Arrow to Card 11 */}
         <path
-          d="M 680 336 L 680 348"
+          d="M 880 136 H 910 V 402 H 897"
+          fill="none"
           className="stroke-purple-600 dark:stroke-purple-400"
           strokeWidth="1.5"
           markerEnd="url(#l25-arrow-purple)"
@@ -504,11 +505,10 @@ export function Module2And3SynthesisMapDiagram({
             主特征值: &#955;&#8321; = 1, 其余 |&#955;_i| &#8804; 1
           </text>
           <text x="618" y="401" className="font-mono text-[11px] fill-foreground">
-            稳态空间: u_&#8734; &#8712; Null(M - I), 1&#7511; u_&#8734; = 1
+            稳态分布：Mu∞ = u∞，u∞ ≥ 0，1ᵀu∞ = 1
           </text>
-          <rect x="734" y="375" width="154" height="18" rx="4" className="fill-purple-500/15" />
-          <text x="811" y="388" textAnchor="middle" className="font-mono text-[10px] font-bold fill-purple-700 dark:fill-purple-300">
-            瞬态衰减: 1&#7511;(u_0 - u_&#8734;) = 0
+          <text x="618" y="417" className="font-mono text-[10px] font-bold fill-purple-700 dark:fill-purple-300">
+            M 本原时：Mᵏ → u∞1ᵀ
           </text>
         </g>
 

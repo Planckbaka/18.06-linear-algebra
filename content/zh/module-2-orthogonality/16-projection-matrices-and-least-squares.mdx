@@ -5,13 +5,13 @@ videoEpisode: "P16"
 textbookRef: "§4.3"
 ---
 
-在工程测量、物理实验与统计建模中，我们几乎总是面对方程个数远大于未知数个数的超定方程组（Overdetermined System）：$A\mathbf{x} = \mathbf{b}$，其中 $A \in \mathbb{R}^{m\times n}$ 且 $m \gt n$。由于实际测量中存在不可避免的噪声与扰动，观测向量 $\mathbf{b}$ 几乎从不精确落在由矩阵各列张成的列空间 $\operatorname{Col}(A)$ 内——此时方程组 $A\mathbf{x} = \mathbf{b}$ 严格无解！
+在工程测量、物理实验与统计建模中，我们几乎总是面对方程个数远大于未知数个数的超定方程组（Overdetermined System）：$A\mathbf{x} = \mathbf{b}$，其中 $A \in \mathbb{R}^{m\times n}$ 且 $m \gt n$。测量噪声或模型偏差可能使观测向量 $\mathbf{b}$ 落在 $\operatorname{Col}(A)$ 之外。此时且仅此时，方程组 $A\mathbf{x}=\mathbf{b}$ 无解。
 
 面对无解的困境，工程与数学绝不会就此止步。Gilbert Strang 教授给出了贯穿整门线性代数的金石之言：
 
 > **“当无解时，不要绝望放弃，也不要随意删减方程——把无解的 $A\mathbf{x} = \mathbf{b}$ 替换为距离它最近的可解方程组 $A\hat{\mathbf{x}} = \mathbf{p}$！”**
 
-这个最接近的可解目标 $\mathbf{p}$，正是 $\mathbf{b}$ 在列空间 $\operatorname{Col}(A)$ 上的**正交投影（Orthogonal Projection）**；而由此产生的误差向量 $\mathbf{e} = \mathbf{b} - \mathbf{p}$，则严格落在左零空间 $\operatorname{Null}(A^T)$ 中。本讲我们将以“双重几何世界”为起点，用零微积分的子空间勾股定理与多元微积分梯度两条独立路径推导**正规方程组（Normal Equations）**，彻底剖析核心基石定理 $\operatorname{Null}(A^TA) = \operatorname{Null}(A)$，并给出正交投影矩阵 $P = A(A^TA)^{-1}A^T$ 的完整理论体系。
+这个最接近的可解目标 $\mathbf{p}$，正是 $\mathbf{b}$ 在列空间 $\operatorname{Col}(A)$ 上的**正交投影（Orthogonal Projection）**；而由此产生的误差向量 $\mathbf{e} = \mathbf{b} - \mathbf{p}$，则严格落在左零空间 $\operatorname{Null}(A^T)$ 中。本讲我们将以“双重几何世界”为起点，用零微积分的子空间勾股定理与多元微积分梯度两条独立路径推导**正规方程组（Normal Equations）**，彻底剖析核心基石定理 $\operatorname{Null}(A^TA) = \operatorname{Null}(A)$，并推导满列秩情形下的正交投影矩阵（Projection Matrix）$P = A(A^TA)^{-1}A^T$。
 
 ---
 
@@ -23,6 +23,8 @@ textbookRef: "§4.3"
 
 <LeastSquaresDualGeometryDiagram />
 
+本节先假设 $m\ge 2$，且至少有两个不同的 $t_i$，此时设计矩阵的两列线性无关。若所有 $t_i=t_0$，列空间只有一维，最优拟合值仍唯一，但参数只需满足 $C+Dt_0=\bar b$。
+
 ### 视角 ①：数据空间（Data Space · $\mathbb{R}^2$ 中的 $t$-$b$ 散点平面）
 
 在二维数据拟合平面中，我们拥有 $m$ 组观测样本点 $(t_1, b_1), (t_2, b_2), \dots, (t_m, b_m)$。我们希望寻找一条最优拟合直线：
@@ -31,7 +33,7 @@ $$
 b = C + Dt
 $$
 
-若所有数据点严格共线，则应当完全满足线性方程组：
+若所有数据点都落在某条形如 $b=C+Dt$ 的直线上，则对应的线性方程组有精确解。
 
 $$
 \begin{cases}
@@ -66,13 +68,13 @@ $$
 E(C, D) = \sum_{i=1}^{m} e_i^2 = e_1^2 + e_2^2 + \cdots + e_m^2
 $$
 
-### 视角 ②：高维子空间（Subspace Space · $\mathbb{R}^m$ 中的列空间投影）
+### 视角 ②：高维子空间（Subspace Geometry · $\mathbb{R}^m$ 中的列空间投影）
 
 现在切换到线性代数的宏伟视角。记数据矩阵的第一列为常数全 1 向量 $\mathbf{a}_1 = \mathbf{1} = (1, 1, \dots, 1)^T \in \mathbb{R}^m$，第二列为时间刻度向量 $\mathbf{a}_2 = \mathbf{t} = (t_1, t_2, \dots, t_m)^T \in \mathbb{R}^m$，右端项为观测向量 $\mathbf{b} = (b_1, \dots, b_m)^T \in \mathbb{R}^m$。
 
 - 整个方程组写为 $A\mathbf{x} = \mathbf{b}$，其中 $A = \begin{bmatrix} \mathbf{a}_1 & \mathbf{a}_2 \end{bmatrix} \in \mathbb{R}^{m\times 2}$。
 - 无论参数 $\mathbf{x} = \begin{bmatrix} C & D \end{bmatrix}^T$ 如何自由取值，矩阵与向量的乘积 $A\mathbf{x} = C\mathbf{a}_1 + D\mathbf{a}_2$ **只能生成位于 $\mathbb{R}^m$ 中的一张二维平面**——即列空间 $\operatorname{Col}(A) = \operatorname{span}\{\mathbf{a}_1, \mathbf{a}_2\}$！
-- 当数据点不严格共线时，目标向量 $\mathbf{b} \notin \operatorname{Col}(A)$，它悬浮在列空间平面之外。
+- 当数据点不在同一条形如 $b=C+Dt$ 的直线上时，目标向量 $\mathbf{b} \notin \operatorname{Col}(A)$，它悬浮在列空间平面之外。
 - 误差向量 $\mathbf{e} = \mathbf{b} - A\mathbf{x} \in \mathbb{R}^m$ 的欧几里得范数平方正好是：
 
 $$
@@ -88,7 +90,7 @@ $$
 
 ## 二、方程无解时的唯一出路：正交直和分解 $\mathbf{b} = \mathbf{p} + \mathbf{e}$
 
-回顾第 14 讲线性代数基本定理第二部分：在输出空间 $\mathbb{R}^m$ 中，列空间 $\operatorname{Col}(A)$ 与左零空间 $\operatorname{Null}(A^T)$ 互为**正交补（Orthogonal Complement）**：
+对任意实矩阵 $A\in\mathbb{R}^{m\times n}$，由第 14 讲的线性代数基本定理第二部分可知，在输出空间 $\mathbb{R}^m$ 中，列空间 $\operatorname{Col}(A)$ 与左零空间 $\operatorname{Null}(A^T)$ 互为**正交补（Orthogonal Complement）**：
 
 $$
 \mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T), \quad \operatorname{Col}(A) \perp \operatorname{Null}(A^T)
@@ -103,7 +105,7 @@ $$
 <OrthogonalDecompositionPythagorasDiagram />
 
 - **可解部分 $\mathbf{p}$**：落在列空间内，因此一定能够被矩阵各列线性表出，即存在参数 $\hat{\mathbf{x}} \in \mathbb{R}^n$ 使得 $A\hat{\mathbf{x}} = \mathbf{p}$ 严格成立！
-- **不可解误差 $\mathbf{e}$**：落在左零空间内，任何 $A$ 的列组合都无法对其做出丝毫解释。它是纯粹的测量噪声或建模偏差。
+- **不可解误差 $\mathbf{e}$**：落在左零空间内，任何 $A$ 的列组合都无法对其做出丝毫解释。它度量观测数据中所选模型无法解释的部分。
 
 由于 $\mathbf{p} \perp \mathbf{e}$，内积 $\mathbf{p}^T \mathbf{e} = 0$，由勾股定理（Pythagorean Theorem），观测向量的范数平方被精确分解：
 
@@ -119,7 +121,7 @@ $$
 
 ### 路径 A：子空间几何正交性与勾股定理（零微积分）
 
-因为误差向量 $\mathbf{e} = \mathbf{b} - A\hat{\mathbf{x}}$ 与整个列空间 $\operatorname{Col}(A)$ 正交，它必须与列空间的一组基——即矩阵 $A$ 的**每一个列向量** $\mathbf{a}_1, \mathbf{a}_2, \dots, \mathbf{a}_n$ 都分别垂直：
+因为误差向量 $\mathbf{e} = \mathbf{b} - A\hat{\mathbf{x}}$ 与整个列空间 $\operatorname{Col}(A)$ 正交，它必须与张成列空间的**每一个列向量** $\mathbf{a}_1, \mathbf{a}_2, \dots, \mathbf{a}_n$ 都分别垂直：
 
 $$
 \begin{cases}
@@ -145,7 +147,7 @@ $$
 将残差定义 $\mathbf{e} = \mathbf{b} - A\hat{\mathbf{x}}$ 代入上式：
 
 $$
-A^T (\mathbf{b} - A\hat{\mathbf{x}}) = \mathbf{0} \implies A^T A \hat{\mathbf{x}} = A^T \mathbf{b}
+A^T (\mathbf{b} - A\hat{\mathbf{x}}) = \mathbf{0} \iff A^T A \hat{\mathbf{x}} = A^T \mathbf{b}
 $$
 
 #### 勾股定理严格最优性证明（无需二阶导数）
@@ -183,7 +185,7 @@ $$
 
 ### 路径 B：多元微积分矩阵求导（标量函数与向量梯度视角）
 
-现在换用传统分析学的梯度视角对照检验。将目标函数展开为关于向量 $\mathbf{x}$ 的二次型（Quadratic Form）：
+现在换用传统分析学的梯度视角对照检验。将目标函数展开为关于向量 $\mathbf{x}$ 的二次函数（Quadratic Function）：
 
 $$
 E(\mathbf{x}) = \|A\mathbf{x} - \mathbf{b}\|_2^2 = (A\mathbf{x} - \mathbf{b})^T (A\mathbf{x} - \mathbf{b})
@@ -247,10 +249,10 @@ $$
 令梯度向量为零向量：
 
 $$
-\nabla_{\mathbf{x}} E(\mathbf{x}) = 2 A^T A \mathbf{x} - 2 A^T \mathbf{b} = \mathbf{0} \implies A^T A \hat{\mathbf{x}} = A^T \mathbf{b}
+\nabla E(\hat{\mathbf{x}}) = 2 A^T A \hat{\mathbf{x}} - 2 A^T \mathbf{b} = \mathbf{0} \iff A^T A \hat{\mathbf{x}} = A^T \mathbf{b}
 $$
 
-目标函数关于 $\mathbf{x}$ 的海森矩阵（Hessian Matrix）为 $\nabla^2 E(\mathbf{x}) = 2 A^T A$。只要 $A^TA$ 正定（满秩），极值点必为唯一的全局严格极小值点！两条推导路径殊途同归！
+目标函数的海森矩阵（Hessian Matrix）为 $\nabla^2 E(\mathbf{x})=2A^TA$，恒为半正定，因为 $\mathbf{v}^TA^TA\mathbf{v}=\|A\mathbf{v}\|_2^2\ge 0$。因此每个驻点都是全局最小点。当且仅当 $A$ 满列秩时，海森矩阵正定，最小点唯一。
 
 ---
 
@@ -366,8 +368,8 @@ $$
 > [!NOTE]
 > **数域警告（为什么必须是实数域 $\mathbb{R}$？）**：
 > 在上述证明中，从 $\|A\mathbf{x}\|_2^2 = (A\mathbf{x})^T(A\mathbf{x}) = 0$ 推出 $A\mathbf{x} = \mathbf{0}$，关键依赖了实数平方非负性。若在复数域 $\mathbb{C}$ 上使用未经共轭的转置 $A^TA$，该结论立即失效！
-> 例如取 $A = \begin{bmatrix} 1 & i \end{bmatrix} \in \mathbb{C}^{1\times 2}$，向量 $\mathbf{x} = \begin{bmatrix} 1 \\ i \end{bmatrix}$，有 $A\mathbf{x} = 1 + i^2 = 0$，但取 $\mathbf{y} = \begin{bmatrix} 1 \\ -i \end{bmatrix}$ 时 $A\mathbf{y} = 2 \neq 0$，而 $A^T A \mathbf{y} = \mathbf{0}$！
-> 在复数域中，必须改用**共轭转置（Conjugate Transpose）$A^H A$**，结论方可成立。
+> 例如取 $A=\begin{bmatrix}1 \\ i\end{bmatrix}\in\mathbb{C}^{2\times 1}$。则 $A^TA=[1+i^2]=[0]$，但 $A$ 的唯一一列非零，故 $\operatorname{Null}(A^TA)=\mathbb{C}^1$ 而 $\operatorname{Null}(A)=\{\mathbf{0}\}$。
+> 在复数域中使用共轭转置（Conjugate Transpose）$A^H$，便有 $\mathbf{x}^HA^HA\mathbf{x}=\|A\mathbf{x}\|_2^2$。因此这些结论对 $A^HA$ 成立。
 
 </ProofCollapse>
 
@@ -445,7 +447,7 @@ $$
   P\mathbf{y} = A (A^TA)^{-1} A^T (A\mathbf{u}) = A (A^TA)^{-1} (A^TA) \mathbf{u} = A\mathbf{u} = \mathbf{y}
   $$
 
-  列空间内的每一个向量都是 $P$ 的对应于特征值 $\lambda = 1$ 的特征向量！
+  列空间内的每一个非零向量都是 $P$ 的对应于特征值 $\lambda = 1$ 的特征向量！
 
 - 若 $\mathbf{z} \in \operatorname{Null}(A^T)$，即 $A^T\mathbf{z} = \mathbf{0}$，直接代入：
 
@@ -453,7 +455,7 @@ $$
   P\mathbf{z} = A (A^TA)^{-1} (A^T\mathbf{z}) = A (A^TA)^{-1} \mathbf{0} = \mathbf{0}
   $$
 
-  左零空间内的每一个向量都被 $P$ 彻底清零（吸收为零），对应特征值 $\lambda = 0$！
+  左零空间中的非零向量是特征值 $\lambda=0$ 对应的特征向量。
 
 #### 4. 迹（Trace）与秩（Rank）恒等
 
@@ -473,7 +475,7 @@ $$
 
 为了将抽象公式化为肌肉记忆，我们完整手算图 1 中的经典算例（也是 Strang 教授课堂上的标志性范例）。
 
-拟合通过以下三个观测点的一条直线 $b = C + Dt$：
+对以下三个观测点求最小二乘拟合直线 $b=C+Dt$。
 
 - $(t_1, b_1) = (1, 1)$
 - $(t_2, b_2) = (2, 2)$
@@ -650,13 +652,13 @@ $$
   A^T \mathbf{b} = A^T (\mathbf{p} + \mathbf{e}) = A^T \mathbf{p} + A^T \mathbf{e} = A^T \mathbf{p} + \mathbf{0} = A^T \mathbf{p}
   $$
 
-  **左乘 $A^T$ 彻底杀死了位于左零空间内的不可解矛盾分量 $\mathbf{e}$**！这不是同解变形，而是一次不可逆的正交投影过滤！
+  **左乘 $A^T$ 彻底杀死了位于左零空间内的不可解矛盾分量 $\mathbf{e}$**！恒等式 $A^T\mathbf{b}=A^TP\mathbf{b}$ 表达了这一分解。当 $\mathbf{b}\in\operatorname{Col}(A)$ 时，$\mathbf{p}=\mathbf{b}$，正规方程组与原方程组的解集相同。
 
 </PitfallAlert>
 
 <PitfallAlert title="直觉陷阱 ②：列相关时 AᵀA 不可逆，最小二乘解 x̂ 不唯一，但投影 p 依然唯一！">
 
-若矩阵 $A$ 的列向量线性相关（$\operatorname{rank}(A) \lt n$），则 $A^TA$ 不可逆，正规方程组 $A^TA\hat{\mathbf{x}} = A^T\mathbf{b}$ 的解不唯一。此时若 $\hat{\mathbf{x}}_0$ 是一个特解，则对任意非零零空间向量 $\mathbf{x}_n \in \operatorname{Null}(A)$，$\hat{\mathbf{x}} = \hat{\mathbf{x}}_0 + \mathbf{x}_n$ 都是最小二乘解（有无穷多个）。
+若矩阵 $A$ 的列向量线性相关（$\operatorname{rank}(A) \lt n$），则 $A^TA$ 不可逆，正规方程组 $A^TA\hat{\mathbf{x}} = A^T\mathbf{b}$ 的解不唯一。此时若 $\hat{\mathbf{x}}_0$ 是一个特解，则全体解为 $\hat{\mathbf{x}}_0+\operatorname{Null}(A)$。任意两个正规方程组解之差都属于 $\operatorname{Null}(A^TA)=\operatorname{Null}(A)$。
 
 但请务必记住：**参数解 $\hat{\mathbf{x}}$ 虽然不唯一，但投影向量 $\mathbf{p} = A\hat{\mathbf{x}}$ 依然是全局唯一确定的！**
 
@@ -666,7 +668,7 @@ $$
 A\hat{\mathbf{x}} = A(\hat{\mathbf{x}}_0 + \mathbf{x}_n) = A\hat{\mathbf{x}}_0 + A\mathbf{x}_n = A\hat{\mathbf{x}}_0 + \mathbf{0} = A\hat{\mathbf{x}}_0 = \mathbf{p}
 $$
 
-在几何上，空间中任意一个点 $\mathbf{b}$ 向一个固定封闭子空间 $\operatorname{Col}(A)$ 引垂线，垂足 $\mathbf{p}$ 显然是唯一存在的；之所以有无穷多种参数组合 $\hat{\mathbf{x}}$，仅仅是因为你用来张成这个子空间的基向量之间存在多余的冗余线性相关性！
+在几何上，空间中任意一个点 $\mathbf{b}$ 向一个固定封闭子空间 $\operatorname{Col}(A)$ 引垂线，垂足 $\mathbf{p}$ 显然是唯一存在的；之所以有无穷多种参数组合 $\hat{\mathbf{x}}$，仅仅是因为用来张成这个子空间的列向量线性相关！
 
 </PitfallAlert>
 
@@ -676,8 +678,8 @@ $$
 
 **这是典型的概念混淆！**
 
-- **普通最小二乘（Ordinary Least Squares, OLS）**：最小化的是沿 $b$ 轴的**竖直残差** $|b_i - \hat{b}_i|$。我们假设自变量 $t_i$ 是受精确控制的理想输入（无噪声），一切随机扰动全部发生在测量因变量 $b_i$ 上。
-- **全最小二乘（Total Least Squares, TLS）/ 主成分分析（PCA）**：如果自变量 $t_i$ 与因变量 $b_i$ 都有测量误差，此时才需要最小化数据点到拟合流形的**垂直几何欧几里得距离**！这涉及对称矩阵的特征值分解与奇异值分解（SVD），是我们在第 30 讲才会展开讨论的进阶主题。
+- **普通最小二乘（Ordinary Least Squares, OLS）**最小化沿 $b$ 轴的竖直残差平方和 $\sum_i (b_i-\hat b_i)^2$，把 $t_i$ 作为给定的预测变量。
+- **全最小二乘（Total Least Squares, TLS）**在两个坐标采用相同尺度与等权欧氏距离时，最小化各点到拟合直线的垂直距离平方和。拟合方向可由中心化数据的第一主成分（Principal Component）给出，也允许竖直直线。
 
 </PitfallAlert>
 
@@ -687,8 +689,8 @@ $$
 
 <InteractiveCanvasSlot
   id="least-squares-fitter"
-  title="交互实验室：多点最小二乘拟合与高维投影实时联动"
-  description="在左侧数据空间中自由拖拽观测点坐标，观察最优拟合直线的倾斜自适应调整，动态核验竖直残差之和 $\sum e_i = 0$ 的代数平衡；并在右侧高维子空间中观察目标向量 $\mathbf{b}$ 沿二维列空间平面的垂直投影 $\mathbf{p}$ 移动与直角三角形勾股闭合。"
+  title="交互实验室：三点最小二乘直线拟合"
+  description="调节 $t=0,1,2$ 处的三个观测值。观察拟合直线和竖直残差如何变化，并核验正规方程的两个条件 $\sum_i e_i=0$ 与 $\sum_i t_i e_i=0$。"
 />
 
 ---
@@ -738,7 +740,7 @@ $$
 <DualSolution>
 <SolutionIntuition>
 
-在一维直线上，投影向量 $\mathbf{p}$ 就是把 $\mathbf{b}$ 在直线方向上的投影标量 $\hat{x} = \frac{\mathbf{a}^T\mathbf{b}}{\mathbf{a}^T\mathbf{a}}$ 乘上单位方向。几何上，向量 $\mathbf{b}$、投影 $\mathbf{p}$ 与残差 $\mathbf{e}$ 构成一个严格的直角三角形，斜边为 $\mathbf{b}$，两条直角边分别为 $\mathbf{p}$ 和垂直于直线的 $\mathbf{e}$。
+在一维直线上，投影向量 $\mathbf{p}$ 就是把 $\mathbf{b}$ 在直线方向上的投影标量 $\hat{x} = \frac{\mathbf{a}^T\mathbf{b}}{\mathbf{a}^T\mathbf{a}}$ 乘上方向向量 $\mathbf{a}$。几何上，向量 $\mathbf{b}$、投影 $\mathbf{p}$ 与残差 $\mathbf{e}$ 构成一个严格的直角三角形，斜边为 $\mathbf{b}$，两条直角边分别为 $\mathbf{p}$ 和垂直于直线的 $\mathbf{e}$。
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -819,7 +821,7 @@ $$
 <DualSolution>
 <SolutionIntuition>
 
-正规方程组右端项 $A^T\mathbf{b}$ 永远落在 $A^T$ 的列空间 $\operatorname{Col}(A^T)$ 内。而由第 14 讲基本定理第一部分，$\operatorname{Col}(A^TA) = \operatorname{Col}(A^T)$，所以正规方程组**永远是有解的（解永远存在）**。
+正规方程组右端项 $A^T\mathbf{b}$ 永远落在 $A^T$ 的列空间 $\operatorname{Col}(A^T)$ 内。由定理 16.1 的零空间等式取正交补，并利用 $A^TA$ 的对称性，可得 $\operatorname{Col}(A^TA) = \operatorname{Col}(A^T)$，所以正规方程组**永远是有解的（解永远存在）**。
 但解是否**唯一**，取决于方阵 $A^TA$ 是否可逆。如果矩阵 $A$ 的列向量线性相关，则存在非零零空间向量 $\mathbf{x}_n \in \operatorname{Null}(A)$，此时最小二乘解包含整个仿射空间 $\hat{\mathbf{x}}_0 + \operatorname{Null}(A)$，有无穷多个解！
 
 </SolutionIntuition>
@@ -834,7 +836,7 @@ $$
 A = \begin{bmatrix} 1 & 1 \\ 1 & 1 \\ 1 & 1 \end{bmatrix}, \quad \mathbf{b} = \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix}
 $$
 
-明显 $A$ 的两列完全相同，$\operatorname{rank}(A) = 1 \lt n = 2$。
+$A$ 的两列相同且非零，故 $\operatorname{rank}(A)=1\lt 2$。$\operatorname{Col}(A)$ 中的向量三个分量都相等，因此 $\mathbf{b}$ 不在列空间中，原方程组无解。
 
 计算正规方程组：
 
@@ -889,7 +891,7 @@ $$
 <SolutionIntuition>
 
 投影不一定是正交的！想象一根水平直尺放在桌面上，阳光从正上方垂直照下来，阴影是正交投影；如果阳光斜着从 $45^\circ$ 角照下来，阴影依然把空间里的点压到直尺所在的直线上，并且直尺上的点影重合（满足 $P^2 = P$），但这是一种**斜投影（Oblique Projection）**！
-斜投影的光线与直尺不正交，因此误差向量 $\mathbf{b} - P\mathbf{b}$ 不垂直于投影向量 $P\mathbf{b}$。只有当投影方向垂直于子空间时，矩阵才满足对称性 $P^T = P$。
+在这个平面斜投影的例子中，若投影向量与残差都非零，则误差向量 $\mathbf{b} - P\mathbf{b}$ 不垂直于投影向量 $P\mathbf{b}$。只有当投影方向垂直于子空间时，矩阵才满足对称性 $P^T = P$。
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -924,7 +926,7 @@ $$
 
 残差与投影根本不正交！
 
-**定理结论**：$P$ 为向子空间 $S$ 的正交投影矩阵 $\iff P^2 = P$ 且 $P^T = P$。
+**判据**。$P$ 是到某个子空间的正交投影当且仅当 $P^2=P=P^T$。若指定目标子空间 $S$，还须有 $\operatorname{Col}(P)=S$。
 
 </SolutionRigorous>
 </DualSolution>
@@ -958,7 +960,7 @@ $$
 <DualSolution>
 <SolutionIntuition>
 
-正交投影 $P$ 把落在子空间内的部分保留、垂直部分杀零；而 $R = I - 2P$ 则把落在子空间内的部分反向（乘以 $-1$），垂直部分保持不变（乘以 $+1$）。这正是**镜面反射（Reflection）**！
+正交投影 $P$ 把落在子空间内的部分保留、垂直部分杀零；而 $R = I - 2P$ 则把落在子空间内的部分反向（乘以 $-1$），垂直部分保持不变（乘以 $+1$）。这是关于 $S^\perp$ 的**反射（Reflection）**。
 镜面反射不改变物体的长度和角度，因此对应的变换矩阵必定是保范数的正交矩阵（Orthogonal Matrix）。位于子空间内的 $r$ 个维度的基向量全都被翻转（特征值为 $-1$），垂直子空间的 $m-r$ 个维度的基向量全都不变（特征值为 $+1$）。
 
 </SolutionIntuition>
@@ -993,10 +995,10 @@ $$
    R\mathbf{x} = (I_m - 2P)(\mathbf{x}_S + \mathbf{x}_{S^\perp}) = \mathbf{x}_S + \mathbf{x}_{S^\perp} - 2\mathbf{x}_S = -\mathbf{x}_S + \mathbf{x}_{S^\perp}
    $$
 
-   矩阵 $R$ 将平行于子空间 $S$ 的分量反号，垂直分量保持不变。这是关于正交补子空间 $S^\perp$ 的**Householder 镜面反射变换**。
+   矩阵 $R$ 将平行于子空间 $S$ 的分量反号，垂直分量保持不变。这是关于 $S^\perp$ 的反射。当 $r=1$ 时得到通常的 Householder 反射（Householder Reflection）。
 
-   - 对任意 $\mathbf{v} \in S$（非零），$P\mathbf{v} = \mathbf{v}$，得 $R\mathbf{v} = \mathbf{v} - 2\mathbf{v} = -\mathbf{v}$。故 $\lambda = -1$ 是特征值，其特征子空间为 $S$，重数等于 $\dim(S) = r$。
-   - 对任意 $\mathbf{w} \in S^\perp$（非零），$P\mathbf{w} = \mathbf{0}$，得 $R\mathbf{w} = \mathbf{w} - \mathbf{0} = \mathbf{w}$。故 $\lambda = +1$ 是特征值，其特征子空间为 $S^\perp$，重数等于 $\dim(S^\perp) = m - r$。
+   - 对任意 $\mathbf{v} \in S$（非零），$P\mathbf{v} = \mathbf{v}$，得 $R\mathbf{v} = \mathbf{v} - 2\mathbf{v} = -\mathbf{v}$。若 $r>0$，则 $-1$ 是特征值，重数为 $r$。
+   - 对任意 $\mathbf{w} \in S^\perp$（非零），$P\mathbf{w} = \mathbf{0}$，得 $R\mathbf{w} = \mathbf{w} - \mathbf{0} = \mathbf{w}$。若 $r<m$，则 $+1$ 是特征值，重数为 $m-r$。
 
 3. **行列式计算**：
 
@@ -1006,7 +1008,7 @@ $$
    \det(R) = \prod_{i=1}^{m} \lambda_i = (-1)^r \cdot (+1)^{m - r} = (-1)^r
    $$
 
-   当反射维数 $r$ 为奇数时，行列式为 $-1$（手性反转）；当 $r$ 为偶数时，行列式为 $+1$（纯旋转复合）。
+   当反射维数 $r$ 为奇数时，行列式为 $-1$（反转定向）；当 $r$ 为偶数时，行列式为 $+1$（保持定向）。
 
 </SolutionRigorous>
 </DualSolution>
@@ -1020,7 +1022,7 @@ $$
   title="数据中心化与正规方程组的解耦正交化"
 >
 
-在统计学与机器学习中，对 $m$ 组观测数据 $(t_1, b_1), (t_2, b_2), \dots, (t_m, b_m)$ 进行最小二乘直线拟合 $b = C + Dt$。记时间与观测值的算术平均值分别为：
+对 $m$ 组观测数据 $(t_1, b_1), (t_2, b_2), \dots, (t_m, b_m)$ 进行最小二乘直线拟合 $b = C + Dt$。设 $m\ge 2$，且至少有两个不同的 $t_i$，使斜率可唯一确定。记时间与观测值的算术平均值为
 
 $$
 \bar{t} = \frac{1}{m} \sum_{i=1}^{m} t_i, \quad \bar{b} = \frac{1}{m} \sum_{i=1}^{m} b_i
@@ -1033,15 +1035,15 @@ $$
 <ProgressiveHint
   hints={[
     "回顾正规方程组第一行展开式：$\\mathbf{1}^T A \\hat{\\mathbf{x}} = \\mathbf{1}^T \\mathbf{b}$。注意 $\\mathbf{1}^T \\mathbf{1} = m$，$\\mathbf{1}^T \\mathbf{t} = m\\bar{t}$。",
-    "中心化后的时间向量为 $\\mathbf{T} = \\mathbf{t} - \\bar{t}\\mathbf{1}$。计算内积 $\\mathbf{1}^T \\mathbf{T}$，看看两个列向量之间发生了什么！"
+    "中心化后的时间向量为 $\\mathbf{t}_c = \\mathbf{t} - \\bar{t}\\mathbf{1}$。计算内积 $\\mathbf{1}^T \\mathbf{t}_c$，看看两个列向量之间发生了什么！"
   ]}
 />
 
 <DualSolution>
 <SolutionIntuition>
 
-在原始模型中，第一列是常数向量 $\mathbf{1}$，第二列是时间刻度 $\mathbf{t}$。这两个向量在绝大多数情况下夹角都不为 $90^\circ$（不对交），导致 $A^TA$ 是一个包含非对角元素的稠密方阵，求解斜率 $D$ 与截距 $C$ 会交织在一起互相影响。
-当我们将自变量减去平均值做中心化后，新时间向量 $\mathbf{T}$ 的各分量之和为零，这意味着新第二列 $\mathbf{T}$ 与全 1 向量 $\mathbf{1}$ 严格正交！两个列向量垂直，正规方程组立即解耦为两个独立的一维投影，斜率与截距各自独立求解！这正是下一讲 Gram-Schmidt 正交化最纯朴的直觉原型！
+在原始模型中，第一列是常数向量 $\mathbf{1}$，第二列是时间刻度 $\mathbf{t}$。这两个向量在绝大多数情况下夹角都不为 $90^\circ$，导致 $A^TA$ 是一个包含非对角元素的稠密方阵，求解斜率 $D$ 与截距 $C$ 会交织在一起互相影响。
+当我们将自变量减去平均值做中心化后，新时间向量 $\mathbf{t}_c$ 的各分量之和为零，这意味着新第二列 $\mathbf{t}_c$ 与全 1 向量 $\mathbf{1}$ 严格正交！两个列向量垂直，正规方程组立即解耦为两个独立的一维投影，斜率与截距各自独立求解！这正是下一讲 Gram-Schmidt 正交化最纯朴的直觉原型！
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -1076,44 +1078,44 @@ $$
 
 2. **证明 $A'^T A'$ 为对角矩阵**：
 
-   定义中心化向量 $\mathbf{T} = \mathbf{t} - \bar{t}\mathbf{1} = \begin{bmatrix} t_1 - \bar{t} \\ \vdots \\ t_m - \bar{t} \end{bmatrix}$。
-   新数据矩阵为 $A' = \begin{bmatrix} \mathbf{1} & \mathbf{T} \end{bmatrix} \in \mathbb{R}^{m\times 2}$。
+   定义中心化向量 $\mathbf{t}_c = \mathbf{t} - \bar{t}\mathbf{1} = \begin{bmatrix} t_1 - \bar{t} \\ \vdots \\ t_m - \bar{t} \end{bmatrix}$。
+   新数据矩阵为 $A' = \begin{bmatrix} \mathbf{1} & \mathbf{t}_c \end{bmatrix} \in \mathbb{R}^{m\times 2}$。
    计算两列内积：
 
    $$
-   \mathbf{1}^T \mathbf{T} = \sum_{i=1}^{m} (t_i - \bar{t}) = \sum_{i=1}^{m} t_i - m\bar{t} = m\bar{t} - m\bar{t} = 0
+   \mathbf{1}^T \mathbf{t}_c = \sum_{i=1}^{m} (t_i - \bar{t}) = \sum_{i=1}^{m} t_i - m\bar{t} = m\bar{t} - m\bar{t} = 0
    $$
 
-   由于点积为零，第一列 $\mathbf{1}$ 与第二列 $\mathbf{T}$ 构成一对**正交向量组**！
+   由于点积为零，第一列 $\mathbf{1}$ 与第二列 $\mathbf{t}_c$ 构成一对**正交向量组**！
    计算系数矩阵：
 
    $$
-   A'^T A' = \begin{bmatrix} \mathbf{1}^T \\ \mathbf{T}^T \end{bmatrix} \begin{bmatrix} \mathbf{1} & \mathbf{T} \end{bmatrix}
-   = \begin{bmatrix} \mathbf{1}^T \mathbf{1} & \mathbf{1}^T \mathbf{T} \\ \mathbf{T}^T \mathbf{1} & \mathbf{T}^T \mathbf{T} \end{bmatrix}
-   = \begin{bmatrix} m & 0 \\ 0 & \|\mathbf{T}\|_2^2 \end{bmatrix}
+   A'^T A' = \begin{bmatrix} \mathbf{1}^T \\ \mathbf{t}_c^T \end{bmatrix} \begin{bmatrix} \mathbf{1} & \mathbf{t}_c \end{bmatrix}
+   = \begin{bmatrix} \mathbf{1}^T \mathbf{1} & \mathbf{1}^T \mathbf{t}_c \\ \mathbf{t}_c^T \mathbf{1} & \mathbf{t}_c^T \mathbf{t}_c \end{bmatrix}
+   = \begin{bmatrix} m & 0 \\ 0 & \|\mathbf{t}_c\|_2^2 \end{bmatrix}
    $$
 
    非对角元素严格为零，矩阵是严格的对角矩阵！
 
 3. **完全解耦解析式**：
 
-   因为对角矩阵的求逆仅需对对角元素分别求倒数：
+   至少有两个不同的 $t_i$，所以 $\mathbf{t}_c\ne\mathbf{0}$。两个对角元均为正数，分别取倒数即可得到逆矩阵。
 
    $$
-   (A'^T A')^{-1} = \begin{bmatrix} \frac{1}{m} & 0 \\ 0 & \frac{1}{\|\mathbf{T}\|_2^2} \end{bmatrix}
+   (A'^T A')^{-1} = \begin{bmatrix} \frac{1}{m} & 0 \\ 0 & \frac{1}{\|\mathbf{t}_c\|_2^2} \end{bmatrix}
    $$
 
    计算右端项：
 
    $$
-   A'^T \mathbf{b} = \begin{bmatrix} \mathbf{1}^T \mathbf{b} \\ \mathbf{T}^T \mathbf{b} \end{bmatrix} = \begin{bmatrix} m\bar{b} \\ \sum_{i=1}^m (t_i - \bar{t})b_i \end{bmatrix}
+   A'^T \mathbf{b} = \begin{bmatrix} \mathbf{1}^T \mathbf{b} \\ \mathbf{t}_c^T \mathbf{b} \end{bmatrix} = \begin{bmatrix} m\bar{b} \\ \sum_{i=1}^m (t_i - \bar{t})b_i \end{bmatrix}
    $$
 
    直接矩阵乘法相乘，两个未知数彻底解耦为两个独立的一维正交投影：
 
    $$
    \hat{\mathbf{x}}' = \begin{bmatrix} C' \\ D \end{bmatrix} = (A'^T A')^{-1} A'^T \mathbf{b}
-   = \begin{bmatrix} \frac{1}{m} \cdot m\bar{b} \\ \frac{\mathbf{T}^T \mathbf{b}}{\mathbf{T}^T \mathbf{T}} \end{bmatrix}
+   = \begin{bmatrix} \frac{1}{m} \cdot m\bar{b} \\ \frac{\mathbf{t}_c^T \mathbf{b}}{\mathbf{t}_c^T \mathbf{t}_c} \end{bmatrix}
    = \begin{bmatrix} \bar{b} \\ \frac{\sum_{i=1}^{m} (t_i - \bar{t})b_i}{\sum_{i=1}^{m} (t_i - \bar{t})^2} \end{bmatrix}
    $$
 
@@ -1128,6 +1130,8 @@ $$
    $$
 
    **几何结论**：数据中心化操作，几何实质就是对矩阵 $A$ 的列空间进行了一次正交基替换（正交化）。当基向量相互正交时，多元最小二乘投影便瞬间退化为各个基向量方向上一维投影的简单线性叠加！这正是统计学线性回归全部经典公式背后的纯正交投影本源。
+
+若所有 $t_i$ 相同，则 $\mathbf{t}_c=\mathbf{0}$，对角矩阵奇异。此时 $C'+D T_i=C'$，解为 $C'=\bar b$，$D$ 可任取。
 
 </SolutionRigorous>
 </DualSolution>

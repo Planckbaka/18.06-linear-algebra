@@ -1,15 +1,15 @@
 ## When Abstract Linear Algebra Meets the Physical World: Drawing a Network as a Matrix!
 
-If someone asks you, "What are the **Four Fundamental Subspaces** we painstakingly built in the first eleven lectures actually good for in real-world engineering and nature, beyond passing math exams?"—Gilbert Strang gives the most breathtaking answer in the entire course in Lecture 12: **Every electrical circuit grid, internet routing topology, municipal water pipe network, mechanical truss, and even molecular bond structure in the real world is fundamentally a graph; and the moment you write down its incidence matrix $A$, its four fundamental subspaces transform—without a single discrepancy—into the four conservation laws that govern the physical universe!**
+An electrical network can be modeled as a graph with nodes and oriented edges. Its incidence matrix connects node potentials to edge voltage differences and edge currents to current balance at the nodes. The four fundamental subspaces describe these maps and their constraints.
 
 Let us bring out the classic benchmark example Strang draws by hand on the blackboard: a connected network $G$ consisting of **$v = 4$ nodes (vertices)** and **$e = 5$ directed edges**:
 - Edge $e_1$: node $1 \to 2$; edge $e_2$: node $1 \to 3$; edge $e_3$: node $2 \to 3$ (these three edges enclose the lower-left closed triangular loop $\mathcal{L}_1$!);
 - Edge $e_4$: node $2 \to 4$; edge $e_5$: node $3 \to 4$ (together with edge $e_3$, these enclose the upper-right closed triangular loop $\mathcal{L}_2$!).
 
-<DirectedGraphIncidenceDiagram caption="Strang's benchmark 4-node, 5-edge directed graph G and its 5x4 edge-node incidence matrix A: each row records -1 at the outgoing tail node and +1 at the incoming head node, revealing closed loops L1 and L2 as linear dependencies among rows." />
+<DirectedGraphIncidenceDiagram lang="en" caption="Strang's benchmark 4-node, 5-edge directed graph G and its 5x4 edge-node incidence matrix A: each row records -1 at the outgoing tail node and +1 at the incoming head node, revealing closed loops L1 and L2 as linear dependencies among rows." />
 
 <DefinitionCard id="def-12-1" label="Definition 12.1" title="Edge-Node Incidence Matrix of a Directed Graph">
-Let $G = (V, E)$ be a directed graph with $v = |V|$ nodes (numbered $1, \dots, v$) and $e = |E|$ directed edges (numbered $1, \dots, e$, assuming no self-loops). Its **incidence matrix** is defined as the $e \times v$ real matrix $A \in \mathbb{R}^{e\times v}$ (note the shape: $m = e$ rows correspond to edges, and $n = v$ columns correspond to nodes!), where the entries of the $k$-th row (corresponding to directed edge $e_k: i \to j$) are given by:
+Let $G = (V, E)$ be a finite graph with an orientation assigned to each edge with $v = |V|$ nodes (numbered $1, \dots, v$) and $e = |E|$ directed edges (numbered $1, \dots, e$, assuming no self-loops). Its **incidence matrix** is defined as the $e \times v$ real matrix $A \in \mathbb{R}^{e\times v}$ (note the shape: $m = e$ rows correspond to edges, and $n = v$ columns correspond to nodes!), where the entries of the $k$-th row (corresponding to directed edge $e_k: i \to j$) are given by:
 
 $$
 A_{k, \ell} = \begin{cases} -1, & \text{if } \ell = i \text{ (the outgoing tail / start node of edge } e_k\text{)} \\ +1, & \text{if } \ell = j \text{ (the incoming head / end node of edge } e_k\text{)} \\ 0, & \text{for all other nodes } \ell \text{ not incident to edge } e_k \end{cases}
@@ -28,19 +28,21 @@ A = \begin{bmatrix}
 $$
 </DefinitionCard>
 
+Connectivity and cycles always refer to the underlying undirected graph. An edge traversed against its assigned orientation contributes with a minus sign.
+
 Notice two immediately visible sparse fingerprints of the incidence matrix $A$: ① Every row contains exactly one $-1$ and one $+1$, with all other entries equal to $0$ (so the entries of every row sum identically to $0$!); ② Whenever a closed loop exists (such as the triangle formed by $e_1, e_2, e_3$), a linear dependence among those rows immediately emerges: $\text{row}_1 + \text{row}_3 - \text{row}_2 = \mathbf{0}^T$!
 
 ---
 
 ## The Complete Physical Dictionary of the Four Fundamental Subspaces
 
-Now let us endow the graph with real electrical circuit quantities (which correspond to pressures and flow rates in hydraulic pipe networks, or nodal displacements and internal member forces in mechanical trusses): let the input column vector $\mathbf{x} = (x_1, x_2, x_3, x_4)^T \in \mathbb{R}^v$ represent the **node potentials (voltages)** at the $4$ nodes. When we left-multiply $\mathbf{x}$ by the incidence matrix $A$, what is the output?
+For the circuit interpretation, let the input column vector $\mathbf{x} = (x_1, x_2, x_3, x_4)^T \in \mathbb{R}^v$ represent the **node potentials (voltages)** at the $4$ nodes. When we left-multiply $\mathbf{x}$ by the incidence matrix $A$, what is the output?
 
 $$
 \mathbf{e} = A\mathbf{x} = \begin{bmatrix} x_2 - x_1 \\ x_3 - x_1 \\ x_3 - x_2 \\ x_4 - x_2 \\ x_4 - x_3 \end{bmatrix} \in \mathbb{R}^e
 $$
 
-Every single component of the output vector $\mathbf{e} = A\mathbf{x}$ is precisely the **potential difference (voltage drop)** across the corresponding directed edge! The matrix $A$ is the **discrete gradient operator** in the world of graphs! Turning this key unlocks the physical soul of all four fundamental subspaces at once:
+Every single component of the output vector $\mathbf{e} = A\mathbf{x}$ is precisely the **potential difference (head potential minus tail potential)** across the corresponding directed edge! The matrix $A$ is the **discrete gradient operator** in the world of graphs! Turning this key unlocks the physical soul of all four fundamental subspaces at once:
 
 ### 1. The Nullspace $\operatorname{Null}(A) \subseteq \mathbb{R}^v$: Equipotentials and "Grounding" to Eliminate the Degree of Freedom
 
@@ -50,7 +52,7 @@ $$
 \operatorname{Null}(A) = \operatorname{span}\!\left\{ \mathbf{1} = \begin{bmatrix} 1 \\ 1 \\ 1 \\ 1 \end{bmatrix} \right\}, \qquad \dim\operatorname{Null}(A) = 1 \implies \operatorname{rank}(A) = v - 1 = 3
 $$
 
-**Engineering & Physical Intuition**: Why doesn't a bird perched on a $100{,}000\text{-V}$ high-voltage power line get electrocuted? Because what drives current is never the absolute potential $\mathbf{x}$, but the potential difference $A\mathbf{x}$! Raising the voltage of every node in the entire network by $100\text{ V}$ simultaneously (adding the nullspace vector $100\cdot\mathbf{1}$) does not change the potential difference across any edge by even a fraction! In electrical engineering, we **ground** one reference node (say node $4$, setting $x_4 = 0$); its linear algebra essence is precisely **deleting column $4$ of $A$ and pinning the single free variable to $0$, thereby making the remaining $v - 1 = 3$ columns strictly linearly independent (full column rank)**!
+**Grounding fixes a reference potential.** Raising the voltage of every node in the entire network by $100\text{ V}$ simultaneously (adding the nullspace vector $100\cdot\mathbf{1}$) does not change the potential difference across any edge by even a fraction! In electrical engineering, we **ground** one reference node (say node $4$, setting $x_4 = 0$); its linear algebra essence is precisely **deleting column $4$ of $A$ and pinning the single free variable to $0$, thereby making the remaining $v - 1 = 3$ columns strictly linearly independent (full column rank)**!
 
 ### 2. The Column Space $\operatorname{Col}(A) \subseteq \mathbb{R}^e$: Kirchhoff's Voltage Law (KVL)
 
@@ -61,11 +63,11 @@ $$
 b_1 + b_3 - b_2 = (x_2 - x_1) + (x_3 - x_2) - (x_3 - x_1) \equiv 0
 $$
 
-Similarly, walking around loop $\mathcal{L}_2$ forces $b_3 - b_4 + b_5 = 0$. This is **Kirchhoff's Voltage Law (KVL)** in electrical engineering: a vector $\mathbf{b}$ belongs to the column space $\operatorname{Col}(A)$ if and only if the algebraic sum of voltage drops around every closed loop is zero!
+Similarly, walking around loop $\mathcal{L}_2$ forces $b_3 - b_4 + b_5 = 0$. This is **Kirchhoff's Voltage Law (KVL)** in electrical engineering: a vector $\mathbf{b}$ belongs to the column space $\operatorname{Col}(A)$ if and only if the algebraic sum of signed potential differences around every closed loop is zero!
 
 ### 3. The Left Nullspace $\operatorname{Null}(A^T) \subseteq \mathbb{R}^e$: Kirchhoff's Current Law (KCL) and Independent Loop Currents!
 
-This is often the most spine-tingling "Aha!" moment of the entire course! Let the vector $\mathbf{y} = (y_1, y_2, y_3, y_4, y_5)^T \in \mathbb{R}^e$ represent the **edge currents** flowing along the $5$ directed edges. Write out all $4$ rows of the left nullspace equation $A^T \mathbf{y} = \mathbf{0}$:
+This is often the most spine-tingling "Aha!" moment of the entire course! Let the vector $\mathbf{y} = (y_1, y_2, y_3, y_4, y_5)^T \in \mathbb{R}^e$ represent the **edge currents** on the $5$ edges, with positive current measured from tail to head. Then $A^T\mathbf{y}$ is net inflow at the nodes. Write out all $4$ rows of the left nullspace equation $A^T \mathbf{y} = \mathbf{0}$:
 
 $$
 A^T \mathbf{y} = \begin{bmatrix}
@@ -83,7 +85,7 @@ $$
 
 Do you see what these four equations are saying? At node $1$, the sum of the two outgoing currents satisfies $y_1 + y_2 = 0$; at node $2$, the incoming current $y_1$ equals the outgoing current $y_3 + y_4$; at node $3$, the incoming $y_2 + y_3$ equals the outgoing $y_5$; at node $4$, the incoming $y_4 + y_5 = 0$! **The equation $A^T\mathbf{y} = \mathbf{0}$ (zero net accumulation, no charge created or destroyed out of thin air) is word-for-word Kirchhoff's Current Law (KCL)!** (In vector calculus and fluid mechanics, $-A^T$ is precisely the **divergence operator**!)
 
-With no external current sources injected at the nodes, how can a non-zero conserved current $\mathbf{y} \in \operatorname{Null}(A^T)$ flow on the graph? **Currents can only circulate in closed loops (Loop Currents)!**
+With no external current sources injected at the nodes, how can a non-zero conserved current $\mathbf{y} \in \operatorname{Null}(A^T)$ flow on the graph? **Every conserved current is a linear combination of signed loop currents.**
 By the dimension formula:
 
 $$
@@ -96,59 +98,55 @@ $$
 \mathbf{y}^{(1)} = \begin{bmatrix} 1 \\ -1 \\ 1 \\ 0 \\ 0 \end{bmatrix} \;(\text{Loop } \mathcal{L}_1: e_1 \to e_3 \to -e_2), \qquad \mathbf{y}^{(2)} = \begin{bmatrix} 0 \\ 0 \\ 1 \\ -1 \\ 1 \end{bmatrix} \;(\text{Loop } \mathcal{L}_2: e_3 \to e_5 \to -e_4)
 $$
 
-At a glance, $\mathbf{y}^{(1)}$ (whose $5$th entry is $0$ and $1$st entry is $1$) and $\mathbf{y}^{(2)}$ (whose $1$st entry is $0$ and $5$th entry is $1$) are linearly independent! Finding $2$ linearly independent vectors inside the $2$-dimensional space $\operatorname{Null}(A^T)$ automatically gives us a basis for $\operatorname{Null}(A^T)$! (The outer big loop $1 \to 2 \to 4 \leftarrow 3 \leftarrow 1$ corresponds to the vector $(1,-1,0,1,-1)^T = \mathbf{y}^{(1)} - \mathbf{y}^{(2)}$, which is simply the difference of the two fundamental small loops—not a third independent loop!)
+At a glance, $\mathbf{y}^{(1)}$ (whose $5$th entry is $0$ and $1$st entry is $1$) and $\mathbf{y}^{(2)}$ (whose $1$st entry is $0$ and $5$th entry is $1$) are linearly independent! Finding $2$ linearly independent vectors inside the $2$-dimensional space $\operatorname{Null}(A^T)$ automatically gives us a basis for $\operatorname{Null}(A^T)$! (The outer big loop $1 \to 2 \to 4 \to 3 \to 1$ corresponds to the vector $(1,-1,0,1,-1)^T = \mathbf{y}^{(1)} - \mathbf{y}^{(2)}$, which is simply the difference of the two fundamental small loops—not a third independent loop!)
 
-### 4. The Row Space $\operatorname{Row}(A) \subseteq \mathbb{R}^v$: Loop-Free Spanning Trees!
+The two signed cycle constraints also prove KVL sufficiency for this example. They are independent, and their common solution space in $\mathbb{R}^5$ has dimension $3$. It contains $\operatorname{Col}(A)$ by telescoping, so it equals $\operatorname{Col}(A)$.
 
-We have $\dim\operatorname{Row}(A) = r = v - 1 = 3$. Which $3$ rows out of the $5$ rows ($5$ edges) of $A$ can we pick to form a basis for the row space $\operatorname{Row}(A)$? Since **a loop is equivalent to linear dependence among row vectors**, **linear independence of row vectors is equivalent to the chosen edges containing no closed loops (loop-free)**! Selecting $v - 1 = 3$ loop-free edges in a connected graph on $v = 4$ nodes (such as $\{e_1, e_2, e_4\}$ or $\{e_1, e_3, e_5\}$) is known in graph theory as a **spanning tree** of the graph!
+### 4. The Row Space $\operatorname{Row}(A) \subseteq \mathbb{R}^v$: Spanning Trees
+
+The chosen rows are independent exactly when their edges form a forest. A cycle yields a nontrivial signed sum of rows equal to zero. Conversely, in a forest with at least one edge, a leaf vertex is incident to exactly one chosen edge. Its column forces that edge’s coefficient in any zero row combination to be zero. Repeating after removing the leaf edge proves independence. A forest on all $v$ vertices with $v-1$ edges is a spanning tree, since each tree component on $k$ vertices has $k-1$ edges by leaf removal. In our example, $\{e_1,e_2,e_4\}$ and $\{e_1,e_3,e_5\}$ each give a row-space basis.
 
 <InteractiveCanvasSlot
   id="l12-graph-kirchhoff-explorer"
-  title="Interactive Lab: Circuit Network Four Subspaces, Spanning Trees & Loop Currents"
-  description="Interactive directed graph sandbox: click to add or remove edges, recompute the incidence matrix rank r = v - c in real time, and highlight a spanning tree (basis of Row(A)) alongside independent fundamental loop currents (basis of Null(A^T))."
+  title="Interactive Lab: Node Potentials, Cycles, and the Incidence Matrix"
+  description="Toggle the two edges incident to vertex $4$ to see how the rank $v-c$ and cycle-space dimension change. Adjust node potentials to check the signed voltage sums and the Laplacian energy."
 />
 
 ---
 
-## A Three-Line Pure Linear Algebra Proof of a Millennial Topological Jewel: Euler's Formula!
+## Euler’s Formula from the Cycle Space
 
-In 1750, Leonhard Euler discovered a mysterious topological invariant obeyed by every connected planar graph (a connected graph drawn in the plane without edge crossings) and every convex polyhedron. Using the dimension balance of the four fundamental subspaces of the incidence matrix we just established, we can give an airtight proof of Euler's Formula in **three lines of elementary subtraction**!
+In a connected plane graph, the signed boundaries of the bounded faces form a basis of the cycle space. Comparing its two dimension counts gives Euler’s formula.
 
 <TheoremCard id="thm-12-1" label="Theorem 12.1" title="Four Subspaces of a Connected Graph Incidence Matrix and Euler's Formula">
-Let $G$ be a **connected directed graph** with $v$ nodes and $e$ edges, and let $A \in \mathbb{R}^{e\times v}$ be its incidence matrix. Then:
+Let $G$ be a finite, loopless graph with $v\ge 1$ vertices and $e$ edges, with an orientation on each edge. Let $A\in\mathbb{R}^{e\times v}$ be its incidence matrix. Assume $G$ is connected unless a component count $c$ is specified.
 1. **Complete Dimension Census**: $\operatorname{rank}(A) = v - 1$, $\dim\operatorname{Null}(A) = 1$, $\dim\operatorname{Row}(A) = \dim\operatorname{Col}(A) = v - 1$, and the dimension of the space of independent loops is $\dim\operatorname{Null}(A^T) = e - v + 1$. (Generalization: if $G$ consists of $c$ mutually disconnected connected components, then $\dim\operatorname{Null}(A) = c$, $\operatorname{rank}(A) = v - c$, and $\dim\operatorname{Null}(A^T) = e - v + c$.)
-2. **Euler's Formula**: If the connected graph $G$ can be drawn in the plane without edge crossings, partitioning the plane into $f_{\text{bounded}}$ bounded interior regions (bounded faces / meshes) plus $1$ unbounded exterior region (for a total of $f = f_{\text{bounded}} + 1$ faces), then identically:
+2. **Euler's Formula**: Fix a crossing-free plane embedding of the connected graph $G$. The plane is partitioned into $f_{\text{bounded}}$ bounded interior regions (bounded faces / meshes) plus $1$ unbounded exterior region (for a total of $f = f_{\text{bounded}} + 1$ faces). The face counts satisfy
 
    $$
    v - e + f_{\text{bounded}} = 1 \qquad \Longleftrightarrow \qquad v - e + f = 2
    $$
 </TheoremCard>
 
-<ProofCollapse title="Rigorous Proof: Three-Line Linear Algebra Derivation of Euler's Formula via Left Nullspace Dimension">
-1. **The Key Bridge ($f_{\text{bounded}} = \dim\operatorname{Null}(A^T)$)**:
-   For a planar connected graph, the boundary loop-current vector $\mathbf{y}^{(k)}$ around every bounded interior face (mesh) belongs to $\operatorname{Null}(A^T)$:
-   - **Linear Independence**: Starting from a bounded face on the outermost layer adjacent to the unbounded exterior region, it contains at least one outer boundary edge not shared by any other bounded face, so its loop-current vector cannot be a linear combination of the remaining bounded-face loop currents; peeling away that face and inducting immediately proves that all $f_{\text{bounded}}$ mesh loop currents are linearly independent!
-   - **Spanning**: Given any conserved current $\mathbf{y}$ in the plane satisfying $A^T\mathbf{y} = \mathbf{0}$, subtracting appropriate multiples of the outermost bounded-face loop currents eliminates the current on every outer boundary edge one by one, peeling the onion recursively until only zero current remains (since the only conserved current on a loop-free tree is the zero vector)!
-   Therefore, the loop currents around all bounded interior faces of a planar graph form a basis for the left nullspace $\operatorname{Null}(A^T)$, which means **$\dim\operatorname{Null}(A^T) = f_{\text{bounded}}$**!
-
-2. **Three-Line Dimension Accounting**:
-   - Line 1 (from $\dim\operatorname{Null}(A) = 1$ for a connected graph and the Rank-Nullity Theorem): $r = v - 1$;
-   - Line 2 (from the left nullspace dimension formula in the output space): $\dim\operatorname{Null}(A^T) = e - r = e - (v - 1)$;
-   - Line 3 (substituting $\dim\operatorname{Null}(A^T) = f_{\text{bounded}}$ and rearranging): $f_{\text{bounded}} = e - v + 1 \implies v - e + f_{\text{bounded}} = 1$; adding the $1$ unbounded exterior face to both sides ($f = f_{\text{bounded}} + 1$) immediately yields **$v - e + f = 2$**! Q.E.D.
+<ProofCollapse title="The incidence rank and the bounded-face basis">
+1. **Rank and cycle space**. The equation $A\mathbf{x}=\mathbf{0}$ says that endpoint values agree on each edge. Hence the indicator vectors of the $c$ connected components form a nullspace basis, giving rank $v-c$ and left nullity $e-v+c$. Choose a spanning forest, with a tree in each component. Each edge outside the forest makes one fundamental cycle with the unique forest path joining its endpoints. Its signed incidence vector is a circulation, with coefficient $1$ on its own non-tree edge and $0$ on all other non-tree edges. These $e-v+c$ vectors are independent and hence form a basis of the left nullspace. Vanishing signed sums on every cycle therefore mean $\mathbf{b}\perp\operatorname{Null}(A^T)$, which is equivalent to $\mathbf{b}\in\operatorname{Col}(A)$.
+2. **Bounded faces span**. Orient each bounded face boundary with the face on its left. Count signed traversals of each edge, so a bridge traversed in both directions contributes zero. The boundary vector is a circulation because every closed boundary walk enters and leaves each vertex equally often. Each simple fundamental cycle is a Jordan curve. Sum the signed face boundaries inside it. Each interior edge cancels between its two sides, leaving the cycle boundary, with a sign determined by its orientation. Thus the bounded-face vectors span.
+3. **Bounded faces are independent**. In a zero combination of the bounded-face vectors, assign coefficient $0$ to the unbounded face. On an edge separating two distinct faces, the coefficient of that edge is the signed difference of the face coefficients. The coefficients therefore agree across every such edge. From any face one can reach the unbounded face along a path that avoids vertices and crosses edges transversely, so every face coefficient is $0$.
+4. **Count faces**. The basis has $f_{\text{bounded}}=e-v+1$ vectors. Adding the unbounded face gives $v-e+f=2$.
 </ProofCollapse>
 
 ### The Ultimate Triangle of Applied Linear Algebra: $A^T C A \mathbf{x} = \mathbf{f}$
 
-If we place a conductance coefficient on each edge (Ohm's Law $y_k = c_k e_k$, forming a positive diagonal matrix $C = \operatorname{diag}(c_1, \dots, c_e)$) and inject external current sources $\mathbf{f} \in \mathbb{R}^v$ at the nodes, three physical steps unite into the single most important equilibrium equation in all of scientific computing and applied mathematics:
+Assign conductance $c_k>0$ to each edge and let $C=\operatorname{diag}(c_1,\dots,c_e)$. Let $f_i$ denote the external current injected into node $i$. With current positive from tail to head, the equilibrium follows in three steps.
 1. Geometric compatibility equation (potentials $\to$ potential differences): $\mathbf{e} = A\mathbf{x}$;
-2. Physical constitutive law (Ohm's Law / Hooke's Law): $\mathbf{y} = C\mathbf{e} = CA\mathbf{x}$;
-3. Conservation / balance law (KCL with external sources): $A^T \mathbf{y} = \mathbf{f} \implies (A^T C A)\mathbf{x} = \mathbf{f}$!
+2. Ohm's law multiplies the voltage drop from tail to head by the conductance, giving $\mathbf{y}=-C\mathbf{e}=-CA\mathbf{x}$.
+3. At steady state, net inflow plus external injection is zero, so $A^T\mathbf{y}+\mathbf{f}=\mathbf{0}$. Substitution yields $(A^TCA)\mathbf{x}=\mathbf{f}$.
 
-Notice the symmetric matrix $K = A^T C A$ (which, for an unweighted graph with $C = I$, is the celebrated **Graph Laplacian matrix $L = A^T A$**!): from the left-nullspace solvability condition of Lecture 10, the external current source equation $(A^T C A)\mathbf{x} = \mathbf{f}$ has a solution if and only if $\mathbf{1}^T \mathbf{f} = f_1 + \cdots + f_v = 0$—**the total external current entering the network must equal the total current leaving it**! Mathematical solvability and physical conservation of charge become one and the same!
+For $c_k>0$ on every edge, $K=A^TCA$ is symmetric positive semidefinite and $\mathbf{x}^TK\mathbf{x}=\sum_{k=1}^e c_k(A\mathbf{x})_k^2$. Thus $\operatorname{Null}(K)=\operatorname{Null}(A)$. Since $K$ is symmetric, $K\mathbf{x}=\mathbf{f}$ is solvable exactly when $\mathbf{f}$ is orthogonal to that nullspace. This means zero net injection on each connected component. For a connected graph it reduces to $\mathbf{1}^T\mathbf{f}=0$. With $C=I_e$, $K$ is the graph Laplacian $L=A^TA$.
 
 <PitfallAlert title="Common Pitfalls & Transcript Errata">
 1. **Pitfall 1: Confusing the Incidence Matrix $A$ with the Adjacency Matrix from a discrete math course!**
-   **Even their shapes are completely different!** The adjacency matrix $W \in \mathbb{R}^{v\times v}$ is a square node-by-node matrix (where entry $(i,j)$ is $1$ if an edge connects them); whereas our **incidence matrix $A \in \mathbb{R}^{e\times v}$ is a rectangular edge-by-node matrix**, with one $-1$ and one $+1$ in each row! (The two are deeply connected through the Graph Laplacian $L = A^T A = D - W$; see the Frontier AI Reading at the bottom of the page.)
+   For a simple graph, the adjacency matrix $W \in \mathbb{R}^{v\times v}$ is node by node, with $W_{ij}=1$ for adjacent nodes and $0$ otherwise. The incidence matrix $A \in \mathbb{R}^{e\times v}$ is edge by node, with one $-1$ and one $+1$ in each row. Exercise 4 connects the two through $A^T A=D-W$.
 2. **Pitfall 2: Believing that reversing the arrow of a directed edge changes the dimensions of the four subspaces or alters the Graph Laplacian $A^T A$!**
    In a passive resistor network or topological analysis, the arrow on a directed edge is merely your human-chosen **reference sign convention**! Reversing the arrow on edge $k$ is equivalent to multiplying row $k$ of $A$ by $-1$ (left-multiplying by an invertible diagonal sign matrix $D_{\pm 1}$): not only do the rank $r$, the row space $\operatorname{Row}(A)$, and the nullspace $\operatorname{Null}(A)$ remain completely unchanged, even the symmetric product $(D_{\pm 1} A)^T (D_{\pm 1} A) = A^T D_{\pm 1}^2 A = A^T A$ is **entry-by-entry identical**!
 3. **Pitfall 3: Double-counting or omitting the "unbounded exterior face" in Euler's Formula, mixing up $v - e + f = 1$ and $v - e + f = 2$!**
@@ -159,9 +157,9 @@ Notice the symmetric matrix $K = A^T C A$ (which, for an unweighted graph with $
   title="Key Takeaways"
   items={[
     "For a connected graph with $e$ directed edges and $v$ nodes, the incidence matrix $A \\in \\mathbb{R}^{e\\times v}$ satisfies $\\operatorname{rank}(A) = v - 1$ (or $\\operatorname{rank}(A) = v - c$ if the graph has $c$ connected components).",
-    "**Four-Subspace Circuit Dictionary**: $\\operatorname{Null}(A) = \\operatorname{span}\\{\\mathbf{1}\\}$ (equipotentials, $\\dim=1$); $\\operatorname{Col}(A)$ (potential differences obeying KVL, $\\dim=v-1$); $\\operatorname{Null}(A^T)$ (independent loop currents obeying KCL $A^T\\mathbf{y}=\\mathbf{0}$, $\\dim=e-v+1$); and a basis of $\\operatorname{Row}(A)$ corresponds to a loop-free **spanning tree** ($v-1$ edges).",
-    "**Pure Linear Algebra Proof of Euler's Formula**: The mesh loop currents around the bounded faces of a connected planar graph form a basis for $\\operatorname{Null}(A^T)$, so $f_{\\text{bounded}} = e - r = e - v + 1$ immediately implies $v - e + f = 2$.",
-    "**Golden Equilibrium Equation of Applied Mathematics**: Geometric compatibility $\\mathbf{e}=A\\mathbf{x}$, physical constitutive law $\\mathbf{y}=C\\mathbf{e}$, and conservation law $A^T\\mathbf{y}=\\mathbf{f}$ unite into the symmetric positive semi-definite system $(A^T C A)\\mathbf{x} = \\mathbf{f}$."
+    "**Four-Subspace Circuit Dictionary**: $\\operatorname{Null}(A) = \\operatorname{span}\\{\\mathbf{1}\\}$ (equipotentials, $\\dim=1$); $\\operatorname{Col}(A)$ (potential differences obeying KVL, $\\dim=v-1$); $\\operatorname{Null}(A^T)$ (independent loop currents obeying KCL $A^T\\mathbf{y}=\\mathbf{0}$, $\\dim=e-v+1$); and the rows indexed by a **spanning tree** ($v-1$ edges) form a basis of $\\operatorname{Row}(A)$.",
+    "**Cycle-Space Proof of Euler's Formula**: The mesh loop currents around the bounded faces of a connected plane graph form a basis for $\\operatorname{Null}(A^T)$, so $f_{\\text{bounded}} = e - r = e - v + 1$ immediately implies $v - e + f = 2$.",
+    "**Golden Equilibrium Equation of Applied Mathematics**: Geometric compatibility $\\mathbf{e}=A\\mathbf{x}$, Ohm’s law $\\mathbf{y}=-C\\mathbf{e}$, and current balance $A^T\\mathbf{y}+\\mathbf{f}=\\mathbf{0}$ unite into the symmetric positive semi-definite system $(A^T C A)\\mathbf{x} = \\mathbf{f}$."
   ]}
 />
 
@@ -197,7 +195,7 @@ Notice the symmetric matrix $K = A^T C A$ (which, for an unweighted graph with $
     >
       <SolutionIntuition>
 
-        Flatten a regular tetrahedron onto your desk: a large outer triangle encloses the $4$th node at the center, with three radial struts reaching out to the three corners—$4$ vertices, $6$ edges, and the interior neatly partitioned into $3$ independent small triangular meshes! The left nullspace dimension $6 - 3 = 3$ corresponds to those $3$ interior triangular loop currents (the outer boundary triangle loop is simply the sum of the three small interior triangle loops!), while picking any $3$ edges that do not form a cycle (such as the three radial star spokes from the center node) gives a spanning tree!
+        Flatten a regular tetrahedron onto your desk: a large outer triangle encloses the $4$th node at the center, with three radial struts reaching out to the three corners—$4$ vertices, $6$ edges, and the interior neatly partitioned into $3$ independent small triangular meshes! The left nullspace dimension $6 - 3 = 3$ corresponds to those $3$ interior triangular loop currents (with each bounded face on the left during traversal, the three signed boundary vectors sum to the outer triangle’s boundary vector), while picking any $3$ edges that do not form a cycle (such as the three radial star spokes from the center node) gives a spanning tree!
 
       </SolutionIntuition>
       <SolutionRigorous>
@@ -215,7 +213,7 @@ Notice the symmetric matrix $K = A^T C A$ (which, for an unweighted graph with $
            v - e + f_{\text{bounded}} = 4 - 6 + 3 = 1 \qquad (\text{i.e., } v - e + f = 4 - 6 + 4 = 2)
            $$
 
-           A spanning tree corresponds to a basis of $\operatorname{Row}(A)$, so every spanning tree of $K_4$ contains exactly $r = v - 1 = \mathbf{3}$ edges.
+           A spanning tree corresponds to a basis of $\operatorname{Row}(A)$ consisting of incidence rows, so every spanning tree of $K_4$ contains exactly $r = v - 1 = \mathbf{3}$ edges.
 
       </SolutionRigorous>
     </DualSolution>
@@ -313,7 +311,7 @@ Notice the symmetric matrix $K = A^T C A$ (which, for an unweighted graph with $
     >
       <SolutionIntuition>
 
-        Imagine two island power grids with no undersea cable connecting them: the reference voltage of Island A and the reference voltage of Island B float independently of each other, giving the nullspace $2$ independent degrees of freedom! Every time the nullspace grows by $1$ dimension, the matrix rank shrinks by $1$ dimension ($r = v - c$), and the rank saved is automatically converted into extra closed loops via left-nullspace conservation $e - r = e - v + c$!
+        Imagine two island power grids with no undersea cable connecting them: the reference voltage of Island A and the reference voltage of Island B float independently of each other, giving the nullspace $2$ independent degrees of freedom! With $v=7$ fixed, two components give rank $5$. The cycle count also depends on the number of edges, so with $e=8$ the cycle space has dimension $8-5=3$.
 
       </SolutionIntuition>
       <SolutionRigorous>
@@ -393,7 +391,7 @@ Notice the symmetric matrix $K = A^T C A$ (which, for an unweighted graph with $
              A product term $A_{k,i} A_{k,j} \neq 0$ if and only if the $k$-th edge has $i$ and $j$ as its two endpoints! Because $G$ is a simple graph without multiple edges:
              - If no edge connects $i$ and $j$, every term in the sum is $0$, so $(A^T A)_{ij} = 0 = -W_{ij}$;
              - If there is an edge $e_{k^*}$ between $i$ and $j$ (whether oriented $i\to j$ or $j\to i$), one endpoint has entry $-1$ and the other has $+1$, so $(A^T A)_{ij} = (-1)(+1) = -1 = -W_{ij}$.
-           Consequently, **$L = A^T A = D - W$** holds identically (where $D = \operatorname{diag}(\deg(1),\dots,\deg(v))$ is the degree matrix and $W$ is the $0\text{-}1$ adjacency matrix).
+           Consequently, **$L = A^T A = D - W$** holds identically (where $D = \operatorname{diag}(\deg(1),\dots,\deg(v))$ is the degree matrix and $W$ is the symmetric $0\text{-}1$ adjacency matrix of the underlying undirected graph).
 
       </SolutionRigorous>
     </DualSolution>
@@ -403,10 +401,10 @@ Notice the symmetric matrix $K = A^T C A$ (which, for an unweighted graph with $
     id="l12-ex5"
     tier="L4"
     tierLabel="L4 · MIT 18.06 Exam Synthesis"
-    title="The Topological Miracle of the Soccer Ball (C_60 Buckyball): Using Euler's Formula to Prove Every Soccer Ball Must Have Exactly 12 Pentagons!"
+    title="Euler’s Formula for a Soccer-Ball Polyhedron and the C₆₀ Cage"
   >
-    A standard soccer ball at your feet (which is also the cage skeleton of the Nobel Prize-winning fullerene molecule $\mathrm{C}_{60}$) is a convex polyhedral surface (connected planar graph) stitched together from $P$ **regular pentagonal panels** and $H$ **regular hexagonal panels**: at every stitched vertex (node), **exactly $3$ edges meet**, and every edge is shared by exactly two adjacent panels.
-    Astonishingly, no matter how many white hexagonal panels $H$ a craftsman stitches in (even if you build a giant carbon nanocage with ten thousand hexagons!), the number of black pentagonal panels $P$ **is a universal constant locked across the cosmos**! Using Euler's Formula $v - e + f = 2$ proved in this lecture, derive step by step what $P$ must equal!
+    The classical soccer-ball pattern has the same graph as the fullerene cage $\mathrm{C}_{60}$. Consider a convex polyhedron made of $P$ **pentagonal faces** and $H$ **hexagonal faces**. At each vertex, exactly $3$ edges meet. Each edge belongs to two faces.
+    Use Euler’s formula $v-e+f=2$ to determine $P$ under these hypotheses.
 
     <ProgressiveHint
       buttonPrefix="Unlock Hint"
@@ -424,7 +422,7 @@ Notice the symmetric matrix $K = A^T C A$ (which, for an unweighted graph with $
     >
       <SolutionIntuition>
 
-        A flat honeycomb can be tiled seamlessly using only regular hexagons (because three $120^\circ$ interior angles meet to form a flat $360^\circ$ plane), but a flat honeycomb can never curve into a closed sphere! To bend and close the plane into a sphere (creating the $+2$ Euler characteristic curvature deficit), you must mix in pentagons—each "missing a corner"—to inject positive Gaussian curvature. When you substitute $v, e, f$ into Euler's Formula $v - e + f = 2$ born from the incidence matrix's left nullspace, the coefficient of the hexagon count $H$ is $\frac{6}{3} - \frac{6}{2} + 1 = 2 - 3 + 1 = 0$—it cancels out completely!
+        Each hexagon contributes $6/3$ to the vertex count, $6/2$ to the edge count, and $1$ to the face count under these sharing rules. Its net contribution to $v-e+f$ is $2-3+1=0$. Each pentagon contributes $5/3-5/2+1=1/6$, so the entire Euler characteristic of $2$ comes from the pentagons.
 
       </SolutionIntuition>
       <SolutionRigorous>
@@ -472,95 +470,78 @@ Notice the symmetric matrix $K = A^T C A$ (which, for an unweighted graph with $
 
 <FrontierAIReading
   id="AI-05"
-  title="Graph Neural Networks (GNNs) and the Spectral Smoothing Intuition of the Graph Laplacian L = A^T A"
-  paperRef="Kipf & Welling (ICLR 2017) Semi-Supervised Classification with Graph Convolutional Networks · Li et al. (AAAI 2018) Deeper Insights into Graph Convolutional Networks"
+  title="Graph Neural Networks: Laplacian Energy and Spectral Smoothing"
+  paperRef="Kipf & Welling (ICLR 2017) Semi-Supervised Classification with Graph Convolutional Networks"
 >
 
-From drug molecule structure prediction (AlphaFold / geometric deep learning) and social recommendation graphs to chip placement optimization, the core engine powering modern AI on non-Euclidean networked data is the **Graph Neural Network (GNN)**. Open any foundational paper on Graph Convolutional Networks (GCNs), and the central matrix greeting you on page one is the **Graph Laplacian $L = D - W$**—and having just finished this lecture and Exercise `l12-ex4`, you can immediately see through to its deepest linear algebra identity: **$L$ is none other than the symmetric inner-product matrix $L = A^T A$ of our directed edge-node incidence matrix $A \in \mathbb{R}^{e\times v}$!**
+### 1. Dirichlet energy on an undirected graph
 
----
-
-### 1. Graph Dirichlet Energy $\mathbf{x}^T L \mathbf{x} = \|A\mathbf{x}\|_2^2$: The Natural Ruler of Feature Smoothness on a Graph
-
-Suppose each of the $v$ nodes of a graph $G = (V, E)$ carries a scalar feature signal $\mathbf{x} = (x_1, \dots, x_v)^T \in \mathbb{R}^v$ (if each node carries a $d$-dimensional feature vector, we stack them into a feature matrix $X \in \mathbb{R}^{v \times d}$). Why does $L = A^T A$ govern all of graph signal processing? Let us evaluate the quadratic form $\mathbf{x}^T L \mathbf{x}$ using the associativity of matrix multiplication:
+For a simple undirected graph with an arbitrary edge orientation, let $A\in\mathbb{R}^{e\times v}$ be its incidence matrix, $W$ its adjacency matrix, and $D$ its diagonal degree matrix. The unnormalized graph Laplacian is $L=D-W=A^TA$. For a scalar feature $\mathbf{x}\in\mathbb{R}^v$,
 
 $$
-\mathcal{E}(\mathbf{x}) \triangleq \mathbf{x}^T L \mathbf{x} = \mathbf{x}^T (A^T A) \mathbf{x} = (A\mathbf{x})^T (A\mathbf{x}) = \|A\mathbf{x}\|_2^2 = \sum_{(i, j) \in E} (x_j - x_i)^2 \ge 0
+\mathbf{x}^TL\mathbf{x}=\|A\mathbf{x}\|_2^2=\sum_{\{i,j\}\in E}(x_j-x_i)^2.
 $$
 
-This single line—called the **Dirichlet Energy** on the graph—reveals two priceless geometric laws at once:
-1. **Natural Positive Semi-Definiteness and Smoothness Measure**: Regardless of how you orient the edge arrows, $\mathbf{x}^T L \mathbf{x}$ always equals the sum of squared feature differences across all connected neighbor pairs! The closer the features of adjacent nodes are (strong homophily: friends share similar interests, bonded atoms have similar electronegativities), the closer the energy $\|A\mathbf{x}\|_2^2$ is to $0$; when features jump wildly across edges (high-frequency noise), the energy spikes!
-2. **Exact Nullspace Identity $\operatorname{Null}(L) = \operatorname{Null}(A)$**: When does the energy $\mathbf{x}^T L \mathbf{x} = 0$ vanish? If and only if $\|A\mathbf{x}\|_2^2 = 0 \iff A\mathbf{x} = \mathbf{0}$! Therefore, **the nullspace dimension of the Graph Laplacian $L$ (the multiplicity of eigenvalue $0$) equals the exact number of connected components $c$ of the graph $G$**! For a connected graph, $\operatorname{Null}(L) = \operatorname{span}\{\mathbf{1}\}$.
+This energy is independent of edge orientation and is zero exactly when $\mathbf{x}$ is constant on each connected component. This also gives $\operatorname{Null}(L)=\operatorname{Null}(A)$. For $X\in\mathbb{R}^{v\times d}$ with $d$ features per vertex, the energy summed over channels is $\operatorname{tr}(X^TLX)=\|AX\|_F^2$.
 
----
+### 2. Linear smoothing and the GCN layer
 
-### 2. Message Passing Is Laplacian Smoothing Along the Gradient of Dirichlet Energy!
+The gradient of $\frac12\mathbf{x}^TL\mathbf{x}$ is $L\mathbf{x}$. A gradient step is $\mathbf{x}^{(t+1)}=(I_v-\alpha L)\mathbf{x}^{(t)}$. A mode with eigenvalue $\lambda$ is multiplied by $1-\alpha\lambda$. If $L\ne0$ and $0\lt\alpha\lt2/\lambda_{\max}(L)$, every positive-eigenvalue mode contracts in magnitude and the zero modes are preserved. The smaller range $0\lt\alpha\le 1/\lambda_{\max}(L)$ also avoids sign flips.
 
-If we want to filter out high-frequency noise on the node features so that connected neighbors share information (i.e., minimize the Dirichlet energy $\frac{1}{2}\mathbf{x}^T L \mathbf{x}$), taking the gradient with respect to $\mathbf{x}$ gives $\nabla_{\mathbf{x}} \bigl(\frac{1}{2}\mathbf{x}^T L \mathbf{x}\bigr) = L\mathbf{x}$. Performing one step of gradient descent with step size $\alpha \in (0, 1)$ yields:
+For the Kipf–Welling GCN, add self-loops with $\widetilde W=W+I_v$, define $\widetilde D_{ii}=\sum_j\widetilde W_{ij}$, and put $S=\widetilde D^{-1/2}\widetilde W\widetilde D^{-1/2}=I_v-\widetilde L$. The normalized aggregation is followed by a learned channel map and a nonlinearity:
 
 $$
-\mathbf{x}^{(t+1)} = \mathbf{x}^{(t)} - \alpha L \mathbf{x}^{(t)} = (I_v - \alpha L)\mathbf{x}^{(t)} = \bigl(I_v - \alpha(D - W)\bigr)\mathbf{x}^{(t)}
+H^{(t+1)}=\sigma\bigl(SH^{(t)}\Theta^{(t)}\bigr),
+\qquad H^{(t)}\in\mathbb{R}^{v\times d_t},\quad \Theta^{(t)}\in\mathbb{R}^{d_t\times d_{t+1}}.
 $$
 
-Applying symmetric degree normalization (setting $\tilde{L} = I_v - \tilde{D}^{-1/2}\tilde{W}\tilde{D}^{-1/2}$, where $\tilde{W} = W + I_v$ adds self-loops), taking step size $\alpha = 1$, and right-multiplying by a learnable linear feature transformation weight matrix $\Theta^{(t)} \in \mathbb{R}^{d_{\text{in}} \times d_{\text{out}}}$, you have just derived on the spot the **Kipf & Welling (ICLR 2017) Graph Convolutional Network (GCN) layer propagation rule** (cited over $30{,}000$ times):
+The factor $S$ equals a unit step with the self-loop-augmented normalized Laplacian $\widetilde L$. This identity explains the smoothing interpretation of this aggregation. [Kipf and Welling, Equations 7–8](https://arxiv.org/abs/1609.02907)
 
-$$
-H^{(t+1)} = \sigma\!\left( \tilde{D}^{-1/2} \tilde{W} \tilde{D}^{-1/2} H^{(t)} \Theta^{(t)} \right) = \sigma\!\left( (I_v - \tilde{L})\, H^{(t)} \Theta^{(t)} \right)
-$$
+### 3. The limits of repeated linear aggregation
 
-In linear algebra terms, "aggregating neighbor features (Message Passing)" in every GNN layer is **fundamentally left-multiplying the feature matrix by the smoothing operator $(I_v - \alpha L)$, proportionally damping and flattening the high-frequency edge-difference components $A\mathbf{x}$ orthogonal to the nullspace**!
+Under the step-size bound above, $(I_v-\alpha L)^k\mathbf{x}$ converges to the orthogonal projection onto $\operatorname{Null}(L)$, which is the componentwise mean. For normalized aggregation on a connected graph, $S$ is similar to the random-walk matrix $\widetilde D^{-1}\widetilde W$. That walk is irreducible with a positive self-loop at every vertex, so $1$ is simple and every other eigenvalue has magnitude below $1$. Consequently $S^k$ converges to $\mathbf{q}\mathbf{q}^T/(\mathbf{q}^T\mathbf{q})$ for $\mathbf{q}=\widetilde D^{1/2}\mathbf{1}$. The walk matrix is row-stochastic. In the limit, row $i$ of $S^kX$ is $q_i$ times the same feature vector, with $q_i=\sqrt{\widetilde D_{ii}}$. The repeated linear calculation explains how aggregation alone can erase feature distinctions, a mechanism behind over-smoothing.
 
----
-
-### 3. The Nullspace Truth Behind the Infamous GNN Plague of "Over-Smoothing"
-
-Why can Transformers easily stack a hundred layers, whereas a vanilla GCN suffers a cliff-like drop in node classification accuracy as soon as you stack more than $8 \sim 16$ layers? The answer is written right inside the nullspace $\operatorname{Null}(A) = \operatorname{span}\{\mathbf{1}\}$ of a connected graph from Lecture 12!
-When you repeatedly multiply by the smoothing operator $(I_v - \alpha L)^K \mathbf{x}$ dozens of times without residual connections, every non-zero eigen-direction (the difference signals living inside the row space $\operatorname{Row}(A)$) is contracted again and again toward $0$, until the representation vectors of all nodes collapse in unison into the sole surviving fixed-point subspace—**the nullspace of the incidence matrix $\operatorname{Null}(A) = \operatorname{span}\{\mathbf{1}\}$**! At that point, the feature vectors of node $1$ through node $v$ become **completely identical** (an equipotential heat-death state where $A H^{(K)} \to 0$), and the classifier can no longer tell one node from another! This is the infamous **Over-Smoothing catastrophe** in graph deep learning—once you understand $\operatorname{Null}(A)$ in Lecture 12, you understand the exact mathematical gravitational sink that an entire generation of GNN architectural innovations (such as PairNorm, DropEdge, and graph residual connections) was built to resist!
-
-<CollapsibleCode title="PyTorch Tensor Dimension Check: Verifying L = A^T A = D - W, Dirichlet Energy, and GNN Over-Smoothing Collapse into Null(A)">
+<CollapsibleCode title="PyTorch: Unnormalized and normalized smoothing limits">
 
 ```python
 import torch
 
 # Construct Strang's classic 4-node, 5-directed-edge connected graph incidence matrix A (5 x 4)
+dtype = torch.float64
 A = torch.tensor([
-    [-1.0,  1.0,  0.0,  0.0],  # e1: 1 -> 2
-    [-1.0,  0.0,  1.0,  0.0],  # e2: 1 -> 3
-    [ 0.0, -1.0,  1.0,  0.0],  # e3: 2 -> 3
-    [ 0.0, -1.0,  0.0,  1.0],  # e4: 2 -> 4
-    [ 0.0,  0.0, -1.0,  1.0],  # e5: 3 -> 4
-])
+    [-1.0,  1.0,  0.0,  0.0],
+    [-1.0,  0.0,  1.0,  0.0],
+    [ 0.0, -1.0,  1.0,  0.0],
+    [ 0.0, -1.0,  0.0,  1.0],
+    [ 0.0,  0.0, -1.0,  1.0],
+], dtype=dtype)
 
-# 1. Verify L = A^T A equals D - W exactly, and for a connected graph Rank(A) = Rank(L) = v - 1 = 3
+
 L = A.T @ A
-W_adj = torch.tensor([
-    [0.0, 1.0, 1.0, 0.0],
-    [1.0, 0.0, 1.0, 1.0],
-    [1.0, 1.0, 0.0, 1.0],
-    [0.0, 1.0, 1.0, 0.0],
-])
-D_deg = torch.diag(W_adj.sum(dim=1))
-assert torch.equal(L, D_deg - W_adj)
-assert torch.linalg.matrix_rank(A).item() == 3 and torch.linalg.matrix_rank(L).item() == 3
+degrees = L.diag()
+D = torch.diag(degrees)
+W = D - L
+expected_W = torch.tensor([
+    [0, 1, 1, 0],
+    [1, 0, 1, 1],
+    [1, 1, 0, 1],
+    [0, 1, 1, 0],
+], dtype=dtype)
+torch.testing.assert_close(W, expected_W)
+assert int(torch.linalg.matrix_rank(L)) == int(torch.linalg.matrix_rank(A)) == 3
 
-# 2. Verify the Graph Dirichlet Energy identity: x^T L x == ||Ax||_2^2
-torch.manual_seed(1806)
-x = torch.randn(4)
-dirichlet_quad = (x @ L @ x).item()
-edge_diff_sq = (A @ x).pow(2).sum().item()
-assert abs(dirichlet_quad - edge_diff_sq) < 1e-6
+x = torch.tensor([2, -1, 0, 1], dtype=dtype)
+torch.testing.assert_close(x @ L @ x, (A @ x).square().sum())
+I = torch.eye(4, dtype=dtype)
+alpha = 1 / torch.linalg.eigvalsh(L).max()
+h = torch.linalg.matrix_power(I - alpha * L, 40) @ x
+torch.testing.assert_close(h, x.mean().expand_as(x))
 
-# 3. Simulate multi-layer Laplacian smoothing h^{(t+1)} = (I - alpha * L) h^{(t)}: watch features collapse into Null(A) = span{1}!
-alpha = 0.2
-S_smooth = torch.eye(4) - alpha * L
-h = x.clone()
-for _ in range(40):
-    h = S_smooth @ h
-
-# After 40 layers, all node potential differences A @ h approach 0 (node features degenerate to the constant vector mean(x) * 1!)
-edge_diff_after = torch.norm(A @ h).item()
-assert edge_diff_after < 1e-5
-print(f"Initial ||Ax|| = {edge_diff_sq**0.5:.4f} -> After 40 GNN smoothing steps ||Ah|| = {edge_diff_after:.2e}, h = {h.tolist()}")
+W_tilde = W + I
+q = W_tilde.sum(dim=1).sqrt()
+S = W_tilde / (q[:, None] * q[None, :])
+h_normalized = torch.linalg.matrix_power(S, 40) @ x
+torch.testing.assert_close(h_normalized, q * ((q @ x) / (q @ q)))
 ```
 
 </CollapsibleCode>

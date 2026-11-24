@@ -42,7 +42,7 @@ $$
    - 我们要消灭它正下方 $(2,1)$ 处的元素 $3$。需要从第 2 行减去多少倍的第 1 行？这个倍数称为**消元乘数（Multiplier）**：
 
 $$
-\ell_{21} = \frac{a_{21}}{\text{pivot}_1} = \frac{3}{1} = 3
+\ell_{21} = \frac{a_{21}}{a_{11}} = \frac{3}{1} = 3
 $$
 
    - 执行行操作 $R_2 \leftarrow R_2 - 3R_1$，第 2 行变为 $[3-3,\; 8-6,\; 1-3 \mid 12-6] = [0,\; 2,\; -2 \mid 6]$。
@@ -89,12 +89,12 @@ $$
 
 消元过程的核心铁律只有一条：**主元绝对不能等于 $0$！**（否则乘数 $\ell_{ij}$ 分母为零，根本无法消去下方非零元。）如果在第 $k$ 个主元位置撞上了 $0$，必须严格区分两种截然不同的命运：
 
-- **暂时性失效（Temporary Failure —— 行交换即可挽救）**：主元位置是 $0$，但**它正下方同一列中还存在非零元素**。例如把上例原方程第 1 行与第 3 行对调，$(1,1)$ 位置虽为 $0$，但下方 $(2,1)$ 处有 $3 \neq 0$。只需做一次**行交换（Row Exchange）**把非零元换上来充当主元，方程组依然非奇异、唯一可解！
-- **永久性崩溃（Complete Failure —— 矩阵奇异不可逆）**：主元位置是 $0$，且**它正下方整列也全是 $0$**！例如把原题右下角 $(3,3)$ 的 $1$ 改成 $-3$，最后一步消元将得到 $0z = -10$，第三个主元彻底消失。这标志着 $n\times n$ 方阵发生了第 01 讲所说的维度坍缩——**$n$ 阶方阵非奇异（可逆），当且仅当消元（允许行交换）能产生完整的 $n$ 个非零主元。**
+- **暂时性失效（Temporary Failure —— 行交换即可挽救）**：主元位置是 $0$，但**它正下方同一列中还存在非零元素**。例如把上例原方程第 1 行与第 3 行对调，$(1,1)$ 位置虽为 $0$，但下方 $(2,1)$ 处有 $3 \neq 0$。做一次**行交换（Row Exchange）**即可把非零元换上来充当主元。本例在交换后仍非奇异，因为行交换是可逆的。
+- **缺少主元**：若候选位置及其下方的同列元素均为 $0$，则跳过该列并继续消元。对方阵而言，缺少主元即意味着矩阵奇异。例如将上例 $(3,3)$ 位从 $1$ 改为 $-4$，最后一个方程就是 $0z=-10$，故该右端对应的系统无解。一般地，实 $n\times n$ 方阵可逆当且仅当允许行交换的消元能产生 $n$ 个主元。
 
 ---
 
-## 二、用矩阵语言重写消元：左乘初等消元矩阵 $E_{ij}$
+## 二、用矩阵语言重写消元：左乘初等消元矩阵（Elementary Elimination Matrix）$E_{ij}$
 
 现在进入本讲最精彩的核心转折：如何不用文字箭头 $\xrightarrow{R_2 - 3R_1}$，而是找到一个 $3\times 3$ 矩阵 $E_{21}$，使得它与 $A$ 相乘就自动完成“第 2 行减去 $3$ 倍第 1 行，其余行保持不变”？
 
@@ -140,8 +140,8 @@ $$
 
 <InteractiveCanvasSlot
   id="l02-elimination-stepper"
-  title="初等消元矩阵 E_ij 与行/列操作对比沙盒"
-  description="二期交互预留：自由点击 3×3 矩阵下三角目标格自动生成初等矩阵 $E_{ij}$，并支持一键切换『左乘 $EA$（行组合）』与『右乘 $AE$（列组合）』，直观对比列空间与零空间在两种操作下的变与不变。"
+  title="初等消元矩阵 E_ij 与主元消元分步沙盒"
+  description="逐步演示 3 组典型 3×3 增广矩阵消元流程：标准可逆消元（左乘初等矩阵 E_ij）、零主元候选经行置换 P_23 挽救，以及奇异矩阵跳过无主元列，并同步核验回代求精确解。"
 />
 
 <DefinitionCard
@@ -151,7 +151,7 @@ $$
 >
 设 $I_n \in \mathbb{R}^{n\times n}$ 为 $n$ 阶单位矩阵，$\mathbf{e}_i \in \mathbb{R}^n$ 为第 $i$ 分量为 $1$、其余为 $0$ 的标准基列向量：
 
-1. **初等消元矩阵（Elementary Elimination Matrix）**：对满足 $i \neq j$ 的下标与实标量 $\ell_{ij} \in \mathbb{R}$，将 $I_n$ 的第 $(i, j)$ 个零元素替换为 $-\ell_{ij}$ 所得的方阵记为 $E_{ij}$：
+1. **初等消元矩阵（Elementary Elimination Matrix）**：对不同的 $i,j\in\{1,\dots,n\}$ 与实标量 $\ell_{ij} \in \mathbb{R}$，将 $I_n$ 的第 $(i, j)$ 个零元素替换为 $-\ell_{ij}$ 所得的方阵记为 $E_{ij}$：
 
 $$
 E_{ij} := I_n - \ell_{ij} \mathbf{e}_i \mathbf{e}_j^T \in \mathbb{R}^{n\times n}
@@ -159,14 +159,14 @@ $$
 
    对任意矩阵 $A \in \mathbb{R}^{n\times m}$ 左乘 $E_{ij}$，精确等价于将其第 $i$ 行替换为 $(\text{row } i) - \ell_{ij}(\text{row } j)$，其余 $n-1$ 行保持不变。
 
-2. **行交换初等置换矩阵（Row-Exchange Matrix）**：交换单位矩阵 $I_n$ 的第 $i$ 行与第 $j$ 行（$i \neq j$）所得的方阵记为 $P_{ij} \in \mathbb{R}^{n\times n}$。对 $A \in \mathbb{R}^{n\times m}$ 左乘 $P_{ij}$ 精确交换 $A$ 的第 $i$ 行与第 $j$ 行。
+2. **行交换置换矩阵（Permutation Matrix）**：交换单位矩阵 $I_n$ 的第 $i$ 行与第 $j$ 行（下标范围同上）所得的方阵记为 $P_{ij} \in \mathbb{R}^{n\times n}$。对 $A \in \mathbb{R}^{n\times m}$ 左乘 $P_{ij}$ 精确交换 $A$ 的第 $i$ 行与第 $j$ 行。
 </DefinitionCard>
 
 ---
 
 ## 三、结合律压缩、不可交换性与初等矩阵的“一眼求逆”
 
-在刚才的两步消元中，我们先算 $E_{21} A$，再在左侧套上 $E_{32}$，即 $E_{32}(E_{21} A) = U$。这里展现了矩阵运算最迷人的一对张力：**矩阵乘法不满足交换律（$AB \neq BA$），但无条件满足结合律（$A(BC) = (AB)C$）！**
+两步消元得到 $E_{32}(E_{21}A)=U$。维度相容时，矩阵乘法满足结合律 $A(BC)=(AB)C$。即使 $AB$ 与 $BA$ 都有定义，两者也可能不同。
 
 正因为结合律成立，我们可以随意移动括号，把两步独立的消元矩阵提前打包乘在一起，合成一个一步到位的总消元矩阵 $E$：
 
@@ -215,11 +215,11 @@ $$
   title="初等矩阵左右作用对偶定理与单步求逆公式"
   termEn="Row vs. Column Action & Inverse of Elementary Matrices"
 >
-设矩阵 $A \in \mathbb{R}^{m\times n}$，初等消元矩阵 $E_{ij} = I_m - \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T \in \mathbb{R}^{m\times m}$（$i \neq j$），初等行交换矩阵 $P_{pq} \in \mathbb{R}^{m\times m}$：
+设 $A \in \mathbb{R}^{m\times n}$。对不同的 $i,j \in \{1,\dots,m\}$，令 $E_{ij}=I_m-\ell_{ij}\mathbf{e}_i\mathbf{e}_j^T$，其中 $\ell_{ij}\in\mathbb{R}$。对不同的 $p,q\in\{1,\dots,m\}$，令 $P_{pq}$ 由 $I_m$ 交换第 $p,q$ 行得到。带波浪号的初等矩阵用 $I_n$ 和 $\{1,\dots,n\}$ 中的下标同样定义。
 
 1. **左乘控行 vs 右乘控列（核心对偶）**：
-   - 将 $m\times m$ 初等矩阵放在 $A$ 的**左侧**（$E_{ij}A$ 或 $P_{pq}A$），对 $A$ 执行**初等行变换**；
-   - 将 $n\times n$ 初等矩阵放在 $A$ 的**右侧**（$A \tilde{E}_{rs}$ 或 $A \tilde{P}_{rs}$），则对 $A$ 执行**初等列变换**（例如右乘 $\tilde{P}_{12}$ 交换 $A$ 的第 1 列与第 2 列）。
+   - 左乘时，$E_{ij}A$ 将第 $i$ 行替换为第 $i$ 行减去 $\ell_{ij}$ 倍第 $j$ 行。$P_{pq}A$ 交换第 $p,q$ 行。
+   - 右乘时，$A\tilde E_{rs}=A-\ell_{rs}(A\mathbf{e}_r)\mathbf{e}_s^T$ 将第 $s$ 列替换为第 $s$ 列减去 $\ell_{rs}$ 倍第 $r$ 列。右乘 $\tilde P_{rs}$ 则交换第 $r,s$ 列。
 2. **单步消元与对换矩阵的精确逆**：对任意 $i \neq j$ 及任意实数 $\ell_{ij} \in \mathbb{R}$，$E_{ij}$ 与 $P_{pq}$ 均恒可逆，且：
 
 $$
@@ -249,11 +249,10 @@ $$
 
 <PitfallAlert title="常见直觉陷阱与网传笔记三大勘误">
 1. **误区一：“高斯消元（初等行变换）不改变矩阵的列空间 $\operatorname{Col}(A)$”（头号致命大坑！）**
-   许多初学者因为“消元不改变方程的解”，就想当然地认为 $\operatorname{Col}(A) = \operatorname{Col}(U)$。**大错特错！** 试看最简反例 $A = \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix} \xrightarrow{R_2 - R_1} U = \begin{bmatrix} 1 & 1 \\ 0 & 0 \end{bmatrix}$：原矩阵 $\operatorname{Col}(A)$ 是斜率为 $1$ 的对角直线 $\operatorname{span}\{(1,1)^T\}$，而消元后 $\operatorname{Col}(U)$ 变成了水平的 $x$ 轴 $\operatorname{span}\{(1,0)^T\}$！行变换保持的是解集（尤其是 $\mathbf{b}=\mathbf{0}$ 时的零空间 $\operatorname{Null}(A) = \operatorname{Null}(U)$）以及行空间，之所以解没变，是因为右侧向量 $\mathbf{b}$ 也被同步旋转/剪切成了 $E\mathbf{b}$！
-2. **误区二：把多步左乘顺序写反成 $E_{21} E_{32} A = U$**
-   矩阵左乘是从靠近 $A$ 的一侧**由右向左**依次生效的！先做第 1 步 $E_{21}$，再做第 2 步 $E_{32}$，连写出来必须是 $E_{32} E_{21} A$（离 $A$ 越近越先执行），写反顺序会算出完全错误的结果。
+   对 $A=\begin{bmatrix}1&1\\1&1\end{bmatrix}$，第二行减第一行得 $U=\begin{bmatrix}1&1\\0&0\end{bmatrix}$，两者的列空间分别由 $(1,1)^T$ 和 $(1,0)^T$ 张成。一般地，可逆行变换矩阵 $E$ 将列空间（Column Space）$\operatorname{Col}(A)$ 映到 $\operatorname{Col}(EA)$，维数保持不变。它保持行空间（Row Space）$\operatorname{Row}(A)=\operatorname{Col}(A^T)$，因为 $EA$ 的各行是 $A$ 各行的线性组合，而 $A=E^{-1}(EA)$ 给出反向包含。定理 2.1 中取 $\mathbf{b}=\mathbf{0}$，即知零空间（Nullspace）$\operatorname{Null}(A)=N(A)=\{\mathbf{x}\in\mathbb{R}^n:A\mathbf{x}=\mathbf{0}\}$ 也保持不变。对一般右端，须将 $EA$ 与 $E\mathbf{b}$ 配对，才能保持原方程组的解集。
+2. **误区二：按执行顺序从左到右写初等矩阵**。矩阵左乘是从靠近 $A$ 的一侧**由右向左**依次生效的！先做第 1 步 $E_{21}$，再做第 2 步 $E_{32}$，连写出来必须是 $E_{32} E_{21} A$（离 $A$ 越近越先执行），写反顺序会算出完全错误的结果。
 3. **误区三：见到对角线出现 $0$ 就立刻宣判“矩阵奇异、无逆”**
-   比如置换矩阵 $P_{12} = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$ 主对角线上全是 $0$，但它明明完美可逆（$P_{12}^{-1} = P_{12}$）！只有当主元位为 $0$ **且其正下方整列也没有任何非零候选元素可供行交换**时，方阵才真正奇异。
+   比如置换矩阵 $P_{12} = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$ 主对角线上全是 $0$，但它明明完美可逆（$P_{12}^{-1} = P_{12}$）！允许交换行时，方阵奇异当且仅当消元所得的主元数少于列数。某一步遇到零候选元，只有当其下方同列的元素都为零时，才跳过该列。
 </PitfallAlert>
 
 <KeyTakeaways
@@ -261,7 +260,7 @@ $$
     "**左乘控行、右乘控列**：要对 $A$ 做行变换，把初等矩阵放在**左边**（$EA$）；要对 $A$ 做列变换，把初等矩阵放在**右边**（$AE$）。",
     "构造初等矩阵无需死记硬背：**你想对 $A$ 做什么行（或列）操作，就先对单位矩阵 $I$ 做完全相同的操作**，得到的就是所需的初等矩阵。",
     "单步初等消元矩阵 $E_{ij} = I - \\ell_{ij}\\mathbf{e}_i\\mathbf{e}_j^T$（$i \\neq j$）的逆矩阵只需把非对角线上的 $-\\ell_{ij}$ 变号为 $+\\ell_{ij}$；单次行交换矩阵满足自逆性 $P_{ij}^{-1} = P_{ij}$。",
-    "初等行变换严格保持解集（$A\\mathbf{x}=\\mathbf{b} \\iff EA\\mathbf{x}=E\\mathbf{b}$）与主元个数，但**会改变列空间 $\\operatorname{Col}(A)$**。"
+    "对可逆的 $E$，方程 $A\\mathbf{x}=\\mathbf{b}$ 与 $(EA)\\mathbf{x}=E\\mathbf{b}$ 同解。两矩阵的列空间满足 $\\operatorname{Col}(EA)=E\\operatorname{Col}(A)$，可能不同。"
   ]}
 />
 
@@ -341,12 +340,12 @@ $(3,3)$ 主元位为 $0$ 且下方已无行可换，仅产生 $2 \lt 3$ 个主�
 <ExerciseCard id="l02-ex2" tier="L2" title="概念辨析：高斯消元会保持列空间 Col(A) 不变吗？">
 判断下列命题真伪，并在脑海中构造最简 $2\times 2$ 反例：
 
-> **命题**：对任意矩阵 $A \in \mathbb{R}^{m\times n}$ 施加初等行变换化为上三角矩阵 $U = EA$（其中 $E$ 可逆），由于 $A\mathbf{x} = \mathbf{b}$ 与 $U\mathbf{x} = E\mathbf{b}$ 同解，所以 $A$ 与 $U$ 拥有完全相同的列空间，即 $\operatorname{Col}(A) = \operatorname{Col}(U)$。
+> **命题**：设 $A\in\mathbb{R}^{m\times n}$，对 $A$ 施加可逆行变换得到行阶梯形（Row Echelon Form）$U=EA$。由于 $A\mathbf{x}=\mathbf{b}$ 与 $U\mathbf{x}=E\mathbf{b}$ 同解，所以 $\operatorname{Col}(A)=\operatorname{Col}(U)$。
 
 <TrueFalseInteractive
   id="l02-tf1"
   correct={false}
-  quickFeedback="命题为假（False）！上三角矩阵 $U$ 左下角出现了大量 $0$，其列向量的底部坐标往往恒为 $0$，而原矩阵 $A$ 的列向量底部未必为 $0$——初等行变换保持的是解集与行空间，但几乎总会改变列空间 $\operatorname{Col}(A)$！"
+  quickFeedback="命题为假。行变换后 $\operatorname{Col}(EA)=E\operatorname{Col}(A)$。例如第 2 行减去第 1 行的三倍，将 $(1,3)^T$ 张成的直线映到 $(1,0)^T$ 张成的直线。"
 />
 
 <ProgressiveHint
@@ -358,7 +357,7 @@ $(3,3)$ 主元位为 $0$ 且下方已无行可换，仅产生 $2 \lt 3$ 个主�
 <DualSolution>
 <SolutionIntuition>
 
-想象 $\mathbb{R}^2$ 中两支共线于直线 $y = 3x$ 上的列向量 $(1, 3)^T$ 与 $(2, 6)^T$。消元操作 $R_2 \leftarrow R_2 - 3R_1$ 把所有向量的第二个分量强行压扁归零，变成了躺在水准轴 $y = 0$ 上的 $(1, 0)^T$ 与 $(2, 0)^T$！整条列空间直线被直接拍到了 $x$ 轴上，怎么可能还是原来的列空间？之所以方程同解，是因为目标向量 $\mathbf{b}$ 也被同步拍了同样的变换 $E\mathbf{b}$！
+剪切变换 $(x,y)^T\mapsto(x,y-3x)^T$ 把列空间直线 $y=3x$ 映到 $x$ 轴。对右端同时施加这个可逆变换得到 $E\mathbf{b}$，因此方程组的系数解集保持不变。
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -376,7 +375,7 @@ $$
 - $\operatorname{Col}(A) = \operatorname{span}\{(1, 3)^T\} = \{(t, 3t)^T : t \in \mathbb{R}\}$；
 - $\operatorname{Col}(U) = \operatorname{span}\{(1, 0)^T\} = \{(t, 0)^T : t \in \mathbb{R}\}$。
 
-显然 $(1, 3)^T \in \operatorname{Col}(A)$ 但 $(1, 3)^T \notin \operatorname{Col}(U)$，故 $\operatorname{Col}(A) \neq \operatorname{Col}(U)$。（注：仅当 $\operatorname{Col}(A) = \mathbb{R}^m$ 充满全空间时，因可逆矩阵双射才有 $\operatorname{Col}(EA) = \mathbb{R}^m = \operatorname{Col}(A)$。）
+向量 $(1,3)^T$ 属于 $\operatorname{Col}(A)$，却在 $\operatorname{Col}(U)$ 之外。一般地，两空间相等当且仅当 $E$ 将 $\operatorname{Col}(A)$ 映到自身。全空间满足这一条件，某些真子空间也满足。例如，上述 $E$ 固定 $y$ 轴上的每个向量。
 
 </SolutionRigorous>
 </DualSolution>
@@ -390,7 +389,7 @@ $$
 <TrueFalseInteractive
   id="l02-tf2"
   correct={false}
-  quickFeedback="命题为假（False）！$a_{11} = 0$ 仅代表消元遇到了『暂时性失效』，只要第 1 列下方 $a_{21}$ 或 $a_{31}$ 非零，左乘一个行交换置换矩阵 $P_{12}$ 或 $P_{13}$ 即可顺利产生第一个非零主元！"
+  quickFeedback="命题为假。若 $a_{21}$ 或 $a_{31}$ 非零，交换行就能获得第一个主元。例如，$\mathbb{R}^{3\times3}$ 中的行交换矩阵 $P_{12}$ 可逆，且 $a_{11}=0$。"
 />
 
 <ProgressiveHint
@@ -407,7 +406,7 @@ $$
 </SolutionIntuition>
 <SolutionRigorous>
 
-构造 $3\times 3$ 反例：取循环置换矩阵
+构造 $3\times 3$ 反例：取行交换置换矩阵
 
 $$
 A = \begin{bmatrix}
@@ -439,12 +438,12 @@ b & 1 & b \\
 \end{bmatrix}
 $$
 
-1. 对 $M_1(a)$ 执行两步向下消元，直接用含 $a$ 的因式写出三个主元的表达式，并找出所有使 $M_1(a)$ **奇异（永久崩溃）**的实数 $a$；
+1. 用行相减将 $M_1(a)$ 化为上三角形，写出对角元，确定它们何时都是主元，并找出使矩阵奇异的所有实数 $a$。
 2. 对三对角对称矩阵 $M_2(b)$，找出所有使消元产生完整 $3$ 个非零主元（非奇异）的 $b$ 的条件，并指出是否存在某个 $b$ 会触发“第 2 个主元位为 $0$，但**可以通过与第 3 行交换挽救回来**”的暂时性失效！
 
 <ProgressiveHint
   hints={[
-    "对 $M_1(a)$：直接用 $R_2 - R_1$ 和 $R_3 - R_2$（或者按标准顺序 $R_2 - R_1, R_3 - R_1$ 再 $R_3 - R_2$），瞬间化出极简上三角矩阵，三个对角元一目了然！",
+    "对 $M_1(a)$，先用第 3 行减去原第 2 行，再用第 2 行减去第 1 行。按此次序，两次相减即可得到上三角形。",
     "对 $M_2(b)$：第 1 步 $R_2 \\leftarrow R_2 - b R_1$ 后，$(2,2)$ 主元位变成了 $1 - b^2$！如果 $1 - b^2 = 0$（即 $b = \\pm 1$），看看第 3 行 $(3,2)$ 位置躺着什么数，能不能换上来救场！"
   ]}
 />
@@ -452,13 +451,13 @@ $$
 <DualSolution>
 <SolutionIntuition>
 
-1. 在 $M_1(a)$ 中，三行首元全是 $a$！第 2 行减第 1 行消出第二个主元 $a - 2$；原第 3 行减原第 2 行直接消出第三个主元 $a - 4$！三个主元依次是 $a,\; a-2,\; a-4$，只要 $a \in \{0, 2, 4\}$，那一列下方也全是 $0$ 无行可换，当场永久崩溃！
+1. 第 3 行减原第 2 行得到 $[0,0,a-4]$，再把第 2 行减第 1 行得到 $[0,a-2,1]$。所得上三角矩阵的对角元为 $a,a-2,a-4$，其中任一为零时矩阵奇异。
 2. 在 $M_2(b)$ 中更有戏剧性：第 1 步消元后 $(2,2)$ 位变成 $1 - b^2$。当 $b = \pm 1$ 时第 2 个主元位虽然变成了 $0$，但第 3 行是 $[0,\; \pm 1,\; 1]$，$(3,2)$ 位非零！立刻把第 2、3 行一交换，居然起死回生拿齐了三个非零主元！真正让 $M_2(b)$ 彻底死掉的反而是 $1 - 2b^2 = 0$，即 $b = \pm \frac{1}{\sqrt{2}}$！
 
 </SolutionIntuition>
 <SolutionRigorous>
 
-1. **分析 $M_1(a)$**：假设 $a \neq 0$，执行 $R_2 \leftarrow R_2 - R_1$ 与 $R_3 \leftarrow R_3 - R_1$，再执行 $R_3 \leftarrow R_3 - R_2$：
+1. **分析 $M_1(a)$**。对所有实数 $a$，执行 $R_2\leftarrow R_2-R_1$、$R_3\leftarrow R_3-R_1$，再执行 $R_3\leftarrow R_3-R_2$。这些行相减均无需除法。
 
 $$
 \begin{bmatrix}
@@ -481,7 +480,7 @@ a & 2 & 3 \\
 $$
 
    - 若 $a \notin \{0, 2, 4\}$，三个主元依次为 $a,\; a-2,\; a-4$（均非零）；
-   - 若 $a = 0$（第 1 列全零）、$a = 2$（前两行在消元后前两列全同导致线性相关）或 $a = 4$（后两行消元后同比例），均发生永久性崩溃。故 $M_1(a)$ 奇异 $\iff a \in \{0, 2, 4\}$。
+   - 上述行相减保持可逆性，而上三角矩阵可逆当且仅当对角元均非零。因此 $M_1(a)$ 奇异 $\iff a\in\{0,2,4\}$。
 
 2. **分析 $M_2(b)$**：第 1 主元为 $1$，执行 $R_2 \leftarrow R_2 - bR_1$：
 

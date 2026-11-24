@@ -42,7 +42,7 @@ To update the right-hand side vector $\mathbf{b}$ simultaneously in the same tab
    - We want to eliminate the entry $3$ directly below it in the $(2,1)$ position. What multiple of Row 1 must we subtract from Row 2? This factor is called the **Multiplier**:
 
 $$
-\ell_{21} = \frac{a_{21}}{\text{pivot}_1} = \frac{3}{1} = 3
+\ell_{21} = \frac{a_{21}}{a_{11}} = \frac{3}{1} = 3
 $$
 
    - Executing the row operation $R_2 \leftarrow R_2 - 3R_1$, Row 2 becomes $[3-3,\; 8-6,\; 1-3 \mid 12-6] = [0,\; 2,\; -2 \mid 6]$.
@@ -89,8 +89,8 @@ $$
 
 The entire elimination process is governed by one ironclad rule: **Pivots can never be equal to $0$!** (Otherwise, the multiplier $\ell_{ij}$ would have a zero denominator, making it impossible to eliminate nonzero entries below.) If we hit a $0$ in the $k$-th pivot position, we must carefully distinguish between two radically different fates:
 
-- **Temporary Failure (Rescued by a Row Exchange)**: A $0$ appears in the pivot position, **but there is still a nonzero entry somewhere below it in the same column**. For instance, if we swapped Row 1 and Row 3 in the original system above, the $(1,1)$ entry would be $0$, but the $(2,1)$ entry below it has $3 \neq 0$. A single **Row Exchange** brings that nonzero entry up into the pivot slot, and the system remains nonsingular and uniquely solvable!
-- **Complete Failure (Singular, Non-Invertible Matrix)**: A $0$ appears in the pivot position, **and every entry below it in that column is also $0$**! For example, if we changed the bottom-right $(3,3)$ entry of our original matrix from $1$ to $-3$, the final elimination step would yield $0z = -10$, and the third pivot would vanish completely. This signals the dimensional collapse of an $n\times n$ square matrix discussed in Lecture 01: **An $n\times n$ square matrix is nonsingular (invertible) if and only if elimination (allowing row exchanges) produces a full set of $n$ nonzero pivots.**
+- **Temporary Failure (Rescued by a Row Exchange)**: A $0$ appears in the pivot position, **but there is still a nonzero entry somewhere below it in the same column**. For instance, if we swapped Row 1 and Row 3 in the original system above, the $(1,1)$ entry would be $0$, but the $(2,1)$ entry below it has $3 \neq 0$. A **row exchange** brings that nonzero entry into the pivot slot. This example remains nonsingular because the row exchange is invertible.
+- **Missing pivot**: If the candidate and all entries below it in the active part of the column are zero, skip that column and continue elimination. A square coefficient matrix with a missing pivot is singular. For example, changing entry $(3,3)$ from $1$ to $-4$ gives the last equation $0z=-10$, so this right-hand side is inconsistent. In general, a real $n\times n$ matrix is invertible if and only if elimination with row exchanges produces $n$ pivots.
 
 ---
 
@@ -140,8 +140,8 @@ $$
 
 <InteractiveCanvasSlot
   id="l02-elimination-stepper"
-  title="Elementary Elimination Matrix E_ij & Row vs. Column Action Sandbox"
-  description="Interactive sandbox: click lower-triangular target entries of a 3×3 matrix to generate elementary matrices $E_{ij}$ automatically, and toggle between left-multiplication $EA$ (row combinations) and right-multiplication $AE$ (column combinations) to compare how the column space and nullspace behave."
+  title="Elementary Elimination Matrices E_ij & Step-by-Step Pivot Sandbox"
+  description="Step through three 3×3 augmented elimination presets: standard invertible elimination via left-multiplied $E_{ij}$, a zero pivot candidate rescued by row permutation $P_{23}$, and singular zero-pivot column skipping, with back-substitution verification."
 />
 
 <DefinitionCard
@@ -150,7 +150,7 @@ $$
 >
 Let $I_n \in \mathbb{R}^{n\times n}$ be the $n\times n$ identity matrix, and let $\mathbf{e}_i \in \mathbb{R}^n$ be the $i$-th standard basis column vector (with $1$ in the $i$-th component and $0$ elsewhere):
 
-1. **Elementary Elimination Matrix**: For indices $i \neq j$ and a real scalar multiplier $\ell_{ij} \in \mathbb{R}$, the square matrix obtained by replacing the $(i, j)$ zero entry of $I_n$ with $-\ell_{ij}$ is denoted by $E_{ij}$:
+1. **Elementary Elimination Matrix**: For distinct $i,j\in\{1,\dots,n\}$ and a real scalar multiplier $\ell_{ij} \in \mathbb{R}$, the square matrix obtained by replacing the $(i, j)$ zero entry of $I_n$ with $-\ell_{ij}$ is denoted by $E_{ij}$:
 
 $$
 E_{ij} := I_n - \ell_{ij} \mathbf{e}_i \mathbf{e}_j^T \in \mathbb{R}^{n\times n}
@@ -158,14 +158,14 @@ $$
 
    Left-multiplying any matrix $A \in \mathbb{R}^{n\times m}$ by $E_{ij}$ is strictly equivalent to replacing Row $i$ of $A$ with $(\text{row } i) - \ell_{ij}(\text{row } j)$ while leaving the other $n-1$ rows unchanged.
 
-2. **Row-Exchange Permutation Matrix**: The square matrix obtained by exchanging Row $i$ and Row $j$ ($i \neq j$) of the identity matrix $I_n$ is denoted by $P_{ij} \in \mathbb{R}^{n\times n}$. Left-multiplying $A \in \mathbb{R}^{n\times m}$ by $P_{ij}$ exchanges Row $i$ and Row $j$ of $A$.
+2. **Row-Exchange Permutation Matrix**: The square matrix obtained by exchanging rows $i$ and $j$ (with the same index bounds) of the identity matrix $I_n$ is denoted by $P_{ij} \in \mathbb{R}^{n\times n}$. Left-multiplying $A \in \mathbb{R}^{n\times m}$ by $P_{ij}$ exchanges Row $i$ and Row $j$ of $A$.
 </DefinitionCard>
 
 ---
 
 ## 3. Associative Compression, Non-Commutativity, and Instant Inversion of Elementary Matrices
 
-In our two-step elimination above, we first computed $E_{21} A$ and then left-multiplied by $E_{32}$, arriving at $E_{32}(E_{21} A) = U$. This showcases one of the most fascinating tensions in matrix algebra: **Matrix multiplication is NOT commutative ($AB \neq BA$), but it is unconditionally associative ($A(BC) = (AB)C$)!**
+Our two steps give $E_{32}(E_{21}A)=U$. Matrix multiplication is associative for conformable factors, so $A(BC)=(AB)C$ whenever the inner dimensions match. Even when both $AB$ and $BA$ are defined, they can differ.
 
 Because the associative law holds, we are free to shift the parentheses and multiply the individual elimination matrices together ahead of time, compressing the entire pipeline into a single combined elimination matrix $E$:
 
@@ -213,11 +213,11 @@ We now distill the left/right multiplication duality, solution-set invariance, a
   label="Theorem 2.1"
   title="Row vs. Column Action Duality & Inverse of Elementary Matrices"
 >
-Let $A \in \mathbb{R}^{m\times n}$, let $E_{ij} = I_m - \ell_{ij}\mathbf{e}_i\mathbf{e}_j^T \in \mathbb{R}^{m\times m}$ ($i \neq j$) be an elementary elimination matrix, and let $P_{pq} \in \mathbb{R}^{m\times m}$ be an elementary row-exchange matrix:
+Let $A \in \mathbb{R}^{m\times n}$. For distinct $i,j \in \{1,\dots,m\}$, let $E_{ij}=I_m-\ell_{ij}\mathbf{e}_i\mathbf{e}_j^T$ with $\ell_{ij}\in\mathbb{R}$. For distinct $p,q\in\{1,\dots,m\}$, let $P_{pq}$ swap rows $p$ and $q$ of $I_m$. The tilded matrices are defined in the same way using $I_n$ and indices from $\{1,\dots,n\}$.
 
 1. **Left-Multiplication Controls Rows vs. Right-Multiplication Controls Columns (Core Duality)**:
-   - Placing an $m\times m$ elementary matrix on the **left** of $A$ ($E_{ij}A$ or $P_{pq}A$) performs an **elementary row operation** on $A$;
-   - Placing an $n\times n$ elementary matrix on the **right** of $A$ ($A \tilde{E}_{rs}$ or $A \tilde{P}_{rs}$) performs an **elementary column operation** on $A$ (for instance, right-multiplying by $\tilde{P}_{12}$ swaps Column 1 and Column 2 of $A$).
+   - On the left, $E_{ij}A$ replaces row $i$ by row $i$ minus $\ell_{ij}$ times row $j$, and $P_{pq}A$ swaps rows $p$ and $q$.
+   - On the right, $A\tilde E_{rs}=A-\ell_{rs}(A\mathbf{e}_r)\mathbf{e}_s^T$ replaces column $s$ by column $s$ minus $\ell_{rs}$ times column $r$. Right-multiplication by $\tilde P_{rs}$ exchanges columns $r$ and $s$.
 2. **Exact Inverses of Single-Step Elimination and Permutation Matrices**: For any $i \neq j$ and any real scalar $\ell_{ij} \in \mathbb{R}$, both $E_{ij}$ and $P_{pq}$ are always invertible, with:
 
 $$
@@ -247,11 +247,10 @@ $$
 
 <PitfallAlert title="Common Pitfalls & Transcript Errata">
 1. **Misconception 1: "Gaussian elimination (elementary row operations) preserves the column space $\operatorname{Col}(A)$" (Public Enemy #1!)**
-   Because elimination preserves the solution set of $A\mathbf{x} = \mathbf{b}$, many beginners jump to the false conclusion that $\operatorname{Col}(A) = \operatorname{Col}(U)$. **Dead wrong!** Look at the simplest counterexample: $A = \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix} \xrightarrow{R_2 - R_1} U = \begin{bmatrix} 1 & 1 \\ 0 & 0 \end{bmatrix}$. The column space of $A$, $\operatorname{Col}(A)$, is the diagonal line $\operatorname{span}\{(1,1)^T\}$ of slope $1$, whereas after elimination $\operatorname{Col}(U)$ becomes the horizontal $x$-axis $\operatorname{span}\{(1,0)^T\}$! Row operations preserve the solution set (in particular, the nullspace $\operatorname{Null}(A) = \operatorname{Null}(U)$ when $\mathbf{b}=\mathbf{0}$) and the row space. The reason the solution $\mathbf{x}$ does not change is that the right-hand side vector $\mathbf{b}$ is simultaneously sheared/rotated into $E\mathbf{b}$!
-2. **Misconception 2: Writing multi-step left-multiplications in reverse order as $E_{21} E_{32} A = U$**
-   Left-multiplication takes effect **from right to left**, starting closest to $A$! Performing Step 1 ($E_{21}$) first and Step 2 ($E_{32}$) second must be written as $E_{32} E_{21} A$ (the closer a matrix sits to $A$, the earlier it acts). Reversing the order produces a completely wrong product.
+   For $A=\begin{bmatrix}1&1\\1&1\end{bmatrix}$, subtracting the first row from the second gives $U=\begin{bmatrix}1&1\\0&0\end{bmatrix}$. Their column spaces are respectively the lines spanned by $(1,1)^T$ and $(1,0)^T$. In general an invertible row-operation matrix $E$ maps $\operatorname{Col}(A)$ onto $\operatorname{Col}(EA)$ and preserves its dimension. It preserves $\operatorname{Row}(A)=\operatorname{Col}(A^T)$ because the rows of $EA$ are combinations of those of $A$, and $A=E^{-1}(EA)$ gives the reverse inclusion. Taking $\mathbf{b}=\mathbf{0}$ in Theorem 2.1 gives preservation of $\operatorname{Null}(A)=N(A)=\{\mathbf{x}\in\mathbb{R}^n:A\mathbf{x}=\mathbf{0}\}$. For a general right-hand side, use $E\mathbf{b}$ with $EA$ to preserve the solutions.
+2. **Misconception 2 — writing elementary factors in execution order**. The factors act **from right to left**, starting closest to $A$! Performing Step 1 ($E_{21}$) first and Step 2 ($E_{32}$) second must be written as $E_{32} E_{21} A$ (the closer a matrix sits to $A$, the earlier it acts). Reversing the order produces a completely wrong product.
 3. **Misconception 3: Declaring a matrix "singular and non-invertible" the instant a $0$ appears on the main diagonal**
-   Consider the permutation matrix $P_{12} = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$: its main diagonal consists entirely of $0$s, yet it is perfectly invertible ($P_{12}^{-1} = P_{12}$)! A square matrix is truly singular only when a pivot slot is $0$ **and there are no nonzero candidate entries below it in that same column available for a row exchange**.
+   Consider the permutation matrix $P_{12} = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$: its main diagonal consists entirely of $0$s, yet it is perfectly invertible ($P_{12}^{-1} = P_{12}$)! A square matrix is singular exactly when elimination with row exchanges yields fewer pivots than columns. At a given step, a zero candidate forces you to skip the column only if all entries below it in that column are also zero.
 </PitfallAlert>
 
 <KeyTakeaways
@@ -260,7 +259,7 @@ $$
     "**Left-multiplication controls rows; right-multiplication controls columns**: To perform row operations on $A$, place the elementary matrix on the **left** ($EA$); to perform column operations on $A$, place the elementary matrix on the **right** ($AE$).",
     "Constructing elementary matrices requires zero memorization: **Whatever row (or column) operation you want to apply to $A$, simply apply that exact same operation to the identity matrix $I$ first** to obtain the required elementary matrix.",
     "To invert a single-step elementary elimination matrix $E_{ij} = I - \\ell_{ij}\\mathbf{e}_i\\mathbf{e}_j^T$ ($i \\neq j$), simply flip the sign of the off-diagonal multiplier from $-\\ell_{ij}$ to $+\\ell_{ij}$; a single row-exchange matrix is its own inverse, $P_{ij}^{-1} = P_{ij}$.",
-    "Elementary row operations strictly preserve the solution set ($A\\mathbf{x}=\\mathbf{b} \\iff EA\\mathbf{x}=E\\mathbf{b}$) and the number of pivots, but they **change the column space $\\operatorname{Col}(A)$**."
+    "For invertible $E$, the systems $A\\mathbf{x}=\\mathbf{b}$ and $(EA)\\mathbf{x}=E\\mathbf{b}$ have the same solutions. The column spaces satisfy $\\operatorname{Col}(EA)=E\\operatorname{Col}(A)$ and can differ."
   ]}
 />
 
@@ -358,14 +357,14 @@ Because the $(3,3)$ pivot slot is $0$ and there are no rows below it to exchange
 >
 Determine whether the following statement is true or false, and construct the simplest possible $2\times 2$ counterexample in your head:
 
-> **Statement**: For any matrix $A \in \mathbb{R}^{m\times n}$, if we apply elementary row operations to reduce it to an upper triangular matrix $U = EA$ (where $E$ is invertible), then because $A\mathbf{x} = \mathbf{b}$ and $U\mathbf{x} = E\mathbf{b}$ have the exact same solutions, $A$ and $U$ must share the exact same column space: $\operatorname{Col}(A) = \operatorname{Col}(U)$.
+> **Statement**: Let $A\in\mathbb{R}^{m\times n}$ and $U=EA$ be a row echelon form obtained by invertible row operations. Since $A\mathbf{x}=\mathbf{b}$ and $U\mathbf{x}=E\mathbf{b}$ have the same solutions, $\operatorname{Col}(A)=\operatorname{Col}(U)$.
 
 <TrueFalseInteractive
   id="l02-tf1"
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! An upper triangular matrix $U$ has $0$s filling its lower-left corner, so the bottom components of its columns are often forced to be $0$, whereas the columns of $A$ need not have $0$s at the bottom. Elementary row operations preserve the solution set and the row space, but almost always change the column space $\operatorname{Col}(A)$!"
+  quickFeedback="False. Row operations transform the column space by $\operatorname{Col}(EA)=E\operatorname{Col}(A)$. For example, subtracting three times row 1 from row 2 maps the line spanned by $(1,3)^T$ onto the line spanned by $(1,0)^T$."
 />
 
 <ProgressiveHint
@@ -382,12 +381,12 @@ Determine whether the following statement is true or false, and construct the si
 >
 <SolutionIntuition>
 
-Picture two collinear column vectors $(1, 3)^T$ and $(2, 6)^T$ lying along the line $y = 3x$ in $\mathbb{R}^2$. The elimination operation $R_2 \leftarrow R_2 - 3R_1$ crushes the second component of every column down to zero, turning them into $(1, 0)^T$ and $(2, 0)^T$ lying flat along the horizontal axis $y = 0$! The entire column-space line has been flattened onto the $x$-axis—how could it possibly be the same column space? The only reason the linear system retains the same solutions is that the target vector $\mathbf{b}$ undergoes the exact same shear transformation into $E\mathbf{b}$!
+The shear $(x,y)^T\mapsto (x,y-3x)^T$ maps the column-space line $y=3x$ onto the $x$-axis. Applying the same invertible shear to the right-hand side gives $E\mathbf{b}$ and preserves which coefficient vectors solve the system.
 
 </SolutionIntuition>
 <SolutionRigorous>
 
-We construct a minimal $2\times 2$ counterexample. Let:
+For a $2\times 2$ counterexample, take
 
 $$
 A = \begin{bmatrix} 1 & 2 \\ 3 & 6 \end{bmatrix}, \quad
@@ -400,7 +399,7 @@ Then:
 - $\operatorname{Col}(A) = \operatorname{span}\{(1, 3)^T\} = \{(t, 3t)^T : t \in \mathbb{R}\}$;
 - $\operatorname{Col}(U) = \operatorname{span}\{(1, 0)^T\} = \{(t, 0)^T : t \in \mathbb{R}\}$.
 
-Clearly $(1, 3)^T \in \operatorname{Col}(A)$ but $(1, 3)^T \notin \operatorname{Col}(U)$, so $\operatorname{Col}(A) \neq \operatorname{Col}(U)$. (Note: Only when $\operatorname{Col}(A) = \mathbb{R}^m$ spans the entire ambient space does the bijectivity of invertible matrices yield $\operatorname{Col}(EA) = \mathbb{R}^m = \operatorname{Col}(A)$.)
+The vector $(1,3)^T$ lies in $\operatorname{Col}(A)$ and outside $\operatorname{Col}(U)$. In general, the spaces are equal exactly when $E$ maps $\operatorname{Col}(A)$ onto itself. This holds for $\operatorname{Col}(A)=\mathbb{R}^m$, and can also hold for a proper subspace. For example, the same $E$ fixes the $y$-axis pointwise.
 
 </SolutionRigorous>
 </DualSolution>
@@ -421,7 +420,7 @@ Determine whether the following statement is true or false:
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! Having $a_{11} = 0$ merely triggers a 'temporary failure' of elimination. As long as $a_{21}$ or $a_{31}$ below it in Column 1 is nonzero, left-multiplying by a row-exchange permutation matrix $P_{12}$ or $P_{13}$ immediately produces a valid nonzero first pivot!"
+  quickFeedback="False. If $a_{21}$ or $a_{31}$ is nonzero, a row swap supplies the first pivot. The swap matrix $P_{12}$ in $\mathbb{R}^{3\times3}$ gives a concrete invertible example with $a_{11}=0$."
 />
 
 <ProgressiveHint
@@ -480,13 +479,13 @@ b & 1 & b \\
 \end{bmatrix}
 $$
 
-1. Perform two steps of downward elimination on $M_1(a)$, express its three pivots as factored expressions in $a$, and find all real values of $a$ for which $M_1(a)$ is **singular (complete failure)**;
+1. Use row subtractions to put $M_1(a)$ in upper triangular form. Find its diagonal entries, determine when all three are pivots, and identify all real $a$ for which $M_1(a)$ is singular.
 2. For the symmetric tridiagonal matrix $M_2(b)$, find the condition on $b$ under which elimination (allowing row exchanges) produces a full set of $3$ nonzero pivots (nonsingular), and identify whether there is any value of $b$ that triggers a **temporary failure** where the 2nd pivot slot becomes $0$ **but can be rescued by exchanging with Row 3**!
 
 <ProgressiveHint
   buttonPrefix="Unlock Hint"
   hints={[
-    "For $M_1(a)$: Apply $R_2 - R_1$ and $R_3 - R_2$ (or in standard order $R_2 - R_1, R_3 - R_1$ followed by $R_3 - R_2$) to reduce it immediately to a clean upper triangular matrix where all three diagonal entries are visible at a glance!",
+    "For $M_1(a)$, subtract the original row 2 from row 3 first, then subtract row 1 from row 2. In that order the two operations produce an upper triangular matrix.",
     "For $M_2(b)$: After Step 1 ($R_2 \\leftarrow R_2 - b R_1$), the $(2,2)$ pivot slot becomes $1 - b^2$! If $1 - b^2 = 0$ (i.e., $b = \\pm 1$), check what number is sitting in the $(3,2)$ slot of Row 3 and whether swapping rows rescues the pivot!"
   ]}
 />
@@ -498,13 +497,13 @@ $$
 >
 <SolutionIntuition>
 
-1. In $M_1(a)$, every row starts with $a$! Subtracting Row 1 from Row 2 reveals the second pivot $a - 2$; subtracting the original Row 2 from the original Row 3 directly reveals the third pivot $a - 4$! The three pivots are $a,\; a-2,\; a-4$. Whenever $a \in \{0, 2, 4\}$, every entry below the zero pivot slot in that column is also $0$, leaving no row available to swap—an immediate complete failure!
+1. Subtracting the original row 2 from row 3 leaves $[0,0,a-4]$. Subtracting row 1 from row 2 then leaves $[0,a-2,1]$. The resulting upper triangular matrix has diagonal $a,a-2,a-4$. It is singular exactly when one of these entries is zero.
 2. $M_2(b)$ is even more dramatic: after the first elimination step, the $(2,2)$ slot becomes $1 - b^2$. When $b = \pm 1$, the 2nd pivot slot drops to $0$, but Row 3 is $[0,\; \pm 1,\; 1]$, whose $(3,2)$ entry is nonzero! Swapping Rows 2 and 3 brings it back from the brink and secures all three nonzero pivots! What actually kills $M_2(b)$ permanently is $1 - 2b^2 = 0$, namely $b = \pm \frac{1}{\sqrt{2}}$!
 
 </SolutionIntuition>
 <SolutionRigorous>
 
-1. **Analysis of $M_1(a)$**: Assuming $a \neq 0$, we execute $R_2 \leftarrow R_2 - R_1$ and $R_3 \leftarrow R_3 - R_1$, followed by $R_3 \leftarrow R_3 - R_2$:
+1. **Analysis of $M_1(a)$**. For all real $a$, apply $R_2 \leftarrow R_2-R_1$ and $R_3 \leftarrow R_3-R_1$, then $R_3 \leftarrow R_3-R_2$. These row subtractions require no division.
 
 $$
 \begin{bmatrix}
@@ -527,7 +526,7 @@ a & 2 & 3 \\
 $$
 
    - If $a \notin \{0, 2, 4\}$, the three pivots are $a,\; a-2,\; a-4$ (all nonzero);
-   - If $a = 0$ (Column 1 is all zeros), $a = 2$ (the first two columns of Rows 1 and 2 are identical, making the columns linearly dependent), or $a = 4$ (Rows 2 and 3 after step 1 are proportional), complete failure occurs. Thus $M_1(a)$ is singular $\iff a \in \{0, 2, 4\}$.
+   - The row subtractions preserve invertibility. The resulting triangular matrix is invertible exactly when all its diagonal entries are nonzero, so $M_1(a)$ is singular $\iff a\in\{0,2,4\}$.
 
 2. **Analysis of $M_2(b)$**: The 1st pivot is $1$. Executing $R_2 \leftarrow R_2 - bR_1$ gives:
 

@@ -2,7 +2,7 @@ import * as React from 'react'
 import { MathDiagram } from './math-diagram'
 
 export function DeterminantRowLinearityDiagram({
-  caption = '图 18.1 单行线性性与面积叠加：保持第 2 行 \\mathbf{b} 不变，第 1 行加法导致平行四边形面积直接相加；矩阵整体数乘 c 则使 2 阶面积放大 c^2 倍。',
+  caption = '图 18.1 单行线性性与面积叠加：保持第 2 行 $\\mathbf{b}$ 不变，第 1 行加法导致有向平行四边形面积直接相加；矩阵整体数乘 $c$ 则使 $2$ 阶面积缩放 $c^2$ 倍。',
 }: {
   caption?: string
 }) {
@@ -17,7 +17,7 @@ export function DeterminantRowLinearityDiagram({
           <marker
             id="l18-arrow-blue"
             viewBox="0 0 10 10"
-            refX="8"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -28,7 +28,7 @@ export function DeterminantRowLinearityDiagram({
           <marker
             id="l18-arrow-amber"
             viewBox="0 0 10 10"
-            refX="8"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -39,7 +39,7 @@ export function DeterminantRowLinearityDiagram({
           <marker
             id="l18-arrow-emerald"
             viewBox="0 0 10 10"
-            refX="8"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -50,7 +50,7 @@ export function DeterminantRowLinearityDiagram({
           <marker
             id="l18-arrow-purple"
             viewBox="0 0 10 10"
-            refX="8"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -61,7 +61,7 @@ export function DeterminantRowLinearityDiagram({
           <marker
             id="l18-arrow-muted"
             viewBox="0 0 10 10"
-            refX="8"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -165,26 +165,29 @@ export function DeterminantRowLinearityDiagram({
 
           {/* Vectors */}
           {/* Base vector b */}
-          <line x1="50" y1="280" x2="206" y2="280" className="stroke-emerald-600 dark:stroke-emerald-400" strokeWidth="2.5" markerEnd="url(#l18-arrow-emerald)" />
+          <line x1="50" y1="280" x2="210" y2="280" className="stroke-emerald-600 dark:stroke-emerald-400" strokeWidth="2.5" markerEnd="url(#l18-arrow-emerald)" />
           <text x="120" y="298" className="text-xs font-bold fill-emerald-600 dark:fill-emerald-400">b (固定第 2 行)</text>
 
           {/* Vector a */}
-          <line x1="50" y1="280" x2="88" y2="194" className="stroke-blue-600 dark:stroke-blue-400" strokeWidth="2.2" markerEnd="url(#l18-arrow-blue)" />
+          <line x1="50" y1="280" x2="90" y2="190" className="stroke-blue-600 dark:stroke-blue-400" strokeWidth="2.2" markerEnd="url(#l18-arrow-blue)" />
           <text x="45" y="235" className="text-xs font-bold fill-blue-600 dark:fill-blue-400">a</text>
 
           {/* Vector a + a' */}
-          <line x1="50" y1="280" x2="157" y2="129" className="stroke-purple-600 dark:stroke-purple-400" strokeWidth="2.2" markerEnd="url(#l18-arrow-purple)" />
+          <line x1="50" y1="280" x2="160" y2="125" className="stroke-purple-600 dark:stroke-purple-400" strokeWidth="2.2" markerEnd="url(#l18-arrow-purple)" />
           <text x="80" y="150" className="text-xs font-bold fill-purple-600 dark:fill-purple-400">a + a&apos;</text>
 
-          {/* Area labels */}
-          <rect x="135" y="225" width="90" height="22" rx="4" className="fill-background/90 stroke-blue-500/40" strokeWidth="1" />
+          <line x1="90" y1="190" x2="160" y2="125" className="stroke-amber-600 dark:stroke-amber-400" strokeWidth="2.2" markerEnd="url(#l18-arrow-amber)" />
+          <text x="121" y="161" className="text-xs font-bold fill-amber-600 dark:fill-amber-400">a&apos;</text>
+
+          {/* Signed area labels for rows in order (a, b) and (a', b). */}
+          <rect x="135" y="225" width="133" height="22" rx="4" className="fill-background/90 stroke-blue-500/40" strokeWidth="1" />
           <text x="142" y="240" className="text-[10px] font-semibold fill-blue-600 dark:fill-blue-400">
-            面积 det [a ; b]
+            det [a ; b] = −||b||h₁
           </text>
 
-          <rect x="180" y="150" width="95" height="22" rx="4" className="fill-background/90 stroke-amber-500/40" strokeWidth="1" />
+          <rect x="180" y="150" width="137" height="22" rx="4" className="fill-background/90 stroke-amber-500/40" strokeWidth="1" />
           <text x="187" y="165" className="text-[10px] font-semibold fill-amber-600 dark:fill-amber-400">
-            面积 det [a&apos; ; b]
+            det [a&apos; ; b] = −||b||h₂
           </text>
 
           {/* Math Identity Badge */}
@@ -193,7 +196,7 @@ export function DeterminantRowLinearityDiagram({
             det [a + a&apos; ; b] = det [a ; b] + det [a&apos; ; b]
           </text>
           <text x="40" y="365" className="text-[11px] fill-muted-foreground">
-            底边 ||b|| 不变，两平行四边形沿公共边界贴合，面积直接线性相加
+            有向面积为 −||b|| 乘以图中高度，且总高为 h₁ + h₂
           </text>
         </g>
 
@@ -254,8 +257,8 @@ export function DeterminantRowLinearityDiagram({
             />
 
             {/* Vectors */}
-            <line x1="20" y1="175" x2="86" y2="175" className="stroke-emerald-600 dark:stroke-emerald-400" strokeWidth="2" markerEnd="url(#l18-arrow-emerald)" />
-            <line x1="20" y1="175" x2="58" y2="89" className="stroke-blue-600 dark:stroke-blue-400" strokeWidth="2" markerEnd="url(#l18-arrow-blue)" />
+            <line x1="20" y1="175" x2="90" y2="175" className="stroke-emerald-600 dark:stroke-emerald-400" strokeWidth="2" markerEnd="url(#l18-arrow-emerald)" />
+            <line x1="20" y1="175" x2="60" y2="85" className="stroke-blue-600 dark:stroke-blue-400" strokeWidth="2" markerEnd="url(#l18-arrow-blue)" />
 
             <text x="45" y="190" className="text-[10px] font-semibold fill-emerald-600 dark:fill-emerald-400">b</text>
             <text x="15" y="115" className="text-[10px] font-semibold fill-blue-600 dark:fill-blue-400">2a</text>
@@ -268,7 +271,7 @@ export function DeterminantRowLinearityDiagram({
 
           {/* Sub-case B: Whole-Matrix Scaling */}
           <g transform="translate(225, 65)">
-            <rect x="0" y="0" width="200" height="220" rx="6" className="fill-muted/20 stroke-border" strokeWidth="1" />
+            <rect x="0" y="0" width="205" height="220" rx="6" className="fill-muted/20 stroke-border" strokeWidth="1" />
             <text x="10" y="20" className="text-xs font-bold fill-foreground">
               整个矩阵乘以 2 (det(2A))
             </text>
@@ -276,24 +279,24 @@ export function DeterminantRowLinearityDiagram({
               det(2A) = 2² det(A) = 4 det(A)
             </text>
 
-            {/* Base 2b: length = 120, from (15, 175) to (135, 175) */}
-            {/* Height 2a: dx = 36, dy = -80 */}
+            {/* Base 2b: length = 140, from (15, 175) to (155, 175) */}
+            {/* Vector 2a: dx = 40, dy = -90 */}
             {/* 2x2 grid of 4 congruent parallelograms */}
             {/* Cell (0,0): bottom-left */}
-            <polygon points="15,175 75,175 93,135 33,135" className="fill-amber-500/25 stroke-amber-600 dark:stroke-amber-400" strokeWidth="1" />
+            <polygon points="15,175 85,175 105,130 35,130" className="fill-amber-500/25 stroke-amber-600 dark:stroke-amber-400" strokeWidth="1" />
             {/* Cell (1,0): bottom-right */}
-            <polygon points="75,175 135,175 153,135 93,135" className="fill-amber-500/20 stroke-amber-600 dark:stroke-amber-400" strokeWidth="1" />
+            <polygon points="85,175 155,175 175,130 105,130" className="fill-amber-500/20 stroke-amber-600 dark:stroke-amber-400" strokeWidth="1" />
             {/* Cell (0,1): top-left */}
-            <polygon points="33,135 93,135 111,95 51,95" className="fill-amber-500/20 stroke-amber-600 dark:stroke-amber-400" strokeWidth="1" />
+            <polygon points="35,130 105,130 125,85 55,85" className="fill-amber-500/20 stroke-amber-600 dark:stroke-amber-400" strokeWidth="1" />
             {/* Cell (1,1): top-right */}
-            <polygon points="93,135 153,135 171,95 111,95" className="fill-amber-500/30 stroke-amber-600 dark:stroke-amber-400" strokeWidth="1" />
+            <polygon points="105,130 175,130 195,85 125,85" className="fill-amber-500/30 stroke-amber-600 dark:stroke-amber-400" strokeWidth="1" />
 
             {/* Outer boundary */}
-            <polygon points="15,175 135,175 171,95 51,95" fill="none" className="stroke-amber-600 dark:stroke-amber-400" strokeWidth="2.2" />
+            <polygon points="15,175 155,175 195,85 55,85" fill="none" className="stroke-amber-600 dark:stroke-amber-400" strokeWidth="2.2" />
 
             {/* Vectors */}
-            <line x1="15" y1="175" x2="131" y2="175" className="stroke-emerald-600 dark:stroke-emerald-400" strokeWidth="2" markerEnd="url(#l18-arrow-emerald)" />
-            <line x1="15" y1="175" x2="49" y2="99" className="stroke-amber-600 dark:stroke-amber-400" strokeWidth="2" markerEnd="url(#l18-arrow-amber)" />
+            <line x1="15" y1="175" x2="155" y2="175" className="stroke-emerald-600 dark:stroke-emerald-400" strokeWidth="2" markerEnd="url(#l18-arrow-emerald)" />
+            <line x1="15" y1="175" x2="55" y2="85" className="stroke-amber-600 dark:stroke-amber-400" strokeWidth="2" markerEnd="url(#l18-arrow-amber)" />
 
             <text x="65" y="190" className="text-[10px] font-semibold fill-emerald-600 dark:fill-emerald-400">2b</text>
             <text x="12" y="125" className="text-[10px] font-semibold fill-amber-600 dark:fill-amber-400">2a</text>
@@ -307,10 +310,10 @@ export function DeterminantRowLinearityDiagram({
           {/* Red Flag Warning Box */}
           <rect x="15" y="300" width="410" height="77" rx="6" className="fill-rose-500/10 dark:fill-rose-950/20 stroke-rose-500/30" strokeWidth="1" />
           <text x="28" y="322" className="text-xs font-bold fill-rose-600 dark:fill-rose-400">
-            ⚠ 经典警示：行列式绝对不是矩阵空间上的线性变换！
+            当 n ≥ 2 时，行列式在整个矩阵空间上是非线性的
           </text>
           <text x="28" y="342" className="text-[11px] fill-foreground">
-            • det(cA) = cⁿ det(A) ≠ c det(A) （n 阶矩阵每个行向量均提出因子 c）
+            • det(cA) = cⁿ det(A)（每行各提出因子 c）
           </text>
           <text x="28" y="360" className="text-[11px] fill-foreground">
             • 一般情况下 det(A + B) ≠ det(A) + det(B) （例如 det(I₂ + I₂) = det(2I₂) = 4 ≠ 1 + 1）
@@ -322,7 +325,7 @@ export function DeterminantRowLinearityDiagram({
 }
 
 export function DeterminantTenPropertiesFlowDiagram({
-  caption = '图 18.2 行列式性质演绎图谱：从 3 大公理（Axioms 1-3）严格推导性质 4-10 的逻辑依赖网络。',
+  caption = '图 18.2 行列式性质演绎图谱：从 3 大公理（Axioms 1-3）推导性质 4–10 的主要步骤。',
 }: {
   caption?: string
 }) {
@@ -729,10 +732,10 @@ export function DeterminantTenPropertiesFlowDiagram({
             det(AB) = det(A) · det(B)
           </text>
           <text x="16" y="65" className="text-[11px] fill-muted-foreground">
-            证明方法：比值函数 D(A) = det(AB)/det(B) 严格满足三大公理
+            证明方法：当 det(B) ≠ 0 时，比值函数 D(A) = det(AB)/det(B) 严格满足三大公理
           </text>
           <text x="16" y="82" className="text-[10px] font-semibold fill-sky-600 dark:fill-sky-400">
-            推论：det(A⁻¹) = 1 / det(A)，正交矩阵 det(Q) = ±1
+            对可逆 A，det(A⁻¹) = 1 / det(A)
           </text>
         </g>
 
@@ -757,7 +760,7 @@ export function DeterminantTenPropertiesFlowDiagram({
             由 PA = LU 导出 AᵀPᵀ = UᵀLᵀ，利用 det(Pᵀ)=det(P)=±1 与性质 7、9 获证
           </text>
           <text x="16" y="82" className="text-[10px] font-semibold fill-purple-600 dark:fill-purple-400">
-            核心结论：所有关于「行」的性质对「列」完全成立（对偶性）！
+            行列式的行性质也适用于列。对正交矩阵 Q，det(Q) = ±1。
           </text>
         </g>
       </svg>

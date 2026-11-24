@@ -26,7 +26,7 @@ Consider any linear transformation in the plane, $A \in \mathbb{R}^{2 \times 2}$
 - Ask yourself: on that output ellipse, there is a pair of perpendicular principal semi-axes (major semi-axis direction $\mathbf{u}_1$ and minor semi-axis direction $\mathbf{u}_2$, of lengths $\sigma_1 \ge \sigma_2 \ge 0$). Which two directions on the input unit circle did they come from?
 - The breathtaking geometric fact is: **their preimages $\mathbf{v}_1, \mathbf{v}_2$ on the input unit circle are also strictly perpendicular** ($\mathbf{v}_1 \perp \mathbf{v}_2$)!
 
-In other words, even though the matrix $A$ itself may combine shearing, scaling, and rotation (so it generally **does not preserve angles**), **there always exists an extraordinarily special pair of orthogonal unit directions $(\mathbf{v}_1, \mathbf{v}_2)$ in the input space whose images $(A\mathbf{v}_1, A\mathbf{v}_2) = (\sigma_1 \mathbf{u}_1, \sigma_2 \mathbf{u}_2)$ in the output space remarkably remain $90^\circ$ orthogonal**!
+In other words, even though the matrix $A$ itself may combine shearing, scaling, and rotation (so it generally **does not preserve angles**), **there always exists a pair of orthogonal unit directions $(\mathbf{v}_1, \mathbf{v}_2)$ in the input space whose images $(A\mathbf{v}_1, A\mathbf{v}_2) = (\sigma_1 \mathbf{u}_1, \sigma_2 \mathbf{u}_2)$ have zero inner product. When $\operatorname{rank}(A)\lt 2$, at least one image is zero and has no direction**!
 
 This immediately decomposes any linear map $A$ into a geometrically pure three-step pipeline:
 1. **Right orthogonal matrix $V^T$ (input space alignment)**: Orthogonal transformations strictly preserve lengths and angles (Lecture 17). Left-multiplying by $V^T$ rotates (or reflects) the input space's natural orthogonal principal axes $\mathbf{v}_1, \mathbf{v}_2$ to align with the standard coordinate axes $\mathbf{e}_1, \mathbf{e}_2$;
@@ -68,7 +68,7 @@ Let $A \in \mathbb{R}^{m \times n}$ be any real matrix of rank $r = \operatornam
      $$
      Here $\sigma_1, \dots, \sigma_r$ are called the **nonzero singular values** of $A$ (by convention, if we pad out to $\min(m,n)$ singular values, then $\sigma_{r+1} = \dots = \sigma_{\min(m,n)} = 0$).
 
-2. **Thin / Economy SVD**: Because rows and columns of $\Sigma$ beyond index $r$ are all zero, dropping the corresponding zero-block vectors $\mathbf{u}_{r+1},\dots,\mathbf{u}_m$ and $\mathbf{v}_{r+1},\dots,\mathbf{v}_n$ leaves the product unchanged:
+2. **Compact (Rank-$r$) SVD**: The term “thin” here means retaining only the positive singular values. An economy SVD can also retain all $\min(m,n)$ singular values, including zeros. Because rows and columns of $\Sigma$ beyond index $r$ are all zero, dropping the corresponding zero-block vectors $\mathbf{u}_{r+1},\dots,\mathbf{u}_m$ and $\mathbf{v}_{r+1},\dots,\mathbf{v}_n$ leaves the product unchanged:
    $$
    A = U_r \Sigma_r V_r^T = \sum_{i=1}^r \sigma_i \mathbf{u}_i \mathbf{v}_i^T
    $$
@@ -146,7 +146,7 @@ $$
 \mathbf{u}_i^T \mathbf{u}_j = \left(\frac{1}{\sigma_i} A\mathbf{v}_i\right)^T \left(\frac{1}{\sigma_j} A\mathbf{v}_j\right) = \frac{1}{\sigma_i \sigma_j} \mathbf{v}_i^T (A^T A \mathbf{v}_j) = \frac{1}{\sigma_i \sigma_j} \mathbf{v}_i^T (\sigma_j^2 \mathbf{v}_j) = \frac{\sigma_j}{\sigma_i} (\mathbf{v}_i^T \mathbf{v}_j) = \delta_{ij}
 $$
 
-How remarkable is that! Even though $A$ is neither orthogonal nor square, whenever $\mathbf{v}_i, \mathbf{v}_j$ are orthonormal eigenvectors of $A^T A$, their images $\mathbf{u}_i, \mathbf{u}_j$ under $A$ are **automatically unit-length and mutually orthogonal**! Moreover, checking $AA^T \mathbf{u}_i$:
+How remarkable is that! Even though $A$ is neither orthogonal nor square, whenever $\mathbf{v}_i, \mathbf{v}_j$ are orthonormal eigenvectors of $A^T A$, their nonzero images under $A$ are orthogonal. Dividing them by $\sigma_i,\sigma_j$ gives the unit vectors $\mathbf{u}_i,\mathbf{u}_j$. Moreover, checking $AA^T \mathbf{u}_i$:
 
 $$
 AA^T \mathbf{u}_i = A A^T \left(\frac{1}{\sigma_i} A\mathbf{v}_i\right) = \frac{1}{\sigma_i} A (A^T A \mathbf{v}_i) = \frac{\sigma_i^2}{\sigma_i} A \mathbf{v}_i = \sigma_i^2 \mathbf{u}_i
@@ -319,16 +319,12 @@ Because orthogonal matrices $U, V$ preserve the Euclidean $\ell_2$-norm of every
   $$
   \|A\|_2 := \max_{\|\mathbf{x}\|_2 = 1} \|A\mathbf{x}\|_2 = \sigma_1
   $$
-  And this maximum is achieved precisely along the input direction $\mathbf{x} = \pm \mathbf{v}_1$! When $r = n \le m$, the minimum stretching factor is $\min_{\|\mathbf{x}\|_2=1}\|A\mathbf{x}\|_2 = \sigma_n$ (achieved at $\mathbf{v}_n$).
+  The maximizers are the unit vectors in the top eigenspace of $A^T A$, including $\pm\mathbf{v}_1$. When $r = n \le m$, the minimum stretching factor is $\min_{\|\mathbf{x}\|_2=1}\|A\mathbf{x}\|_2 = \sigma_n$ (achieved at $\mathbf{v}_n$).
 - **Frobenius Norm**: The square root of the sum of squares of all matrix entries equals the Euclidean length of the vector of singular values:
   $$
   \|A\|_F := \sqrt{\sum_{i=1}^m \sum_{j=1}^n a_{ij}^2} = \sqrt{\operatorname{tr}(A^T A)} = \sqrt{\sum_{i=1}^r \sigma_i^2}
   $$
-- **$\ell_2$ Condition Number**: Measures the anisotropy (how "flat and elongated" the ellipsoid is) when solving linear systems or optimizing:
-  $$
-  \kappa_2(A) = \frac{\sigma_1}{\sigma_r}
-  $$
-  When $A \in \mathbb{R}^{n \times n}$ is invertible, $\|A^{-1}\|_2 = \frac{1}{\sigma_n}$, so $\kappa_2(A) = \|A\|_2 \|A^{-1}\|_2 = \frac{\sigma_1}{\sigma_n}$. If $\sigma_1 / \sigma_n \gg 1$, the ellipsoid is pancake-flat and numerical solves are severely ill-conditioned.
+- **$\ell_2$ condition number**: For a full-rank matrix, $\kappa_2(A)=\sigma_1/\sigma_{\min(m,n)}$. For a rank-deficient matrix the usual condition number is infinite. If $r>0$, the ratio $\sigma_1/\sigma_r$ instead measures conditioning of the bijection $\operatorname{Row}(A)\to\operatorname{Col}(A)$. For square invertible $A$, it equals $\|A\|_2\|A^{-1}\|_2$.
 
 ### 3. One-Line Derivation of the Polar Decomposition
 
@@ -364,13 +360,13 @@ $$
 
 Both of its eigenvalues are zero ($\lambda_1 = \lambda_2 = 0$), yet computing $A^T A = \operatorname{diag}(0, 4)$ immediately gives singular values $\sigma_1 = 2, \sigma_2 = 0$!
 - **Root cause**: Eigenvalues measure stretching along special invariant directions, whereas singular values measure the maximum geometric stretching over the entire unit sphere. Non-normal matrices ($A^T A \ne A A^T$) have non-orthogonal eigenvectors (here, only one eigenvector exists), allowing shearing to produce geometric amplification far exceeding the spectral radius.
-- **When are they equal?** Only when a square matrix is a **normal matrix** (meaning $A^T A = A A^T$, or $A^H A = A A^H$ in the complex case—which includes symmetric, skew-symmetric, and orthogonal matrices) does $\sigma_i = |\lambda_i|$ hold; and for a general symmetric matrix with negative eigenvalues, the singular values are the **absolute values** $|\lambda_i|$, while the left singular vectors absorb the sign via $\mathbf{u}_i = \operatorname{sgn}(\lambda_i)\mathbf{q}_i$ so that $\sigma_i \ge 0$.
+- **When are they equal?** Only when a square matrix is a **normal matrix** (meaning $A^T A = A A^T$, or $A^H A = A A^H$ in the complex case—which includes symmetric, skew-symmetric, and orthogonal matrices) does $\sigma_i = |\lambda_i|$ hold; and for a general symmetric matrix with negative eigenvalues, the singular values are the **absolute values** $|\lambda_i|$, while the left singular vectors absorb the sign via $\mathbf{u}_i = \operatorname{sgn}(\lambda_i)\mathbf{q}_i$ ($\lambda_i\ne 0$) so that $\sigma_i \ge 0$.
 
 ### 3. Singular Values Are Unique, but the Matrices $U$ and $V$ Are Not
 For any given matrix $A$:
 - The sequence of singular values $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_r \gt 0$ is **absolutely unique**;
 - When the singular values are distinct ($\sigma_1 \gt \sigma_2 \gt \dots \gt \sigma_r \gt 0$), the singular directions are still free up to **paired sign flips** (replacing $\mathbf{u}_i, \mathbf{v}_i$ simultaneously by $-\mathbf{u}_i, -\mathbf{v}_i$ leaves the outer product $(-\mathbf{u}_i)(-\mathbf{v}_i)^T = \mathbf{u}_i \mathbf{v}_i^T$ unchanged);
-- When there are repeated singular values or a nullspace of dimension $\ge 2$, any orthogonal transformation can be applied simultaneously within that subspace, giving infinitely many valid choices of $U$ and $V$.
+- For a repeated positive singular value, apply the same orthogonal basis change to the paired left and right bases. The bases of the two nullspaces may be chosen independently.
 
 </PitfallAlert>
 
@@ -507,7 +503,7 @@ Determine whether the following statement is true or false:
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
   "Test the second half of the statement: what nonzero matrices have all eigenvalues equal to $0$? (Hint: strictly upper triangular nilpotent matrices.)",
   "For any nonzero matrix $A \\ne O$, its squared Frobenius norm is $\\|A\\|_F^2 = \\sum_{i=1}^n \\sigma_i^2 \\gt 0$, so its singular values cannot all be $0$!",
-  "Only when $A$ can be diagonalized by a single unitary (or orthogonal) matrix—that is, when $A$ is normal ($A^T A = A A^T$)—do $U$ and $V$ collapse to the same eigenbasis, giving $\\sigma_i = |\\lambda_i|$."
+  "For normal $A$, use a unitary eigenbasis over $\\mathbb{C}$. Taking absolute values of the diagonal entries gives the singular values, with signs or phases absorbed into the singular vectors."
 ]} />
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
@@ -556,7 +552,7 @@ Determine whether the following statement is true or false:
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! Even when all singular values are distinct, eigenvectors still have a sign freedom (counterexample: $A = \operatorname{diag}(1, -2)$, where $A^T A = A A^T = \operatorname{diag}(1, 4)$; choosing the same $U = V$ independently yields $\operatorname{diag}(2, 1)$ or $\operatorname{diag}(1, 2) \ne A$). When singular values are repeated, $U$ and $V$ can also differ by an arbitrary rotation inside the eigenspace!"
+  quickFeedback="False! Even when all singular values are distinct, eigenvectors still have a sign freedom (counterexample: $A = \operatorname{diag}(1, -2)$, where $A^T A = A A^T = \operatorname{diag}(1, 4)$; choosing the same $U = V$ independently yields $\operatorname{diag}(1, 2)\ne A$). When a positive singular value is repeated, independently chosen eigenbases for $AA^T$ and $A^TA$ can differ by uncoupled orthogonal transformations on that eigenspace—a valid SVD requires applying the same orthogonal transformation on both sides so $A\mathbf{v}_i = \sigma_i\mathbf{u}_i$ holds!"
 />
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
@@ -567,7 +563,7 @@ Determine whether the following statement is true or false:
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
 
-This is one of the cleanest counterexample intuitions in linear algebra: $A^T A$ and $AA^T$ act like the "square $x^2$" of a real number. If you replace $A$ by $-A$, or flip the signs of certain rows or columns, the squared matrices $A^T A$ and $AA^T$ stay **completely identical**! Solving for $V$ and $U$ from those two squared matrices separately is like knowing $x^2 = 9$ and $y^2 = 9$ without checking the original coupling equation—the resulting $U \Sigma V^T$ has no way of knowing which way the signs should point!
+This is one of the cleanest counterexample intuitions in linear algebra: $A^T A$ and $AA^T$ act like the "square $x^2$" of a real number. If you replace $A$ by $-A$, the squared matrices $A^T A$ and $AA^T$ stay **completely identical**! Solving for $V$ and $U$ from those two squared matrices separately is like knowing $x^2 = 9$ and $y^2 = 9$ without checking the original coupling equation—the resulting $U \Sigma V^T$ has no way of knowing which way the signs should point!
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -707,16 +703,16 @@ Thus $B = \tilde{U} \Sigma \tilde{V}^T$ is a valid SVD of $B$! By uniqueness of 
 Let $A \in \mathbb{R}^{n \times n}$ have SVD $A = U \Sigma V^T$ ($U, V \in \mathbb{R}^{n \times n}$ orthogonal, $\Sigma = \operatorname{diag}(\sigma_1, \dots, \sigma_n)$ with $\sigma_i \ge 0$).
 
 1. **Polar Decomposition Construction & Properties**: Define $Q = U V^T$ and $S = V \Sigma V^T$. Prove that $A = Q S$, where $Q$ is orthogonal and $S$ is real symmetric positive semidefinite (and strictly positive definite when $A$ is invertible).
-2. **Nearest Orthogonal Matrix Theorem**: Let $O(n) = \{W \in \mathbb{R}^{n \times n} \mid W^T W = I_n\}$ denote the set of all $n \times n$ orthogonal matrices. Prove that in the Frobenius norm, the orthogonal matrix closest to $A$ is precisely the orthogonal polar factor $Q = U V^T$:
+2. **Nearest Orthogonal Matrix Theorem**: Let $O(n) = \{W \in \mathbb{R}^{n \times n} \mid W^T W = I_n\}$ denote the set of all $n \times n$ orthogonal matrices. Prove that in the Frobenius norm, one closest orthogonal matrix to $A$ is the orthogonal polar factor $Q = U V^T$:
    $$
    \min_{W \in O(n)} \|A - W\|_F = \|A - U V^T\|_F = \sqrt{\sum_{i=1}^n (\sigma_i - 1)^2}
    $$
-3. **Generalization — Orthogonal Procrustes Point-Cloud Alignment**: Given two paired point-cloud matrices $X, Y \in \mathbb{R}^{N \times d}$, we wish to find an orthogonal matrix $W \in O(d)$ minimizing the alignment residual $\|X W - Y\|_F$. Prove that the closed-form global optimum is $W^* = \tilde{U} \tilde{V}^T$, where $X^T Y = \tilde{U} \tilde{\Sigma} \tilde{V}^T$ is the SVD of the $d \times d$ cross-covariance matrix!
+3. **Generalization — Orthogonal Procrustes Point-Cloud Alignment**: Given two paired point-cloud matrices $X, Y \in \mathbb{R}^{N \times d}$, we wish to find an orthogonal matrix $W \in O(d)$ minimizing the alignment residual $\|X W - Y\|_F$. Prove that a global minimizer is $W^* = \tilde{U} \tilde{V}^T$, where $X^T Y = \tilde{U} \tilde{\Sigma} \tilde{V}^T$ is the SVD of the $d \times d$ cross-product matrix!
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
   "Part 2: Expand $\\|A - W\\|_F^2 = \\operatorname{tr}((A-W)^T(A-W)) = \\|A\\|_F^2 + \\|W\\|_F^2 - 2\\operatorname{tr}(A^T W)$. Since $\\|W\\|_F^2 = n$ is constant, this reduces to **maximizing** $\\operatorname{tr}(A^T W)$.",
   "Substitute $A^T = V\\Sigma U^T$ and use cyclic invariance of the trace: $\\operatorname{tr}(V\\Sigma U^T W) = \\operatorname{tr}(\\Sigma (U^T W V))$. Notice that $Z = U^T W V$ is still an orthogonal matrix!",
-  "Part 3: Use column-norm preservation of orthogonal $W$ to get $\\|XW\\|_F^2 = \\|X\\|_F^2$, reducing the minimization of $\\|XW - Y\\|_F^2$ to maximizing $\\operatorname{tr}((X^T Y)^T W)$!"
+  "Part 3: Use preservation of each row norm under right multiplication by $W$ to get $\\|XW\\|_F^2 = \\|X\\|_F^2$, reducing the minimization of $\\|XW - Y\\|_F^2$ to maximizing $\\operatorname{tr}((X^T Y)^T W)$!"
 ]} />
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
@@ -762,11 +758,7 @@ $$
 \operatorname{tr}(\Sigma Z) = \sum_{i=1}^n \sigma_i z_{ii} \le \sum_{i=1}^n \sigma_i \cdot 1 = \sum_{i=1}^n \sigma_i
 $$
 
-This upper bound $\sum_{i=1}^n \sigma_i$ is attained if and only if $z_{ii} = 1$ for all $\sigma_i \gt 0$ (in particular, taking $Z = I_n$), which gives:
-
-$$
-U^T W^* V = I_n \iff W^* = U V^T = Q
-$$
+At equality, $z_{ii}=1$ for each $\sigma_i\gt 0$. The unit row and column norms of $Z$ then force $Z=\operatorname{diag}(I_r,Z_0)$, where $r=\operatorname{rank}(A)$ and $Z_0\in O(n-r)$ is arbitrary if $r\lt n$. Thus $W=U\operatorname{diag}(I_r,Z_0)V^T$ describes all minimizers. In particular, $Z=I_n$ gives $W=Q$, the unique minimizer when $r=n$.
 
 The corresponding minimum squared approximation error is:
 
@@ -814,7 +806,7 @@ achieves the global maximum $\sum_{i=1}^d \tilde{\sigma}_i$, thereby attaining t
 
 <FrontierAIReading
   id="AI-13"
-  title="LLM Weight Singular Value Spectra, Eckart-Young Optimal Low-Rank Truncation, and the Bilinear Bottleneck of Attention W_Qᵀ W_K"
+  title="LLM Weight Singular Value Spectra, Eckart-Young Optimal Low-Rank Truncation, and the Bilinear Bottleneck of Attention W_Q W_Kᵀ"
   paperRef="Eckart & Young (1936) · Elhage et al. (2021) A Mathematical Framework for Transformer Circuits"
 >
 
@@ -861,7 +853,7 @@ Let $B \in \mathbb{R}^{m \times n}$ be **any** matrix with $\operatorname{rank}(
 In Anthropic's landmark paper *A Mathematical Framework for Transformer Circuits* (Elhage et al., 2021), the authors dissected the structural bottleneck of Transformer self-attention directly through matrix rank and singular value spectra.
 
 Let the model hidden dimension be $d_{\text{model}}$ (e.g., $d_{\text{model}} = 4096$ in Llama-3 8B), with $H$ attention heads and per-head dimension $d_{\text{head}} = d_{\text{model}} / H$ (e.g., $H = 32, d_{\text{head}} = 128$).
-For head $h$, let the hidden-state column vectors at tokens $t$ and $s$ be $\mathbf{x}_t, \mathbf{x}_s \in \mathbb{R}^{d_{\text{model}}}$. Using the standard PyTorch projection convention $W_Q^h, W_K^h \in \mathbb{R}^{d_{\text{model}} \times d_{\text{head}}}$ (row-vector projections $\mathbf{q}_t^h = \mathbf{x}_t^T W_Q^h$, $\mathbf{k}_s^h = \mathbf{x}_s^T W_K^h$), the attention logit is fundamentally a **bilinear form** on the input feature space:
+For head $h$, let $\mathbf{x}_t,\mathbf{x}_s\in\mathbb{R}^{d_{\mathrm{model}}}$ be the token hidden states. For a bias-free head with no position-dependent transformation, take $W_Q^h,W_K^h\in\mathbb{R}^{d_{\mathrm{model}}\times d_{\mathrm{head}}}$. Use the column vectors $\mathbf{q}_t^h=(W_Q^h)^T\mathbf{x}_t$ and $\mathbf{k}_s^h=(W_K^h)^T\mathbf{x}_s$. Then the unmasked score is
 
 $$
 \text{score}_h(t, s) = \frac{1}{\sqrt{d_{\text{head}}}} \mathbf{x}_t^T \underbrace{\left( W_Q^h (W_K^h)^T \right)}_{W_{QK}^h \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}} \mathbf{x}_s
@@ -876,9 +868,9 @@ $$
 $$
 
 From the SVD viewpoint, $W_{QK}^h$ can have at most $d_{\text{head}}$ (say $128$) nonzero singular values, while at least $d_{\text{model}} - d_{\text{head}} = 3968$ singular values are strictly zero!
-This leads directly to two core insights driving modern LLM architecture design:
-1. **A single attention head is an ultra-low-rank bilinear filter**: Each head can read at most a $d_{\text{head}}$-dimensional "query subspace" (left singular vectors $\mathbf{u}_1,\dots,\mathbf{u}_{d_{\text{head}}}$) from the $d_{\text{model}}$-dimensional residual stream and match it against a $d_{\text{head}}$-dimensional "key subspace" (right singular vectors $\mathbf{v}_1,\dots,\mathbf{v}_{d_{\text{head}}}$). Even though a single full-4096-dimensional projection would cost the same FLOPs, running $H$ heads in parallel (summing $H$ low-rank bilinear kernels $\sum_{h=1}^H W_{QK}^h$) lets each head specialize independently in syntax, coreference, or induction-head patterns in distinct low-rank subspaces!
-2. **SVD inspiration behind MLA (Multi-Head Latent Attention, DeepSeek-V2/V3)**: Because KV matrices across heads exhibit substantial low-rank redundancy, MLA learns a joint low-rank compressed latent vector $c_t^{KV} \in \mathbb{R}^{d_c}$ ($d_c \ll H d_{\text{head}}$) at the attention input; at inference time, only the narrow $c_t^{KV}$ needs to be cached while the up-projection matrices are algebraically absorbed into $W_Q$ to form a joint $W_{QK}$ matrix—slashing KV Cache memory by over 90% through pure linear-algebraic low-rank factorization!
+Writing $r_h=\operatorname{rank}(W_{QK}^h)$, the first $r_h$ left and right singular vectors span the query-side and key-side directions that affect the score. For a token matrix $X\in\mathbb{R}^{T\times d_{\mathrm{model}}}$ with one hidden state per row, the raw logit matrix $XW_{QK}^hX^T/\sqrt{d_{\mathrm{head}}}$ also has rank at most $d_{\mathrm{head}}$. This bound applies before masking and row-wise softmax. Each head applies its own softmax and aggregates its own values. The head outputs are then concatenated and projected.
+
+A related use of low-rank factorization appears in Multi-Head Latent Attention (MLA). If the content keys and values are reconstructed from a shared latent vector, their stacked linear projection factors through the latent dimension. That factorization explains why the shared latent can replace the separate content-key and value caches.
 
 ---
 
@@ -886,13 +878,13 @@ This leads directly to two core insights driving modern LLM architecture design:
 
 Finally, the SVD sits at the forefront of modern LLM compression and efficient training:
 - **Why does naive weight SVD fail while SVD-LLM (Wang et al., 2024) succeeds?**
-  Although pretrained LLM weight matrices often exhibit strong singular value decay, applying Eckart-Young truncation $\min \|W - W_k\|_F$ directly to $W$ hides a dangerous assumption: **that all input feature directions carry equal energy** (covariance $X X^T \propto I$). In reality, LLM activations exhibit extreme anisotropic outliers. What actually determines layer-wise distortion is the output activation error $\|(W - W_k) X\|_F$! SVD-LLM uses the Cholesky factorization from Lecture 28 to whiten the activation covariance $X X^T = S S^T$, performs SVD truncation on the whitened matrix $W S$, and multiplies back by $S^{-1}$—establishing an exact $1:1$ isometric correspondence between singular value truncation error and true activation output error!
+  Weight truncation minimizes $\|W-B\|_F$ among matrices of rank at most $k$. For calibration activations $X\in\mathbb{R}^{n\times N}$ stored as columns, the output error is $\|(W-B)X\|_F$. When $X$ has full row rank, factor its uncentered Gram matrix as $XX^T=SS^T$ with $S$ an invertible Cholesky factor. Then $\|(W-B)X\|_F=\|(W-B)S\|_F$ by the trace identity. Since right multiplication by $S$ preserves rank, a minimizer is $B=(WS)_k S^{-1}$.
 - **The Muon Optimizer (Jordan et al., 2024) and Polar Orthogonalization**:
-  When training 2D linear-layer weights $W \in \mathbb{R}^{m \times n}$, the gradient/momentum matrix $G = U\Sigma V^T$ is often severely ill-conditioned ($\sigma_1 \gg \sigma_r$), causing optimization steps to be dominated by a handful of top singular directions. The Muon optimizer uses fast Newton-Schulz matrix iterations to approximate the **polar orthogonal factor**:
+  When training 2D linear-layer weights $W \in \mathbb{R}^{m \times n}$, the gradient/momentum matrix $G = U\Sigma V^T$ is often severely ill-conditioned ($\sigma_1 \gg \sigma_r$), causing optimization steps to be dominated by a handful of top singular directions. The Muon optimizer uses fast Newton-Schulz matrix iterations to approximate the **polar partial isometry**:
   $$
   G = U\Sigma V^T \;\longmapsto\; \operatorname{Polar}(G) = U_r V_r^T
   $$
-  This is equivalent to **flattening all nonzero singular values to $1$**, allowing the model to learn uniformly at the same speed across every orthogonal feature subspace!
+  The ideal partial isometry has singular value $1$ on each nonzero singular direction and vanishes on the right nullspace. The iteration approximates this transformation of the update matrix.
 
 <CollapsibleCode language="python" title="eckart_young_and_attention_rank_svd.py">
 ```python
@@ -947,17 +939,17 @@ def verify_svd_and_ai_connections():
     # 3. Verify rank bottleneck of single-head Attention W_QK = W_Q @ W_K^T
     d_model = 512
     d_head = 64
-    W_Q = torch.randn(d_model, d_head) / (d_head ** 0.5)
-    W_K = torch.randn(d_model, d_head) / (d_head ** 0.5)
+    W_Q = torch.randn(d_model, d_head, dtype=torch.float64) / (d_head ** 0.5)
+    W_K = torch.randn(d_model, d_head, dtype=torch.float64) / (d_head ** 0.5)
     W_QK = W_Q @ W_K.T  # shape: (512, 512)
 
     S_qk = torch.linalg.svdvals(W_QK)
-    effective_rank = int((S_qk > 1e-5).sum().item())
+    effective_rank = int((S_qk > 1e-10).sum().item())
     tail_max_sv = S_qk[d_head].item()
     print("\n3. Transformer Attention W_QK = W_Q @ W_K^T Bilinear Bottleneck:")
     print(f"   Matrix shape: {tuple(W_QK.shape)}, head dim d_head = {d_head}")
     print(f"   Smallest of top d_head singular values sigma_{d_head}   = {S_qk[d_head - 1].item():.6f}")
-    print(f"   (d_head + 1)-th singular value         sigma_{d_head + 1}   = {tail_max_sv:.2e} (strictly truncated to 0!)")
+    print(f"   (d_head + 1)-th singular value         sigma_{d_head + 1}   = {tail_max_sv:.2e} (zero in exact arithmetic)")
     print(f"   Numerical rank(W_QK) = {effective_rank} <= d_head ({d_head}) << d_model ({d_model})")
 
     # 4. Verify polar orthogonalization G -> U V^T (Muon spectrum flattening)

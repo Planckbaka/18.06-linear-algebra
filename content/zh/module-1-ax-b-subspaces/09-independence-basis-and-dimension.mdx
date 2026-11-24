@@ -1,11 +1,11 @@
 ---
-title: "第 09 讲：线性相关性、基与维数"
+title: "第 09 讲：线性无关、基与维数"
 ocwId: "L09"
 videoEpisode: "P09"
 textbookRef: "§3.4"
 ---
 
-如果说前八讲是把线性代数的“发动机”（消元、逆矩阵、$R = \operatorname{rref}(A)$、列空间与零空间）彻底组装完毕，那么 MIT 18.06 第 09 讲就是赋予整门学科精准灵魂语言的时刻——今天我们要严密定义现代数学中最核心的四个词汇：**线性无关（Linear Independence）**、**张成（Span）**、**基（Basis）**与**维数（Dimension）**。
+如果说前八讲是把线性代数的“发动机”（消元、逆矩阵、$R = \operatorname{rref}(A)$、列空间（Column Space）与零空间（Nullspace））彻底组装完毕，那么 MIT 18.06 第 09 讲就是赋予整门学科精准灵魂语言的时刻——今天我们要严密定义现代数学中最核心的四个词汇：**线性无关（Linear Independence）**、**张成（Span）**、**基（Basis）**与**维数（Dimension）**。
 
 在许多纯公理化教材里，这四个概念往往让初学者陷入绕口令式的文字游戏；而在 Gilbert Strang 教授的课堂上，**每一个抽象概念都能一秒钟翻译成前面早已烂熟于心的矩阵秩 $r$ 与零空间语言**！
 
@@ -25,7 +25,7 @@ $$
 c_1 \mathbf{v}_1 + c_2 \mathbf{v}_2 + c_3 \mathbf{v}_3 = \mathbf{0} \quad (\text{其中 } c_1, c_2, c_3 \text{ 不全为 } 0)
 $$
 
-这就自然引出了**线性无关**与**线性相关**的严格定义——请注意：**线性无关性是针对“一组向量”而言的性质（矩阵本身不说线性无关，只说矩阵的“各列线性无关”）！**
+线性无关性是向量组的性质。本讲通常考察矩阵的列向量组。如果同一个向量出现两次，整组向量便线性相关。
 
 <DefinitionCard
   label="Definition 9.1"
@@ -34,16 +34,16 @@ $$
 >
 设 $\mathbf{v}_1, \mathbf{v}_2, \dots, \mathbf{v}_k \in \mathbb{R}^m$ 为一组向量，将其按列拼成矩阵 $V = \begin{bmatrix} \mathbf{v}_1 & \cdots & \mathbf{v}_k \end{bmatrix} \in \mathbb{R}^{m\times k}$：
 
-1. **线性无关（Linearly Independent）**：若唯一能使线性组合 $c_1\mathbf{v}_1 + c_2\mathbf{v}_2 + \cdots + c_k\mathbf{v}_k = \mathbf{0}$ 成立的标量组合只有全零组合 $c_1 = c_2 = \cdots = c_k = 0$，则称向量组 $\{\mathbf{v}_1, \dots, \mathbf{v}_k\}$ **线性无关**。
-   - **矩阵等价语言**：$\{\mathbf{v}_1, \dots, \mathbf{v}_k\}$ 线性无关 $\iff \operatorname{Null}(V) = \{\mathbf{0}\} \iff \operatorname{rank}(V) = k$（列满秩，无自由变量！）。
+1. **线性无关（Linearly Independent）**：若唯一能使线性组合 $c_1\mathbf{v}_1 + c_2\mathbf{v}_2 + \cdots + c_k\mathbf{v}_k = \mathbf{0}$ 成立的标量组合只有全零组合 $c_1 = c_2 = \cdots = c_k = 0$，则称向量组 $(\mathbf{v}_1, \dots, \mathbf{v}_k)$ **线性无关**。
+   - **矩阵等价语言**：$(\mathbf{v}_1, \dots, \mathbf{v}_k)$ 线性无关 $\iff \operatorname{Null}(V) = \{\mathbf{0}\} \iff \operatorname{rank}(V) = k$（列满秩，无自由变量！）。
    - 反之，若存在不全为零的系数使得 $\sum_{i=1}^k c_i\mathbf{v}_i = \mathbf{0}$（即 $\operatorname{Null}(V) \neq \{\mathbf{0}\},\; \operatorname{rank}(V) \lt k$），则称该向量组**线性相关（Linearly Dependent）**。（特别地，任何包含零向量 $\mathbf{0}$ 的向量组必线性相关，因为 $1\cdot\mathbf{0} = \mathbf{0}$！）
 
-2. **张成子空间（Spanning a Subspace）**：若子空间 $S \subseteq \mathbb{R}^m$ 中的每一个向量都能表示为 $\mathbf{v}_1, \dots, \mathbf{v}_k$ 的线性组合（即 $S = \operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_k\} = \operatorname{Col}(V)$），则称这组向量**张成（Span）**子空间 $S$。
+2. **张成子空间（Spanning a Subspace）**：若 $\mathbf{v}_1,\dots,\mathbf{v}_k\in S\subseteq\mathbb{R}^m$，且子空间 $S$ 中的每一个向量都能表示为 $\mathbf{v}_1, \dots, \mathbf{v}_k$ 的线性组合（即 $S = \operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_k\} = \operatorname{Col}(V)$），则称这组向量**张成（Span）**子空间 $S$。
 
-3. **子空间的基（Basis for a Subspace）**：子空间 $S$ 的一组**基**是同时满足以下两条“黄金恰当条件”的向量组 $\{\mathbf{v}_1, \dots, \mathbf{v}_d\} \subseteq S$：
+3. **子空间的基（Basis for a Subspace）**：子空间 $S$ 的一组**基**是向量组 $(\mathbf{v}_1, \dots, \mathbf{v}_d)$，其中各向量均属于 $S$，且向量组满足以下两个条件：
    - **① 线性无关**（不多不少无冗余：再多加任何一个 $S$ 中的向量就会变得相关）；
    - **② 张成整个 $S$**（不少不缺够覆盖：少掉其中任何一个向量就不再能覆盖整个 $S$）。
-   （约定：零子空间 $S = \{\mathbf{0}\}$ 的基为空集 $\varnothing$，其维数定义为 $0$。）
+零子空间 $\{\mathbf{0}\}$ 的基为空集，空线性组合等于 $\mathbf{0}$。
 </DefinitionCard>
 
 ---
@@ -59,8 +59,8 @@ $$
 
 <InteractiveCanvasSlot
   id="l09-basis-independence-explorer"
-  title="线性无关、斜坐标网格与基变换分解实验台"
-  description="二期交互预留：在 ℝ² / ℝ³ 中自由拖拽候选基向量 $\mathbf{v}_1, \mathbf{v}_2$，实时绘制它们张成的斜平行四边形坐标网格，验证目标向量 $\mathbf{b}$ 在任意基下分解系数的唯一性，并观察两向量共线瞬间网格坍缩现象。"
+  title="基与坐标实验台"
+  description="调节 $\mathbb{R}^2$ 中两向量的角度，观察趋近共线时行列式和目标向量坐标的变化，再加入第三支向量，比较张成性与线性无关性。"
 />
 
 为什么数学家如此执着于同时要求“线性无关 + 张成”？因为两条合二为一恰好产生了一个无价之宝——**基下坐标表示的存在唯一性**：对子空间 $S$ 中的任意向量 $\mathbf{b} \in S$，由“张成性”保证存在一组系数使 $\mathbf{b} = c_1\mathbf{v}_1 + \cdots + c_d\mathbf{v}_d$；如果居然还有另一组系数 $\mathbf{b} = d_1\mathbf{v}_1 + \cdots + d_d\mathbf{v}_d$，两式相减立得 $(c_1 - d_1)\mathbf{v}_1 + \cdots + (c_d - d_d)\mathbf{v}_d = \mathbf{0}$，由“线性无关性”瞬间迫使 $c_i = d_i$（$\forall i$）！
@@ -69,7 +69,7 @@ $$
 
 ## 三、维数不变性定理与两大子空间维数公式
 
-虽然同一个子空间 $S$ 拥有无穷多组不同的基，但一个支撑起整座线性代数大厦的奇迹发生了：**不管两个人各自为同一个子空间 $S$ 挑选了多么天差地别的两组基，他们手里基向量的“个数”必定分毫不差完全相等！** 这个只取决于子空间本身、不随基的选择而改变的不变量，就叫做子空间 $S$ 的**维数（Dimension）**，记作 $\dim(S)$。
+虽然每个正维实子空间 $S$ 都有无穷多组不同的基，但一个支撑起整座线性代数大厦的奇迹发生了：**不管两个人各自为同一个子空间 $S$ 挑选了多么天差地别的两组基，他们手里基向量的“个数”必定分毫不差完全相等！** 这个只取决于子空间本身、不随基的选择而改变的不变量，就叫做子空间 $S$ 的**维数（Dimension）**，记作 $\dim(S)$。
 
 紧接着，把维数定义投射回任意矩阵 $A \in \mathbb{R}^{m\times n}$（秩为 $r$）的列空间 $\operatorname{Col}(A)$ 与零空间 $\operatorname{Null}(A)$，继续拿第 07 讲的简化行阶梯形算例检验：
 
@@ -98,7 +98,7 @@ $$
   title="子空间维数唯一性定理与秩—零化度定理（Rank-Nullity Theorem）"
   termEn="Invariance of Dimension & Dimensions of Col(A) and Null(A)"
 >
-1. **维数良定义（基向量个数不变性）**：设 $S \subseteq \mathbb{R}^m$ 为任一子空间。若 $\{\mathbf{v}_1, \dots, \mathbf{v}_p\}$ 与 $\{\mathbf{w}_1, \dots, \mathbf{w}_q\}$ 均为 $S$ 的基，则必有 **$p = q$**。该唯一整数称为 $S$ 的**维数**，记作 $\dim(S) := p$。
+1. **基的存在性与基向量个数不变性**。每个子空间 $S\subseteq\mathbb{R}^m$ 都有一组基。若 $\{\mathbf{v}_1, \dots, \mathbf{v}_p\}$ 与 $\{\mathbf{w}_1, \dots, \mathbf{w}_q\}$ 均为 $S$ 的基，则必有 **$p = q$**。该唯一整数称为 $S$ 的**维数**，记作 $\dim(S) := p$。
 2. **列空间维数与标准基提取法**：对任意实矩阵 $A \in \mathbb{R}^{m\times n}$，**原矩阵 $A$ 中对应于主元位置的 $r$ 个主列（Pivot Columns of $A$）**构成列空间 $\operatorname{Col}(A)$ 的一组基；特别地，**列空间的维数精确等于矩阵的秩**：
 
 $$
@@ -112,7 +112,9 @@ $$
 $$
 </TheoremCard>
 
-<ProofCollapse title="展开严格证明：仅凭“宽矩阵必有非零零空间解”三行证完维数唯一性 p = q！">
+<ProofCollapse title="证明基的存在性与基向量个数不变性">
+从空向量组出发，只要 $S$ 中还有向量不在当前张成空间里，就将它加入。如果加入新向量后出现非平凡线性相关关系，那么新向量的系数必非零，因而能把它写成原组的线性组合。这与选取方式矛盾，所以每次扩充都保持线性无关。向量组至多有 $m$ 个成员，最终必张成 $S$，成为 $S$ 的基。
+
 这是整本书中最优雅、最体现矩阵威力的短证明！设 $V = \begin{bmatrix} \mathbf{v}_1 & \cdots & \mathbf{v}_p \end{bmatrix} \in \mathbb{R}^{m\times p}$ 与 $W = \begin{bmatrix} \mathbf{w}_1 & \cdots & \mathbf{w}_q \end{bmatrix} \in \mathbb{R}^{m\times q}$ 的各列分别为同一子空间 $S$ 的两组基。我们用反证法证明不可能有 $q \gt p$：
 
 假设 $q \gt p$。由于 $\{\mathbf{v}_1, \dots, \mathbf{v}_p\}$ 张成整个 $S$，而每个 $\mathbf{w}_j \in S$，故每个 $\mathbf{w}_j$ 均可写为 $V$ 各列的线性组合 $\mathbf{w}_j = V\mathbf{a}_j$（其中 $\mathbf{a}_j \in \mathbb{R}^p$）。将这 $q$ 列并排写成矩阵乘法：
@@ -141,7 +143,7 @@ $$
 
 <KeyTakeaways
   items={[
-    "向量组 $\\{\\mathbf{v}_1, \\dots, \\mathbf{v}_k\\}$ **线性无关** $\\iff$ 矩阵 $V = [\\mathbf{v}_1\\;\\cdots\\;\\mathbf{v}_k]$ 满足 $\\operatorname{Null}(V) = \\{\\mathbf{0}\\} \\iff \\operatorname{rank}(V) = k$；在 $\\mathbb{R}^m$ 中任何多于 $m$ 个向量的集合必线性相关。",
+    "向量组 $(\\mathbf{v}_1, \\dots, \\mathbf{v}_k)$ **线性无关** $\\iff$ 矩阵 $V = [\\mathbf{v}_1\\;\\cdots\\;\\mathbf{v}_k]$ 满足 $\\operatorname{Null}(V) = \\{\\mathbf{0}\\} \\iff \\operatorname{rank}(V) = k$；在 $\\mathbb{R}^m$ 中任何多于 $m$ 个向量的集合必线性相关。",
     "子空间 $S$ 的**基（Basis）**是 $S$ 中既**线性无关**又**张成 $S$** 的向量组；同一个子空间的所有基必含相同数目的向量，该数目定义为**维数 $\\dim(S)$**。",
     "求 $\\operatorname{Col}(A)$ 的一组基：先化简 $R$ 找到主元所在列号，再**回到原矩阵 $A$ 提取那 $r$ 个主列**（切勿抄 $R$ 的列！），故 $\\dim\\operatorname{Col}(A) = r$。",
     "求 $\\operatorname{Null}(A)$ 的一组基：直接取 $R\\mathbf{x}=\\mathbf{0}$ 的 **$n - r$ 个特解**，故 $\\dim\\operatorname{Null}(A) = n - r$，恒有 $\\dim\\operatorname{Col}(A) + \\dim\\operatorname{Null}(A) = n$。"
@@ -150,7 +152,7 @@ $$
 
 <ProblemSet>
 
-<ExerciseCard id="l09-ex1" tier="L1" title="标准基提取防呆实战：同时写出 Col(A) 与 Null(A) 的基与维数">
+<ExerciseCard id="l09-ex1" tier="L1" title="提取列空间和零空间的基与维数">
 给定 $3\times 4$ 矩阵 $A$ 及其已化简好的简化行阶梯形 $R = \operatorname{rref}(A)$：
 
 $$
@@ -190,14 +192,16 @@ $$
    - $\dim\operatorname{Col}(A) = \mathbf{2}$，提取 $A$ 的第 1、3 列构成 $\operatorname{Col}(A)$ 的一组基：
 
 $$
-\mathcal{B}_{\text{Col}(A)} = \left\{ \begin{bmatrix} 2 \\ -1 \\ 3 \end{bmatrix}, \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix} \right\}, \qquad
-\text{而 } \mathcal{B}_{\text{Col}(R)} = \left\{ \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix} \right\} \neq \operatorname{Col}(A)
+\mathcal{B}_{\operatorname{Col}(A)} = \left\{ \begin{bmatrix} 2 \\ -1 \\ 3 \end{bmatrix}, \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix} \right\}, \qquad
+\text{而 } \mathcal{B}_{\operatorname{Col}(R)} = \left\{ \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix} \right\}
 $$
+
+   $\operatorname{Col}(A)$ 的第一个基向量的第 3 个坐标为 $3$，而 $\operatorname{Col}(R)$ 中的所有向量第 3 个坐标都是 $0$，因此两空间不同。
 
 2. 自由变量为 $x_2, x_4$（共 $4 - 2 = 2$ 个），故 $\dim\operatorname{Null}(A) = \mathbf{2}$，两组特解构成 $\operatorname{Null}(A)$ 的一组基：
 
 $$
-\mathcal{B}_{\text{Null}(A)} = \left\{ \begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} -1 \\ 0 \\ -3 \\ 1 \end{bmatrix} \right\}
+\mathcal{B}_{\operatorname{Null}(A)} = \left\{ \begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} -1 \\ 0 \\ -3 \\ 1 \end{bmatrix} \right\}
 $$
 
    维数守恒：$\dim\operatorname{Col}(A) + \dim\operatorname{Null}(A) = 2 + 2 = 4 = n$。
@@ -226,7 +230,7 @@ $$
 <DualSolution>
 <SolutionIntuition>
 
-“两两无关”只排除了二维坍缩成直线，完全没排除三维坍缩成平面！在桌面上画一个正三角形的三条从中心射出的半径向量，任意两支夹角 $120^\circ$ 绝不共线，但三支向量首尾相加恰好等于 $\mathbf{0}$！判断 $k$ 个向量是否线性无关，必须把它们**全体放进同一个矩阵 $V$ 里看总秩是否等于 $k$**，绝不能只做两两配对检查！
+“两两无关”只排除了二维坍缩成直线，完全没排除三维坍缩成平面！在桌面上画一个正三角形的三条从中心射出的半径向量，任意两支夹角 $120^\circ$ 绝不共线，但三支向量首尾相加恰好等于 $\mathbf{0}$！判断整组向量是否线性无关，可将 $k$ 个向量拼成矩阵 $V$，检验 $\operatorname{rank}(V)=k$ 是否成立。当 $k\ge3$ 时，两两线性无关不足以保证整组线性无关。
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -253,36 +257,32 @@ $$
 <TrueFalseInteractive
   id="l09-tf2"
   correct={true}
-  quickFeedback="命题为真（True）！这是实战中最好用的『维数卡位定理』：一旦向量个数 $k$ 恰好等于已知维数 $d = \dim(S)$，『线性无关』与『张成 $S$』便互为充要条件！因为若 $\{\mathbf{u}_1,\mathbf{u}_2,\mathbf{u}_3\}$ 还没张满 $S$，就能从 $S$ 中再挑出第 $4$ 个独立向量 $\mathbf{u}_4$，导致 $3$ 维空间里出现 $4$ 个线性无关向量，直接违背维数唯一性定理！"
+  quickFeedback="命题为真。在 $S$ 的一组基下，三个向量构成 $3\times3$ 坐标矩阵。线性无关使这个方阵可逆，其列能生成 $\mathbb{R}^3$ 中任意坐标向量，故原向量张成 $S$。"
 />
 
 <ProgressiveHint
   hints={[
-    "用反证法想一想：如果 $\\operatorname{span}\\{\\mathbf{u}_1, \\mathbf{u}_2, \\mathbf{u}_3\\} \\subsetneq S$（没铺满 $S$），那就能在 $S$ 里抓出一个拼不出来的 $\\mathbf{u}_4 \\in S$！",
-    "把 $\\mathbf{u}_4$ 加进来后，$\\{\\mathbf{u}_1, \\mathbf{u}_2, \\mathbf{u}_3, \\mathbf{u}_4\\}$ 这 4 个向量在 $S$ 里依然线性无关！一个 3 维子空间能容纳 4 个线性无关向量吗？"
+    "取 $S$ 的一组基，将候选向量的坐标按列排成方阵 $C$。用这些坐标写方程，线性无关和张成各对应什么条件？"
   ]}
 />
 
 <DualSolution>
 <SolutionIntuition>
 
-知道了房子有 $3$ 个房间（$\dim S = 3$），而且你手头已经有 $3$ 位互不重样的住户（线性无关），那必定一个萝卜一个坑把整栋房子住得满满当当！要是居然还有空余角落没覆盖到，就能塞进第 $4$ 位独立住户，这跟房子总共只有 $3$ 维正面冲突！对称地，如果已知**恰好 $3$ 个向量张成了 $3$ 维子空间 $S$**，它们也自动线性无关（否则删掉冗余向量后少于 $3$ 个向量就能张成 $S$，同样矛盾）！
+在 $S$ 的一组已有基下，每个向量有 $d=\dim(S)$ 个坐标。将 $d$ 个候选向量的坐标按列排列，得到一个方阵。每列都有主元保证系数唯一，每行都有主元保证任意目标可达。对方阵而言，这两个条件等价。
 
 </SolutionIntuition>
 <SolutionRigorous>
 
-用反证法严格证明：已知 $\dim(S) = 3$，设 $S$ 的某组已知基为 $B = \begin{bmatrix} \mathbf{b}_1 & \mathbf{b}_2 & \mathbf{b}_3 \end{bmatrix} \in \mathbb{R}^{5\times 3}$。
-假设 $\operatorname{span}\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\} \subsetneq S$，则存在 $\mathbf{u}_4 \in S \setminus \operatorname{span}\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\}$。
-1. 首先证 $\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3, \mathbf{u}_4\}$ 线性无关：若 $c_1\mathbf{u}_1 + c_2\mathbf{u}_2 + c_3\mathbf{u}_3 + c_4\mathbf{u}_4 = \mathbf{0}$。若 $c_4 \neq 0$，则 $\mathbf{u}_4 = -\frac{c_1}{c_4}\mathbf{u}_1 - \frac{c_2}{c_4}\mathbf{u}_2 - \frac{c_3}{c_4}\mathbf{u}_3 \in \operatorname{span}\{\mathbf{u}_1,\mathbf{u}_2,\mathbf{u}_3\}$，矛盾！故必有 $c_4 = 0$，再由 $\{\mathbf{u}_1,\mathbf{u}_2,\mathbf{u}_3\}$ 线性无关得 $c_1=c_2=c_3=0$。
-2. 另一方面，因每个 $\mathbf{u}_j \in S = \operatorname{Col}(B)$，存在系数矩阵 $C \in \mathbb{R}^{3\times 4}$ 使 $\begin{bmatrix} \mathbf{u}_1 & \mathbf{u}_2 & \mathbf{u}_3 & \mathbf{u}_4 \end{bmatrix} = B C$。因 $C$ 为 $3\times 4$ 宽矩阵，存在非零 $\mathbf{x} \in \mathbb{R}^4 \setminus \{\mathbf{0}\}$ 使 $C\mathbf{x} = \mathbf{0} \implies (BC)\mathbf{x} = \mathbf{0}$，与四向量线性无关矛盾！
+设 $S\subseteq\mathbb{R}^m$ 的维数为 $d>0$，在 $S$ 中任取一组 $d$ 个向量。用 $S$ 的基矩阵 $B\in\mathbb{R}^{m\times d}$，将候选向量按列组成 $U=BC$，其中 $C\in\mathbb{R}^{d\times d}$。因 $\operatorname{Null}(B)=\{\mathbf{0}\}$，有 $U\mathbf{x}=\mathbf{0}\iff C\mathbf{x}=\mathbf{0}$，所以 $U$ 的各列线性无关当且仅当 $C$ 可逆。
 
-故假设不成立，必有 $\operatorname{span}\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\} = S$，确为 $S$ 的一组基。
+$S$ 中的任意目标向量都可写成 $B\mathbf{y}$，其中 $\mathbf{y}\in\mathbb{R}^d$。同样由 $B$ 的零空间平凡可知，$U\mathbf{x}=B\mathbf{y}$ 当且仅当 $C\mathbf{x}=\mathbf{y}$。因此，$U$ 的各列张成 $S$ 当且仅当 $C$ 的列空间等于 $\mathbb{R}^d$，这也等价于 $C$ 可逆。$d=0$ 时，空向量组就是一组基。特别地，题中的三个线性无关向量构成 $S$ 的一组基。
 
 </SolutionRigorous>
 </DualSolution>
 </ExerciseCard>
 
-<ExerciseCard id="l09-ex4" tier="L3" title="抽象线性传递推理：可逆变换与上三角组合下的线性无关性">
+<ExerciseCard id="l09-ex4" tier="L3" title="抽象线性传递推理：循环相加与相减后的线性无关性">
 设 $\mathbf{v}_1, \mathbf{v}_2, \mathbf{v}_3 \in \mathbb{R}^n$ 是三个**线性无关**的向量。完全不写出任何向量分量，纯靠线性无关定义或矩阵分块乘法判断下列两组新构造的向量是否一定线性无关：
 1. 第一组（循环两两相加）：$\mathbf{w}_1 = \mathbf{v}_1 + \mathbf{v}_2,\quad \mathbf{w}_2 = \mathbf{v}_2 + \mathbf{v}_3,\quad \mathbf{w}_3 = \mathbf{v}_3 + \mathbf{v}_1$；
 2. 第二组（循环两两相减）：$\mathbf{u}_1 = \mathbf{v}_1 - \mathbf{v}_2,\quad \mathbf{u}_2 = \mathbf{v}_2 - \mathbf{v}_3,\quad \mathbf{u}_3 = \mathbf{v}_3 - \mathbf{v}_1$！
@@ -336,7 +336,7 @@ $$
 1\cdot\mathbf{u}_1 + 1\cdot\mathbf{u}_2 + 1\cdot\mathbf{u}_3 = (\mathbf{v}_1 - \mathbf{v}_2) + (\mathbf{v}_2 - \mathbf{v}_3) + (\mathbf{v}_3 - \mathbf{v}_1) = \mathbf{0}
 $$
 
-   根据定义 9.1，$\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\}$ 线性相关（其张成子空间维数仅为 $2$）。
+   根据定义 9.1，$\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\}$ 线性相关。其张成空间的维数恰为 $2$：若 $a\mathbf{u}_1+b\mathbf{u}_2=\mathbf{0}$，则 $a\mathbf{v}_1+(b-a)\mathbf{v}_2-b\mathbf{v}_3=\mathbf{0}$，故 $a=b=0$。
 
 </SolutionRigorous>
 </DualSolution>
@@ -370,7 +370,7 @@ $$
 </SolutionIntuition>
 <SolutionRigorous>
 
-1. **证明子空间维数单调性**：设 $\dim(S_1) = k,\; \dim(S_2) = d$，取 $S_1$ 的基 $U = [\mathbf{u}_1\;\cdots\;\mathbf{u}_k]$ 与 $S_2$ 的基 $V = [\mathbf{v}_1\;\cdots\;\mathbf{v}_d]$。因 $S_1 \subseteq S_2$，存在系数矩阵 $C \in \mathbb{R}^{d\times k}$ 使 $U = VC$。若 $k \gt d$，宽矩阵 $C$ 存在非零 $\mathbf{z}$ 使 $C\mathbf{z} = \mathbf{0} \implies U\mathbf{z} = \mathbf{0}$，与 $U$ 各列线性无关矛盾！故必有 $k \le d$。当 $k = d$ 时，由习题 `l09-ex3` 已证结论，$S_2$ 中 $d$ 个线性无关向量必张成整个 $S_2$，即 $S_1 = \operatorname{span}\{\mathbf{u}_1,\dots,\mathbf{u}_d\} = S_2$。
+1. **证明子空间维数单调性**：设 $\dim(S_1) = k,\; \dim(S_2) = d$，取 $S_1$ 的基 $U = [\mathbf{u}_1\;\cdots\;\mathbf{u}_k]$ 与 $S_2$ 的基 $V = [\mathbf{v}_1\;\cdots\;\mathbf{v}_d]$。因 $S_1 \subseteq S_2$，存在系数矩阵 $C \in \mathbb{R}^{d\times k}$ 使 $U = VC$。若 $k \gt d$，宽矩阵 $C$ 存在非零 $\mathbf{z}$ 使 $C\mathbf{z} = \mathbf{0} \implies U\mathbf{z} = \mathbf{0}$，与 $U$ 各列线性无关矛盾！故必有 $k \le d$。当 $k = d$ 时，由习题 3，$S_2$ 中 $d$ 个线性无关向量必张成整个 $S_2$，即 $S_1 = \operatorname{span}\{\mathbf{u}_1,\dots,\mathbf{u}_d\} = S_2$。反之，若 $S_1=S_2$，其维数相等。
 
 2. **证明 $\operatorname{rank}(AB) \le \min(\operatorname{rank}(A), \operatorname{rank}(B))$**：
    - **左因子上界**：由定理 3.1 第 1 条 $\operatorname{Col}(AB) \subseteq \operatorname{Col}(A)$ 及第 1 问单调性，结合定理 9.1 第 2 条立得：

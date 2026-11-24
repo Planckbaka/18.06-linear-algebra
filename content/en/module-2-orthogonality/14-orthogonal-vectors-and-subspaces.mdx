@@ -5,11 +5,11 @@ videoEpisode: "P14"
 textbookRef: "§4.1"
 ---
 
-In Module 1, we thoroughly analyzed linear systems $A\mathbf{x} = \mathbf{b}$, Gaussian elimination, and the dimension theorem for the four fundamental subspaces ($r, n-r, r, m-r$). Yet across all those algebraic derivations, we never introduced the most fundamental geometric measurement of all: **what is the "angle" between vectors and between subspaces?**
+In Module 1, we thoroughly analyzed linear systems $A\mathbf{x} = \mathbf{b}$, Gaussian elimination, and the dimension theorem for the four fundamental subspaces ($r, n-r, r, m-r$). Yet across all those algebraic derivations, we never introduced the most fundamental geometric measurement of all: **when are vectors or subspaces orthogonal?**
 
 In the MIT 18.06 lecture hall, Professor Gilbert Strang delivers one of the most passionate lines in the entire course: **"$90^\circ$ is the finest angle in all of mathematics!"**
 
-When two vectors meet at a right angle, their dot product vanishes, the cross term in norm calculations disappears completely, and the Euclidean Pythagorean theorem holds in $n$-dimensional space. When subspaces are orthogonal to one another, the entire vector space splits cleanly into uncoupled, independent direct sums. In this lecture, we formally unveil **Part II of the Fundamental Theorem of Linear Algebra**: geometrically, the row space and nullspace of a matrix—as well as its column space and left nullspace—are not merely pairs of subspaces whose dimensions add up; they are pairs of exact **orthogonal complements**. This insight forms the complete geometric bedrock for projection matrices, least squares, QR decomposition, and the Singular Value Decomposition (SVD).
+When two vectors meet at a right angle, their dot product vanishes, the cross term in norm calculations disappears completely, and the Euclidean Pythagorean theorem holds in $n$-dimensional space. Orthogonal subspaces form a direct sum inside the ambient space. The sum fills the ambient space when the two subspaces are orthogonal complements. In this lecture, we formally unveil **Part II of the Fundamental Theorem of Linear Algebra**: geometrically, the row space and nullspace of a matrix—as well as its column space and left nullspace—are not merely pairs of subspaces whose dimensions add up; they are pairs of exact **orthogonal complements**. This insight forms the complete geometric bedrock for projection matrices, least squares, QR decomposition, and the Singular Value Decomposition (SVD).
 
 ---
 
@@ -50,7 +50,7 @@ In classical Greek geometry, the squared hypotenuse of a right triangle equals t
 
 <TheoremCard label="Theorem 14.1" title="Pythagorean Theorem in ℝⁿ">
 
-Let $\mathbf{x}, \mathbf{y} \in \mathbb{R}^n$ be arbitrary real vectors. The triangle formed by $\mathbf{x}$, $\mathbf{y}$, and $\mathbf{x} + \mathbf{y}$ satisfies the Pythagorean relation $\|\mathbf{x} + \mathbf{y}\|_2^2 = \|\mathbf{x}\|_2^2 + \|\mathbf{y}\|_2^2$ if and only if $\mathbf{x}$ and $\mathbf{y}$ are orthogonal:
+Let $\mathbf{x}, \mathbf{y} \in \mathbb{R}^n$ be arbitrary real vectors. The vectors satisfy the Pythagorean relation $\|\mathbf{x} + \mathbf{y}\|_2^2 = \|\mathbf{x}\|_2^2 + \|\mathbf{y}\|_2^2$ if and only if $\mathbf{x}$ and $\mathbf{y}$ are orthogonal:
 
 $$
 \|\mathbf{x} + \mathbf{y}\|_2^2 = \|\mathbf{x}\|_2^2 + \|\mathbf{y}\|_2^2 \iff \mathbf{x}^T \mathbf{y} = 0 \iff \mathbf{x} \perp \mathbf{y}
@@ -59,6 +59,8 @@ $$
 Similarly, the squared norm of the difference vector satisfies the exact same equivalence: $\|\mathbf{x} - \mathbf{y}\|_2^2 = \|\mathbf{x}\|_2^2 + \|\mathbf{y}\|_2^2 \iff \mathbf{x}^T \mathbf{y} = 0$.
 
 </TheoremCard>
+
+Two nonzero real vectors are orthogonal exactly when their angle is $90^\circ$. An angle with the zero vector is undefined. Over $\mathbb{C}$ the inner product uses $\mathbf{x}^H\mathbf{y}$, and the squared-norm expansion has cross term $2\operatorname{Re}(\mathbf{x}^H\mathbf{y})$. Thus the single Pythagorean identity over $\mathbb{C}$ only forces the real part of the inner product to vanish.
 
 <ProofCollapse title="Rigorous Proof: Algebraic Derivation of the n-Dimensional Pythagorean Theorem">
 
@@ -143,7 +145,7 @@ From this definition, we immediately obtain a crucial corollary regarding the in
 
 > **Intersection Corollary for Orthogonal Subspaces**: If $V \perp W$, then they must intersect only at the origin, i.e., $V \cap W = \{\mathbf{0}\}$.
 > 
-> *Proof*: Suppose $\mathbf{u} \in V \cap W$. Because $\mathbf{u} \in V$ and $\mathbf{u} \in W$, and $V \perp W$, the vector $\mathbf{u}$ must be orthogonal to itself: $\mathbf{u}^T \mathbf{u} = \|\mathbf{u}\|_2^2 = 0$. By the positive definiteness of the Euclidean norm, we must have $\mathbf{u} = \mathbf{0}$.
+> *Proof*: Suppose $\mathbf{u} \in V \cap W$. Because $\mathbf{u} \in V$ and $\mathbf{u} \in W$, and $V \perp W$, the vector $\mathbf{u}$ must be orthogonal to itself: $\mathbf{u}^T \mathbf{u} = \|\mathbf{u}\|_2^2 = 0$. By the fact that a vector has zero norm only when it is zero, we must have $\mathbf{u} = \mathbf{0}$.
 
 <PitfallAlert title="Common Pitfalls & Transcript Errata">
 
@@ -151,7 +153,7 @@ Students often conflate everyday conversational notions of "perpendicular" or di
 
 1. **"Intersecting only at the zero vector" does NOT mean "orthogonal subspaces"!**
    - The statement "$V \cap W = \{\mathbf{0}\} \implies V \perp W$" is **completely false**!
-   - *Counterexample*: In $\mathbb{R}^2$, take the $x$-axis subspace $V = \operatorname{span}([1, 0]^T)$ and the line $y = x$ subspace $W = \operatorname{span}([1, 1]^T)$. Clearly $V \cap W = \{\mathbf{0}\}$, yet the dot product of $[1, 0]^T$ and $[1, 1]^T$ is $1 \neq 0$ (their angle is $45^\circ$). Having a trivial intersection only shows that the two subspaces are linearly independent—it never proves that every pair of vectors meets at $90^\circ$!
+   - *Counterexample*: In $\mathbb{R}^2$, take the $x$-axis subspace $V = \operatorname{span}([1, 0]^T)$ and the line $y = x$ subspace $W = \operatorname{span}([1, 1]^T)$. Clearly $V \cap W = \{\mathbf{0}\}$, yet the dot product of $[1, 0]^T$ and $[1, 1]^T$ is $1 \neq 0$ (their angle is $45^\circ$). A trivial intersection makes $V+W$ a direct sum. The dot product in this example rules out orthogonality.
 2. **A "vertical wall" and "horizontal floor" meeting at $90^\circ$ in 3D are NOT orthogonal subspaces!**
    - In a lecture room, the horizontal floor (the $xy$-plane $z=0$) and a vertical wall (the $yz$-plane $x=0$) meet physically at a right angle.
    - However, viewed as two-dimensional subspaces of $\mathbb{R}^3$, they intersect along an entire line (the $y$-axis)! Their intersection $V \cap W$ is a whole line containing infinitely many nonzero vectors, such as $\mathbf{y} = (0, 1, 0)^T$.
@@ -161,7 +163,7 @@ Students often conflate everyday conversational notions of "perpendicular" or di
 
 The diagram below contrasts this classic geometric trap against true subspace orthogonality:
 
-<SubspaceOrthogonalityContrastDiagram caption="Contrast in ℝ³: Two perpendicular planes (wall and floor) share a nonzero intersection line and are NOT orthogonal subspaces, whereas a 2D plane and its 1D normal line intersect only at 0 with every pair of vectors meeting at 90°." />
+<SubspaceOrthogonalityContrastDiagram caption="Contrast in ℝ³: Two perpendicular planes (wall and floor) share a nonzero intersection line and are NOT orthogonal subspaces, whereas a 2D plane and its 1D normal line intersect only at 0 with every pair of nonzero vectors meeting at 90°." />
 
 ### Orthogonal Complement ($V^\perp$)
 
@@ -193,7 +195,7 @@ Let $V$ be any subspace of $\mathbb{R}^n$. Then:
 
 </TheoremCard>
 
-<ProofCollapse title="Rigorous Proof: Algebraic Proofs of Orthogonal Complement Properties 1, 3, and 5">
+<ProofCollapse title="Rigorous Proof: Algebraic Proof of the Orthogonal Complement Properties">
 
 **1. Proof that $V^\perp$ is a subspace**:
 Take any $\mathbf{x}_1, \mathbf{x}_2 \in V^\perp$ and arbitrary scalars $c, d \in \mathbb{R}$. For every $\mathbf{v} \in V$:
@@ -238,14 +240,16 @@ $$
 Next, we compute dimensions: applying the complementary dimension formula twice gives $\dim((V^\perp)^\perp) = n - \dim(V^\perp) = n - (n - \dim(V)) = \dim(V)$.
 Since $V$ is a subspace contained inside $(V^\perp)^\perp$ in a finite-dimensional Euclidean space and both subspaces have the exact same dimension, they must be identical: $(V^\perp)^\perp = V$.
 
+**4. Orthogonal direct sum**. The trivial intersection and the dimension formula imply $\dim(V+V^\perp)=n$, so $V+V^\perp=\mathbb{R}^n$. If $\mathbf{v}+\mathbf{w}=\mathbf{v}'+\mathbf{w}'$ are two such decompositions, their difference gives $\mathbf{v}-\mathbf{v}' = \mathbf{w}'-\mathbf{w}\in V\cap V^\perp=\{\mathbf{0}\}$, proving uniqueness.
+
 </ProofCollapse>
 
 ---
 
 ## 3. Fundamental Theorem of Linear Algebra, Part II: Orthogonal Complements of the Four Subspaces
 
-In Lecture 10, we established **Part I of the Fundamental Theorem of Linear Algebra**: for any matrix $A \in \mathbb{R}^{m\times n}$, the dimensions of the row space and nullspace add up to $n$, while the dimensions of the column space and left nullspace add up to $m$.
-Now we can finally reveal the complete geometric truth about the angles between these four subspaces—**they are pairwise orthogonal complements!**
+In Lecture 10, we established **Part I of the Fundamental Theorem of Linear Algebra**: for any matrix $A \in \mathbb{R}^{m\times n}$, the dimensions of the row space and nullspace add up to $n$, while the dimensions of the column space and left nullspace add up to $m$. Strang writes $C(A)$ and $N(A)$ for $\operatorname{Col}(A)$ and $\operatorname{Null}(A)$, respectively.
+Now we can finally reveal the complete geometric truth about the angles between these four subspaces—**each pair is orthogonally complementary in its own ambient space.**
 
 ### 1. Core Algebraic Insight: Why Is the Row Space Perpendicular to the Nullspace?
 
@@ -378,7 +382,7 @@ This simple algebraic equation encodes three unshakable geometric facts:
 2. **The output is determined entirely by the row space component**: The image $A\mathbf{x}$ of any input vector $\mathbf{x}$ is governed solely by its row space component $\mathbf{x}_r$.
 3. **An invertible one-to-one bijection between the row space and column space**:
    If we restrict the domain of $A$ strictly to the row space $\operatorname{Row}(A)$, then the linear transformation $A: \operatorname{Row}(A) \to \operatorname{Col}(A)$ is a **dimension-preserving, strictly one-to-one and onto (invertible) bijection**!
-   *Proof*: Suppose $\mathbf{x}_r, \mathbf{x}_r' \in \operatorname{Row}(A)$ satisfy $A\mathbf{x}_r = A\mathbf{x}_r'$. Subtracting gives $A(\mathbf{x}_r - \mathbf{x}_r') = \mathbf{0}$, which means the difference vector $(\mathbf{x}_r - \mathbf{x}_r') \in \operatorname{Null}(A)$. Yet because the row space is a subspace, the difference vector also belongs to $\operatorname{Row}(A)$. Since $\operatorname{Row}(A) \cap \operatorname{Null}(A) = \{\mathbf{0}\}$, we must have $\mathbf{x}_r - \mathbf{x}_r' = \mathbf{0} \implies \mathbf{x}_r = \mathbf{x}_r'$. That is: **distinct vectors in the row space always map to distinct vectors in the column space**!
+   *Proof*: Suppose $\mathbf{x}_r, \mathbf{x}_r' \in \operatorname{Row}(A)$ satisfy $A\mathbf{x}_r = A\mathbf{x}_r'$. Subtracting gives $A(\mathbf{x}_r - \mathbf{x}_r') = \mathbf{0}$, which means the difference vector $(\mathbf{x}_r - \mathbf{x}_r') \in \operatorname{Null}(A)$. Yet because the row space is a subspace, the difference vector also belongs to $\operatorname{Row}(A)$. Since $\operatorname{Row}(A) \cap \operatorname{Null}(A) = \{\mathbf{0}\}$, we must have $\mathbf{x}_r - \mathbf{x}_r' = \mathbf{0} \implies \mathbf{x}_r = \mathbf{x}_r'$. This proves injectivity. For every $\mathbf{b}\in\operatorname{Col}(A)$, some $\mathbf{x}$ satisfies $A\mathbf{x}=\mathbf{b}$. Since $A\mathbf{x}=A\mathbf{x}_r$, the restriction is also surjective.
 
 ### 2. The "Minimum-Norm Solution" Among Infinitely Many Solutions
 
@@ -398,7 +402,7 @@ $$
 
 Equality holds if and only if $\mathbf{x}_n = \mathbf{0}$!
 This means that among the infinitely many solutions satisfying $A\mathbf{x} = \mathbf{b}$, **the unique solution $\mathbf{x}_r$ that lies entirely inside the row space has the strictly smallest Euclidean norm (shortest length)**!
-This shortest solution is of paramount importance in engineering and optimization—it is precisely the solution produced by the **Moore-Penrose pseudoinverse** in Lecture 33: $\mathbf{x}^+ = A^+ \mathbf{b}$.
+This shortest solution is of paramount importance in engineering and optimization—it is precisely the solution produced by the **Moore-Penrose pseudoinverse** in Lecture 34: $\mathbf{x}^+ = A^+ \mathbf{b}$.
 
 ### 3. Output Space Decomposition and the Redemption of Unsolvable Systems: Prelude to Lecture 15
 
@@ -421,8 +425,8 @@ The best we can possibly do is discard the residual error component $\mathbf{e} 
 
 <InteractiveCanvasSlot
   id="l14-orthogonal-subspaces-interactive"
-  title="Interactive Orthogonal Four-Subspace Decomposition Explorer"
-  description="Drag the input vector $\mathbf{x} \in \mathbb{R}^3$ to dynamically observe its unique right-angle decomposition $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$ across the row space $\operatorname{Row}(A)$ and nullspace $\operatorname{Null}(A)$ (verifying $\|\mathbf{x}\|_2^2 = \|\mathbf{x}_r\|_2^2 + \|\mathbf{x}_n\|_2^2$ in real time), and watch how $A\mathbf{x} = A\mathbf{x}_r$ maps into the column space alongside the left-nullspace residual!"
+  title="Interactive Row Space and Nullspace Decomposition"
+  description="Adjust the row-space angle and the two coordinates of $\mathbf{x}\in\mathbb{R}^2$. Check that $\mathbf{x}_r$ and $\mathbf{x}_n$ sum to $\mathbf{x}$ and satisfy $\|\mathbf{x}\|_2^2=\|\mathbf{x}_r\|_2^2+\|\mathbf{x}_n\|_2^2$."
 />
 
 ---
@@ -431,8 +435,8 @@ The best we can possibly do is discard the residual error component $\mathbf{e} 
   title="Key Takeaways"
   items={[
     "Vector Orthogonality & Pythagoras: Real vectors are orthogonal if and only if their dot product vanishes ($\\mathbf{x}^T\\mathbf{y} = 0$), which is strictly equivalent to the Euclidean Pythagorean theorem $\\|\\mathbf{x}+\\mathbf{y}\\|_2^2 = \\|\\mathbf{x}\\|_2^2 + \\|\\mathbf{y}\\|_2^2$; the zero vector $\\mathbf{0}$ is orthogonal to every vector in the space.",
-    "Subspace Orthogonality & Intersection Test: Subspace orthogonality $V \\perp W$ requires every vector in $V$ to be perpendicular to every vector in $W$, forcing $V \\cap W = \\{\\mathbf{0}\\}$; however, a zero intersection never implies orthogonality (e.g., two lines intersecting at $45^\\circ$).",
-    "The Perpendicular Planes Trap in 3D: A vertical wall and horizontal floor in $\\mathbb{R}^3$ intersect along an entire line of nonzero vectors and are NOT orthogonal subspaces; in $\\mathbb{R}^3$, only a 2D plane and its 1D normal line are orthogonal complements.",
+    "Subspace Orthogonality & Intersection Test: Subspace orthogonality $V \\perp W$ requires every vector in $V$ to be perpendicular to every vector in $W$, forcing $V \\cap W = \\{\\mathbf{0}\\}$; however, a trivial intersection alone does not imply orthogonality (e.g., two lines intersecting at $45^\\circ$).",
+    "The Perpendicular Planes Trap in 3D: A vertical wall and horizontal floor in $\\mathbb{R}^3$ intersect along an entire line of nonzero vectors and are NOT orthogonal subspaces; in $\\mathbb{R}^3$, the orthogonal complement of a 2D plane through the origin is its 1D normal line.",
     "Fundamental Theorem of Linear Algebra, Part II: For any $A \\in \\mathbb{R}^{m\\times n}$, the row space and nullspace are orthogonal complements in $\\mathbb{R}^n$ ($\\operatorname{Null}(A) = (\\operatorname{Row}(A))^\\perp$, dimensions $r + (n-r) = n$), while the column space and left nullspace are orthogonal complements in $\\mathbb{R}^m$ ($\\operatorname{Null}(A^T) = (\\operatorname{Col}(A))^\\perp$, dimensions $r + (m-r) = m$).",
     "Input Decomposition & Row-to-Column Bijection: Every input splits uniquely as $\\mathbf{x} = \\mathbf{x}_r + \\mathbf{x}_n$; $A$ crushes $\\operatorname{Null}(A)$ to $\\mathbf{0}$ and establishes an invertible 1-to-1 bijection from $\\operatorname{Row}(A)$ onto $\\operatorname{Col}(A)$, making the pure row-space solution $\\mathbf{x}_r$ the unique minimum-norm solution.",
     "Output Decomposition & Prelude to Projection: Every target vector splits uniquely as $\\mathbf{b} = \\mathbf{p} + \\mathbf{e}$ (column space projection + left nullspace error), laying the geometric foundation for least squares and the normal equations."
@@ -560,7 +564,7 @@ Determine whether the following statement is true or false:
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! Intersecting only at the zero vector is a necessary condition for orthogonal subspaces, but it is nowhere near sufficient! Two subspaces meeting only at 0 merely form a direct sum (linear independence); the angle between them can be any acute angle (such as 45°), not necessarily 90°!"
+  quickFeedback="False. A trivial intersection makes the sum direct. The x-axis and the line y = x intersect only at the origin and meet at 45°."
 />
 
 <ProgressiveHint
@@ -643,7 +647,7 @@ Determine whether the following statement is true or false:
 Imagine a pencil standing vertically at $90^\circ$ on a flat tabletop:
 - The 1D line along the pencil is $V$ (spanned by the normal vector $\mathbf{a}$);
 - The horizontal tabletop is the 2D plane $W$ spanned by all directions perpendicular to the pencil;
-- The tabletop and the pencil meet only at the origin, every line on the tabletop is perpendicular to the pencil, and their dimensions $1 + 2 = 3$ combine into an orthogonal direct sum of the entire 3D space $\mathbb{R}^3$;
+- The tabletop and the pencil meet only at the origin, every direction in the plane is orthogonal to the pencil’s direction, and their dimensions $1 + 2 = 3$ combine into an orthogonal direct sum of the entire 3D space $\mathbb{R}^3$;
 - The set of all vectors perpendicular to the tabletop is precisely the line along the pencil—so "the normal to the plane is the line, and the normal to the line is the plane." The double orthogonal complement returns the exact original subspace!
 
 </SolutionIntuition>
@@ -769,7 +773,7 @@ $$
 A = \begin{bmatrix} 1 & 1 \\ 1 & 2 \\ 2 & 3 \end{bmatrix}, \quad \mathbf{b} = \begin{bmatrix} 1 \\ 2 \\ 4 \end{bmatrix}
 $$
 
-1. **Theoretical Proof**: Using Part II of the Fundamental Theorem of Linear Algebra, prove the celebrated **Fredholm Alternative**:
+1. **Theoretical Proof**: For arbitrary $A \in \mathbb{R}^{m\times n}$ and $\mathbf{b}\in\mathbb{R}^m$, use Part II of the Fundamental Theorem of Linear Algebra to prove the solvability criterion in the **Fredholm Alternative**.
    $$
    A\mathbf{x} = \mathbf{b} \text{ has a solution} \iff (\forall \mathbf{y} \in \mathbb{R}^m: A^T \mathbf{y} = \mathbf{0} \implies \mathbf{y}^T \mathbf{b} = 0)
    $$
@@ -792,9 +796,9 @@ $$
 <SolutionIntuition>
 
 This problem showcases the sheer power of orthogonal complement theory in practical solvability testing!
-The traditional approach performs Gaussian elimination on the $3\times 3$ augmented matrix to see whether the bottom row produces a contradiction $0 = c \neq 0$.
+The traditional approach performs Gaussian elimination on the $3\times 3$ augmented matrix to see whether the bottom row produces a contradiction $0 = c$ with $c\neq 0$.
 However, Part II of the Fundamental Theorem tells us: **whether $A\mathbf{x} = \mathbf{b}$ is solvable depends entirely on whether $\mathbf{b}$ is perpendicular to every constraint direction that gets zeroed out by row combinations—namely, the left nullspace!**
-The left nullspace $\operatorname{Null}(A^T)$ acts as the system's "quality inspector." We simply find the single inspector vector $\mathbf{y}$ and take one quick dot product with $\mathbf{b}$—if the result is nonzero, the data fails inspection immediately and the system is guaranteed to be inconsistent!
+The left nullspace $\operatorname{Null}(A^T)$ acts as the system's "quality inspector." For this one-dimensional left nullspace, choose any nonzero basis vector $\mathbf{y}$ and take its dot product with $\mathbf{b}$—if the result is nonzero, the data fails inspection immediately and the system is guaranteed to be inconsistent!
 
 </SolutionIntuition>
 <SolutionRigorous>

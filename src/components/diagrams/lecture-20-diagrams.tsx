@@ -2,7 +2,7 @@ import * as React from 'react'
 import { MathDiagram } from './math-diagram'
 
 export function AdjugateInverseStructureDiagram({
-  caption = '伴随矩阵求逆结构：对角线为代数余子式同行求和 \\(\\sum a_{ij}C_{ij} = \\det(A)\\)，非对角线为异行展开（等价于含重复行的奇异矩阵行列式 \\(\\det(A^*) = 0\\)）',
+  caption = '伴随矩阵求逆结构：对角线为代数余子式同行求和 $\\sum_{j=1}^n a_{ij}C_{ij} = \\det(A)$，非对角线为异行展开（等价于含两行相同的奇异矩阵行列式 $\\det(A^*) = 0$）。',
 }: {
   caption?: string
 }) {
@@ -185,7 +185,7 @@ export function AdjugateInverseStructureDiagram({
           <path d="M 98 28 L 106 28 L 106 140 L 98 140" fill="none" className="stroke-foreground" strokeWidth="1.5" />
 
           {/* (1, 1) */}
-          <text x="25" y="52" className="text-xs font-mono font-bold fill-blue-600 dark:fill-blue-400">det</text>
+          <text x="25" y="52" textAnchor="middle" className="text-xs font-mono font-bold fill-blue-600 dark:fill-blue-400">det</text>
           {/* (1, 2) OFF-DIAGONAL TARGET */}
           <rect
             x="43"
@@ -217,13 +217,13 @@ export function AdjugateInverseStructureDiagram({
           {/* (3, 1) */}
           <text x="25" y="126" className="text-xs font-mono fill-muted-foreground">0</text>
           <text x="55" y="126" textAnchor="middle" className="text-xs font-mono fill-muted-foreground">0</text>
-          <text x="86" y="126" className="text-xs font-mono font-bold fill-blue-600 dark:fill-blue-400">det</text>
+          <text x="86" y="126" textAnchor="middle" className="text-xs font-mono font-bold fill-blue-600 dark:fill-blue-400">det</text>
         </g>
 
         {/* Dynamic Curved Flow Arrows */}
         {/* Blue diagonal path: Row 2 of A + Col 2 of C^T -> (2,2) */}
         <path
-          d="M 129 149 C 160 185 360 185 448 102"
+          d="M 137 144 C 160 216 415 228 448 144"
           fill="none"
           className="stroke-emerald-600 dark:stroke-emerald-400"
           strokeWidth="1.5"
@@ -233,7 +233,7 @@ export function AdjugateInverseStructureDiagram({
 
         {/* Amber off-diagonal path: Row 1 of A + Col 2 of C^T -> (1,2) */}
         <path
-          d="M 102 92 C 140 32 370 20 445 42"
+          d="M 137 107 C 172 45 390 40 445 102"
           fill="none"
           className="stroke-amber-600 dark:stroke-amber-400"
           strokeWidth="1.5"
@@ -354,7 +354,7 @@ export function AdjugateInverseStructureDiagram({
 }
 
 export function CramersRuleAndVolumeDiagram({
-  caption = '克拉默法则与有向体积几何原理：左图展示 2D 平行四边形面积被解分量 \\(x_1\\) 线性伸缩；右图展示 3D 平行多面体体积与 Gram-Schmidt 正交化 \\(A=QR\\) 正交高的乘积等价',
+  caption = '克拉默法则与有向体积几何原理：左图展示 2D 平行四边形有向面积按解分量 $x_1$ 线性伸缩；右图展示 3D 平行多面体体积与 Gram-Schmidt 正交化 $A=QR$ 正交高的乘积等价。',
 }: {
   caption?: string
 }) {
@@ -369,7 +369,7 @@ export function CramersRuleAndVolumeDiagram({
           <marker
             id="l20-arrow-v1"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -380,7 +380,7 @@ export function CramersRuleAndVolumeDiagram({
           <marker
             id="l20-arrow-v2"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -391,7 +391,7 @@ export function CramersRuleAndVolumeDiagram({
           <marker
             id="l20-arrow-b"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -402,7 +402,7 @@ export function CramersRuleAndVolumeDiagram({
           <marker
             id="l20-arrow-q"
             viewBox="0 0 10 10"
-            refX="6"
+            refX="10"
             refY="5"
             markerWidth="6"
             markerHeight="6"
@@ -440,7 +440,7 @@ export function CramersRuleAndVolumeDiagram({
             图 A：克拉默法则的面积剪切与伸缩原理 (2D)
           </text>
           <text x="20" y="46" className="text-[11px] font-sans fill-muted-foreground">
-            方程组 x₁ a₁ + x₂ a₂ = b 对应两矩阵面积之比
+            方程组 x₁ a₁ + x₂ a₂ = b 对应两矩阵有向面积之比
           </text>
 
           {/* Coordinate Origin & Grid inside Left Panel */}
@@ -453,20 +453,20 @@ export function CramersRuleAndVolumeDiagram({
             <text x="6" y="-165" className="text-[10px] font-mono fill-muted-foreground">y</text>
 
             {/* Parallelogram 1: spanned by a1 and a2 (det A) */}
-            {/* a1 = (90, -30), a2 = (30, -110) */}
-            {/* vertex: (0,0) -> (90, -30) -> (120, -140) -> (30, -110) */}
+            {/* a1 = (76, -24), a2 = (24, -84) */}
+            {/* vertex: (0,0) -> (76, -24) -> (100, -108) -> (24, -84) */}
             <polygon
-              points="0,0 90,-30 120,-140 30,-110"
+              points="0,0 76,-24 100,-108 24,-84"
               className="fill-blue-500/15 stroke-blue-500/60"
               strokeWidth="1.2"
               strokeDasharray="4 2"
             />
 
             {/* Parallelogram 2: spanned by b and a2 (det B1) */}
-            {/* b = 2*a1 + 0.5*a2 = (180 + 15, -60 - 55) = (195, -115) */}
-            {/* vertex: (0,0) -> (195, -115) -> (225, -225 clipped to 225, -225) -> (30, -110) */}
+            {/* b = 2*a1 + 0.5*a2 = (152 + 12, -48 - 42) = (164, -90) */}
+            {/* vertex: (0,0) -> (164, -90) -> (188, -174) -> (24, -84) */}
             <polygon
-              points="0,0 195,-115 225,-225 30,-110"
+              points="0,0 164,-90 188,-174 24,-84"
               className="fill-amber-500/20 stroke-amber-500"
               strokeWidth="1.5"
             />
@@ -475,13 +475,13 @@ export function CramersRuleAndVolumeDiagram({
             <line
               x1="0"
               y1="0"
-              x2="90"
-              y2="-30"
+              x2="76"
+              y2="-24"
               className="stroke-blue-600 dark:stroke-blue-400"
               strokeWidth="2.5"
               markerEnd="url(#l20-arrow-v1)"
             />
-            <text x="96" y="-25" className="text-xs font-mono font-bold fill-blue-600 dark:fill-blue-400">
+            <text x="82" y="-20" className="text-xs font-mono font-bold fill-blue-600 dark:fill-blue-400">
               a₁
             </text>
 
@@ -489,13 +489,13 @@ export function CramersRuleAndVolumeDiagram({
             <line
               x1="0"
               y1="0"
-              x2="30"
-              y2="-110"
+              x2="24"
+              y2="-84"
               className="stroke-emerald-600 dark:stroke-emerald-400"
               strokeWidth="2.5"
               markerEnd="url(#l20-arrow-v2)"
             />
-            <text x="14" y="-115" className="text-xs font-mono font-bold fill-emerald-600 dark:fill-emerald-400">
+            <text x="8" y="-90" className="text-xs font-mono font-bold fill-emerald-600 dark:fill-emerald-400">
               a₂
             </text>
 
@@ -503,34 +503,34 @@ export function CramersRuleAndVolumeDiagram({
             <line
               x1="0"
               y1="0"
-              x2="195"
-              y2="-115"
+              x2="164"
+              y2="-90"
               className="stroke-amber-600 dark:stroke-amber-400"
               strokeWidth="2.5"
               markerEnd="url(#l20-arrow-b)"
             />
-            <text x="202" y="-115" className="text-xs font-mono font-bold fill-amber-600 dark:fill-amber-400">
+            <text x="172" y="-90" className="text-xs font-mono font-bold fill-amber-600 dark:stroke-amber-400">
               b
             </text>
 
             {/* Shear connection dashed line */}
             <line
-              x1="180"
-              y1="-60"
-              x2="195"
-              y2="-115"
+              x1="152"
+              y1="-48"
+              x2="164"
+              y2="-90"
               className="stroke-muted-foreground/60"
               strokeWidth="1"
               strokeDasharray="2 2"
             />
-            <text x="140" y="-45" className="text-[10px] font-mono fill-muted-foreground">
+            <text x="130" y="-32" className="text-[10px] font-mono fill-muted-foreground">
               + x₂ a₂ 平移 (保高剪切)
             </text>
-            <text x="80" y="-70" className="text-[10px] font-mono fill-blue-600 dark:fill-blue-400">
-              面积 = det(A)
+            <text x="48" y="-54" className="text-[10px] font-mono fill-blue-600 dark:fill-blue-400">
+              有向面积 = det(A)
             </text>
-            <text x="160" y="-150" className="text-[10px] font-mono fill-amber-600 dark:fill-amber-400 font-bold">
-              面积 = det(B₁)
+            <text x="128" y="-122" className="text-[10px] font-mono fill-amber-600 dark:fill-amber-400 font-bold">
+              有向面积 = det(B₁)
             </text>
           </g>
 
@@ -551,7 +551,7 @@ export function CramersRuleAndVolumeDiagram({
             = x₁ det([a₁, a₂]) + x₂ det([a₂, a₂]) = x₁ · det(A) + 0
           </text>
           <text x="35" y="338" className="text-[11px] font-sans font-bold fill-amber-600 dark:fill-amber-400">
-            &#8658; x₁ = det(B₁) / det(A) （面积伸缩比即为未知数解！）
+            &#8658; x₁ = det(B₁) / det(A) （有向面积之比）
           </text>
         </g>
 
@@ -572,15 +572,15 @@ export function CramersRuleAndVolumeDiagram({
             图 B：3D 平行多面体体积与 A = QR 正交高分解
           </text>
           <text x="20" y="46" className="text-[11px] font-sans fill-muted-foreground">
-            Gram-Schmidt 正交化将多面体剪切为长方体：底面积 × 正交高
+            Gram-Schmidt 正交化给出底面积与垂直于底面的高度
           </text>
 
           {/* 3D Wireframe Parallelepiped */}
-          {/* Origin O at (70, 230) */}
-          <g transform="translate(70, 215)">
+          {/* Oblique projection: the base-plane normal projects vertically. */}
+          <g transform="translate(70, 241) scale(0.9)">
             {/* Projected vectors:
                 a1 = (140, 10)  along bottom
-                a2 = (70, -60)  in base plane
+                a2 = (70, -60)  in base plane; its projection onto a1 is a1/4
                 a3 = (40, -140) pointing up
             */}
             {/* Back faces (dashed) */}
@@ -616,7 +616,7 @@ export function CramersRuleAndVolumeDiagram({
             <line x1="180" y1="-130" x2="250" y2="-190" className="stroke-foreground/60" strokeWidth="1.2" />
 
             {/* Orthogonal Altitude Drop from a3 to base plane */}
-            {/* Orthogonal projection of a3 onto normal to base plane: vertical drop */}
+            {/* The foot (40, -20) lies in the projected base. */}
             <line
               x1="40"
               y1="-140"
@@ -627,7 +627,7 @@ export function CramersRuleAndVolumeDiagram({
               strokeDasharray="3 3"
             />
             {/* Right-angle marker at base */}
-            <path d="M 40 -30 L 48 -28 L 48 -18" fill="none" className="stroke-rose-500 dark:stroke-rose-400" strokeWidth="1" />
+            <path d="M 40 -30 L 54 -29 L 54 -19" fill="none" className="stroke-rose-500 dark:stroke-rose-400" strokeWidth="1" />
             <text x="46" y="-75" className="text-xs font-mono font-bold fill-rose-600 dark:fill-rose-400">
               h₃ = r₃₃
             </text>
@@ -643,8 +643,9 @@ export function CramersRuleAndVolumeDiagram({
               a₃
             </text>
 
-            {/* In-diagram altitude 2 label */}
-            <text x="85" y="-18" className="text-[10px] font-sans fill-emerald-600 dark:fill-emerald-400">
+            {/* Project a2 onto a1 in the base plane to show r22. */}
+            <line x1="70" y1="-60" x2="35" y2="2.5" className="stroke-emerald-600 dark:stroke-emerald-400" strokeWidth="1.2" strokeDasharray="3 3" />
+            <text x="57" y="-12" className="text-[10px] font-sans fill-emerald-600 dark:fill-emerald-400">
               底面正交高 = r₂₂
             </text>
           </g>

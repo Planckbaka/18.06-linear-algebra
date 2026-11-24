@@ -275,7 +275,7 @@ export function ChangeOfBasisCommutativeDiagram({
             strokeWidth="1"
           />
           <text x="291" y="373" textAnchor="middle" className="fill-foreground text-[11.5px] font-semibold">
-            绕路等价法则（从左下 c 出发，依次右乘左写）：c ──M──▶ x ──A──▶ Ax ──M⁻¹──▶ c′ = (M⁻¹AM) c
+            绕路等价法则（从左下 c 出发，各矩阵依次左乘）：c ──M──▶ x ──A──▶ Ax ──M⁻¹──▶ c′ = (M⁻¹AM) c
           </text>
           <text x="291" y="395" textAnchor="middle" className="fill-muted-foreground text-[10.5px] font-mono">
             切勿反写为 M A M⁻¹！基矩阵 M 列为新基向量 wⱼ，故坐标变换自带逆矩阵 M⁻¹
@@ -314,10 +314,10 @@ export function ChangeOfBasisCommutativeDiagram({
             S⁻¹ A S = Λ = diag(λ₁, …, λₙ)
           </text>
           <text x="608" y="160" className="fill-muted-foreground text-[10.5px]">
-            输入与输出共用同一组特征基 S（非正交）
+            输入与输出共用同一组特征基 S（允许非正交）
           </text>
           <text x="608" y="176" className="fill-muted-foreground text-[10.5px]">
-            条件：A ∈ ℝⁿˣⁿ 拥有 n 个线性无关特征向量
+            条件：A 有 n 个线性无关的实特征向量
           </text>
 
           {/* Choice 2: Orthonormal Eigenbasis Q */}
@@ -334,7 +334,7 @@ export function ChangeOfBasisCommutativeDiagram({
             ② 标准正交特征基 M = Q（实对称 A = Aᵀ）
           </text>
           <text x="608" y="242" className="fill-foreground text-[12px] font-mono font-semibold">
-            Qᵀ A Q = Λ  （Q⁻¹ = Qᵀ 零求逆代价）
+            Qᵀ A Q = Λ  （Q⁻¹ = Qᵀ）
           </text>
           <text x="608" y="262" className="fill-muted-foreground text-[10.5px]">
             合同变换与相似变换在此合二为一
@@ -366,7 +366,7 @@ export function ChangeOfBasisCommutativeDiagram({
             突破同基相似限制，对一切矩阵（含亏损与长方形）
           </text>
           <text x="608" y="400" className="fill-purple-600 dark:fill-purple-400 text-[10.5px] font-semibold">
-            普遍成立：Avᵢ = σᵢuᵢ！
+            i ≤ r：Avᵢ = σᵢuᵢ；i &gt; r：Avᵢ = 𝟎
           </text>
         </g>
       </svg>
@@ -446,16 +446,16 @@ export function WaveletAndDctCompressionBasisDiagram({
 
           {/* 4-pixel signal bars */}
           <line x1="52" y1="192" x2="248" y2="192" className="stroke-border" strokeWidth="1.2" />
-          <rect x="66" y="144" width="26" height="48" rx="2" className="fill-blue-500/70" />
-          <rect x="112" y="155" width="26" height="37" rx="2" className="fill-blue-500/70" />
-          <rect x="158" y="176" width="26" height="16" rx="2" className="fill-blue-500/70" />
-          <rect x="204" y="186" width="26" height="6" rx="2" className="fill-blue-500/70" />
+          <rect x="66" y="144.3" width="26" height="47.7" rx="2" className="fill-blue-500/70" />
+          <rect x="112" y="154.9" width="26" height="37.1" rx="2" className="fill-blue-500/70" />
+          <rect x="158" y="176.1" width="26" height="15.9" rx="2" className="fill-blue-500/70" />
+          <rect x="204" y="186.7" width="26" height="5.3" rx="2" className="fill-blue-500/70" />
           <text x="79" y="140" textAnchor="middle" className="fill-foreground text-[10px] font-mono">9</text>
           <text x="125" y="151" textAnchor="middle" className="fill-foreground text-[10px] font-mono">7</text>
           <text x="171" y="172" textAnchor="middle" className="fill-foreground text-[10px] font-mono">3</text>
           <text x="217" y="182" textAnchor="middle" className="fill-foreground text-[10px] font-mono">1</text>
           <text x="151" y="211" textAnchor="middle" className="fill-rose-600 dark:fill-rose-400 text-[10px] font-medium">
-            无损需全存 4 项（10⁶ 像素难以直接丢弃）
+            此例的 4 个像素坐标均非零
           </text>
 
           {/* JPEG DCT sub-card */}
@@ -472,37 +472,31 @@ export function WaveletAndDctCompressionBasisDiagram({
             JPEG：8×8 离散余弦基（DCT）
           </text>
 
-          {/* Smooth cosine mini waveforms */}
-          {/* k=0 DC flat */}
-          <line x1="44" y1="274" x2="164" y2="274" className="stroke-border" strokeWidth="0.8" strokeDasharray="2 2" />
-          <line x1="44" y1="266" x2="164" y2="266" className="stroke-blue-600 dark:stroke-blue-400" strokeWidth="2.2" />
-          <text x="172" y="271" className="fill-foreground text-[10px] font-mono">k=0 低频直流</text>
-
-          {/* k=1 half-cosine */}
-          <line x1="44" y1="297" x2="164" y2="297" className="stroke-border" strokeWidth="0.8" strokeDasharray="2 2" />
-          <path
-            d="M 44 286 Q 74 286, 104 297 T 164 308"
-            fill="none"
-            className="stroke-emerald-600 dark:stroke-emerald-400"
-            strokeWidth="2.2"
-          />
-          <text x="172" y="301" className="fill-foreground text-[10px] font-mono">k=1 平缓渐变</text>
-
-          {/* k=6 high freq cosine */}
-          <line x1="44" y1="326" x2="164" y2="326" className="stroke-border" strokeWidth="0.8" strokeDasharray="2 2" />
-          <path
-            d="M 44 317 Q 53 317, 59 326 T 74 335 T 89 326 T 104 317 T 119 326 T 134 335 T 149 326 T 164 317"
-            fill="none"
-            className="stroke-amber-600 dark:stroke-amber-400"
-            strokeWidth="1.8"
-          />
-          <text x="172" y="330" className="fill-muted-foreground text-[10px] font-mono">k=6 高频(舍弃)</text>
+          {/* DCT-II rows sampled at the eight pixel centers. */}
+          {[
+            { k: 0, baseline: 274, label: 'k=0 直流', color: 'stroke-blue-600 dark:stroke-blue-400' },
+            { k: 1, baseline: 297, label: 'k=1 低频', color: 'stroke-emerald-600 dark:stroke-emerald-400' },
+            { k: 6, baseline: 326, label: 'k=6 高频', color: 'stroke-amber-600 dark:stroke-amber-400' },
+          ].map(({ k, baseline, label, color }) => {
+            const samples = Array.from({ length: 8 }, (_, j) => ({
+              x: 44 + 15 * (j + 0.5),
+              y: baseline - 27 * (k === 0 ? 1 / Math.sqrt(8) : 0.5) * Math.cos(Math.PI * (j + 0.5) * k / 8),
+            }));
+            return (
+              <g key={k}>
+                <line x1="44" y1={baseline} x2="164" y2={baseline} className="stroke-border" strokeWidth="0.8" strokeDasharray="2 2" />
+                <polyline points={samples.map(({ x, y }) => [x, y].join(',')).join(' ')} fill="none" className={color} strokeWidth="1.6" />
+                {samples.map(({ x, y }) => <circle key={x} cx={x} cy={y} r="1.4" className={color} fill="currentColor" />)}
+                <text x="172" y={baseline + 4} className="fill-foreground text-[10px] font-mono">{label}</text>
+              </g>
+            );
+          })}
 
           <text x="44" y="355" className="fill-foreground text-[10.5px] font-mono font-semibold">
             二维可分离：Y = C X Cᵀ （CᵀC = I₈）
           </text>
           <text x="44" y="374" className="fill-muted-foreground text-[10px]">
-            • 偶延拓消除周期跳变，能量极度集中低频
+            • 偶延拓避免直接周期拼接的跳变
           </text>
           <text x="44" y="391" className="fill-muted-foreground text-[10px]">
             • 高压缩比下可能出现 8×8 块状边界伪影
@@ -527,7 +521,7 @@ export function WaveletAndDctCompressionBasisDiagram({
           {/* w1 = [1, 1, 1, 1] */}
           <rect x="307" y="92" width="276" height="46" rx="7" className="fill-blue-500/[0.06] stroke-blue-500/25" strokeWidth="1" />
           <line x1="317" y1="126" x2="421" y2="126" className="stroke-border" strokeWidth="1" strokeDasharray="2 2" />
-          <path d="M 317 106 H 421" fill="none" className="stroke-blue-600 dark:stroke-blue-400" strokeWidth="2.6" />
+          <path d="M 317 112 H 421" fill="none" className="stroke-blue-600 dark:stroke-blue-400" strokeWidth="2.6" />
           <text x="433" y="111" className="fill-blue-700 dark:fill-blue-300 text-[11px] font-mono font-bold">
             w₁ = [1, 1, 1, 1]ᵀ
           </text>
@@ -659,8 +653,8 @@ export function WaveletAndDctCompressionBasisDiagram({
             71.4%
           </text>
 
-          {/* Bar 2: 36 -> height 25px (y=241) */}
-          <rect x="706" y="241" width="32" height="25" rx="3" className="fill-emerald-600 dark:fill-emerald-500" />
+          {/* Bar 2: 36 -> height 24.48px (y=241.52) */}
+          <rect x="706" y="241.52" width="32" height="24.48" rx="3" className="fill-emerald-600 dark:fill-emerald-500" />
           <text x="722" y="236" textAnchor="middle" className="fill-emerald-600 dark:fill-emerald-400 text-[10px] font-mono font-bold">
             36
           </text>
@@ -671,12 +665,12 @@ export function WaveletAndDctCompressionBasisDiagram({
             25.7%
           </text>
 
-          {/* Threshold dashed line y = 250 */}
+          {/* Threshold tau² = 4 at 0.68 px per unit */}
           <line
             x1="636"
-            y1="250"
+            y1="263.28"
             x2="874"
-            y2="250"
+            y2="263.28"
             className="stroke-rose-600 dark:stroke-rose-400"
             strokeWidth="1.3"
             strokeDasharray="4 3"
@@ -685,17 +679,17 @@ export function WaveletAndDctCompressionBasisDiagram({
             x1="806"
             y1="222"
             x2="806"
-            y2="248"
+            y2="263.28"
             className="stroke-rose-600/70 dark:stroke-rose-400/70"
             strokeWidth="1"
             strokeDasharray="2 2"
           />
           <text x="806" y="216" textAnchor="middle" className="fill-rose-600 dark:fill-rose-400 text-[10px] font-mono font-bold">
-            硬阈值线 τ²
+            阈值 τ² = 4
           </text>
 
-          {/* Bar 3: 2 -> height 6px (y=260) */}
-          <rect x="762" y="260" width="32" height="6" rx="1.5" className="fill-rose-500/65" />
+          {/* Bar 3: 2 -> height 1.36px (y=264.64) */}
+          <rect x="762" y="264.64" width="32" height="1.36" className="fill-rose-500/65" />
           <text x="778" y="244" textAnchor="middle" className="fill-rose-600 dark:fill-rose-400 text-[9.5px] font-mono">
             2→0
           </text>
@@ -706,8 +700,8 @@ export function WaveletAndDctCompressionBasisDiagram({
             舍弃
           </text>
 
-          {/* Bar 4: 2 -> height 6px (y=260) */}
-          <rect x="818" y="260" width="32" height="6" rx="1.5" className="fill-rose-500/65" />
+          {/* Bar 4: 2 -> height 1.36px (y=264.64) */}
+          <rect x="818" y="264.64" width="32" height="1.36" className="fill-rose-500/65" />
           <text x="834" y="244" textAnchor="middle" className="fill-rose-600 dark:fill-rose-400 text-[9.5px] font-mono">
             2→0
           </text>
@@ -729,7 +723,7 @@ export function WaveletAndDctCompressionBasisDiagram({
             strokeWidth="1.2"
           />
           <text x="632" y="325" className="fill-emerald-700 dark:fill-emerald-300 text-[11px] font-bold">
-            硬阈值截断重构（2:1 压缩）：
+            硬阈值截断重构（保留 2 / 4 项）
           </text>
           <text x="632" y="344" className="fill-foreground text-[10.5px] font-mono">
             ĉ = [5, 3, 0, 0]ᵀ ⇒ x̂ = [8, 8, 2, 2]ᵀ

@@ -10,7 +10,7 @@ textbookRef: "§8.2"
 今天，Gilbert Strang 教授要回答两个直接决定线性代数威力的终极实践问题：**为什么要换一组基（Change of Basis）？怎样才算一组“好基”？**
 
 换基带来的红利体现在两条并驾齐驱的主线上：
-1. **图像与信号压缩（Image & Signal Compression）**：在默认的像素基下存储一张 $1024 \times 1024$ 的灰度图需要一百万个高度相关的像素数；然而，只要切换到一个聪明的**正交基**（如 JPEG 使用的**离散余弦变换 DCT 基**，或 JPEG 2000 使用的 **Haar 小波基**），绝大多数坐标系数立刻接近于零，只保留极少数基向量就能几乎无损地重建整张图片！
+1. **图像与信号压缩（Image & Signal Compression）**：在默认的像素基下存储一张 $1024 \times 1024$ 的灰度图需要一百万个高度相关的像素数；然而，只要切换到一个聪明的**正交基**（如 JPEG 使用的**离散余弦变换 DCT 基**，或 用于说明多尺度变换的 **Haar 小波基**），绝大多数坐标系数立刻接近于零，只保留极少数基向量就能几乎无损地重建整张图片！
 2. **简化线性算子（Operator Simplification）**：同一个线性变换 $T$，如果输入与输出坐标基选得巧，它的矩阵表示会从稠密晦涩瞬间塌缩为极简的**对角矩阵**——当输入输出共用同一套特征基 $S$ 时得到相似对角化 $\Lambda = S^{-1}AS$；当分别选用输入正交基 $V$ 与输出正交基 $U$ 时，则诞生了覆盖全体矩阵的奇异值分解 $\Sigma = U^T A V$！
 
 ---
@@ -49,7 +49,7 @@ $$
 
 <DefinitionCard title="基矩阵与向量坐标变换公式" termEn="Change-of-Basis Matrix & Coordinate Change Formula">
 
-设 $\mathcal{W} = \{\mathbf{w}_1, \mathbf{w}_2, \dots, \mathbf{w}_n\}$ 是 $\mathbb{R}^n$ 的一组基，将新基向量作为列构造**基矩阵（Change-of-Basis Matrix）** $W = [\mathbf{w}_1 \;\; \mathbf{w}_2 \;\; \cdots \;\; \mathbf{w}_n] \in \mathbb{R}^{n \times n}$（$\det(W) \ne 0$）。对任意向量 $\mathbf{x} \in \mathbb{R}^n$（标准基坐标）及其在基 $\mathcal{W}$ 下的**坐标向量（Coordinate Vector）** $\mathbf{c} = [c_1, \dots, c_n]^T \in \mathbb{R}^n$，两者满足互逆线性关系：
+设 $\mathcal{W} = (\mathbf{w}_1, \mathbf{w}_2, \dots, \mathbf{w}_n)$ 是 $\mathbb{R}^n$ 的一组基，将新基向量作为列构造**基矩阵（Change-of-Basis Matrix）** $W = [\mathbf{w}_1 \;\; \mathbf{w}_2 \;\; \cdots \;\; \mathbf{w}_n] \in \mathbb{R}^{n \times n}$（$\det(W) \ne 0$）。对任意向量 $\mathbf{x} \in \mathbb{R}^n$（标准基坐标）及其在基 $\mathcal{W}$ 下的**坐标向量（Coordinate Vector）** $\mathbf{c} = [c_1, \dots, c_n]^T \in \mathbb{R}^n$，两者满足互逆线性关系：
 
 $$
 \mathbf{x} = W \mathbf{c} \quad \Longleftrightarrow \quad \mathbf{c} = W^{-1} \mathbf{x}
@@ -143,7 +143,7 @@ $$
 <DefinitionCard title="图像压缩好基的两条黄金准则" termEn="Two Golden Properties of a Compression Basis">
 
 1. **快速计算与快速求逆（Fast Analysis & Synthesis）**：正变换 $W^{-1}\mathbf{x}$ 与逆变换 $W\hat{\mathbf{c}}$ 绝不能停留在 $\mathcal{O}(n^2)$ 矩阵乘法。理想基底首先应满足**正交性**（$W^{-1} = D^{-1}W^T$ 或 $Q^T$，彻底消灭求逆），其次自身具备稀疏蝴蝶分解或金字塔结构，将复杂度降至 $\mathcal{O}(n \log n)$（如 FFT / DCT）甚至 $\mathcal{O}(n)$（如小波变换）。
-2. **能量高度集中 / 稀疏性（Energy Compaction / Sparsity）**：对于真实自然图像，绝大多数总能量 $\|\mathbf{x}\|_2^2$ 必须集中到极少数几个主基向量的系数上（典型情形：仅保留 $5\% \sim 10\%$ 的系数，即可捕获超过 $95\% \sim 99\%$ 的总能量），其余 $90\%$ 以上的系数接近零，置零后人眼几乎无法察觉失真。
+2. **能量集中（Energy Compaction）**：对目标图像，少数标准正交系数应携带大部分平方能量，使舍弃其余系数后的平方重构误差较小。能量占比取决于图像与变换。
 
 </DefinitionCard>
 
@@ -153,7 +153,7 @@ $$
 
 但经典 JPEG 图像压缩标准并没有直接对整张百万像素图片做二维傅里叶变换（DFT），而是做出了两个极其老练的工程数学抉择：
 - **分块为 $8 \times 8$ 小窗口（Block-based）**：如果对整张大图做全局正余弦变换，图像右半边的一条锐利屋檐边缘就会污染左半边宁静天空的频谱。切成 $8 \times 8$（$64$ 维）局部图像块后，每块内部极易呈现近似平坦或单调渐变，局部变换只需极低常数开销。
-- **使用余弦基 DCT 而非周期 DFT**：周期 DFT 默认将块右边缘直接首尾拼接到左边缘。若左边缘亮度为 $200$、右边缘亮度为 $40$，首尾拼接制造出虚假的悬崖跳变，迫使高频 DFT 系数剧增并产生 **Gibbs 振铃伪影（Ringing Artifacts）**。**离散余弦变换（Discrete Cosine Transform, DCT-II）** 等价于先做**偶对称镜像延拓（Even Extension）**，把左右边界光滑缝合在一起，从而把能量极度挤压进低频项！
+- **使用余弦基 DCT 而非周期 DFT**：周期 DFT 默认将块右边缘直接首尾拼接到左边缘。若左边缘亮度为 $200$、右边缘亮度为 $40$，首尾拼接制造出虚假的悬崖跳变，迫使高频 DFT 系数剧增并产生 **Gibbs 振铃伪影（Ringing Artifacts）**。**离散余弦变换（Discrete Cosine Transform, DCT-II）** 等价于先做**偶对称镜像延拓（Even Extension）**，避免直接周期拼接带来的值跳变。对平滑块，这往往有利于低频能量集中。
 
 具体而言，1 维 $N$ 点标准正交 DCT-II 矩阵 $C \in \mathbb{R}^{N \times N}$（JPEG 中取 $N = 8$）定义为：
 
@@ -167,19 +167,21 @@ $$
 Y = C X C^T \quad \Longleftrightarrow \quad X = C^T Y C
 $$
 
+余弦行的正交性可由积化和差得到。令 $\theta_j=\pi(j+\tfrac12)/N$。有限几何级数给出 $\sum_{j=0}^{N-1}\cos(s\theta_j)=0$（整数 $1\le s\le 2N-2$）。因此两不同余弦行的内积为零，未归一化的常数行平方范数为 $N$，其余行均为 $N/2$，正好对应上面的归一化因子。
+
 感受一下它惊人的能量集中威力：如果某个 $8 \times 8$ 天空像素块恰好恒为常数 $v$（即 $X = v \mathbf{1}\mathbf{1}^T$），由于 $C$ 的第 $0$ 行是常数向量 $\frac{1}{\sqrt{8}}\mathbf{1}^T$，其余 $7$ 行均与 $\mathbf{1}$ 正交，于是 $C\mathbf{1} = [\sqrt{8}, 0, \dots, 0]^T$，从而：
 
 $$
 Y = v (C\mathbf{1})(C\mathbf{1})^T = \begin{bmatrix} 8v & 0 & \cdots & 0 \\ 0 & 0 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & 0 \end{bmatrix}
 $$
 
-整整 $64$ 个像素值被无损压扁成唯一一个直流系数 $Y_{0,0} = 8v$，其余 $63$ 个交流系数**全为零**！在真实 JPEG 中，对频谱系数 $Y_{p,q}$ 按人眼敏感度表做量化除法并舍入取整，高频位置几乎全部归零，随后按 Z 字形（Zigzag）扫描即可实现 $10:1$ 至 $20:1$ 的高质量压缩。
+整整 $64$ 个像素值被无损压扁成唯一一个直流系数 $Y_{0,0} = 8v$，其余 $63$ 个交流系数**全为零**！在真实 JPEG 中，对频谱系数 $Y_{p,q}$ 按人眼敏感度表做量化除法并舍入取整，不少系数会变为零。随后按 Z 字形（Zigzag）扫描并编码，实际码率和失真取决于图像与量化表。
 
 ### 3. JPEG 2000 思想：4 点 Haar 小波基 $W_4$ 与多分辨率压缩
 
 尽管 DCT 擅长平滑区域，但它也有先天短板：余弦波的支撑集覆盖整个 $8\times 8$ 块，一旦块内包含极其锐利的黑白边界（如文字、漫画线条），需要很多高频余弦波才能拼出跳变，高压缩比下会出现讨厌的 $8\times 8$ “马赛克块效应”。
 
-**小波（Wavelets）**的诞生彻底突破了这一局限：它像音符一样**同时在空间位置与频率尺度上局部化（Localized in Space & Scale）**，并且是 JPEG 2000 标准的核心数学底座。
+**小波（Wavelets）**的诞生彻底突破了这一局限：它像音符一样**同时在空间位置与频率尺度上局部化（Localized in Space & Scale）**。JPEG 2000 Part 1 常用可逆 5/3 与不可逆 9/7 小波变换。本讲用 Haar 演示多尺度思想。
 
 其中最经典、最能看清线性代数本质的，就是 **Haar 小波基（Haar Wavelet Basis）**。考察 $n = 4$ 维空间上的 **4 点 Haar 小波矩阵 $W_4 \in \mathbb{R}^{4 \times 4}$**：
 
@@ -256,7 +258,7 @@ $$
    \tilde{\mathbf{c}} = \begin{bmatrix} 2\cdot 5 \\ 2\cdot 3 \\ \sqrt{2}\cdot 1 \\ \sqrt{2}\cdot 1 \end{bmatrix} = \begin{bmatrix} 10 \\ 6 \\ \sqrt{2} \\ \sqrt{2} \end{bmatrix}
    $$
    验证帕塞瓦尔能量分配：$\tilde{c}_1^2 + \tilde{c}_2^2 + \tilde{c}_3^2 + \tilde{c}_4^2 = 100 + 36 + 2 + 2 = 140 = \|\mathbf{x}\|_2^2$！
-   请看这能量分布：**仅仅前两个粗尺度基向量（$\mathbf{w}_1, \mathbf{w}_2$）就独占了 $136 / 140 = 97.14\%$ 的能量**，而两个高频细节分量各自仅占 $1.43\%$！
+   请看这能量分布：**仅仅前两个粗尺度基向量（$\mathbf{w}_1, \mathbf{w}_2$）就独占了 $136 / 140 \approx 97.14\%$ 的能量**，而两个高频细节分量各自仅占 $1.43\%$！
 
 2. **硬阈值截断（Hard Thresholding）与重构**：
    设定硬阈值 $\tau = 2$（只保留 $|\tilde{c}_i| \ge 2$ 的大分量，将 $|\tilde{c}_3| = |\tilde{c}_4| = \sqrt{2} \lt 2$ 置零），得到稀疏系数 $\hat{\mathbf{c}} = [5, 3, 0, 0]^T$（实现了 $2:1$ 系数压缩）。
@@ -694,7 +696,7 @@ $$
    $$
    \sigma_n(W) \|\Delta\mathbf{c}\|_2 \le \|\Delta\mathbf{x}\|_2 \le \sigma_1(W) \|\Delta\mathbf{c}\|_2
    $$
-   说明为什么条件数 $\kappa_2(W) = \sigma_1(W)/\sigma_n(W) = 1$（即 $W$ 为正交矩阵的缩放倍数）是压制量化误差放大的最优几何设计。
+   说明 $\kappa_2(W)=1$ 时为何保持相对误差，并指出绝对误差如何随缩放变化。
 
 <ProgressiveHint hints={[
   "第 1 问 (a)：先算 $H_2 X$（对每列求和再求差并除以 $\\sqrt{2}$），再右乘 $H_2^T = H_2$；$Y_{11}$ 探测的是行梯度与列梯度的耦合扭曲，平面函数 $x_{ij} = a i + b j + c$ 没有二阶交叉扭曲。",
@@ -704,8 +706,8 @@ $$
 
 <DualSolution>
 <SolutionIntuition>
-第 1 问让你亲手摸到了 JPEG / JPEG 2000 内部处理二维像素块的真实引擎：一行右乘、一列左乘，能量纹丝不动（Frobenius 范数绝对守恒），且线性渐变图像块的混合高频扭曲项直接归零，直流项一人扛起 $90.7\%$ 的能量！
-第 2 问揭示了为什么压缩界对正交基如此执迷：近共线斜基必须靠“两个巨大而方向几乎相反的基向量相互抵消”才能拼出垂直方向的单位向量（就像用 $[1, 0]^T$ 和 $[1, 0.001]^T$ 凑出 $[0, 1]^T$，系数高达 $\pm 1000$！）。一旦在系数空间做哪怕微小的四舍五入量化，巨大的正负抵消平衡立刻打破，误差会顺着大奇异值方向呈千倍放大！而正交基的所有奇异值齐刷刷等于 $1$（条件数 $\kappa_2 = 1$），坐标空间和像素空间完全等距，彻底杜绝了量化噪声放大。
+第 1 问展示了二维可分离变换的原理：一行右乘、一列左乘，能量纹丝不动（Frobenius 范数绝对守恒），且线性渐变图像块的混合高频扭曲项直接归零，直流项一人扛起 $90.7\%$ 的能量！
+第 2 问的两个基向量近乎平行，要用大小约为 $1/\varepsilon$、符号相反的系数抵消水平方向。系数动态范围大时，固定相对精度的量化可产生较大的绝对误差。正交矩阵的全部奇异值为 $1$，因此系数误差与重构误差等长。
 </SolutionIntuition>
 <SolutionRigorous>
 **第 1 问（二维可分离变换与 Frobenius 能量守恒）：**
@@ -766,7 +768,7 @@ $$
 \mathbf{c} = W_\varepsilon^{-1} \mathbf{x} = \begin{bmatrix} -1/\varepsilon \\ 1/\varepsilon \end{bmatrix}
 $$
 
-当 $\varepsilon = 10^{-3}$ 时，$\mathbf{c} = [-1000, 1000]^T$！虽然原始信号能量仅为 $\|\mathbf{x}\|_2^2 = 1$，但坐标系数却飙升至上千倍（发生严重的正负相消灾难）；存储这些巨大系数不仅耗费更多比特，且对 $c_1, c_2$ 的微小量化误差都可能无法抵消而直接摧毁重构精度。
+当 $\varepsilon = 10^{-3}$ 时，$\mathbf{c}=[-1000,1000]^T$。在固定量化步长下，覆盖这种动态范围通常需要更多比特。若只保证固定的相对系数精度，大系数则允许较大的绝对量化误差。
 
 **(b) 证明双边奇异值不等式：**
 对可逆矩阵 $W \in \mathbb{R}^{n\times n}$ 作奇异值分解 $W = U \Sigma V^T$（第 30 讲），其中 $U, V$ 均为正交矩阵，$\Sigma = \operatorname{diag}(\sigma_1, \dots, \sigma_n)$ 满足 $\sigma_1 \ge \dots \ge \sigma_n \gt 0$。令 $\mathbf{z} := V^T \Delta\mathbf{c}$。由于正交变换 $V^T$ 与 $U$ 均严格保持 $\ell_2$ 范数，有 $\|\mathbf{z}\|_2 = \|\Delta\mathbf{c}\|_2$ 以及：
@@ -787,7 +789,7 @@ $$
 \sigma_n(W) \|\Delta\mathbf{c}\|_2 \le \|\Delta\mathbf{x}\|_2 \le \sigma_1(W) \|\Delta\mathbf{c}\|_2
 $$
 
-相对误差放大倍数最坏可达条件数 $\kappa_2(W) = \frac{\sigma_1(W)}{\sigma_n(W)}$。当且仅当 $\kappa_2(W) = 1$（即所有奇异值相等 $\sigma_1 = \dots = \sigma_n = \alpha \gt 0$，$W = \alpha Q$ 为正交矩阵的纯缩放倍数）时，不等式退化为精确等距缩放 $\|\Delta\mathbf{x}\|_2 = \alpha \|\Delta\mathbf{c}\|_2$，彻底消除任何方向上的量化误差放大！
+对非零 $\mathbf{c}$，用 $\|W\mathbf{c}\|_2\ge \sigma_n(W)\|\mathbf{c}\|_2$ 作分母下界，得到相对误差的放大上界 $\kappa_2(W)=\sigma_1(W)/\sigma_n(W)$。当 $\mathbf{c}$ 沿最小右奇异向量且 $\Delta\mathbf{c}$ 沿最大右奇异向量时取等。当且仅当 $\kappa_2(W) = 1$（即所有奇异值相等 $\sigma_1 = \dots = \sigma_n = \alpha \gt 0$，$W = \alpha Q$ 为正交矩阵的纯缩放倍数）时，不等式退化为精确等距缩放 $\|\Delta\mathbf{x}\|_2 = \alpha \|\Delta\mathbf{c}\|_2$。相对误差保持不变，而绝对误差乘以 $\alpha$；当 $\alpha=1$ 时，绝对误差也保持不变。
 </SolutionRigorous>
 </DualSolution>
 
@@ -803,35 +805,21 @@ $$
   paperRef="Rombach et al. (CVPR 2022) High-Resolution Image Synthesis with Latent Diffusion Models"
 >
 
-### 1. 为什么高分辨率像素扩散模型遇到了“计算墙”？
+### 1. 为什么在潜空间做扩散？
 
-在第 24 讲 AI-11 中，我们见识了连续扩散模型 DDPM 的核心机制：通过前向马尔可夫加噪与反向神经网络去噪，在数据空间中拟合高维分布。然而，Rombach 等人在 2022 年提出 **Latent Diffusion Models（LDM，即 Stable Diffusion 的核心架构）** 时，敏锐指出了一个与本讲 **图像压缩** 深刻同构的瓶颈：
+DDPM 在离散时间步对图像表示进行前向马尔可夫加噪，并学习反向去噪。若直接在 $512 \times 512$ 的 RGB 图像上做扩散，每次去噪都要处理含 $512 \times 512 \times 3 = 786{,}432$ 个标量的图像表示。Rombach 等人的潜空间扩散模型（Latent Diffusion Models, LDM）先训练自编码器，再在其较小的潜张量上训练和运行扩散模型。
 
-假如直接在一张 $512 \times 512$ RGB 图像的**原始像素基（Pixel Basis）**上训练扩散模型：
-- 空间维数高达 $512 \times 512 \times 3 = 786,432$ 维！每一步反向去噪采样（通常需要 $20 \sim 50$ 步甚至上千步）都要让巨型 U-Net 或 Diffusion Transformer（DiT）在近八十万维的张量上反复前向传播；
-- 更本质的浪费在于：**像素空间中绝大多数比特和梯度都耗费在人眼根本分辨不出的“高频微末纹理”上**（犹如 JPEG 中那些能量微小、人眼迟钝的高频 DCT 系数）。在语义尚未成型时就让扩散模型耗尽算力去雕琢每一个孤立像素，在几何上极其低效！
+### 2. 正交能量集中与学习式潜空间压缩
 
----
-
-### 2. LDM 的两阶段基变换哲学：用学出来的非线性“感知正交基”取代像素基
-
-对照我们在第 32 讲学过的**线性正交基图像压缩管道**与 **LDM 两阶段架构**，你会惊讶地发现两者在数学精神上完全同构：
-
-| 对比维度 | 经典线性图像压缩（JPEG DCT / Haar 小波） | Latent Diffusion Models（LDM / Stable Diffusion） |
+| 步骤 | 正交变换压缩（DCT 或 Haar） | 潜空间扩散 |
 | :--- | :--- | :--- |
-| **原始表示空间** | 高维冗余像素向量 $\mathbf{x} \in \mathbb{R}^n$ | 高维冗余像素图像 $\mathbf{x} \in \mathbb{R}^{512 \times 512 \times 3}$（$786,432$ 维） |
-| **编码 / 分析换基** | 线性正交投影 $\mathbf{c} = Q^T \mathbf{x}$ | 深度卷积编码器（VAE Encoder）$\mathbf{z} = \mathcal{E}(\mathbf{x}) \in \mathbb{R}^{64 \times 64 \times 4}$（$16,384$ 维） |
-| **丢弃冗余的准则** | 硬阈值截断 $\lvert c_i\rvert \lt \tau$（最小化 $\ell_2$ 失真 $\sum_{i\notin S} c_i^2$） | **感知压缩（Perceptual Compression）**：保留语义流形结构，用对抗损失与感知损失（LPIPS）自动舍弃人眼无感的高频细节 |
-| **空间压缩比** | 典型保留 $5\% \sim 15\%$ 系数（$7:1 \sim 20:1$） | 空间下采样因子 $f = 8$（通道 $3 \to 4$），实现严格的 **$48:1$ 维度压缩**（$786,432 \div 16,384 = 48$）！ |
-| **压缩空间中的计算** | 只传输/存储稀疏非零坐标 $\hat{\mathbf{c}}$ | **语义扩散生成（Generative Modeling）**：U-Net / DiT 仅在低维潜空间 $\mathbf{z}_t \in \mathbb{R}^{64\times 64\times 4}$ 中做加噪与去噪！ |
-| **解码 / 重构还原** | 线性综合重构 $\hat{\mathbf{x}} = Q \hat{\mathbf{c}}$ | 深度卷积解码器（VAE Decoder）$\hat{\mathbf{x}} = \mathcal{D}(\mathbf{z}_0)$ 一步补回高频纹理细节 |
+| 编码 | $\mathbf{c} = Q^T\mathbf{x}$，维数保持不变 | $\mathbf{z} = \mathcal{E}(\mathbf{x})$，编码器降低空间分辨率 |
+| 压缩 | 固定保留预算 $k$ 时，保留绝对值最大的 $k$ 项使平方重构误差 $\sum_{i\notin S}c_i^2$ 最小 | 用感知损失与对抗目标训练自编码器，在压缩后的表示中保留有助于视觉重构的信息 |
+| 解码 | $\hat{\mathbf{x}} = Q\hat{\mathbf{c}}$ | 扩散模型生成潜张量 $\mathbf{z}_0$，解码器输出 $\hat{\mathbf{x}} = \mathcal{D}(\mathbf{z}_0)$ |
 
-从线性代数的视角来看，VAE 编码器 $\mathcal{E}$ 与解码器 $\mathcal{D}$ 扮演了**数据驱动的非线性“换基矩阵 $W^{-1}$ 与 $W$”**：
-1. 在经典 Haar 小波或 DCT 中，基底由人为解析设计（如余弦或阶梯），只能消除二阶像素相关性并用简单的 $\ell_2$ 帕塞瓦尔误差 $\sum_{i \notin S} c_i^2$ 度量失真；
-2. 在 LDM 中，自编码器在海量真实自然图像上端到端学会了一组**贴合自然图像流形（Natural Image Manifold）的非线性局部基底**。它把一张 $786,432$ 维图像压缩进短短 $16,384$ 维的潜空间 $\mathbf{z}$——在这里，每个潜空间坐标既像小波系数那样保留了空间拓扑结构（$64 \times 64$ 网格对应原图网格），又像低频主成分那样彻底剥离了冗余高频噪声；
-3. 于是，**高难度的“感知细节去除”由高效的前置自编码器一次性完成，昂贵的迭代扩散过程被彻底解放出来，专注于在紧凑的 $48\times$ 降维潜空间里学习纯粹的语义构图与全局结构**！这就是为什么消费级 GPU 上也能在几秒内生成高分辨率逼真图像的根本数学原因。
+以空间下采样因子 $f=8$、潜通道数为 $4$ 的配置为例，潜张量的形状为 $64 \times 64 \times 4$，含 $16{,}384$ 个标量。像素标量数与潜标量数之比为 $786{,}432/16{,}384=48$，实际算力、内存和比特率还取决于模型与表示方式。
 
----
+这里的共同点是用紧凑表示保留重构所需的信息。正交变换的能量集中可由 Parseval 恒等式精确衡量。LDM 的编解码器是学习得到的非线性映射，重构通常是近似的，且没有正交换基或 Parseval 误差恒等式。
 
 ### 3. 可运行代码核验：Haar 正交基压缩与帕塞瓦尔（Parseval）等式验证
 
@@ -851,9 +839,9 @@ import torch
 
 def build_orthonormal_haar(n: int) -> torch.Tensor:
     """递归构造 n x n 标准正交 Haar 小波矩阵 Q_n（列向量为标准正交基，n 须为 2 的幂）。"""
-    assert n >= 2 and (n & (n - 1)) == 0, "n must be a power of 2"
-    if n == 2:
-        return torch.tensor([[1.0, 1.0], [1.0, -1.0]]) / math.sqrt(2.0)
+    assert n >= 1 and (n & (n - 1)) == 0, "n must be a power of 2"
+    if n == 1:
+        return torch.ones(1, 1)
 
     # 低频粗尺度部分由 Q_{n/2} 张成，高频细节部分为局部成对差分
     q_half = build_orthonormal_haar(n // 2)
@@ -899,7 +887,7 @@ def verify_haar_compaction():
     x = 1.5 * torch.cos(2.0 * math.pi * t) + torch.where(t < 0.5, 3.0, -1.0)
     c = Q64.T @ x
 
-    k = 8  # 仅保留绝对值最大的前 8 个系数 (8/64 = 12.5%, 即 8:1 压缩)
+    k = 8  # 仅保留绝对值最大的前 8 个系数 (8/64 = 12.5%, 系数个数之比为 8:1)
     topk_idx = torch.topk(c.abs(), k=k).indices
     mask = torch.zeros_like(c, dtype=torch.bool)
     mask[topk_idx] = True

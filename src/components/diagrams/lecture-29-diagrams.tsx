@@ -146,10 +146,10 @@ export function SimilarityOrbitAndInvariantsDiagram({
             (二次型 xᵀAx；复域用 MᴴAM)
           </text>
           <text x="28" y="241" className="fill-foreground text-xs">
-            ✓ 保持：对称性、rank(A)、Sylvester 惯性指数 (n₊, n₋, n₀)
+            ✓ 对实对称 A：保持对称性、秩与惯性 (n₊, n₋, n₀)
           </text>
           <text x="28" y="261" className="fill-amber-700 dark:fill-amber-300 text-xs font-semibold">
-            ✗ 改变特征值大小！如 diag(2, 8) → diag(2, 2) (M = diag(1, 1/2))
+            特征值可能改变：如 diag(2, 8) → diag(2, 2) (M = diag(1, 1/2))
           </text>
           <text x="28" y="282" className="fill-purple-700 dark:fill-purple-300 text-[11px] font-medium">
             ★ 罕见交集：当 M = Q 正交（Qᵀ = Q⁻¹）时，QᵀAQ = Q⁻¹AQ！
@@ -186,10 +186,10 @@ export function SimilarityOrbitAndInvariantsDiagram({
             ✓ 保持：Row(A)、Null(A)、rank(A)
           </text>
           <text x="28" y="392" className="fill-rose-700 dark:fill-rose-300 text-xs font-semibold">
-            ✗ 彻底破坏特征值！[1 2; 2 4] (λ=5,0) → [1 2; 0 0] (λ=1,0)
+            特征值可能改变：[1 2; 2 4] (λ=5,0) → [1 2; 0 0] (λ=1,0)
           </text>
           <text x="28" y="412" className="fill-muted-foreground text-[11px]">
-            原因：仅左乘 E 而未右乘 E⁻¹，det(EA - λI) ≠ det(A - λI)
+            仅左乘 E，通常不保持特征多项式
           </text>
         </g>
 
@@ -434,7 +434,7 @@ export function SimilarityOrbitAndInvariantsDiagram({
             定理结论：特征值 / 迹 / 行列式相等仅为相似的「必要条件」；
           </text>
           <text x="28" y="420" className="fill-foreground text-[11px]">
-            充要判据：所有 Jordan 块尺寸（即各阶幂秩 rank((A-λI)ᵏ)）完全一致！
+            充要判据：每个特征值及其 Jordan 块尺寸均匹配
           </text>
         </g>
       </svg>
@@ -632,17 +632,17 @@ export function JordanCanonicalBlocksStructureDiagram({
               • J₃(λ₁) (3×3): rank(J₃ - λ₁I) = 2
             </text>
             <text x="20" y="61" className="fill-foreground text-[11px]">
-              ⇒ 仅 1 个真特征向量 v₁ = e₁
+              ⇒ 在 J 中贡献特征方向 e₁
             </text>
             <text x="12" y="84" className="fill-emerald-700 dark:fill-emerald-300 text-[11px] font-medium">
               • J₂(λ₂) (2×2): rank(J₂ - λ₂I) = 1
             </text>
             <text x="20" y="101" className="fill-foreground text-[11px]">
-              ⇒ 仅 1 个真特征向量 v₄ = e₄
+              ⇒ 在 J 中贡献特征方向 e₄
             </text>
             <line x1="12" y1="114" x2="190" y2="114" className="stroke-border" strokeWidth="1" />
             <text x="12" y="133" className="fill-amber-700 dark:fill-amber-300 text-[11px] font-bold">
-              ★ 每块无论多大，恰有 1 个特征向量
+              ★ 每块的特征空间为一维
             </text>
             <text x="12" y="151" className="fill-foreground text-[11px]">
               Jordan 块总数 s ≡ 无关特征向量总数
@@ -693,7 +693,7 @@ export function JordanCanonicalBlocksStructureDiagram({
             markerEnd="url(#l29-j-arrow-purple)"
           />
           <text x="123" y="311" textAnchor="middle" className="fill-foreground text-[9px] font-mono">
-            A-λI
+            A−λ₁I
           </text>
 
           <rect
@@ -722,7 +722,7 @@ export function JordanCanonicalBlocksStructureDiagram({
             markerEnd="url(#l29-j-arrow-blue)"
           />
           <text x="237" y="311" textAnchor="middle" className="fill-foreground text-[9px] font-mono">
-            A-λI
+            A−λ₁I
           </text>
 
           <rect
@@ -751,7 +751,7 @@ export function JordanCanonicalBlocksStructureDiagram({
             markerEnd="url(#l29-j-arrow-emerald)"
           />
           <text x="358" y="311" textAnchor="middle" className="fill-foreground text-[9px] font-mono">
-            A-λI
+            A−λ₁I
           </text>
 
           <circle
@@ -762,7 +762,7 @@ export function JordanCanonicalBlocksStructureDiagram({
             strokeWidth="1.4"
           />
           <text x="392" y="324" textAnchor="middle" className="fill-foreground text-xs font-mono font-bold">
-            0
+            𝟎
           </text>
 
           {/* Dynamics Note under chain */}
@@ -943,7 +943,7 @@ export function JordanCanonicalBlocksStructureDiagram({
             1  →  0  →  0  →  0
           </text>
           <text x="208" y="309" className="fill-muted-foreground text-[10px]">
-            3 个特征向量，仅 1 处亏损
+            3 个线性无关的特征向量
           </text>
 
           {/* Row 5: 1+1+1+1 */}

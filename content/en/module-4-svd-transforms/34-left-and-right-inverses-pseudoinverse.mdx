@@ -68,13 +68,13 @@ Its rank is only $n \lt m$, so it can never equal the $m \times m$ identity matr
 
 #### Why Is the Left Inverse Not Unique? A Minimal $3 \times 2$ Numerical Example
 
-When $n \lt m$, the left nullspace $\operatorname{Null}(A^T)$ has dimension $m - n \ge 1$—it is nontrivial! If we add any matrix $D \in \mathbb{R}^{n \times m}$ to the canonical left inverse such that **every row of $D$ lies in $\operatorname{Null}(A^T)$** (equivalently, $D A = O_{n \times n}$), then:
+When $n \lt m$, the left nullspace $\operatorname{Null}(A^T)$ has dimension $m - n \ge 1$—it is nontrivial! If we add any matrix $D \in \mathbb{R}^{n \times m}$ to the canonical left inverse such that **the transpose of every row of $D$ lies in $\operatorname{Null}(A^T)$** (equivalently, $D A = O_{n \times n}$), then:
 
 $$
 (A_{\text{left}}^{-1} + D) A = A_{\text{left}}^{-1} A + D A = I_n + O_{n \times n} = I_n
 $$
 
-Hence $A$ has **infinitely many left inverses**!
+Every left inverse has this form, since subtracting $A_{\text{left}}^{-1}$ from any left inverse gives a matrix $D$ with $DA=O$. A nonzero such $D$ gives infinitely many choices by scaling.
 
 **Concrete Numerical Check**: Take the $3 \times 2$ full-column-rank matrix:
 
@@ -163,7 +163,7 @@ $$
 A_{\text{right}}^{-1} A = A^T (A A^T)^{-1} A = P_{\operatorname{Row}(A)} \neq I_n
 $$
 
-Here, because $\dim \operatorname{Null}(A) = n - m \ge 1$, taking any matrix $E \in \mathbb{R}^{n \times m}$ whose columns lie in $\operatorname{Null}(A)$ (so $AE = O_{m \times m}$) gives $A(A_{\text{right}}^{-1} + E) = I_m$. Thus, there are also **infinitely many right inverses**.
+Here, because $\dim \operatorname{Null}(A) = n - m \ge 1$, taking any matrix $E \in \mathbb{R}^{n \times m}$ whose columns lie in $\operatorname{Null}(A)$ (so $AE = O_{m \times m}$) gives $A(A_{\text{right}}^{-1} + E) = I_m$. Conversely, every right inverse differs from $A_{\text{right}}^{-1}$ by a matrix $E$ with $AE=O$. Scaling a nonzero $E$ gives infinitely many choices.
 
 #### Why Is $A^T (AA^T)^{-1}$ the Canonical Right Inverse? — Minimum Euclidean Norm Exact Solution!
 When $r = m \lt n$, the equation $A\mathbf{x} = \mathbf{b}$ has infinitely many exact solutions for **every** $\mathbf{b} \in \mathbb{R}^m$, all of the form $\mathbf{x} = \mathbf{x}_{\text{particular}} + \mathbf{x}_n$ (where $\mathbf{x}_n \in \operatorname{Null}(A)$).
@@ -297,7 +297,7 @@ A = U \Sigma V^T = U_r \Sigma_r V_r^T = \sum_{i=1}^r \sigma_i \mathbf{u}_i \math
 $$
 
 Here:
-- $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ forms an orthonormal basis of $\operatorname{Row}(A)$, and $A$ maps it **one-to-one** onto the orthonormal basis $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ of $\operatorname{Col}(A)$:
+- $\{\mathbf{v}_1, \dots, \mathbf{v}_r\}$ forms an orthonormal basis of $\operatorname{Row}(A)$, and $A$ maps those vectors to positive multiples of the orthonormal basis $\{\mathbf{u}_1, \dots, \mathbf{u}_r\}$ of $\operatorname{Col}(A)$:
   $$
   A \mathbf{v}_i = \sigma_i \mathbf{u}_i \quad (\sigma_i \gt 0, \; 1 \le i \le r)
   $$
@@ -324,6 +324,7 @@ $$
    $$
    \Sigma^+ := \begin{bmatrix} \Sigma_r^{-1} & O_{r \times (m-r)} \\ O_{(n-r) \times r} & O_{(n-r) \times (m-r)} \end{bmatrix} \in \mathbb{R}^{n \times m}, \qquad \Sigma_r^{-1} = \operatorname{diag}\!\left(\frac{1}{\sigma_1}, \dots, \frac{1}{\sigma_r}\right)
    $$
+   For $r=0$, $\Sigma^+$ and $A^+$ are zero matrices of the indicated sizes, and the sum below is empty.
 2. **Moore-Penrose Pseudoinverse $A^+ \in \mathbb{R}^{n \times m}$**:
    $$
    A^+ := V \Sigma^+ U^T = V_r \Sigma_r^{-1} U_r^T = \sum_{i=1}^r \frac{1}{\sigma_i} \mathbf{v}_i \mathbf{u}_i^T
@@ -433,7 +434,7 @@ Notice that both $A^T A$ and $AA^T$ have rank $1$, so **both are singular and no
    A^+ A = \frac{1}{9} \begin{bmatrix} 1 & 2 & 2 \\ 2 & 4 & 4 \\ 2 & 4 & 4 \end{bmatrix} = \mathbf{v}_1 \mathbf{v}_1^T = P_{\operatorname{Row}(A)}, \qquad A A^+ = \frac{1}{5} \begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix} = \mathbf{u}_1 \mathbf{u}_1^T = P_{\operatorname{Col}(A)}
    $$
 5. Test an unreachable right-hand side $\mathbf{b} = [5, 0]^T \notin \operatorname{Col}(A)$:
-   - The pseudoinverse returns the unique recommended solution:
+   - The pseudoinverse returns the unique minimum-norm least-squares solution:
      $$
      \mathbf{x}^+ = A^+ \mathbf{b} = \frac{1}{45} \begin{bmatrix} 1 & 2 \\ 2 & 4 \\ 2 & 4 \end{bmatrix} \begin{bmatrix} 5 \\ 0 \end{bmatrix} = \frac{1}{9} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}
      $$
@@ -543,7 +544,7 @@ $$
 - **$0^+ = 0$, never $\infty$**: Zero singular values in $\Sigma^+$ must stay $0$ (mapping $\operatorname{Null}(A^T)$ to $\mathbf{0}$), which corresponds to discarding unreachable residuals in the output space—never divide by $0$.
 
 ### 4. Confusing an Arbitrary Left/Right Inverse with the Moore-Penrose Pseudoinverse $A^+$
-A full-column-rank matrix has infinitely many left inverses (such as a truncated inverse $L_1$ built by dropping extra rows), all satisfying $L_1 A = I_n$. Yet every left inverse other than $A^+ = (A^TA)^{-1}A^T$ fails Penrose condition (P3), $(AL_1)^T = AL_1$ (giving an oblique projection instead of an orthogonal projection), so **none of them is the pseudoinverse**!
+A tall full-column-rank matrix has infinitely many left inverses (such as a truncated inverse $L_1$ built by dropping extra rows), all satisfying $L_1 A = I_n$. Yet every left inverse other than $A^+ = (A^TA)^{-1}A^T$ fails Penrose condition (P3), $(AL_1)^T = AL_1$ (giving an oblique projection instead of an orthogonal projection), so **none of them is the pseudoinverse**!
 
 </PitfallAlert>
 
@@ -663,12 +664,12 @@ Determine whether the following compound statement is true or false, and provide
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="False! First, when $n \lt m$, $\dim \operatorname{Null}(A^T) = m - n \ge 1$, so adding any nonzero matrix $D$ whose rows lie in $\operatorname{Null}(A^T)$ to the canonical left inverse still satisfies $(A^+ + D)A = I_n$—there are infinitely many left inverses! Second, even when $A$ has full column rank (without requiring orthonormal columns), $(AB)^+ = B^+ A^+$ can fail dramatically!"
+  quickFeedback="False! First, when $n \lt m$, $\dim \operatorname{Null}(A^T) = m - n \ge 1$, so adding any nonzero matrix $D$ whose transposed rows lie in $\operatorname{Null}(A^T)$ to the canonical left inverse still satisfies $(A^+ + D)A = I_n$—there are infinitely many left inverses! Second, even when $A$ has full column rank (without requiring orthonormal columns), $(AB)^+ = B^+ A^+$ can fail dramatically!"
 />
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
   "For uniqueness of the left inverse: when $n \\lt m$, $\\dim \\operatorname{Null}(A^T) = m - n \\ge 1$. Any matrix $D$ satisfying $DA = O$ can be added to an existing left inverse.",
-  "For $(AB)^+ = B^+ A^+$: note carefully that full column rank ($r = n$) does NOT mean orthonormal columns ($A^TA \\neq I_n$)! Try choosing $m = 3, n = 2, k = 1$ with non-uniform column scaling in $A$."
+  "For $(AB)^+ = B^+ A^+$: note carefully that full column rank ($r=n$) allows $A^TA\\ne I_n$! Try choosing $m = 3, n = 2, k = 1$ with non-uniform column scaling in $A$."
 ]} />
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
@@ -782,11 +783,11 @@ $$
 
 <ExerciseCard id="l34-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Zero-Calculation SVD & Penrose Reasoning: Involution Law and Universal Gram Formula (AᵀA)⁺Aᵀ">
 
-Let $A \in \mathbb{R}^{m \times n}$ be any matrix (possibly rank-deficient, $r \lt \min(m, n)$). **Without computing individual matrix entries**, use the SVD $A = U\Sigma V^T$ (or the four Penrose equations) to prove the following three universal identities:
+Let $A \in \mathbb{R}^{m \times n}$ be any matrix (possibly rank-deficient). **Without computing individual matrix entries**, use the SVD $A = U\Sigma V^T$ (or the four Penrose equations) to prove the following three universal identities:
 
 1. **Involution and Transpose Commutation**: $(A^+)^+ = A$, and $(A^T)^+ = (A^+)^T$.
 2. **Normal Matrix Pseudoinverse**: $(A^T A)^+ = A^+ (A^+)^T$.
-3. **Unconditional Universal Left-Inverse Formula**: Whether or not $A^T A$ is invertible, we always have:
+3. **Universal Gram Formula**: Whether or not $A^T A$ is invertible, we always have:
    $$
    A^+ = (A^T A)^+ A^T
    $$
@@ -845,7 +846,7 @@ $$
 (A^T A)^+ A^T = V \begin{bmatrix} \Sigma_r^{-2} & O_{r \times (n-r)} \\ O_{(n-r) \times r} & O \end{bmatrix} \begin{bmatrix} \Sigma_r & O_{r \times (m-r)} \\ O_{(n-r) \times r} & O \end{bmatrix} U^T = V \begin{bmatrix} \Sigma_r^{-1} & O_{r \times (m-r)} \\ O_{(n-r) \times r} & O \end{bmatrix} U^T = V \Sigma^+ U^T = A^+
 $$
 
-**Meaning**: When $A$ has full column rank ($r = n$), $A^T A$ is invertible, so $(A^TA)^+ = (A^TA)^{-1}$ and the formula collapses to the familiar $(A^TA)^{-1}A^T$. When $r \lt n$ and $A^T A$ becomes singular, $(A^TA)^+$ preserves the first $r$ positive eigenvalues while setting the zero eigenvalues to zero via $0^+ = 0$, cleanly filtering out $\operatorname{Null}(A)$ and still recovering the exact unique $A^+$!
+**Meaning**: When $A$ has full column rank ($r = n$), $A^T A$ is invertible, so $(A^TA)^+ = (A^TA)^{-1}$ and the formula collapses to the familiar $(A^TA)^{-1}A^T$. When $r \lt n$ and $A^T A$ becomes singular, $(A^TA)^+$ takes reciprocals of the $r$ positive eigenvalues while setting the zero eigenvalues to zero via $0^+ = 0$, cleanly filtering out $\operatorname{Null}(A)$ and still recovering the exact unique $A^+$!
 </SolutionRigorous>
 </DualSolution>
 
@@ -973,99 +974,39 @@ A perfect match!
 <FrontierAIReading
   id="AI-15"
   title="Implicit Bias of Overparameterized Models: Why Unregularized Gradient Descent Automatically Converges to the Minimum-Norm Pseudoinverse Solution A⁺b"
-  paperRef="Zhang et al. (ICLR 2017) Rethinking Generalization · Soudry et al. (JMLR 2018) Implicit Bias"
+  paperRef="Gunasekar et al. (ICML 2018) Characterizing Implicit Bias in Terms of Optimization Geometry"
 >
 
-### 1. The #1 Mystery of Modern Deep Learning: Among Infinitely Many Zero-Error Solutions, Which One Does the Optimizer Pick?
+### 1. Which least-squares solution does gradient descent select?
 
-In classical statistics (and Case 2 of this lecture, the tall-and-thin regime $N \gt d$), we fit a small number of parameters to many data points, so the system is overdetermined. In today's large language models and overparameterized neural networks, the situation flips completely: the parameter dimension $d$ vastly exceeds the number of training examples $N$ ($d \gg N$). This lands squarely in **Case 3 (short-and-wide full row rank $r = N \lt d$)** or even **Case 4 (rank-deficient with highly correlated features $r \lt N \lt d$)**!
-
-Consider overparameterized linear regression (or network training in the linearized Neural Tangent Kernel, NTK, regime): given a data matrix $A \in \mathbb{R}^{N \times d}$ and labels $\mathbf{y} \in \mathbb{R}^N$ with $d \gg N$, the weight vectors $\mathbf{w} \in \mathbb{R}^d$ that achieve zero training error ($A\mathbf{w} = \mathbf{y}$) form an affine subspace of dimension $d - r \gg 1$:
+Fix a real feature matrix $A\in\mathbb{R}^{N\times d}$ and targets $\mathbf{y}\in\mathbb{R}^N$. Full-batch gradient descent on the squared loss uses
 
 $$
-\mathcal{S}_{\text{interp}} = \mathbf{w}^+ + \operatorname{Null}(A)
+L(\mathbf{w})=\frac12\|A\mathbf{w}-\mathbf{y}\|_2^2,\qquad
+\mathbf{w}_{t+1}=\mathbf{w}_t-\eta A^T(A\mathbf{w}_t-\mathbf{y}).
 $$
 
-Hidden inside $\mathcal{S}_{\text{interp}}$ are infinitely many terrible solutions that **memorize the training set with zero loss (Loss $= 0$)**—simply add a huge nullspace component $\mathbf{w}_n \in \operatorname{Null}(A)$ to $\mathbf{w}^+$. Because $A\mathbf{w}_n = \mathbf{0}$, it is completely invisible on the training data, yet it causes catastrophic prediction blowups on unseen test points $\mathbf{a}_{\text{test}} \notin \operatorname{Row}(A)$!
+When $\operatorname{rank}(A)\lt d$, the least-squares solution set is $A^+\mathbf{y}+\operatorname{Null}(A)$. If $\mathbf{y}\in\operatorname{Col}(A)$, these solutions all interpolate the training data. The update rule and initialization determine which solution is selected. This is the implicit bias in this example.
 
-Yet the astonishing empirical discovery (Zhang et al., ICLR 2017) is that **even without any explicit $\ell_2$ weight decay regularization, running standard Gradient Descent (GD) from zero or tiny weights consistently avoids those poorly generalizing interpolators and converges to a solution that generalizes remarkably well!**
+### 2. Prove convergence in SVD coordinates
 
-Why does unregularized gradient descent behave as if guided by an "invisible hand"? That is the central theorem of **Implicit Bias (Implicit Regularization)** in deep learning theory—and its entire mechanism takes just **three lines of pure linear algebra** to prove!
-
----
-
-### 2. A Three-Line Pure Linear Algebra Proof: Gradient Descent Never Enters the Nullspace
-
-Consider the mean-squared-error loss function:
+Set $\mathbf{w}^+=A^+\mathbf{y}$. The normal equations give $A^T(A\mathbf{w}^+-\mathbf{y})=\mathbf{0}$. Subtracting the fixed-point equation for $\mathbf{w}^+$ from the update gives
 
 $$
-L(\mathbf{w}) = \frac{1}{2} \|A\mathbf{w} - \mathbf{y}\|_2^2
+\mathbf{w}_{t+1}-\mathbf{w}^+=(I_d-\eta A^T A)(\mathbf{w}_t-\mathbf{w}^+).
 $$
 
-#### Line 1: Every Gradient Step Is Locked Strictly Inside the Row Space $\operatorname{Row}(A)$
-Differentiating with respect to $\mathbf{w}$:
+Along a right singular vector $\mathbf{v}_i$ with $\sigma_i\gt 0$, each step multiplies the error by $1-\eta\sigma_i^2$. For $A\ne O$ and $0\lt\eta\lt 2/\sigma_1(A)^2$, each such factor has absolute value less than $1$. Along the nullspace the factor is $1$, so its component stays fixed. Therefore
 
 $$
-\nabla_{\mathbf{w}} L(\mathbf{w}_t) = A^T (A\mathbf{w}_t - \mathbf{y})
+\lim_{t\to\infty}\mathbf{w}_t=A^+\mathbf{y}+P_{\operatorname{Null}(A)}\mathbf{w}_0.
 $$
 
-Notice that regardless of what the residual vector $\mathbf{r}_t := A\mathbf{w}_t - \mathbf{y} \in \mathbb{R}^N$ inside the parentheses looks like, multiplying on the left by $A^T$ produces a linear combination of the columns of $A^T$! That is:
+If $A=O$, the gradient is $\mathbf{0}$ and the same limit holds for any $\eta\gt 0$. Zero initialization gives the unique minimum-norm least-squares solution $A^+\mathbf{y}$. For general initialization the limit is the least-squares solution closest to $\mathbf{w}_0$, by orthogonal projection onto the affine solution set.
 
-$$
-\nabla_{\mathbf{w}} L(\mathbf{w}_t) \in \operatorname{Col}(A^T) = \operatorname{Row}(A) \qquad (\forall t \ge 0)
-$$
+### 3. How does the nullspace component affect a new prediction?
 
-Because $\operatorname{Row}(A) \perp \operatorname{Null}(A)$, the gradient's projection onto $\operatorname{Null}(A)$ is **identically zero throughout training**!
-
-#### Line 2: Induction from Zero Initialization—The Trajectory Never Leaves $\operatorname{Row}(A)$
-Suppose we start at the origin $\mathbf{w}_0 = \mathbf{0} \in \operatorname{Row}(A)$ and run gradient descent with step size $\eta \gt 0$:
-
-$$
-\mathbf{w}_{t+1} = \mathbf{w}_t - \eta \nabla_{\mathbf{w}} L(\mathbf{w}_t) = \mathbf{w}_t - \eta A^T (A\mathbf{w}_t - \mathbf{y})
-$$
-
-By mathematical induction: $\mathbf{w}_0 = \mathbf{0} \in \operatorname{Row}(A)$, and every update $-\eta A^T(A\mathbf{w}_t - \mathbf{y})$ lies in $\operatorname{Row}(A)$. Since a subspace is closed under addition:
-
-$$
-\mathbf{w}_t \in \operatorname{Row}(A) \qquad (\forall t = 0, 1, 2, \dots)
-$$
-
-Throughout the entire optimization trajectory, the nullspace component $P_{\operatorname{Null}(A)}\mathbf{w}_t$ remains pinned at $\mathbf{0}$!
-
-#### Line 3: The Bijection Theorem Pins Down the Unique Limit—The Pseudoinverse Solution $A^+ \mathbf{y}$
-When the step size satisfies the convergence condition $0 \lt \eta \lt \frac{2}{\sigma_1^2(A)}$, convex optimization guarantees convergence to a global least-squares minimizer $\mathbf{w}_\infty \in \mathcal{S}_{\text{LS}}$ (meaning $A\mathbf{w}_\infty = \mathbf{y}$ in the consistent interpolable case, or $A\mathbf{w}_\infty = P_{\operatorname{Col}(A)}\mathbf{y}$ even with inconsistent noise). Because the finite-dimensional subspace $\operatorname{Row}(A)$ is closed, the limit point also satisfies:
-
-$$
-\mathbf{w}_\infty \in \operatorname{Row}(A) \cap \mathcal{S}_{\text{LS}}
-$$
-
-By our **Row-to-Column Space Bijection Theorem** and **Unique Minimum-Norm Least-Squares Theorem**, among the entire least-squares solution set $\mathcal{S}_{\text{LS}} = \mathbf{w}^+ + \operatorname{Null}(A)$, **there is one and only one vector lying in $\operatorname{Row}(A)$**—namely:
-
-$$
-\mathbf{w}_\infty = A^+ \mathbf{y} = \arg\min_{\mathbf{w} \in \mathcal{S}_{\text{LS}}} \|\mathbf{w}\|_2
-$$
-
-**Q.E.D.!** Gradient descent finds the minimum-norm solution without any explicit $\lambda \|\mathbf{w}\|_2^2$ penalty because **the update trajectory itself is geometrically confined to $\operatorname{Row}(A)$, the orthogonal complement of the nullspace**!
-
----
-
-### 3. Extension to Nonzero Initialization $\mathbf{w}_0 \neq \mathbf{0}$: Why Initialization Scale Directly Controls Generalization
-
-What happens in practice when we use a random nonzero initialization $\mathbf{w}_0 \neq \mathbf{0}$? Orthogonally decompose the initial weights:
-
-$$
-\mathbf{w}_0 = \mathbf{w}_{0,\text{row}} + \mathbf{w}_{0,\text{null}}, \qquad \mathbf{w}_{0,\text{row}} = P_{\operatorname{Row}(A)}\mathbf{w}_0, \quad \mathbf{w}_{0,\text{null}} = P_{\operatorname{Null}(A)}\mathbf{w}_0
-$$
-
-Because every gradient step $\nabla_{\mathbf{w}} L(\mathbf{w}_t) \in \operatorname{Row}(A)$ is orthogonal to $\operatorname{Null}(A)$, gradient descent **cannot see and can never modify** the initial nullspace component $\mathbf{w}_{0,\text{null}}$! Hence $P_{\operatorname{Null}(A)}\mathbf{w}_t \equiv \mathbf{w}_{0,\text{null}}$ for all $t \ge 0$, and the limit point is exactly:
-
-$$
-\mathbf{w}_\infty = A^+ \mathbf{y} + P_{\operatorname{Null}(A)} \mathbf{w}_0 = \arg\min_{\mathbf{w} \in \mathcal{S}_{\text{LS}}} \|\mathbf{w} - \mathbf{w}_0\|_2
-$$
-
-This yields a golden principle confirmed repeatedly in deep learning practice:
-1. Any initial nullspace noise $P_{\operatorname{Null}(A)}\mathbf{w}_0$ from random initialization is **permanently frozen** into the trained model;
-2. Using **small-variance initialization** (keeping $\|\mathbf{w}_0\|_2$ small) or adding mild weight decay (which shrinks the frozen $\operatorname{Null}(A)$ component exponentially as $(1 - \eta \lambda)^t$) pulls the parameters back toward the minimum-norm manifold $\operatorname{Row}(A)$, curbing overfitting and explaining **benign overfitting** and **double descent**!
+For a test feature vector $\mathbf{a}$, the initial nullspace component changes the prediction by $\mathbf{a}^T P_{\operatorname{Null}(A)}\mathbf{w}_0$. Its magnitude is bounded by $\|\mathbf{a}\|_2\|P_{\operatorname{Null}(A)}\mathbf{w}_0\|_2$, and it vanishes when $\mathbf{a}\in\operatorname{Row}(A)$. This result characterizes solution selection in the fixed linear model. Test error also depends on the data distribution.
 
 <CollapsibleCode language="python" title="implicit_bias_gd_pseudoinverse.py">
 ```python
@@ -1115,7 +1056,7 @@ def verify_implicit_bias_pseudoinverse():
     print("=" * 72)
     print("1. Overparameterized & Rank-Deficient Interpolation (N=10, d=40, rank=8):")
     print(f"   Zero-init GD final training loss:       {loss_zero:.2e}")
-    print(f"   ||w_gd_zero - A^+ y||_2 discrepancy:    {dist_to_pinv:.2e} (exact convergence to A^+ y!)")
+    print(f"   ||w_gd_zero - A^+ y||_2 discrepancy:    {dist_to_pinv:.2e}")
     print(f"   ||w_gd_zero||_2 = {torch.norm(w_gd_zero).item():.6f}  vs  ||A^+ y||_2 = {torch.norm(w_pinv).item():.6f}")
 
     # 2. Random nonzero-initialized GD: verify that the Null(A) component is permanently frozen
@@ -1133,14 +1074,18 @@ def verify_implicit_bias_pseudoinverse():
     dist_to_theory = torch.norm(w_gd_rand - w_theory_rand).item()
 
     print("\n2. Nonzero-init w0 Gradient Descent (Nullspace Freezing Theorem):")
-    print(f"   Nonzero-init GD final training loss:    {loss_rand:.2e} (also interpolates with zero error!)")
+    print(f"   Nonzero-init GD final training loss:    {loss_rand:.2e}")
     print(f"   ||w_gd_rand - (A^+ y + P_Null(w0))||_2 = {dist_to_theory:.2e}")
     print(f"   ||w_gd_rand||_2 = {torch.norm(w_gd_rand).item():.6f}  >  ||A^+ y||_2 = {torch.norm(w_pinv).item():.6f}")
     print("   Conclusion: Unregularized GD implicitly finds the least-squares solution closest to w0!")
 
     # 3. Inconsistent system check (with unreachable orthogonal noise in Null(A^T))
-    y_noisy = y + 0.5 * (torch.randn(N, dtype=torch.float64) - U_sub @ (U_sub.T @ torch.randn(N, dtype=torch.float64)))
+    noise = torch.randn(N, dtype=torch.float64)
+    orthogonal_noise = noise - U_sub @ (U_sub.T @ noise)
+    y_noisy = y + 0.5 * orthogonal_noise
     w_pinv_noisy = torch.linalg.pinv(A) @ y_noisy
+    assert torch.allclose(A.T @ orthogonal_noise, torch.zeros_like(w_pinv), atol=1e-12)
+    assert torch.allclose(w_pinv_noisy, w_pinv, atol=1e-12)
     w_gd_noisy = torch.zeros(d, dtype=torch.float64)
     for _ in range(3000):
         w_gd_noisy = w_gd_noisy - eta * (A.T @ (A @ w_gd_noisy - y_noisy))

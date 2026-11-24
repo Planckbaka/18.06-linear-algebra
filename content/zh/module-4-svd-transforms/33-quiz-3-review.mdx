@@ -37,13 +37,13 @@ textbookRef: "Ch. 6–8 Review"
 | **实对称半正定矩阵 (PSD)** | $A = A^T \in \mathbb{R}^{n\times n}$<br/>$\forall \mathbf{x} \in \mathbb{R}^n, \mathbf{x}^T A \mathbf{x} \ge 0$ | 全部特征值非负<br/>$\lambda_1, \dots, \lambda_n \ge 0$ | 存在 $A = R^T R$（$R$ 允许列不满秩）；如 Gram 阵 $A^T A$ | 退化柱面碗（沿零空间方向平直无曲率）；所有主子式非负 |
 | **实反对称矩阵 (Skew-Symmetric)** | $K \in \mathbb{R}^{n\times n}$<br/>$K^T = -K$ | 全部非零特征值为纯虚数<br/>$\lambda_i = i\omega_i$ ($\omega_i \in \mathbb{R}$) | 可酉对角化（因 $K^T K = K K^T$ 正规）；奇数阶必有 $\lambda = 0$ | 无穷小刚体旋转生成元；$\mathbf{x}^T K \mathbf{x} \equiv 0$；$e^{Kt}$ 恒为正交矩阵 |
 | **相似变换 (Similar)** | $B = M^{-1} A M$<br/>$M \in \mathbb{C}^{n\times n}$ 可逆 | 特征多项式与特征值全同（含重数与所有幂次秩） | 将原特征向量 $\mathbf{x}$ 映为 $M^{-1}\mathbf{x}$；一般不保对称性与正交性 | 同一线性算子 $T: V \to V$ 在不同坐标系下的矩阵表示 |
-| **合同变换 (Congruent)** | $B = M^T A M$ ($A = A^T$)<br/>$M \in \mathbb{R}^{n\times n}$ 可逆 | 一般**改变**特征值大小，但严格保持惯性指数 $(n_+, n_-, n_0)$ | 保持对称性与秩；当且仅当 $M$ 正交时与相似变换重合 | 同一二次型能量函数在不同坐标基 $\mathbf{x} = M\mathbf{y}$ 下的表达 |
-| **Jordan 块 (Jordan Block)** | $J_k(\lambda) \in \mathbb{C}^{k\times k}$<br/>主对角为 $\lambda$，超对角为 $1$ | 单一特征值 $\lambda$<br/>$\operatorname{AM}(\lambda) = k, \operatorname{GM}(\lambda) = 1$ | 仅有 $1$ 个特征向量，需 $k-1$ 个广义特征向量组成链 | 不可对角化亏损算子的原子积木；在动力系统中产生 $t^{j}e^{\lambda t}$ 项 |
-| **奇异值分解 (SVD)** | 任意 $A \in \mathbb{R}^{m\times n}$<br/>$A = U\Sigma V^T$ | 非零奇异值 $\sigma_1 \ge \dots \ge \sigma_r \gt 0$（$\sigma_i = \sqrt{\lambda_i(A^T A)}$） | $V \in \mathbb{R}^{n\times n}$ 正交（$\operatorname{Row}, \operatorname{Null}$ 基）<br/>$U \in \mathbb{R}^{m\times m}$ 正交（$\operatorname{Col}, \operatorname{Null}(A^T)$ 基） | 任意矩阵将单位球面映为椭球：正交对齐 $\to$ 轴向拉伸 $\to$ 正交定向 |
+| **合同变换 (Congruent)** | $B = M^T A M$ ($A = A^T$)<br/>$M \in \mathbb{R}^{n\times n}$ 可逆 | 一般**改变**特征值大小，但严格保持惯性指数 $(n_+, n_-, n_0)$ | 保持对称性与秩；对所有 $A$ 与相似公式重合当且仅当 $M$ 正交 | 同一二次型能量函数在不同坐标基 $\mathbf{x} = M\mathbf{y}$ 下的表达 |
+| **Jordan 块 (Jordan Block)** | $J_k(\lambda) \in \mathbb{C}^{k\times k}$<br/>主对角为 $\lambda$，超对角为 $1$ | 单一特征值 $\lambda$<br/>$\operatorname{AM}(\lambda) = k, \operatorname{GM}(\lambda) = 1$ | 特征空间为一维，Jordan 链还含 $k-1$ 个广义特征向量 | 不可对角化亏损算子的原子积木；在动力系统中产生 $t^{j}e^{\lambda t}$ 项 |
+| **奇异值分解 (SVD)** | 任意 $A \in \mathbb{R}^{m\times n}$<br/>$A = U\Sigma V^T$ | 非零奇异值 $\sigma_1 \ge \dots \ge \sigma_r \gt 0$（$\sigma_i = \sqrt{\lambda_i(A^T A)}$） | $V \in \mathbb{R}^{n\times n}$ 正交（$\operatorname{Row}, \operatorname{Null}$ 基）<br/>$U \in \mathbb{R}^{m\times m}$ 正交（$\operatorname{Col}, \operatorname{Null}(A^T)$ 基） | 任意矩阵将单位球体映为可能退化的椭球体：正交对齐 $\to$ 轴向拉伸 $\to$ 正交定向 |
 
 此外，从全课程高度审视三大等价变换与五大矩阵分解的边界：
 1. **三类基本矩阵等价关系**：高斯消元 $EA$（保持行空间与零空间，破坏特征值）、合同变换 $M^T A M$（保持二次型惯性符号，改变特征值数值）、相似变换 $M^{-1} A M$（保持线性算子的全部谱结构与 Jordan 块）。
-2. **两大通用正交基分解的终极桥梁**：对任意方阵，若只许**单侧换基**（$M^{-1} A M$），最好也只能化为分块上三角或 Jordan 标准形 $J$；一旦允许**输入与输出双侧独立正交换基**（$U^T A V$），任意 $m\times n$ 矩阵都能一步化为纯非负对角矩阵 $\Sigma$！
+2. **两大通用正交基分解的终极桥梁**：对任意方阵，若输入与输出共用一组基（$M^{-1} A M$），在复数域上总可用酉换基得到上三角 Schur 形式，也可用一般可逆换基得到 Jordan 标准形 $J$；一旦允许**输入与输出双侧独立正交换基**（$U^T A V$），任意 $m\times n$ 矩阵都能一步化为纯非负对角矩阵 $\Sigma$！
 
 </DefinitionCard>
 
@@ -59,11 +59,12 @@ Quiz 3 的核心证明题与综合大题要求在“对称谱、能量碗、Jord
 
 1. **特征值纯实性**：$A$ 的全部 $n$ 个特征值必定是**实数**（$\lambda_1, \dots, \lambda_n \in \mathbb{R}$），在实对称情形下总能选出全实特征向量。
 2. **异谱正交性**：属于不同特征值（$\lambda_i \ne \lambda_j$）的特征向量必然相互正交（$\mathbf{x}_i^T \mathbf{x}_j = 0$，复空间为 $\mathbf{x}_i^H \mathbf{x}_j = 0$）。
-3. **谱分解与秩 1 正交投影之和**：必定存在实正交矩阵 $Q = [\mathbf{q}_1, \dots, \mathbf{q}_n] \in \mathbb{R}^{n\times n}$（$Q^T Q = Q Q^T = I_n$）以及实对角矩阵 $\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n)$，使得：
+3. **谱分解与秩 1 正交投影之和**：在实对称情形下，存在实正交矩阵 $Q = [\mathbf{q}_1, \dots, \mathbf{q}_n] \in \mathbb{R}^{n\times n}$（$Q^T Q = Q Q^T = I_n$）以及实对角矩阵 $\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n)$，使得：
    $$
    A = Q \Lambda Q^T = \sum_{i=1}^n \lambda_i \mathbf{q}_i \mathbf{q}_i^T = \sum_{i=1}^n \lambda_i P_i
    $$
    其中 $P_i = \mathbf{q}_i \mathbf{q}_i^T$ 是相互正交的对称秩 1 投影矩阵，满足 $P_i^2 = P_i = P_i^T$、$P_i P_j = O$（$i \ne j$）且完备分解恒等式 $\sum_{i=1}^n P_i = I_n$。
+   对 Hermitian 矩阵，$A=U\Lambda U^H$，其中 $U$ 为酉矩阵、$\Lambda$ 为实对角阵，投影为 $P_i=\mathbf{u}_i\mathbf{u}_i^H$。
 4. **复 Schur 上三角化与正规矩阵边界**：任意复方阵 $A \in \mathbb{C}^{n\times n}$ 均可经酉矩阵化为上三角形式 $A = U T U^H$（Schur 分解）；当且仅当 $A$ 为**正规矩阵（Normal Matrix）**，即满足 $A^H A = A A^H$（涵盖 Hermitian 矩阵 $A^H = A$、反 Hermitian 矩阵 $A^H = -A$ 与酉矩阵 $U^H U = I$，包括归一化傅里叶矩阵 $\frac{1}{\sqrt{n}}F_n$）时，上三角矩阵 $T$ 强制退化为对角矩阵 $\Lambda$，即 $A$ 可酉对角化为 $A = U \Lambda U^H$。
 
 </TheoremCard>
@@ -169,13 +170,14 @@ $$
    - 对**任意** $\lambda \in \mathbb{C}$ 与非负整数 $k \ge 0$，保持幂次矩阵的秩：$\operatorname{rank}\!\left((B - \lambda I_n)^k\right) = \operatorname{rank}\!\left((A - \lambda I_n)^k\right)$，从而保持几何重数 $\operatorname{GM}(\lambda)$ 与全套 Jordan 块结构；
    - **重要警示**：相似变换一般**不保持对称性或 Hermitian 性**。
 2. **合同变换与 Sylvester 惯性定理（Congruence Transformation, $B = M^T A M$）**：  
-   设 $A = A^T \in \mathbb{R}^{n\times n}$ 为实对称矩阵，$M \in \mathbb{R}^{n\times n}$ 为任意可逆实矩阵，令 $B = M^T A M$（复空间为 $B = M^H A M$）。则 $B$ 仍为实对称矩阵且 $\operatorname{rank}(B) = \operatorname{rank}(A)$；虽然 $B$ 的特征值数值一般与 $A$ **不同**，但它们拥有完全相同的**惯性指数（Inertia）**——即正、负、零特征值的各自个数：
+   设 $A = A^T \in \mathbb{R}^{n\times n}$ 为实对称矩阵，$M \in \mathbb{R}^{n\times n}$ 为任意可逆实矩阵，令 $B = M^T A M$。则 $B$ 仍为实对称矩阵且 $\operatorname{rank}(B) = \operatorname{rank}(A)$；虽然 $B$ 的特征值数值一般与 $A$ **不同**，但它们拥有完全相同的**惯性指数（Inertia）**——即正、负、零特征值的各自个数：
    $$
    \big(n_+(B),\; n_-(B),\; n_0(B)\big) = \big(n_+(A),\; n_-(A),\; n_0(A)\big)
    $$
    特别推论：若不换行消元分解 $A = L D L^T$，因 $D = L^{-1} A (L^{-1})^T$ 与 $A$ 合同，所以**主元 $d_i$ 的正、负、零个数精确等于 $A$ 的特征值 $\lambda_i$ 的正、负、零个数**！
+   对复 Hermitian 矩阵 $A$ 与可逆复矩阵 $M$，$B=M^H A M$ 仍为 Hermitian，且惯性指数相同。
 3. **两大变换的唯一交集**：  
-   矩阵映射 $M^{-1} A M$ 与 $M^T A M$ 重合（既保全部特征值精确数值，又保对称性与二次型形状），**当且仅当** $M$ 为实正交矩阵（$M^T = M^{-1}$），即 $B = Q^T A Q$（复空间为酉矩阵 $U^H A U$）。
+   两个公式对每个实对称矩阵 $A$ 都给出同一结果，**当且仅当** $M$ 为实正交矩阵（$M^T = M^{-1}$），即 $B = Q^T A Q$（复空间为酉矩阵 $U^H A U$）。
 
 </TheoremCard>
 
@@ -210,6 +212,8 @@ $$
      $$
    - 因为 $M$ 可逆，反写 $A = (M^{-1})^T B M^{-1}$ 对调 $A, B$ 重复完全相同的步骤，即得 $n'_+ \le n_+$，故 $n_+ = n'_+$。
 3. 对 $-A$ 与 $-B = M^T (-A) M$ 应用同样结果即得 $n_- = n'_-$。证毕！
+
+复 Hermitian 情形的证明相同，把实子空间与转置分别换成复子空间与共轭转置。比较相似与合同公式时，取 $A=I_n$ 即得必要条件 $M^T M=I_n$（复情形为 $M^H M=I_n$），逆矩阵公式给出充分性。
 
 </ProofCollapse>
 
@@ -340,6 +344,13 @@ $$
   $$
 从而 $\|A - B\|_2 \ge \sigma_{k+1} = \|A - A_k\|_2$！这就是数据降维与压缩的基石定理。
 
+**第三步：证明 Frobenius 范数下的最优性。** 设 $P$ 是到 $\operatorname{Col}(B)$ 的正交投影，故 $PB=B$。逐列应用勾股定理，得到
+$$
+\|A-B\|_F^2 \ge \|(I_m-P)A\|_F^2
+=\sum_{i=1}^r \sigma_i^2(1-\|P\mathbf{u}_i\|_2^2).
+$$
+权重 $\|P\mathbf{u}_i\|_2^2$ 在 $[0,1]$ 内，总和至多为 $\operatorname{tr}(P)=\operatorname{rank}(B)\le k$。由于 $\sigma_i^2$ 递减，加权保留的能量至多为 $\sum_{i=1}^k\sigma_i^2$。因此上式至少为 $\sum_{i=k+1}^r\sigma_i^2$，且 $B=A_k$ 取等。
+
 </ProofCollapse>
 
 ---
@@ -354,7 +365,7 @@ $$
 1. **矩阵表示唯一构造法则**：  
    选定输入空间有序基 $\mathcal{B}_V = (\mathbf{v}_1, \dots, \mathbf{v}_n)$ 与输出空间有序基 $\mathcal{B}_W = (\mathbf{w}_1, \dots, \mathbf{w}_m)$，则存在唯一的矩阵 $A = [T]_{\mathcal{B}_W \leftarrow \mathcal{B}_V} \in \mathbb{F}^{m\times n}$，其第 $j$ 列恰好是 $T(\mathbf{v}_j)$ 在输出基 $\mathcal{B}_W$ 下的坐标向量 $[T(\mathbf{v}_j)]_{\mathcal{B}_W}$：
    $$
-   T(\mathbf{v}_j) = \sum_{i=1}^m a_{ij} \mathbf{w}_i \iff [T(\mathbf{x})]_{\mathcal{B}_W} = A \, [\mathbf{x}]_{\mathcal{B}_V}, \quad \forall \mathbf{x} \in V
+   T(\mathbf{v}_j) = \sum_{i=1}^m a_{ij} \mathbf{w}_i \quad (1\le j\le n), \qquad [T(\mathbf{x})]_{\mathcal{B}_W} = A \, [\mathbf{x}]_{\mathcal{B}_V}, \quad \forall \mathbf{x} \in V
    $$
 2. **同空间单基换基公式（相似变换 $B = M^{-1} A M$）**：  
    当 $V = W$ 且输入输出采用**同一组基**时，若从旧基 $\mathcal{B}$ 切换为新基 $\mathcal{B}'$，令基变换矩阵 $M \in \mathbb{F}^{n\times n}$ 的第 $j$ 列为新基向量 $\mathbf{b}'_j$ 在旧基下的坐标（即 $[\mathbf{x}]_{\mathcal{B}} = M [\mathbf{x}]_{\mathcal{B}'}$），则算子 $T$ 在新基下的矩阵 $B = [T]_{\mathcal{B}' \leftarrow \mathcal{B}'}$ 与旧基矩阵 $A = [T]_{\mathcal{B} \leftarrow \mathcal{B}}$ 满足**相似关系**：
@@ -362,7 +373,7 @@ $$
    B = M^{-1} A M
    $$
 3. **双空间自由换基与图像/信号“好基”准则**：  
-   若允许独立更换输入基 $\mathcal{B}'_V$（过渡矩阵 $V_0$）与输出基 $\mathcal{B}'_W$（过渡矩阵 $U_0$），矩阵变为 $U_0^{-1} A V_0$；当取标准正交奇异基时即得 $\Sigma = U^T A V$。而在工程与信号压缩（如 DFT、DCT 离散余弦基、Haar 小波基 $\mathbf{x} = W\mathbf{c}$）中，一组“好基”必须兼具两大特性：**快速正交变换算法**（如 $\mathcal{O}(n\log n)$ 或 $\mathcal{O}(n)$）与**能量高度集中**（仅需极少数非零大系数即可无损近似重构原信号）。
+   若允许独立更换输入基 $\mathcal{B}'_V$（过渡矩阵 $V_0$）与输出基 $\mathcal{B}'_W$（过渡矩阵 $U_0$），矩阵变为 $U_0^{-1} A V_0$；对坐标矩阵取成对奇异向量基，在实数域有 $\Sigma = U^T A V$，在复数域有 $\Sigma=U^H A V$。而在工程与信号压缩（如 DFT、DCT 离散余弦基、Haar 小波基 $\mathbf{x} = W\mathbf{c}$）中，一组“好基”必须兼具两大特性：**快速正交变换算法**（如 $\mathcal{O}(n\log n)$ 或 $\mathcal{O}(n)$）与**能量高度集中**（仅需极少数非零大系数即可低误差近似重构原信号）。
 
 </TheoremCard>
 
@@ -384,7 +395,7 @@ $$
 M [\mathbf{y}]_{\mathcal{B}'} = [\mathbf{y}]_{\mathcal{B}} = A [\mathbf{x}]_{\mathcal{B}} = A (M [\mathbf{x}]_{\mathcal{B}'}) = (A M) [\mathbf{x}]_{\mathcal{B}'}
 $$
 因为基变换矩阵 $M$ 可逆，两端左乘 $M^{-1}$ 得 $[\mathbf{y}]_{\mathcal{B}'} = (M^{-1} A M) [\mathbf{x}]_{\mathcal{B}'}$。对比表示矩阵的唯一性，必有 $B = M^{-1} A M$！
-若在一般映射 $T: V \to W$ 中将输入坐标换为 $[\mathbf{x}]_{\mathcal{B}_V} = V_0 [\mathbf{x}]_{\mathcal{B}'_V}$、输出坐标换为 $[\mathbf{y}]_{\mathcal{B}_W} = U_0 [\mathbf{y}]_{\mathcal{B}'_W}$，完全相同的推导给出 $[\mathbf{y}]_{\mathcal{B}'_W} = (U_0^{-1} A V_0) [\mathbf{x}]_{\mathcal{B}'_V}$；取正交矩阵 $U_0 = U, V_0 = V$ 即还原 $\Sigma = U^T A V$！
+若在一般映射 $T: V \to W$ 中将输入坐标换为 $[\mathbf{x}]_{\mathcal{B}_V} = V_0 [\mathbf{x}]_{\mathcal{B}'_V}$、输出坐标换为 $[\mathbf{y}]_{\mathcal{B}_W} = U_0 [\mathbf{y}]_{\mathcal{B}'_W}$，完全相同的推导给出 $[\mathbf{y}]_{\mathcal{B}'_W} = (U_0^{-1} A V_0) [\mathbf{x}]_{\mathcal{B}'_V}$；取实标准正交或复酉奇异向量基，即得相应的 SVD 形式。
 
 </ProofCollapse>
 
@@ -457,6 +468,8 @@ $$
 
 请先在下方检验关于实反对称矩阵的经典真伪判断：
 
+**判断题**：对任意实反对称矩阵 $K$，其在复数域上的全部特征值实部为零，且对每个 $t\in\mathbb{R}$，$e^{Kt}$ 都是正交矩阵。
+
 <TrueFalseInteractive
   id="l33-tf1"
   correct={true}
@@ -506,7 +519,7 @@ $$
 $$
 \frac{d}{dt}\|\mathbf{u}(t)\|_2^2 = \frac{d}{dt}(\mathbf{u}^T \mathbf{u}) = (K\mathbf{u})^T \mathbf{u} + \mathbf{u}^T (K\mathbf{u}) = \mathbf{u}^T (K^T + K) \mathbf{u} = \mathbf{u}^T O \mathbf{u} = 0
 $$
-故 $\|\mathbf{u}(t)\|_2 = \|\mathbf{u}(0)\|_2$ 对一切 $t \in \mathbb{R}$ 恒成立。进一步，因矩阵指数导数与转置可交换，且 $-Kt$ 与 $Kt$ 显然乘法可交换：
+故 $\|\mathbf{u}(t)\|_2 = \|\mathbf{u}(0)\|_2$ 对一切 $t \in \mathbb{R}$ 恒成立。进一步，因矩阵指数与转置可交换，且 $-Kt$ 与 $Kt$ 显然乘法可交换：
 $$
 (e^{Kt})^T e^{Kt} = e^{K^T t} e^{Kt} = e^{-Kt} e^{Kt} = e^{(-Kt + Kt)} = e^{O} = I_n
 $$
@@ -530,7 +543,7 @@ $$
 $$
 \|\mathbf{u}(0)\|_2 e^{-3t} \le \|\mathbf{u}(t)\|_2 \le \|\mathbf{u}(0)\|_2 e^{-t} \qquad (\forall t \ge 0)
 $$
-（注意：虽然 $A$ 的特征值为 $-2 \pm 2\sqrt{2}i$，实部均为 $-2$，但瞬间旋转耦合使瞬时衰减率在 $e^{-3t}$ 与 $e^{-t}$ 之间摇摆！）
+取初值 $\mathbf{q}_2$ 或 $\mathbf{q}_1$ 时，$t=0$ 的范数对数导数分别为 $-3$ 与 $-1$。因此在前置系数为 $1$ 的统一界中，两指数均无法改进。零初值得到零解。对非零状态，瞬时对数衰减率位于 $[-3,-1]$，而 $A$ 的特征值为 $-2\pm2\sqrt{2}i$。
 
 </SolutionRigorous>
 </DualSolution>
@@ -554,7 +567,7 @@ $$
 
 1. 分别利用顺序主子式与 $A(c) = L D L^T$ 分解，求出使 $A(c)$ **严格正定（SPD）** 的全部实参数 $c$ 的取值范围；
 2. 写出二次型 $q(x_1, x_2, x_3) = \mathbf{x}^T A(c) \mathbf{x}$ 的“配平方和”表达式，据此确定使 $A(c)$ **半正定（PSD）** 的参数范围，并在临界值 $c = c_*$ 处求出使 $\mathbf{x}^T A(c_*) \mathbf{x} = 0$ 的全部非零方向（即 $\operatorname{Null}(A(c_*))$）；
-3. 对正定矩阵 $B$，求出其**对称平方根矩阵** $B^{1/2} = Q \sqrt{\Lambda} Q^T$（验证 $(B^{1/2})^2 = B$），并写出等高椭圆 $\mathbf{x}^T B \mathbf{x} = 1$ 的长短半轴长度及其各自指向的单位方向向量。
+3. 对正定矩阵 $B$，求出其**对称正定平方根矩阵** $B^{1/2} = Q \sqrt{\Lambda} Q^T$（验证 $(B^{1/2})^2 = B$），并写出等高椭圆 $\mathbf{x}^T B \mathbf{x} = 1$ 的长短半轴长度及其各自指向的单位方向向量。
 
 <ProgressiveHint hints={[
   "依次计算顺序主子式 $\\det(A_1), \\det(A_2), \\det(A_3)$；消元主元 $d_k$ 与系数平方正好揭示二次型的配方式。",

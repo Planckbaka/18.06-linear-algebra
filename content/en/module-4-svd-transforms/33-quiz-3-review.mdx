@@ -37,13 +37,13 @@ Before walking into MIT 18.06 Quiz 3, make sure this master reference table cove
 | **Symmetric Positive Semidefinite (PSD)** | $A = A^T \in \mathbb{R}^{n\times n}$<br/>$\forall \mathbf{x} \in \mathbb{R}^n, \mathbf{x}^T A \mathbf{x} \ge 0$ | All eigenvalues non-negative<br/>$\lambda_1, \dots, \lambda_n \ge 0$ | Factors as $A = R^T R$ ($R$ may be rank-deficient); e.g. Gram matrix $A^T A$ | Degenerate trough/cylinder bowl (flat along $\operatorname{Null}(A)$); all principal minors $\ge 0$ |
 | **Real Skew-Symmetric** | $K \in \mathbb{R}^{n\times n}$<br/>$K^T = -K$ | All nonzero eigenvalues are pure imaginary<br/>$\lambda_i = i\omega_i$ ($\omega_i \in \mathbb{R}$) | Unitarily diagonalizable ($K^T K = K K^T$); odd $n$ always has $\lambda = 0$ | Infinitesimal rotation generator; $\mathbf{x}^T K \mathbf{x} \equiv 0$; $e^{Kt}$ is always orthogonal |
 | **Similarity** | $B = M^{-1} A M$<br/>$M \in \mathbb{C}^{n\times n}$ invertible | Identical characteristic polynomial & eigenvalues (with all power ranks) | Maps eigenvector $\mathbf{x}$ to $M^{-1}\mathbf{x}$; generally breaks symmetry & orthogonality | Same linear operator $T: V \to V$ expressed in two different coordinate bases |
-| **Congruence** | $B = M^T A M$ ($A = A^T$)<br/>$M \in \mathbb{R}^{n\times n}$ invertible | Generally **changes** eigenvalue magnitudes, but preserves inertia $(n_+, n_-, n_0)$ | Preserves symmetry and rank; coincides with similarity iff $M$ is orthogonal | Same quadratic energy form expressed under coordinate change $\mathbf{x} = M\mathbf{y}$ |
-| **Jordan Block** | $J_k(\lambda) \in \mathbb{C}^{k\times k}$<br/>$\lambda$ on diagonal, $1$ on superdiagonal | Single eigenvalue $\lambda$<br/>$\operatorname{AM}(\lambda) = k, \operatorname{GM}(\lambda) = 1$ | Only $1$ eigenvector, plus $k-1$ generalized eigenvectors in a chain | Atomic building block of non-diagonalizable operators; produces $t^j e^{\lambda t}$ in ODEs |
-| **Singular Value Decomposition (SVD)** | Any $A \in \mathbb{R}^{m\times n}$<br/>$A = U\Sigma V^T$ | Nonzero singular values $\sigma_1 \ge \dots \ge \sigma_r \gt 0$ ($\sigma_i = \sqrt{\lambda_i(A^T A)}$) | $V \in \mathbb{R}^{n\times n}$ orthogonal ($\operatorname{Row}, \operatorname{Null}$)<br/>$U \in \mathbb{R}^{m\times m}$ orthogonal ($\operatorname{Col}, \operatorname{Null}(A^T)$) | Maps unit sphere to ellipsoid: orthogonal align $\to$ axis stretch $\to$ orthogonal orient |
+| **Congruence** | $B = M^T A M$ ($A = A^T$)<br/>$M \in \mathbb{R}^{n\times n}$ invertible | Generally **changes** eigenvalue magnitudes, but preserves inertia $(n_+, n_-, n_0)$ | Preserves symmetry and rank; agrees with similarity for every $A$ iff $M$ is orthogonal | Same quadratic energy form expressed under coordinate change $\mathbf{x} = M\mathbf{y}$ |
+| **Jordan Block** | $J_k(\lambda) \in \mathbb{C}^{k\times k}$<br/>$\lambda$ on diagonal, $1$ on superdiagonal | Single eigenvalue $\lambda$<br/>$\operatorname{AM}(\lambda) = k, \operatorname{GM}(\lambda) = 1$ | One independent eigenvector and $k-1$ further vectors in its Jordan chain | Atomic building block of non-diagonalizable operators; produces $t^j e^{\lambda t}$ in ODEs |
+| **Singular Value Decomposition (SVD)** | Any $A \in \mathbb{R}^{m\times n}$<br/>$A = U\Sigma V^T$ | Nonzero singular values $\sigma_1 \ge \dots \ge \sigma_r \gt 0$ ($\sigma_i = \sqrt{\lambda_i(A^T A)}$) | $V \in \mathbb{R}^{n\times n}$ orthogonal ($\operatorname{Row}, \operatorname{Null}$)<br/>$U \in \mathbb{R}^{m\times m}$ orthogonal ($\operatorname{Col}, \operatorname{Null}(A^T)$) | Maps the unit ball to a possibly degenerate ellipsoid: orthogonal align $\to$ axis stretch $\to$ orthogonal orient |
 
 From a course-wide vantage point, keep the boundaries among the three matrix equivalences and two universal orthogonal factorizations crystal clear:
 1. **Three Fundamental Equivalence Relations**: Gaussian elimination $EA$ (preserves row space and nullspace, destroys eigenvalues), congruence $M^T A M$ (preserves quadratic inertia signs, changes eigenvalue magnitudes), and similarity $M^{-1} A M$ (preserves the entire spectrum and Jordan block structure of a linear operator).
-2. **The Ultimate Bridge Between One-Sided and Two-Sided Basis Changes**: For a square matrix, if you allow only a **single shared basis change** ($M^{-1} A M$), the best you can always achieve is block upper-triangular (Schur) or Jordan form $J$. Once you allow **independent orthonormal basis changes in the input and output spaces** ($U^T A V$), every $m\times n$ matrix diagonalizes in one stroke to a pure non-negative diagonal matrix $\Sigma$!
+2. **The Ultimate Bridge Between One-Sided and Two-Sided Basis Changes**: For a square matrix, if you allow only a **single shared basis change** ($M^{-1} A M$), over $\mathbb{C}$ you can always reach an upper-triangular Schur form by a unitary change, or Jordan form by an invertible change. Once you allow **independent orthonormal basis changes in the input and output spaces** ($U^T A V$), every $m\times n$ matrix diagonalizes in one stroke to a pure non-negative diagonal matrix $\Sigma$!
 
 </DefinitionCard>
 
@@ -59,11 +59,12 @@ Let $A \in \mathbb{R}^{n\times n}$ be real symmetric ($A = A^T$), or more genera
 
 1. **Real Eigenvalues**: Every eigenvalue of $A$ is **real** ($\lambda_1, \dots, \lambda_n \in \mathbb{R}$), and in the real symmetric case we can always choose purely real eigenvectors.
 2. **Orthogonality Across Distinct Eigenvalues**: Eigenvectors corresponding to distinct eigenvalues ($\lambda_i \ne \lambda_j$) are automatically orthogonal ($\mathbf{x}_i^T \mathbf{x}_j = 0$, or $\mathbf{x}_i^H \mathbf{x}_j = 0$ over $\mathbb{C}$).
-3. **Spectral Decomposition as Rank-1 Projections**: There exists a real orthogonal matrix $Q = [\mathbf{q}_1, \dots, \mathbf{q}_n] \in \mathbb{R}^{n\times n}$ ($Q^T Q = Q Q^T = I_n$) and a real diagonal matrix $\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n)$ such that:
+3. **Spectral Decomposition as Rank-1 Projections**: In the real symmetric case, there exists a real orthogonal matrix $Q = [\mathbf{q}_1, \dots, \mathbf{q}_n] \in \mathbb{R}^{n\times n}$ ($Q^T Q = Q Q^T = I_n$) and a real diagonal matrix $\Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_n)$ such that:
    $$
    A = Q \Lambda Q^T = \sum_{i=1}^n \lambda_i \mathbf{q}_i \mathbf{q}_i^T = \sum_{i=1}^n \lambda_i P_i
    $$
    where each $P_i = \mathbf{q}_i \mathbf{q}_i^T$ is a symmetric rank-1 orthogonal projection satisfying $P_i^2 = P_i = P_i^T$, $P_i P_j = O$ for $i \ne j$, and the completeness identity $\sum_{i=1}^n P_i = I_n$.
+   For a Hermitian matrix, $A=U\Lambda U^H$ with $U$ unitary and $\Lambda$ real diagonal, and the projections are $P_i=\mathbf{u}_i\mathbf{u}_i^H$.
 4. **Complex Schur Triangularization & the Normal Matrix Boundary**: Every complex square matrix $A \in \mathbb{C}^{n\times n}$ is unitarily similar to an upper-triangular matrix, $A = U T U^H$ (Schur decomposition). Moreover, $A$ is unitarily diagonalizable ($A = U \Lambda U^H$) **if and only if** $A$ is a **normal matrix**, meaning $A^H A = A A^H$ (which includes Hermitian $A^H = A$, skew-Hermitian $A^H = -A$, and unitary $U^H U = I$ matrices such as the normalized Fourier matrix $\frac{1}{\sqrt{n}}F_n$).
 
 </TheoremCard>
@@ -94,7 +95,7 @@ Rearranging gives $(\lambda_i - \lambda_j)(\mathbf{x}_i^H \mathbf{x}_j) = 0$. Si
 **Step 3: Complete the spectral decomposition by induction on $n$ (valid even with repeated eigenvalues!).**
 
 - For $n = 1$, every $1\times 1$ real matrix is already diagonal; take $Q = [1]$.
-- Assume the theorem holds for $(n-1)\times (n-1)$ real symmetric matrices. Given an $n\times n$ real symmetric matrix $A$, Step 1 guarantees at least one real eigenvalue $\lambda_1 \in \mathbb{R}$ and a unit real eigenvector $\mathbf{q}_1 \in \mathbb{R}^n$ ($\|\mathbf{q}_1\|_2 = 1$). Extend $\mathbf{q}_1$ via Gram-Schmidt to an orthonormal basis of $\mathbb{R}^n$, forming an orthogonal matrix $Q_1 = [\mathbf{q}_1 \;\; \tilde{Q}] \in \mathbb{R}^{n\times n}$ (so $\tilde{Q}^T \mathbf{q}_1 = \mathbf{0}$ and $\tilde{Q}^T \tilde{Q} = I_{n-1}$). Compute the block product:
+- Assume the theorem holds for $(n-1)\times (n-1)$ real symmetric matrices. Given an $n\times n$ real symmetric matrix $A$, the fundamental theorem of algebra and Step 1 give at least one real eigenvalue $\lambda_1 \in \mathbb{R}$ and a unit real eigenvector $\mathbf{q}_1 \in \mathbb{R}^n$ ($\|\mathbf{q}_1\|_2 = 1$). Extend $\mathbf{q}_1$ via Gram-Schmidt to an orthonormal basis of $\mathbb{R}^n$, forming an orthogonal matrix $Q_1 = [\mathbf{q}_1 \;\; \tilde{Q}] \in \mathbb{R}^{n\times n}$ (so $\tilde{Q}^T \mathbf{q}_1 = \mathbf{0}$ and $\tilde{Q}^T \tilde{Q} = I_{n-1}$). Compute the block product:
   $$
   Q_1^T A Q_1 = \begin{bmatrix} \mathbf{q}_1^T \\ \tilde{Q}^T \end{bmatrix} \begin{bmatrix} \lambda_1 \mathbf{q}_1 & A\tilde{Q} \end{bmatrix} = \begin{bmatrix} \lambda_1 \mathbf{q}_1^T \mathbf{q}_1 & \mathbf{q}_1^T A \tilde{Q} \\ \lambda_1 \tilde{Q}^T \mathbf{q}_1 & \tilde{Q}^T A \tilde{Q} \end{bmatrix}
   $$
@@ -169,13 +170,14 @@ Let $M$ be an invertible $n\times n$ matrix acting as a change-of-basis matrix. 
    - For **every** $\lambda \in \mathbb{C}$ and integer $k \ge 0$, the power ranks $\operatorname{rank}\!\left((B - \lambda I_n)^k\right) = \operatorname{rank}\!\left((A - \lambda I_n)^k\right)$, which preserves geometric multiplicities $\operatorname{GM}(\lambda)$ and the entire Jordan block structure;
    - **Critical Warning**: Similarity generally **does not preserve symmetry or Hermitianness**.
 2. **Congruence Transformation & Sylvester's Law of Inertia ($B = M^T A M$)**:  
-   Let $A = A^T \in \mathbb{R}^{n\times n}$ be real symmetric and $M \in \mathbb{R}^{n\times n}$ be any invertible real matrix, with $B = M^T A M$ (over $\mathbb{C}$, $B = M^H A M$). Then $B$ remains symmetric with $\operatorname{rank}(B) = \operatorname{rank}(A)$. Although $B$'s eigenvalues generally **differ numerically** from $A$'s, $A$ and $B$ share the exact same **inertia**—the counts of positive, negative, and zero eigenvalues:
+   Let $A = A^T \in \mathbb{R}^{n\times n}$ be real symmetric and $M \in \mathbb{R}^{n\times n}$ be any invertible real matrix, with $B = M^T A M$. Then $B$ remains real symmetric with $\operatorname{rank}(B) = \operatorname{rank}(A)$. Although $B$'s eigenvalues generally **differ numerically** from $A$'s, $A$ and $B$ share the exact same **inertia**—the counts of positive, negative, and zero eigenvalues:
    $$
    \big(n_+(B),\; n_-(B),\; n_0(B)\big) = \big(n_+(A),\; n_-(A),\; n_0(A)\big)
    $$
    Immediate corollary: in $A = L D L^T$ (without row swaps), $D = L^{-1} A (L^{-1})^T$ is congruent to $A$, so **the numbers of positive, negative, and zero pivots $d_i$ equal the numbers of positive, negative, and zero eigenvalues $\lambda_i$ of $A$**!
+   For complex Hermitian $A$ and invertible complex $M$, $B=M^H A M$ is Hermitian with the same inertia.
 3. **The Unique Intersection of Both Worlds**:  
-   The maps $M^{-1} A M$ and $M^T A M$ coincide (preserving exact eigenvalues *and* symmetry/quadratic-form geometry) **if and only if** $M$ is orthogonal ($M^T = M^{-1}$), i.e., $B = Q^T A Q$ (or unitary $U^H A U$ over $\mathbb{C}$).
+   The two formulas give the same result for every real symmetric $A$ **if and only if** $M$ is orthogonal ($M^T = M^{-1}$), i.e., $B = Q^T A Q$ (or unitary $U^H A U$ over $\mathbb{C}$).
 
 </TheoremCard>
 
@@ -210,6 +212,8 @@ Let $A$ have inertia $(n_+, n_-, n_0)$ and $B = M^T A M$ have inertia $(n'_+, n'
      $$
    - Writing $A = (M^{-1})^T B M^{-1}$ and swapping the roles of $A$ and $B$ yields $n'_+ \le n_+$, so $n_+ = n'_+$.
 3. Applying the same argument to $-A$ and $-B = M^T (-A) M$ gives $n_- = n'_-$. Q.E.D.
+
+The same dimension argument over $\mathbb{C}$ proves the Hermitian case with conjugate transposes. For equality of the two formulas for every $A$, taking $A=I_n$ gives $M^T M=I_n$ (or $M^H M=I_n$ over $\mathbb{C}$). The inverse formula gives the converse.
 
 </ProofCollapse>
 
@@ -340,6 +344,13 @@ Now let $B \in \mathbb{R}^{m\times n}$ be **any** matrix with $\operatorname{ran
   $$
 Thus $\|A - B\|_2 \ge \sigma_{k+1} = \|A - A_k\|_2$, establishing the cornerstone theorem of dimensionality reduction and data compression.
 
+**Step 3: Prove optimality in the Frobenius norm.** Let $P$ project orthogonally onto $\operatorname{Col}(B)$, so $PB=B$. Applying Pythagoras to each column gives
+$$
+\|A-B\|_F^2 \ge \|(I_m-P)A\|_F^2
+=\sum_{i=1}^r \sigma_i^2(1-\|P\mathbf{u}_i\|_2^2).
+$$
+The weights $\|P\mathbf{u}_i\|_2^2$ lie in $[0,1]$ and sum to at most $\operatorname{tr}(P)=\operatorname{rank}(B)\le k$. Since the $\sigma_i^2$ are decreasing, the weighted retained energy is at most $\sum_{i=1}^k\sigma_i^2$. The lower bound is therefore $\sum_{i=k+1}^r\sigma_i^2$, attained by $B=A_k$.
+
 </ProofCollapse>
 
 ---
@@ -354,7 +365,7 @@ $$
 1. **Unique Matrix Representation**:  
    Given an ordered input basis $\mathcal{B}_V = (\mathbf{v}_1, \dots, \mathbf{v}_n)$ and an ordered output basis $\mathcal{B}_W = (\mathbf{w}_1, \dots, \mathbf{w}_m)$, there is a unique matrix $A = [T]_{\mathcal{B}_W \leftarrow \mathcal{B}_V} \in \mathbb{F}^{m\times n}$ whose $j$-th column is the coordinate vector $[T(\mathbf{v}_j)]_{\mathcal{B}_W}$ of $T(\mathbf{v}_j)$ in $\mathcal{B}_W$:
    $$
-   T(\mathbf{v}_j) = \sum_{i=1}^m a_{ij} \mathbf{w}_i \iff [T(\mathbf{x})]_{\mathcal{B}_W} = A \, [\mathbf{x}]_{\mathcal{B}_V}, \quad \forall \mathbf{x} \in V
+   T(\mathbf{v}_j) = \sum_{i=1}^m a_{ij} \mathbf{w}_i \quad (1\le j\le n), \qquad [T(\mathbf{x})]_{\mathcal{B}_W} = A \, [\mathbf{x}]_{\mathcal{B}_V}, \quad \forall \mathbf{x} \in V
    $$
 2. **Same-Space Single-Basis Change (Similarity $B = M^{-1} A M$)**:  
    When $V = W$ and input and output use the **same basis**, switching from an old basis $\mathcal{B}$ to a new basis $\mathcal{B}'$ via the change-of-basis matrix $M \in \mathbb{F}^{n\times n}$ (whose $j$-th column is $[\mathbf{b}'_j]_{\mathcal{B}}$, so $[\mathbf{x}]_{\mathcal{B}} = M [\mathbf{x}]_{\mathcal{B}'}$) transforms $A = [T]_{\mathcal{B} \leftarrow \mathcal{B}}$ into $B = [T]_{\mathcal{B}' \leftarrow \mathcal{B}'}$ by **similarity**:
@@ -362,7 +373,7 @@ $$
    B = M^{-1} A M
    $$
 3. **Two-Space Independent Basis Change & "Good Bases" in Signal Processing**:  
-   If we independently change the input basis $\mathcal{B}'_V$ (transition matrix $V_0$) and output basis $\mathcal{B}'_W$ (transition matrix $U_0$), the matrix becomes $U_0^{-1} A V_0$; choosing orthonormal singular bases yields $\Sigma = U^T A V$. In engineering and compression (such as DFT, DCT, and Haar wavelets $\mathbf{x} = W\mathbf{c}$), a "good basis" combines two traits: a **fast orthogonal transform** ($\mathcal{O}(n\log n)$ or $\mathcal{O}(n)$) and **high energy compaction** (a handful of large coefficients suffice to reconstruct the signal).
+   If we independently change the input basis $\mathcal{B}'_V$ (transition matrix $V_0$) and output basis $\mathcal{B}'_W$ (transition matrix $U_0$), the matrix becomes $U_0^{-1} A V_0$; choosing the paired singular bases of the coordinate matrix gives $\Sigma = U^T A V$ over $\mathbb{R}$ and $\Sigma=U^H A V$ over $\mathbb{C}$. In engineering and compression (such as DFT, DCT, and Haar wavelets $\mathbf{x} = W\mathbf{c}$), a "good basis" combines two traits: a **fast orthogonal transform** ($\mathcal{O}(n\log n)$ or $\mathcal{O}(n)$) and **high energy compaction** (a handful of large coefficients suffice to reconstruct the signal).
 
 </TheoremCard>
 
@@ -383,7 +394,7 @@ $$
 M [\mathbf{y}]_{\mathcal{B}'} = [\mathbf{y}]_{\mathcal{B}} = A [\mathbf{x}]_{\mathcal{B}} = A (M [\mathbf{x}]_{\mathcal{B}'}) = (A M) [\mathbf{x}]_{\mathcal{B}'}
 $$
 Multiplying on the left by $M^{-1}$ gives $[\mathbf{y}]_{\mathcal{B}'} = (M^{-1} A M) [\mathbf{x}]_{\mathcal{B}'}$. By uniqueness of the representing matrix, $B = M^{-1} A M$!
-For a general map $T: V \to W$ with $[\mathbf{x}]_{\mathcal{B}_V} = V_0 [\mathbf{x}]_{\mathcal{B}'_V}$ and $[\mathbf{y}]_{\mathcal{B}_W} = U_0 [\mathbf{y}]_{\mathcal{B}'_W}$, the identical steps yield $[\mathbf{y}]_{\mathcal{B}'_W} = (U_0^{-1} A V_0) [\mathbf{x}]_{\mathcal{B}'_V}$; taking orthogonal $U_0 = U$ and $V_0 = V$ recovers $\Sigma = U^T A V$!
+For a general map $T: V \to W$ with $[\mathbf{x}]_{\mathcal{B}_V} = V_0 [\mathbf{x}]_{\mathcal{B}'_V}$ and $[\mathbf{y}]_{\mathcal{B}_W} = U_0 [\mathbf{y}]_{\mathcal{B}'_W}$, the identical steps yield $[\mathbf{y}]_{\mathcal{B}'_W} = (U_0^{-1} A V_0) [\mathbf{x}]_{\mathcal{B}'_V}$; taking the real singular-vector bases or the complex unitary singular-vector bases gives the stated SVD forms.
 
 </ProofCollapse>
 
@@ -426,7 +437,7 @@ For a general map $T: V \to W$ with $[\mathbf{x}]_{\mathcal{B}_V} = V_0 [\mathbf
 5. **Pitfall 5: Confusing "Pivot Values Equal Eigenvalues" With "Pivot Signs Match Eigenvalue Signs"**  
    In $A = L D L^T$, the pivots $d_1, \dots, d_n$ almost never equal the eigenvalues $\lambda_1, \dots, \lambda_n$ (for $A = [[2, 1], [1, 2]]$, the pivots are $2, \frac{3}{2}$ while the eigenvalues are $3, 1$). Sylvester's Law of Inertia guarantees only that the **counts** of positive, negative, and zero entries match.
 6. **Pitfall 6: Confusing Similarity $M^{-1}AM$ With Congruence $M^TAM$ (and Dropping Conjugates Over $\mathbb{C}$)**  
-   $M^{-1} A M$ preserves the spectrum and Jordan structure of a linear operator $T: V \to V$, whereas $M^T A M$ preserves symmetry and inertia of a quadratic form $\mathbf{x}^T A \mathbf{x}$. They coincide only when $M$ is orthogonal ($M^T = M^{-1}$). Also, in $\mathbb{C}^n$, always use $\mathbf{z}^H \mathbf{w}$ rather than $\mathbf{z}^T \mathbf{w}$ (for $\mathbf{z} = [1, i]^T$, $\mathbf{z}^T \mathbf{z} = 1 + i^2 = 0$ would falsely give zero length!).
+   $M^{-1} A M$ preserves the spectrum and Jordan structure of a linear operator $T: V \to V$, whereas $M^T A M$ preserves symmetry and inertia of a quadratic form $\mathbf{x}^T A \mathbf{x}$. They coincide for every real symmetric $A$ precisely when $M$ is orthogonal ($M^T = M^{-1}$). Also, in $\mathbb{C}^n$, always use $\mathbf{z}^H \mathbf{w}$ rather than $\mathbf{z}^T \mathbf{w}$ (for $\mathbf{z} = [1, i]^T$, $\mathbf{z}^T \mathbf{z} = 1 + i^2 = 0$ would falsely give zero length!).
 
 </PitfallAlert>
 
@@ -437,7 +448,7 @@ For a general map $T: V \to W$ with $[\mathbf{x}]_{\mathcal{B}_V} = V_0 [\mathbf
 <KeyTakeaways title="Key Takeaways" items={[
   "Golden Rule of the Spectral Theorem: Real symmetric ($A = A^T$) and complex Hermitian ($A = A^H$) matrices have purely real eigenvalues, orthogonal eigenspaces for distinct eigenvalues, and factor into rank-1 orthogonal projections $A = Q\\Lambda Q^T = \\sum \\lambda_i \\mathbf{q}_i \\mathbf{q}_i^T$; the Fourier matrix satisfies $F_n^H F_n = nI_n$ with FFT complexity $\\frac{1}{2}n\\log_2 n$.",
   "Five-Way SPD Equivalence: Assuming $A = A^T$, $\\mathbf{x}^T A \\mathbf{x} \\gt 0$, $\\lambda_i \\gt 0$, $\\det(A_k) \\gt 0$, $LDL^T$ pivots $d_i \\gt 0$, and $A = R^T R$ (full column rank, including Cholesky and $A^{1/2}$) are all equivalent; the ellipsoid $\\mathbf{x}^T A \\mathbf{x} = 1$ has semi-axes $1/\\sqrt{\\lambda_i}$.",
-  "Similarity vs. Congruence: Similarity $M^{-1}AM$ preserves characteristic polynomials, trace, determinant, and Jordan blocks; congruence $M^T A M$ preserves inertia $(n_+, n_-, n_0)$ by Sylvester's Law (matching pivot signs to eigenvalue signs); they meet only at orthogonal $Q^T A Q$.",
+  "Similarity vs. Congruence: Similarity $M^{-1}AM$ preserves characteristic polynomials, trace, determinant, and Jordan blocks; congruence $M^T A M$ preserves inertia $(n_+, n_-, n_0)$ by Sylvester's Law (matching pivot signs to eigenvalue signs); the two formulas agree for every matrix when using orthogonal $Q^T A Q$.",
   "Jordan Blocks & Defectiveness: Each chain of generalized eigenvectors forms one Jordan block, so the total number of blocks equals the number of independent eigenvectors; block sizes are uniquely determined by $b_k(\\lambda_0) = r_{k-1} - 2r_k + r_{k+1}$.",
   "Universal SVD & Sign Locking: For any $A \\in \\mathbb{R}^{m\\times n}$, solving $A^T A \\mathbf{v}_i = \\sigma_i^2 \\mathbf{v}_i$ and setting $\\mathbf{u}_i = \\frac{1}{\\sigma_i}A\\mathbf{v}_i$ locks signs consistently to yield $A = U\\Sigma V^T$, giving orthonormal bases for all four subspaces and the optimal rank-$k$ approximation $A_k$ (Eckart-Young).",
   "Coordinate-Free Linear Operators: Fixing input and output bases gives a unique matrix $[T]_{\\mathcal{B}_W \\leftarrow \\mathcal{B}_V}$; changing a single shared basis on $V \\to V$ obeys similarity $B = M^{-1}AM$, while independent orthonormal basis changes on $V$ and $W$ diagonalize every operator to $\\Sigma = U^T A V$."
@@ -469,9 +480,9 @@ $$
 
 1. Find the spectral decomposition $S = Q\Lambda Q^T$, and explicitly solve the linear ODE $\frac{d\mathbf{v}}{dt} = S\mathbf{v}$ with initial condition $\mathbf{v}(0) = [3, 1]^T$.
 2. For any real skew-symmetric matrix $K \in \mathbb{R}^{n\times n}$ ($K^T = -K$), prove that $\frac{d\mathbf{u}}{dt} = K\mathbf{u}$ strictly conserves the Euclidean norm $\|\mathbf{u}(t)\|_2$, and prove that $e^{Kt}$ is always an orthogonal matrix.
-3. Now consider the coupled non-symmetric system $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$ ($A = S + K$). Setting $E(t) = \|\mathbf{u}(t)\|_2^2$, prove that $\frac{dE}{dt} = 2\mathbf{u}(t)^T S \mathbf{u}(t)$ (so $K$ cancels out of the instantaneous energy rate), and use the eigenvalues of $S$ to find sharp exponential upper and lower decay bounds for $\|\mathbf{u}(t)\|_2$ ($t \ge 0$).
+3. Now consider the coupled non-symmetric system $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$ ($A = S + K$). Setting $E(t) = \|\mathbf{u}(t)\|_2^2$, prove that $\frac{dE}{dt} = 2\mathbf{u}(t)^T S \mathbf{u}(t)$ (so $K$ cancels out of the instantaneous energy rate), and use the eigenvalues of $S$ to find optimal uniform exponential upper and lower decay bounds with prefactor $1$ for $\|\mathbf{u}(t)\|_2$ ($t \ge 0$).
 
-First test the classic true/false property of real skew-symmetric matrices below:
+**True or false?** For every real skew-symmetric $K$, all complex eigenvalues have real part zero, and $e^{Kt}$ is orthogonal for every $t\in\mathbb{R}$.
 
 <TrueFalseInteractive
   id="l33-tf1"
@@ -555,7 +566,7 @@ For $E(0) \gt 0$, dividing by $E(t)$ and integrating from $0$ to $t \ge 0$ gives
 $$
 \|\mathbf{u}(0)\|_2 e^{-3t} \le \|\mathbf{u}(t)\|_2 \le \|\mathbf{u}(0)\|_2 e^{-t} \qquad (\forall t \ge 0)
 $$
-(Note: although $A$ has eigenvalues $-2 \pm 2\sqrt{2}i$ with real part $-2$, the rotational coupling causes the instantaneous decay rate to oscillate between $e^{-3t}$ and $e^{-t}$!)
+The exponents are optimal in these bounds with prefactor $1$: the instantaneous logarithmic derivative at $t=0$ equals $-3$ for $\mathbf{u}(0)=\mathbf{q}_2$ and $-1$ for $\mathbf{u}(0)=\mathbf{q}_1$. The zero initial state gives the zero solution. For nonzero states the instantaneous logarithmic rate lies in $[-3,-1]$; the eigenvalues of $A$ are $-2\pm2\sqrt{2}i$.
 
 </SolutionRigorous>
 </DualSolution>
@@ -972,7 +983,7 @@ Check:
 $$
 M_2^{-1} A M_2 = \begin{bmatrix} 1 & -1 & 1 \\ 0 & 1 & -2 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} -1 & 0 & 1 \\ 0 & 0 & 2 \\ 0 & 0 & 1 \end{bmatrix} = \begin{bmatrix} -1 & 0 & 0 \\ 0 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix} = \operatorname{diag}(-1, 0, 1)
 $$
-We use similarity $M^{-1} A M$ rather than SVD $\Sigma = U^T A V$ for two reasons: (1) $T: \mathcal{P}_2 \to \mathcal{P}_2$ maps the space to itself and we insist on using the **same basis** for both input and output (requiring $M^{-1}$ on the left to pair with $M$ on the right); (2) no inner product was specified on $\mathcal{P}_2$, so orthogonality is not even defined—and in coordinate space, $M_2^T \ne M_2^{-1}$.
+We use similarity $M^{-1} A M$ rather than SVD $\Sigma = U^T A V$ for two reasons: (1) $T: \mathcal{P}_2 \to \mathcal{P}_2$ maps the space to itself and we insist on using the **same basis** for both input and output (requiring $M^{-1}$ on the left to pair with $M$ on the right); (2) an intrinsic choice of singular bases would require specified inner products. The coordinate matrix $A$ still has a Euclidean SVD, and the Taylor change of basis itself satisfies $M_2^T \ne M_2^{-1}$.
 
 </SolutionRigorous>
 </DualSolution>

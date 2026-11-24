@@ -25,24 +25,24 @@ $$
 c_1 \mathbf{v}_1 + c_2 \mathbf{v}_2 + c_3 \mathbf{v}_3 = \mathbf{0} \quad (\text{where } c_1, c_2, c_3 \text{ are not all } 0)
 $$
 
-This naturally leads to the rigorous definition of **linear independence** and **linear dependence**. Note carefully: **linear independence is a property of a *set of vectors* (a matrix itself is never called "linearly independent"—only the *columns* of a matrix can be linearly independent)!**
+Linear independence is a property of a list of vectors. In this lecture the list usually consists of the columns of a matrix. Keeping the list matters because repeating a vector makes the list dependent.
 
 <DefinitionCard
   label="Definition 9.1"
-  title="Linear Independence, Span, and Basis of a Set of Vectors"
+  title="Linear Independence, Span, and Basis"
 >
 Let $\mathbf{v}_1, \mathbf{v}_2, \dots, \mathbf{v}_k \in \mathbb{R}^m$ be a sequence of vectors, and assemble them as the columns of the matrix $V = [\mathbf{v}_1 \; \cdots \; \mathbf{v}_k] \in \mathbb{R}^{m\times k}$:
 
-1. **Linearly Independent**: The vectors $\{\mathbf{v}_1, \dots, \mathbf{v}_k\}$ are **linearly independent** if the *only* linear combination that gives the zero vector, $c_1\mathbf{v}_1 + c_2\mathbf{v}_2 + \cdots + c_k\mathbf{v}_k = \mathbf{0}$, is the trivial combination $c_1 = c_2 = \cdots = c_k = 0$.
-   - **Equivalent Matrix Language**: $\{\mathbf{v}_1, \dots, \mathbf{v}_k\}$ are linearly independent $\iff \operatorname{Null}(V) = \{\mathbf{0}\} \iff \operatorname{rank}(V) = k$ (full column rank, with zero free variables!).
+1. **Linearly Independent**: The list $(\mathbf{v}_1, \dots, \mathbf{v}_k)$ is **linearly independent** if the *only* linear combination that gives the zero vector, $c_1\mathbf{v}_1 + c_2\mathbf{v}_2 + \cdots + c_k\mathbf{v}_k = \mathbf{0}$, is the trivial combination $c_1 = c_2 = \cdots = c_k = 0$.
+   - **Equivalent Matrix Language**: $(\mathbf{v}_1, \dots, \mathbf{v}_k)$ is linearly independent $\iff \operatorname{Null}(V) = \{\mathbf{0}\} \iff \operatorname{rank}(V) = k$ (full column rank, with zero free variables!).
    - Conversely, if there exist scalars not all zero such that $\sum_{i=1}^k c_i\mathbf{v}_i = \mathbf{0}$ (i.e., $\operatorname{Null}(V) \neq \{\mathbf{0}\}$ and $\operatorname{rank}(V) \lt k$), the vectors are **linearly dependent**. (In particular, any set of vectors containing the zero vector $\mathbf{0}$ is automatically linearly dependent, since $1\cdot\mathbf{0} = \mathbf{0}$!)
 
-2. **Spanning a Subspace**: If every vector in a subspace $S \subseteq \mathbb{R}^m$ can be written as a linear combination of $\mathbf{v}_1, \dots, \mathbf{v}_k$ (that is, $S = \operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_k\} = \operatorname{Col}(V)$), we say that this set of vectors **spans** the subspace $S$.
+2. **Spanning a Subspace**: If $\mathbf{v}_1,\dots,\mathbf{v}_k\in S\subseteq\mathbb{R}^m$ and every vector in $S$ can be written as a linear combination of $\mathbf{v}_1, \dots, \mathbf{v}_k$ (that is, $S = \operatorname{span}\{\mathbf{v}_1, \dots, \mathbf{v}_k\} = \operatorname{Col}(V)$), we say that this set of vectors **spans** the subspace $S$.
 
-3. **Basis for a Subspace**: A **basis** for a subspace $S$ is a sequence of vectors $\{\mathbf{v}_1, \dots, \mathbf{v}_d\} \subseteq S$ that simultaneously satisfies two "Goldilocks conditions":
-   - **① Linearly independent** (not too many—no redundancy: adding any extra vector from $S$ makes the set dependent);
+3. **Basis for a Subspace**: A **basis** for a subspace $S$ is a list $(\mathbf{v}_1, \dots, \mathbf{v}_d)$ of vectors in $S$ that satisfies two conditions:
+   - **① Linearly independent** (not too many—no redundancy: appending any vector from $S$ makes the list dependent);
    - **② Spans the entire subspace $S$** (not too few—full coverage: removing any vector from the set leaves it unable to cover all of $S$).
-   (By convention, the basis of the zero subspace $S = \{\mathbf{0}\}$ is the empty set $\varnothing$, and its dimension is defined to be $0$.)
+The empty list is the basis of the zero subspace $\{\mathbf{0}\}$, with the empty linear combination equal to $\mathbf{0}$.
 </DefinitionCard>
 
 ---
@@ -60,12 +60,12 @@ $$
   Because $B$ is invertible ($r = 2$), its two columns are both linearly independent ($\operatorname{Null}(B)=\{\mathbf{0}\}$) and span the entire plane ($\operatorname{Col}(B)=\mathbb{R}^2$). Therefore, $\{(1,2)^T, (3,1)^T\}$ is a completely legitimate basis for $\mathbb{R}^2$!
 - Generalizing to $\mathbb{R}^n$: **$n$ vectors $\mathbf{v}_1, \dots, \mathbf{v}_n \in \mathbb{R}^n$ form a basis for the entire space $\mathbb{R}^n$ if and only if the $n\times n$ square matrix $B = [\mathbf{v}_1 \; \cdots \; \mathbf{v}_n]$ having them as columns is invertible!**
 
-<BasisGoldilocksDiagram caption="The Goldilocks principle for a basis in R^2: too few vectors fail to span the plane, too many vectors create redundancy (nontrivial nullspace), and exactly r = 2 independent vectors form a basis with unique coordinates." />
+<BasisGoldilocksDiagram lang="en" caption="One nonzero vector spans a line. The vectors $\mathbf{v}_1=(1,2)^T$ and $\mathbf{v}_2=(3,1)^T$ form a basis of $\mathbb{R}^2$, and their integer combinations form the grid intersections. Adding $\mathbf{v}_3=-\mathbf{v}_1$ preserves the span and makes the list dependent." />
 
 <InteractiveCanvasSlot
   id="l09-basis-independence-explorer"
-  title="Linear Independence, Oblique Coordinate Grid & Change-of-Basis Explorer"
-  description="Interactive sandbox: freely drag candidate basis vectors $\mathbf{v}_1, \mathbf{v}_2$ in $\mathbb{R}^2 / \mathbb{R}^3$, render the oblique parallelogram coordinate grid they span in real time, verify the uniqueness of expanding a target vector $\mathbf{b}$ in any basis, and observe grid collapse the instant the vectors become collinear."
+  title="Basis and Coordinate Explorer"
+  description="Adjust the angles of two vectors in $\mathbb{R}^2$. Compare the determinant and the target coordinates as the vectors approach collinearity, then add a third vector to see how spanning and independence can differ."
 />
 
 Why do mathematicians insist on requiring both "linear independence" and "spanning" at the same time? Because putting the two together produces a priceless treasure—**the existence and uniqueness of coordinates relative to a basis**: for any vector $\mathbf{b} \in S$, the *spanning* property guarantees that there exists at least one set of coefficients with $\mathbf{b} = c_1\mathbf{v}_1 + \cdots + c_d\mathbf{v}_d$. If there were a second set of coefficients $\mathbf{b} = d_1\mathbf{v}_1 + \cdots + d_d\mathbf{v}_d$, subtracting the two equations immediately yields $(c_1 - d_1)\mathbf{v}_1 + \cdots + (c_d - d_d)\mathbf{v}_d = \mathbf{0}$, and *linear independence* instantly forces $c_i = d_i$ for every $i$!
@@ -74,7 +74,7 @@ Why do mathematicians insist on requiring both "linear independence" and "spanni
 
 ## 3. Invariance of Dimension and the Dimension Formulas for the Two Subspaces
 
-Although the same subspace $S$ has infinitely many different bases, a miracle occurs that supports the entire edifice of linear algebra: **no matter how wildly different two bases chosen by two different people for the same subspace $S$ may look, the *number* of vectors in their bases is guaranteed to be 100% identical!** This invariant integer—depending only on the subspace itself and never on the choice of basis—is called the **dimension** of the subspace $S$, denoted $\dim(S)$.
+Although a positive-dimensional real subspace $S$ has infinitely many bases, a miracle occurs that supports the entire edifice of linear algebra: **no matter how wildly different two bases chosen by two different people for the same subspace $S$ may look, the *number* of vectors in their bases is guaranteed to be 100% identical!** This invariant integer—depending only on the subspace itself and never on the choice of basis—is called the **dimension** of the subspace $S$, denoted $\dim(S)$.
 
 Next, let us project the definition of dimension back onto the column space $\operatorname{Col}(A)$ and nullspace $\operatorname{Null}(A)$ of an arbitrary matrix $A \in \mathbb{R}^{m\times n}$ of rank $r$, testing it on our reduced row echelon form example from Lecture 07:
 
@@ -102,7 +102,7 @@ From this single observation flow the two most famous dimension formulas in line
   label="Theorem 9.1"
   title="Invariance of Dimension & the Rank-Nullity Theorem"
 >
-1. **Well-Definedness of Dimension (Invariance of Basis Size)**: Let $S \subseteq \mathbb{R}^m$ be any subspace. If $\{\mathbf{v}_1, \dots, \mathbf{v}_p\}$ and $\{\mathbf{w}_1, \dots, \mathbf{w}_q\}$ are both bases for $S$, then necessarily **$p = q$**. This unique integer is called the **dimension** of $S$, denoted $\dim(S) := p$.
+1. **Existence of a Basis and Invariance of Basis Size**. Every subspace $S\subseteq\mathbb{R}^m$ has a basis. If $\{\mathbf{v}_1, \dots, \mathbf{v}_p\}$ and $\{\mathbf{w}_1, \dots, \mathbf{w}_q\}$ are both bases for $S$, then necessarily **$p = q$**. This unique integer is called the **dimension** of $S$, denoted $\dim(S) := p$.
 2. **Dimension of the Column Space & Standard Basis Extraction**: For any real matrix $A \in \mathbb{R}^{m\times n}$, the **$r$ pivot columns of the original matrix $A$** (corresponding to the column indices where pivots appear in $R$) form a basis for the column space $\operatorname{Col}(A)$. In particular, **the dimension of the column space equals the rank of the matrix**:
 
 $$
@@ -116,7 +116,9 @@ $$
 $$
 </TheoremCard>
 
-<ProofCollapse title="Rigorous Proof: Proving Invariance of Dimension (p = q) in Three Lines Using Wide Matrices!">
+<ProofCollapse title="Proof of Basis Existence and Invariance of Basis Size">
+Start with the empty list and append a vector of $S$ outside the current span whenever one exists. A dependence involving the new vector would express it in the previous span, so the list stays independent. It can never exceed $m$ vectors, so it eventually spans $S$ and is a basis.
+
 This is one of the most elegant short proofs in the entire textbook, showcasing the sheer power of matrix reasoning! Let the columns of $V = [\mathbf{v}_1 \; \cdots \; \mathbf{v}_p] \in \mathbb{R}^{m\times p}$ and $W = [\mathbf{w}_1 \; \cdots \; \mathbf{w}_q] \in \mathbb{R}^{m\times q}$ be two bases for the same subspace $S$. We prove by contradiction that $q \gt p$ is impossible:
 
 Suppose $q \gt p$. Since $\{\mathbf{v}_1, \dots, \mathbf{v}_p\}$ spans all of $S$ and each $\mathbf{w}_j \in S$, every vector $\mathbf{w}_j$ can be written as a linear combination of the columns of $V$: $\mathbf{w}_j = V\mathbf{a}_j$ for some coordinate vector $\mathbf{a}_j \in \mathbb{R}^p$. Stacking these $q$ columns side by side as a single matrix product gives:
@@ -146,7 +148,7 @@ This means the columns of $W$ have a nontrivial linear combination that adds to 
 <KeyTakeaways
   title="Key Takeaways"
   items={[
-    "A set of vectors $\\{\\mathbf{v}_1, \\dots, \\mathbf{v}_k\\}$ is **linearly independent** $\\iff$ the matrix $V = [\\mathbf{v}_1\\;\\cdots\\;\\mathbf{v}_k]$ satisfies $\\operatorname{Null}(V) = \\{\\mathbf{0}\\} \\iff \\operatorname{rank}(V) = k$; any set of more than $m$ vectors in $\\mathbb{R}^m$ is necessarily linearly dependent.",
+    "A list of vectors $(\\mathbf{v}_1, \\dots, \\mathbf{v}_k)$ is **linearly independent** $\\iff$ the matrix $V = [\\mathbf{v}_1\\;\\cdots\\;\\mathbf{v}_k]$ satisfies $\\operatorname{Null}(V) = \\{\\mathbf{0}\\} \\iff \\operatorname{rank}(V) = k$; any set of more than $m$ vectors in $\\mathbb{R}^m$ is necessarily linearly dependent.",
     "A **basis** for a subspace $S$ is a sequence of vectors in $S$ that is both **linearly independent** and **spans $S$**; every basis for the same subspace contains the exact same number of vectors, and that number is defined as the **dimension $\\dim(S)$**.",
     "To find a basis for $\\operatorname{Col}(A)$: row-reduce to $R$ to locate the pivot column indices, then **go back to the original matrix $A$ and extract those $r$ pivot columns** (never copy the columns of $R$!). Thus $\\dim\\operatorname{Col}(A) = r$.",
     "To find a basis for $\\operatorname{Null}(A)$: directly take the **$n - r$ special solutions** to $R\\mathbf{x}=\\mathbf{0}$. Thus $\\dim\\operatorname{Null}(A) = n - r$, and the conservation law $\\dim\\operatorname{Col}(A) + \\dim\\operatorname{Null}(A) = n$ always holds."
@@ -203,14 +205,16 @@ $$
    - $\dim\operatorname{Col}(A) = \mathbf{2}$, and extracting Columns 1 and 3 of $A$ gives a basis for $\operatorname{Col}(A)$:
 
 $$
-\mathcal{B}_{\text{Col}(A)} = \left\{ \begin{bmatrix} 2 \\ -1 \\ 3 \end{bmatrix}, \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix} \right\}, \qquad
-\text{whereas } \mathcal{B}_{\text{Col}(R)} = \left\{ \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix} \right\} \neq \operatorname{Col}(A)
+\mathcal{B}_{\operatorname{Col}(A)} = \left\{ \begin{bmatrix} 2 \\ -1 \\ 3 \end{bmatrix}, \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix} \right\}, \qquad
+\text{whereas } \mathcal{B}_{\operatorname{Col}(R)} = \left\{ \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix} \right\}
 $$
+
+   The first basis vector for $\operatorname{Col}(A)$ has third coordinate $3$, whereas every vector of $\operatorname{Col}(R)$ has third coordinate $0$. Hence the two spaces differ.
 
 2. The free variables are $x_2, x_4$ ($4 - 2 = 2$ in total), so $\dim\operatorname{Null}(A) = \mathbf{2}$, and the two special solutions form a basis for $\operatorname{Null}(A)$:
 
 $$
-\mathcal{B}_{\text{Null}(A)} = \left\{ \begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} -1 \\ 0 \\ -3 \\ 1 \end{bmatrix} \right\}
+\mathcal{B}_{\operatorname{Null}(A)} = \left\{ \begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} -1 \\ 0 \\ -3 \\ 1 \end{bmatrix} \right\}
 $$
 
    Conservation of dimension: $\dim\operatorname{Col}(A) + \dim\operatorname{Null}(A) = 2 + 2 = 4 = n$.
@@ -246,7 +250,7 @@ Determine whether the following statement is true or false, and construct a mini
 >
 <SolutionIntuition>
 
-"Pairwise independence" only prevents 2D collapse into a single line; it does not prevent 3D collapse into a flat plane! Draw the three radial vectors from the center of an equilateral triangle on a desk: any pair meets at $120^\circ$ and is never collinear, yet adding all three vectors head-to-tail gives $\mathbf{0}$! To test whether $k$ vectors are linearly independent, you must put **all of them together into a single matrix $V$ and check whether its overall rank equals $k$**—pairwise checks are never enough!
+"Pairwise independence" only prevents 2D collapse into a single line; it does not prevent 3D collapse into a flat plane! Draw the three radial vectors from the center of an equilateral triangle on a desk: any pair meets at $120^\circ$ and is never collinear, yet adding all three vectors head-to-tail gives $\mathbf{0}$! To test the entire list, put all $k$ vectors into one matrix $V$ and check whether $\operatorname{rank}(V)=k$. For $k\ge3$, pairwise independence alone is insufficient.
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -275,14 +279,13 @@ Determine whether the following statement is true or false:
   correct={true}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="True! This is the most practical 'dimension-pinning theorem' in linear algebra: once the number of vectors $k$ in $S$ matches the known dimension $d = \dim(S)$, 'linearly independent' and 'spans $S$' become equivalent! If $\{\mathbf{u}_1,\mathbf{u}_2,\mathbf{u}_3\}$ failed to span all of $S$, we could pick a 4th independent vector $\mathbf{u}_4 \in S$ outside their span, producing 4 linearly independent vectors inside a 3-dimensional subspace—directly violating the invariance of dimension!"
+  quickFeedback="True. In a basis of $S$, the three vectors form a $3\times3$ coordinate matrix. Independence makes this matrix invertible, so its columns can produce every coordinate vector in $\mathbb{R}^3$ and hence span $S$."
 />
 
 <ProgressiveHint
   buttonPrefix="Unlock Hint"
   hints={[
-    "Think by contradiction: if $\\operatorname{span}\\{\\mathbf{u}_1, \\mathbf{u}_2, \\mathbf{u}_3\\} \\subsetneq S$ (they do not fill up all of $S$), then we can grab some vector $\\mathbf{u}_4 \\in S$ that cannot be reached by their combinations!",
-    "Once we include $\\mathbf{u}_4$, the 4 vectors $\\{\\mathbf{u}_1, \\mathbf{u}_2, \\mathbf{u}_3, \\mathbf{u}_4\\}$ inside $S$ remain linearly independent! Can a 3-dimensional subspace accommodate 4 linearly independent vectors?"
+    "Choose a basis of $S$ and use it to write the candidate vectors as columns of a square coordinate matrix $C$. Which equations in those coordinates express independence and spanning?"
   ]}
 />
 
@@ -293,17 +296,14 @@ Determine whether the following statement is true or false:
 >
 <SolutionIntuition>
 
-If you know a house has exactly $3$ rooms ($\dim S = 3$) and you already have $3$ distinct independent tenants (linearly independent vectors in $S$), then one tenant per room fills the entire house completely! If there were still an uncovered corner left over, you could move in a 4th independent tenant—which clashes head-on with the house having only $3$ dimensions! Symmetrically, if **exactly $3$ vectors in $S$ are known to span a $3$-dimensional subspace $S$**, they are automatically linearly independent (otherwise deleting a redundant vector would allow fewer than $3$ vectors to span $S$, again a contradiction)!
+Use an existing basis of $S$ to give each vector $d=\dim(S)$ coordinates. The $d$ candidate vectors then form a square coordinate matrix. A pivot in every column guarantees no redundant coefficient, and a pivot in every row guarantees that every target can be reached. For a square matrix these are the same condition.
 
 </SolutionIntuition>
 <SolutionRigorous>
 
-We give a rigorous proof by contradiction. Since $\dim(S) = 3$, let $B = [\mathbf{b}_1 \; \mathbf{b}_2 \; \mathbf{b}_3] \in \mathbb{R}^{5\times 3}$ be a known basis matrix for $S$.
-Suppose $\operatorname{span}\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\} \subsetneq S$; then there exists a vector $\mathbf{u}_4 \in S \setminus \operatorname{span}\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\}$.
-1. First, we show that $\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3, \mathbf{u}_4\}$ is linearly independent: suppose $c_1\mathbf{u}_1 + c_2\mathbf{u}_2 + c_3\mathbf{u}_3 + c_4\mathbf{u}_4 = \mathbf{0}$. If $c_4 \neq 0$, then $\mathbf{u}_4 = -\frac{c_1}{c_4}\mathbf{u}_1 - \frac{c_2}{c_4}\mathbf{u}_2 - \frac{c_3}{c_4}\mathbf{u}_3 \in \operatorname{span}\{\mathbf{u}_1,\mathbf{u}_2,\mathbf{u}_3\}$, a contradiction! Thus $c_4 = 0$, and the linear independence of $\{\mathbf{u}_1,\mathbf{u}_2,\mathbf{u}_3\}$ then forces $c_1=c_2=c_3=0$.
-2. On the other hand, since each $\mathbf{u}_j \in S = \operatorname{Col}(B)$, there exists a coefficient matrix $C \in \mathbb{R}^{3\times 4}$ such that $[\mathbf{u}_1 \; \mathbf{u}_2 \; \mathbf{u}_3 \; \mathbf{u}_4] = B C$. Because $C$ is a $3\times 4$ wide matrix, there exists a nonzero vector $\mathbf{x} \in \mathbb{R}^4 \setminus \{\mathbf{0}\}$ with $C\mathbf{x} = \mathbf{0} \implies (BC)\mathbf{x} = \mathbf{0}$, contradicting the linear independence of the four vectors!
+Let $S\subseteq\mathbb{R}^m$ have dimension $d>0$ and take any list of $d$ vectors in $S$. With a basis matrix $B\in\mathbb{R}^{m\times d}$ for $S$, write the candidate vectors as columns of $U=BC$ for $C\in\mathbb{R}^{d\times d}$. Because $\operatorname{Null}(B)=\{\mathbf{0}\}$, we have $U\mathbf{x}=\mathbf{0}\iff C\mathbf{x}=\mathbf{0}$, so the columns of $U$ are independent exactly when $C$ is invertible.
 
-Thus our assumption is false; we must have $\operatorname{span}\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\} = S$, so $\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\}$ is indeed a basis for $S$.
+Every target in $S$ is $B\mathbf{y}$ for some $\mathbf{y}\in\mathbb{R}^d$. The equation $U\mathbf{x}=B\mathbf{y}$ holds exactly when $C\mathbf{x}=\mathbf{y}$, again because $B$ has trivial nullspace. Thus the columns of $U$ span $S$ exactly when $C$ is onto $\mathbb{R}^d$, which is also equivalent to invertibility. For $d=0$, the empty list is a basis. In particular, the three independent vectors in the exercise form a basis of $S$.
 
 </SolutionRigorous>
 </DualSolution>
@@ -374,7 +374,7 @@ $$
 1\cdot\mathbf{u}_1 + 1\cdot\mathbf{u}_2 + 1\cdot\mathbf{u}_3 = (\mathbf{v}_1 - \mathbf{v}_2) + (\mathbf{v}_2 - \mathbf{v}_3) + (\mathbf{v}_3 - \mathbf{v}_1) = \mathbf{0}
 $$
 
-   By Definition 9.1, $\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\}$ is linearly dependent (the subspace it spans has dimension only $2$).
+   By Definition 9.1, $\{\mathbf{u}_1, \mathbf{u}_2, \mathbf{u}_3\}$ is linearly dependent. The span has dimension exactly $2$: a relation $a\mathbf{u}_1+b\mathbf{u}_2=\mathbf{0}$ becomes $a\mathbf{v}_1+(b-a)\mathbf{v}_2-b\mathbf{v}_3=\mathbf{0}$ and forces $a=b=0$.
 
 </SolutionRigorous>
 </DualSolution>
@@ -413,7 +413,7 @@ And deduce as a corollary: if $P \in \mathbb{R}^{m\times m}$ is invertible, mult
 </SolutionIntuition>
 <SolutionRigorous>
 
-1. **Proof of Subspace Dimension Monotonicity**: Let $\dim(S_1) = k$ and $\dim(S_2) = d$, and choose basis matrices $U = [\mathbf{u}_1\;\cdots\;\mathbf{u}_k]$ for $S_1$ and $V = [\mathbf{v}_1\;\cdots\;\mathbf{v}_d]$ for $S_2$. Since $S_1 \subseteq S_2$, there exists a coefficient matrix $C \in \mathbb{R}^{d\times k}$ such that $U = VC$. If $k \gt d$, the wide matrix $C$ has a nonzero vector $\mathbf{z}$ satisfying $C\mathbf{z} = \mathbf{0} \implies U\mathbf{z} = \mathbf{0}$, contradicting the linear independence of the columns of $U$! Thus $k \le d$. When $k = d$, by the result proved in Exercise `l09-ex3`, any $d$ linearly independent vectors in $S_2$ must span all of $S_2$, so $S_1 = \operatorname{span}\{\mathbf{u}_1,\dots,\mathbf{u}_d\} = S_2$.
+1. **Proof of Subspace Dimension Monotonicity**: Let $\dim(S_1) = k$ and $\dim(S_2) = d$, and choose basis matrices $U = [\mathbf{u}_1\;\cdots\;\mathbf{u}_k]$ for $S_1$ and $V = [\mathbf{v}_1\;\cdots\;\mathbf{v}_d]$ for $S_2$. Since $S_1 \subseteq S_2$, there exists a coefficient matrix $C \in \mathbb{R}^{d\times k}$ such that $U = VC$. If $k \gt d$, the wide matrix $C$ has a nonzero vector $\mathbf{z}$ satisfying $C\mathbf{z} = \mathbf{0} \implies U\mathbf{z} = \mathbf{0}$, contradicting the linear independence of the columns of $U$! Thus $k \le d$. When $k = d$, by the result proved in Exercise `l09-ex3`, any $d$ linearly independent vectors in $S_2$ must span all of $S_2$, so $S_1 = \operatorname{span}\{\mathbf{u}_1,\dots,\mathbf{u}_d\} = S_2$. Conversely, if $S_1=S_2$, their dimensions are equal.
 
 2. **Proof of $\operatorname{rank}(AB) \le \min(\operatorname{rank}(A), \operatorname{rank}(B))$**:
    - **Left-factor upper bound**: Combining $\operatorname{Col}(AB) \subseteq \operatorname{Col}(A)$ (Theorem 3.1 Part 1) with the monotonicity from Part 1 and Theorem 9.1 Part 2 immediately yields:

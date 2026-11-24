@@ -10,7 +10,7 @@ textbookRef: "Ch. 4–6 Review"
 如果说模块一（消元、向量空间与四大子空间）回答了方程组“何时有解”的基石问题，那么模块二（正交性与投影几何）与模块三（行列式、特征值与动力系统）则完成了线性代数两场波澜壮阔的理论跃迁：
 
 1. **模块二：静态几何的最优逼近（Static Geometry & Least Squares）**  
-   面对现实世界中不可避免的矛盾方程组 $A\mathbf{x} = \mathbf{b}$（当数据点个数 $m$ 远大于参数个数 $n$ 时，通常 $\mathbf{b} \notin \operatorname{Col}(A)$），我们不再执着于寻求不存在的精确解，而是将目标转向在列空间 $\operatorname{Col}(A)$ 中寻找距离 $\mathbf{b}$ 最近的最佳投影点 $\mathbf{p} = A\hat{\mathbf{x}}$。正交补原理 $\mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T)$ 将观测值完美分解为**投影向量**与**正交残差** $\mathbf{b} = \mathbf{p} + \mathbf{e}$。正交化方法（Gram-Schmidt）将一般的列基底整饰为标准正交基 $Q$，不仅对角化了解法结构（$R\hat{\mathbf{x}} = Q^T\mathbf{b}$），更揭示了多维平行六面体的几何超体积。
+   面对现实世界中不可避免的矛盾方程组 $A\mathbf{x} = \mathbf{b}$（当数据点个数 $m$ 远大于参数个数 $n$ 时，通常 $\mathbf{b} \notin \operatorname{Col}(A)$），我们不再执着于寻求不存在的精确解，而是将目标转向在列空间 $\operatorname{Col}(A)$ 中寻找距离 $\mathbf{b}$ 最近的最佳投影点 $\mathbf{p} = A\hat{\mathbf{x}}$。正交补原理 $\mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T)$ 将观测值完美分解为**投影向量**与**正交残差** $\mathbf{b} = \mathbf{p} + \mathbf{e}$。正交化方法（Gram-Schmidt）在 $A$ 列满秩时构造列向量标准正交的矩阵 $Q$，不仅将正规方程化为上三角系统（$R\hat{\mathbf{x}} = Q^T\mathbf{b}$），更揭示了多维平行六面体的几何超体积。
 
 2. **模块三：动力系统的谱演化（Spectral Theory & Dynamical Systems）**  
    从第 18 讲开始，矩阵的角色发生了颠覆性转变：我们不再仅仅考察矩阵对外部输入向量的作用 $A\mathbf{x} = \mathbf{b}$，而是审视矩阵与自身的**持续递归作用**——无论是离散时间的矩阵幂迭代 $\mathbf{u}_{k+1} = A\mathbf{u}_k$，还是连续时间的线性微分方程流 $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$。为了解耦错综复杂的耦合变量，我们必须寻找矩阵的不变方向：$A\mathbf{x} = \lambda\mathbf{x}$。求解这一方程必须攻克特征多项式 $\det(A - \lambda I) = 0$，这促使我们建立起行列式的公理体系。一旦找到特征基 $S$，矩阵即化为纯对角形 $A = S\Lambda S^{-1}$，系统的时空演化便被彻底解耦为各自独立的标量指数增长、衰减、振荡或收敛到马尔可夫稳态。
@@ -27,16 +27,16 @@ textbookRef: "Ch. 4–6 Review"
 
 | 矩阵族名称 | 代数定义与基本结构 | 谱分布（特征值 $\lambda_i$） | 迹与行列式（$\operatorname{tr}, \det$） | 核心几何意义与物理应用 |
 | :--- | :--- | :--- | :--- | :--- |
-| **投影矩阵 (Projection)** $P$ | $P = A(A^T A)^{-1}A^T$<br/>$P^2 = P = P^T$ | $\lambda \in \{0, 1\}$<br/>$\operatorname{AM}(1) = \operatorname{rank}(A)$<br/>$\operatorname{AM}(0) = m - \operatorname{rank}(A)$ | $\operatorname{tr}(P) = \operatorname{rank}(A)$<br/>$\det(P) = 0$ (若非满秩空间) | 将全空间正交投影至 $\operatorname{Col}(A)$；$\lambda=1$ 对应列空间，$\lambda=0$ 对应左零空间 |
-| **反射矩阵 (Householder)** $R$ | $R = 2P - I$<br/>$R^2 = I, R^T = R = R^{-1}$ | $\lambda \in \{+1, -1\}$<br/>$-1$ 的重数等于反射法向量维数 | $\operatorname{tr}(R) = 2\operatorname{rank}(A) - n$<br/>$\det(R) = (-1)^{\text{dim}(\operatorname{Null}(A^T))}$ | 沿镜面镜面反射；保持向量长度与内积；Householder 变换的核心基础 |
-| **正交矩阵 (Orthogonal)** $Q$ | $Q^T Q = I_n$<br/>方阵时 $Q^{-1} = Q^T$ | $\lvert\lambda_i\rvert = 1$<br/>实特征值为 $\pm 1$，复特征值为共轭对 $e^{\pm i\theta}$ | $\lvert\det(Q)\rvert = 1$<br/>$\det = 1$ (旋转), $\det = -1$ (反射) | 刚体旋转与反射；保持几何长度 $\lVert Q\mathbf{x}\rVert = \lVert\mathbf{x}\rVert$ 与角度；条件数 $\kappa(Q) = 1$ |
-| **马尔可夫矩阵 (Markov)** $M$ | $m_{ij} \ge 0, \sum_{i=1}^n m_{ij} = 1$<br/>各列概率和恒为 1 | $\lambda_1 = 1$<br/>其余所有 $\lvert\lambda_i\rvert \le 1$ | $\det(M) = \prod \lambda_i$<br/>主对角元素之和等于迹 | 状态转移概率流；$\mathbf{1}^T M = \mathbf{1}^T$ 保证全概率守恒；$\mathbf{u}_\infty \in \operatorname{Null}(M - I)$ 为稳态分布 |
+| **正交投影矩阵 (Orthogonal Projection)** $P$ | $A\in\mathbb{R}^{m\times n}$，列满秩时 $P=A(A^TA)^{-1}A^T$<br/>$P^2=P=P^T$ | $1$ 对应重数 $\operatorname{rank}(A)$，$0$ 对应重数 $m-\operatorname{rank}(A)$ | $\operatorname{tr}(P)=\operatorname{rank}(A)$<br/>$P=I_m$ 时 $\det(P)=1$，否则为 $0$ | 沿 $\operatorname{Null}(A^T)$ 投影到 $\operatorname{Col}(A)$ |
+| **子空间反射矩阵 (Subspace Reflection)** $R$ | 对秩为 $r$ 的正交投影矩阵 $P$，取 $R=2P-I_m$<br/>$R^2=I_m,\ R^T=R$ | $\operatorname{Col}(P)$ 上为 $+1$，$\operatorname{Null}(P)$ 上为 $-1$ | $\operatorname{tr}(R)=2r-m$<br/>$\det(R)=(-1)^{m-r}$ | 固定镜面子空间，反转其正交补。Householder 反射满足 $m-r=1$。 |
+| **正交矩阵 (Orthogonal Matrix)** $Q$ | $Q\in\mathbb{R}^{n\times n}$，$Q^TQ=I_n$，$Q^{-1}=Q^T$ | $\lvert\lambda_i\rvert=1$；实特征值为 $\pm1$，非实特征值成共轭对 | $\det(Q)=+1$ 保持定向，$\det(Q)=-1$ 反转定向 | 保持长度与角度，$\kappa_2(Q)=1$ |
+| **马尔可夫矩阵 (Markov)** $M$ | $M\in\mathbb{R}^{n\times n}$<br/>$m_{ij}\ge0, \sum_{i=1}^n m_{ij} = 1$<br/>各列概率和恒为 1 | $\lambda_1 = 1$<br/>其余所有 $\lvert\lambda_i\rvert \le 1$ | $\det(M) = \prod \lambda_i$<br/>主对角元素之和等于迹 | 状态转移概率流；$\mathbf{1}^T M = \mathbf{1}^T$ 保证全概率守恒；$\mathbf{u}_\infty \in \operatorname{Null}(M - I)$ 在非负且分量和为 $1$ 时为稳态分布 |
 | **上三角矩阵 (Triangular)** $U$ | $u_{ij} = 0 \ (i \gt j)$ | $\lambda_i = u_{ii}$<br/>主对角元素即为其全部特征值 | $\operatorname{tr}(U) = \sum u_{ii}$<br/>$\det(U) = \prod u_{ii}$ | 消元终态与 Schur 形式；特征多项式自然因式分解；代数可解系统的标准形态 |
 
 此外，必须深刻领会线性代数中**三大矩阵分解支柱**的对比与分工：
 
-1. **消元分解 $A = LU$**：初等行变换将线性系统三角化。保持解空间与行空间，保持行列式（至多变号），但**彻底破坏特征值与特征向量**。
-2. **正交分解 $A = QR$**：Gram-Schmidt 正交化构造正交基。几何上保持列向量张成的平行六面体超体积（$|\det A| = \prod r_{ii}$），数值上具有极其优异的稳定性（条件数不变 $\kappa(R) = \kappa(A)$）。
+1. **消元与 LU 分解。** 对等式两端施加 $E$ 得到等价系统 $EA\mathbf{x}=E\mathbf{b}$，保持行空间与零空间。对方阵，$\det(EA)=\det(E)\det(A)$：行倍加保持行列式，换行使其变号，行缩放使其乘以相同倍数。消元可能改变特征值。带换行的标准消元给出 $PA=LU$。
+2. **列满秩矩阵的薄 QR 分解。** 若 $Q^TQ=I_n$ 且 $r_{ii}\gt0$，则 $Q$ 保持长度和内积，列向量张成的 $n$ 维体积为 $\prod_i r_{ii}=\sqrt{\det(A^TA)}$，在 $A$ 为方阵时等于 $|\det(A)|$。$A$ 与 $R$ 的奇异值相同，所以 $\kappa_2(A)=\kappa_2(R)$。
 3. **谱分解 $A = S\Lambda S^{-1}$**：特征向量作为新基底解耦矩阵的作用。保持特征值、迹、行列式，是离散幂与连续常微分方程动力系统的终极求解引擎。
 
 </DefinitionCard>
@@ -85,18 +85,18 @@ $$
 $$
 \mathbf{e} \in (\operatorname{Col}(A))^\perp = \operatorname{Null}(A^T)
 $$
-因此，列空间的所有基底列向量与 $\mathbf{e}$ 的内积恒为 0，写成矩阵形式即：
+因此，矩阵 $A$ 的所有列向量与 $\mathbf{e}$ 的内积恒为 0，写成矩阵形式即：
 $$
 A^T \mathbf{e} = \mathbf{0} \iff A^T (\mathbf{b} - A\hat{\mathbf{x}}) = \mathbf{0} \iff A^T A \hat{\mathbf{x}} = A^T \mathbf{b}
 $$
-当 $A$ 列满秩时，$\operatorname{rank}(A^T A) = n$，作为 $n\times n$ 方阵其严格可逆，逆矩阵 $(A^T A)^{-1}$ 唯一存在，证毕。
+若 $A$ 列满秩，对任意 $\mathbf{x}\ne\mathbf{0}$，有 $\mathbf{x}^T A^TA\mathbf{x}=\|A\mathbf{x}\|^2\gt0$，故对称矩阵 $A^TA$ 正定且可逆。若 $A$ 列不满秩，取 $\operatorname{Null}(A)$ 中的任一非零向量，二次型为零，且 $A^TA$ 奇异。无论列是否满秩，投影 $\mathbf{p}$ 都唯一。
 </ProofCollapse>
 
 ---
 
 <TheoremCard title="定理 2：Gram-Schmidt 正交化、QR 分解与超平行多面体几何体积定理" termEn="Gram-Schmidt, QR Factorization, and Hyper-volume Theorem">
 设矩阵 $A \in \mathbb{R}^{m\times n}$ 具有线性无关的列向量 $\mathbf{a}_1, \dots, \mathbf{a}_n$（列满秩）。则：
-1. 存在唯一的标准正交矩阵 $Q \in \mathbb{R}^{m\times n}$（满足 $Q^T Q = I_n$）以及主对角元素严格为正的上三角矩阵 $R \in \mathbb{R}^{n\times n}$（$r_{ii} \gt 0$），使得：
+1. 存在唯一的列向量标准正交的矩阵 $Q \in \mathbb{R}^{m\times n}$（满足 $Q^T Q = I_n$）以及主对角元素严格为正的上三角矩阵 $R \in \mathbb{R}^{n\times n}$（$r_{ii} \gt 0$），使得：
    $$
    A = QR
    $$
@@ -121,7 +121,9 @@ $$
   $$
   令 $r_{jj} = \|\mathbf{v}_j\|$。由于列向量组线性无关，$\mathbf{v}_j \ne \mathbf{0}$，故 $r_{jj} \gt 0$。归一化得 $\mathbf{q}_j = \mathbf{v}_j / r_{jj}$。
 
-整理得到：$\mathbf{a}_j = \sum_{i=1}^j r_{ij} \mathbf{q}_i$。写成矩阵乘法即为 $A = QR$，其中 $R$ 严格为上三角矩阵，且对角元 $r_{ii} = \|\mathbf{v}_i\| \gt 0$。
+整理得到：$\mathbf{a}_j = \sum_{i=1}^j r_{ij} \mathbf{q}_i$。写成矩阵乘法即为 $A = QR$，其中 $R$ 为上三角矩阵，且对角元 $r_{ii} = \|\mathbf{v}_i\| \gt 0$。
+
+分解也是唯一的：第一列确定 $r_{11}=\|\mathbf{a}_1\|$ 与 $\mathbf{q}_1$。随后每一步由已确定的正交列和投影公式固定 $r_{ij}$（$i\lt j$），余向量的长度与单位化则固定 $r_{jj}$ 及 $\mathbf{q}_j$。
 
 **第二步：正规方程的简化与超体积。**
 
@@ -150,7 +152,7 @@ $$
    $$
    \det(AB) = \det(A)\det(B), \quad \det(A^T) = \det(A)
    $$
-2. 代数余子式矩阵 $C \in \mathbb{R}^{n\times n}$（其中 $C_{ij} = (-1)^{i+j} M_{ij}$）满足伴随正交恒等式：
+2. 代数余子式矩阵 $C \in \mathbb{R}^{n\times n}$（其中 $C_{ij}=(-1)^{i+j}M_{ij}$，而 $M_{ij}$ 是删去第 $i$ 行和第 $j$ 列所得的子矩阵的行列式）满足伴随矩阵恒等式：
    $$
    A C^T = C^T A = (\det A) I_n
    $$
@@ -192,11 +194,11 @@ $$
    $$
    \operatorname{tr}(A) = \sum_{i=1}^n a_{ii} = \sum_{i=1}^n \lambda_i, \quad \det(A) = \prod_{i=1}^n \lambda_i
    $$
-2. **重数不等式**：对任何特征值 $\lambda_j$，其几何重数（特征子空间维数）严格不超过代数重数（特征多项式根的重数）：
+2. **重数不等式**：对任何特征值 $\lambda_j$，其几何重数（特征子空间维数）不超过代数重数（特征多项式根的重数）：
    $$
    1 \le \operatorname{GM}(\lambda_j) = \dim(\operatorname{Null}(A - \lambda_j I)) \le \operatorname{AM}(\lambda_j)
    $$
-3. **可对角化充要条件**：存在可逆矩阵 $S$ 使得 $S^{-1} A S = \Lambda$ 当且仅当对 $A$ 的所有互异特征值，其几何重数均等于代数重数：
+3. **可对角化充要条件**：存在可逆矩阵 $S$ 使得 $S^{-1} A S = \Lambda$ 为对角矩阵，当且仅当对 $A$ 的所有互异特征值，其几何重数均等于代数重数：
    $$
    \operatorname{GM}(\lambda_j) = \operatorname{AM}(\lambda_j), \quad \forall j
    $$
@@ -223,14 +225,14 @@ $$
 $$
 A [\mathbf{x}_1, \dots, \mathbf{x}_n] = [\lambda_1 \mathbf{x}_1, \dots, \lambda_n \mathbf{x}_n] \iff A\mathbf{x}_i = \lambda_i \mathbf{x}_i \ (i=1,\dots,n)
 $$
-由于 $S$ 可逆，其全部列向量 $\mathbf{x}_1, \dots, \mathbf{x}_n$ 必须在 $\mathbb{C}^n$ 中线性无关。根据线性代数引理：属于互异特征值的特征向量必线性无关。因此，能否凑足 $n$ 个线性无关特征向量，完全取决于具有重根的特征子空间能否提供足额的独立特征向量。这要求每个特征值的特征子空间维数 $\operatorname{GM}(\lambda_j)$ 恰好等于重根次数 $\operatorname{AM}(\lambda_j)$，两端总维数求和 $\sum \operatorname{GM}(\lambda_j) = \sum \operatorname{AM}(\lambda_j) = n$。
+由于 $S$ 可逆，其全部列向量 $\mathbf{x}_1, \dots, \mathbf{x}_n$ 必须在 $\mathbb{C}^n$ 中线性无关。由第 22 讲，互异特征值的特征子空间构成直和，且每个几何重数都不超过相应的代数重数。因此，能否凑足 $n$ 个线性无关特征向量，完全取决于具有重根的特征子空间能否提供足额的独立特征向量。这要求每个特征值的特征子空间维数 $\operatorname{GM}(\lambda_j)$ 恰好等于重根次数 $\operatorname{AM}(\lambda_j)$，两端总维数求和 $\sum_{\lambda_j\text{ distinct}}\operatorname{GM}(\lambda_j)=\sum_{\lambda_j\text{ distinct}}\operatorname{AM}(\lambda_j)=n$。
 </ProofCollapse>
 
 ---
 
 <TheoremCard title="定理 5：动力系统的谱稳定性判定定理（离散矩阵幂 vs 连续线性微分方程）" termEn="Dynamical Stability Criterion: Discrete Powers vs Continuous ODEs">
-设矩阵 $A \in \mathbb{C}^{n\times n}$ 可对角化为 $A = S\Lambda S^{-1}$。
-1. **离散动力系统 $\mathbf{u}_{k+1} = A\mathbf{u}_k$**：通解为：
+设 $A\in\mathbb{C}^{n\times n}$。以下稳定性判据适用于所有这样的 $A$。当 $A=S\Lambda S^{-1}$ 时，求和公式给出相应的特征基底展开。
+1. **离散动力系统 $\mathbf{u}_{k+1} = A\mathbf{u}_k$**。若 $A$ 可对角化，解为
    $$
    \mathbf{u}_k = A^k \mathbf{u}_0 = \sum_{i=1}^n c_i \lambda_i^k \mathbf{x}_i
    $$
@@ -238,7 +240,7 @@ $$
    $$
    \rho(A) = \max_{1 \le i \le n} |\lambda_i| \lt 1
    $$
-2. **连续线性微分方程系统 $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$**：通解通过矩阵指数给出：
+2. **连续线性微分方程系统 $\frac{d\mathbf{u}}{dt}=A\mathbf{u}$**。若 $A$ 可对角化，解为
    $$
    \mathbf{u}(t) = e^{At}\mathbf{u}(0) = S e^{\Lambda t} S^{-1} \mathbf{u}(0) = \sum_{i=1}^n c_i e^{\lambda_i t} \mathbf{x}_i
    $$
@@ -246,20 +248,21 @@ $$
    $$
    \operatorname{Re}(\lambda_i) \lt 0, \quad \forall i = 1, \dots, n
    $$
-   对于 $2\times 2$ 实实数矩阵，该稳定性充要条件等价于迹与行列式的参数不等式组：
+   对于 $2\times 2$ 实矩阵，该稳定性充要条件等价于迹与行列式的参数不等式组：
    $$
    \operatorname{tr}(A) \lt 0 \quad \text{且} \quad \det(A) \gt 0
    $$
+传播算子 $A^k$ 和 $e^{At}$ 也适用于亏损矩阵。由第 22、23 讲的若尔当块计算，在严格谱不等式成立时，多项式因子不影响模态衰减。
 </TheoremCard>
 
 <ProofCollapse title="定理 5 的矩阵指数分解与相平面稳定性证明">
 **第一步：离散系统的收敛性。**
 
-由于 $\mathbf{u}_k = \sum_{i=1}^n c_i \lambda_i^k \mathbf{x}_i$，每个模式的幅值为 $|\lambda_i|^k$。当且仅当所有特征值的模均满足 $|\lambda_i| \lt 1$ 时，对任何 $i$ 均有 $\lim_{k\to\infty} |\lambda_i|^k = 0$，从而整体收敛到原点。若存在某个 $|\lambda_i| \gt 1$，沿该特征向量方向将发生指数发散；若存在 $|\lambda_i| = 1$，系统将保持中性稳定或周期振荡。
+当 $A$ 可对角化时，$\mathbf{u}_k=\sum_{i=1}^n c_i\lambda_i^k\mathbf{x}_i$，第 $i$ 个模态的幅值按 $|\lambda_i|^k$ 缩放。当且仅当所有特征值的模均满足 $|\lambda_i| \lt 1$ 时，对任何 $i$ 均有 $\lim_{k\to\infty} |\lambda_i|^k = 0$，从而整体收敛到原点。若存在某个 $|\lambda_i| \gt 1$，沿该特征向量方向将发生指数发散；若存在 $|\lambda_i| = 1$，该特征模态保持恒定模长。
 
 **第二步：连续系统与矩阵指数。**
 
-矩阵指数函数定义为泰勒级数 $e^{At} = I + At + \frac{A^2 t^2}{2!} + \cdots$。利用对角化形式 $A^k = S\Lambda^k S^{-1}$：
+矩阵指数函数定义为泰勒级数 $e^{At} = I + At + \frac{A^2 t^2}{2!} + \cdots$。当 $A$ 可对角化时，利用 $A^k=S\Lambda^kS^{-1}$ 得
 $$
 e^{At} = \sum_{k=0}^\infty \frac{t^k (S\Lambda S^{-1})^k}{k!} = S \left( \sum_{k=0}^\infty \frac{t^k \Lambda^k}{k!} \right) S^{-1} = S e^{\Lambda t} S^{-1}
 $$
@@ -270,7 +273,9 @@ $$
 $$
 显然，$\lim_{t\to\infty} e^{\operatorname{Re}(\lambda_j)t} = 0 \iff \operatorname{Re}(\lambda_j) \lt 0$。
 
-对于 $2\times 2$ 矩阵，特征方程为 $\lambda^2 - (\operatorname{tr} A)\lambda + \det(A) = 0$。
+若 $A$ 亏损，第 22、23 讲给出的若尔当块公式只多出多项式因子。在严格谱不等式下，这些项均趋于零。两种系统中，若某个特征值不满足严格不等式，取相应的非零特征向量为初值即可证明必要性。
+
+对于 $2\times 2$ 实矩阵，特征方程为 $\lambda^2 - (\operatorname{tr} A)\lambda + \det(A) = 0$。
 - 若两根为实数，和为 $\operatorname{tr}(A)$，积为 $\det(A)$。两根均为负数充要条件为：两根之积 $\det(A) \gt 0$ 且两根之和 $\operatorname{tr}(A) \lt 0$。
 - 若两根为共轭复数 $\alpha \pm i\beta$，实部 $\alpha = \frac{\operatorname{tr}(A)}{2}$，两根之积 $\alpha^2 + \beta^2 = \det(A) \gt 0$。因此实部为负充要地等价于 $\operatorname{tr}(A) \lt 0$。
 两者统合，证得 $2\times 2$ 连续系统稳定的代数判据为 $\operatorname{tr}(A) \lt 0$ 且 $\det(A) \gt 0$。
@@ -278,9 +283,9 @@ $$
 
 ---
 
-<TheoremCard title="定理 6：正规马尔可夫链稳态收敛性与全概率正交分解定理" termEn="Markov Steady State Convergence and Total Probability Decomposition">
+<TheoremCard title="定理 6：正马尔可夫矩阵的稳态收敛与质量分解" termEn="Markov Steady State Convergence and Total Probability Decomposition">
 设转移矩阵 $M \in \mathbb{R}^{n\times n}$ 满足元素严格为正（$m_{ij} \gt 0$）且列和守恒（$\sum_{i=1}^n m_{ij} = 1$）。则：
-1. $\lambda_1 = 1$ 恒为 $M$ 的主特征值，且全 1 行向量为其左特征向量：
+1. $\lambda_1 = 1$ 为 $M$ 的单主特征值，且全 1 行向量为其左特征向量：
    $$
    \mathbf{1}^T M = \mathbf{1}^T \quad (\text{其中 } \mathbf{1} = [1, 1, \dots, 1]^T)
    $$
@@ -292,14 +297,14 @@ $$
    $$
    \lim_{k\to\infty} M^k \mathbf{u}_0 = \mathbf{u}_\infty \in \operatorname{Null}(M - I)
    $$
-4. 瞬态扰动分量 $\mathbf{u}_0 - \mathbf{u}_\infty$ 严格属于全 1 向量的正交补子空间：
+4. 瞬态扰动分量 $\mathbf{u}_0 - \mathbf{u}_\infty$ 属于全 1 向量的正交补子空间：
    $$
    (\mathbf{u}_0 - \mathbf{u}_\infty) \in (\operatorname{span}\{\mathbf{1}\})^\perp = \operatorname{Null}(\mathbf{1}^T)
    $$
-   在状态演化过程中，总概率质量严格守恒，瞬态模态以不低于 $(1 - |\lambda_2|)$ 的速率指数衰减。
+   零和子空间在 $M$ 下不变。对介于该限制映射谱半径与 $1$ 之间的任意 $r$，误差为 $O(r^k)$，即使 $M$ 亏损也成立。
 </TheoremCard>
 
-<ProofCollapse title="定理 6 的全概率正交投影与收敛性证明">
+<ProofCollapse title="定理 6 的总概率守恒与谱投影证明">
 **第一步：证明 $\lambda_1 = 1$ 恒成立。**
 
 由于 $M$ 的每一列元素之和为 1，将全 1 行向量 $\mathbf{1}^T = [1, \dots, 1]$ 与 $M$ 相乘，其第 $j$ 个分量为：
@@ -309,28 +314,11 @@ $$
 因此 $\mathbf{1}^T M = \mathbf{1}^T$，这等价于 $M^T \mathbf{1} = \mathbf{1}$。
 由此说明 1 是转置矩阵 $M^T$ 的特征值，特征向量为 $\mathbf{1}$。根据矩阵与转置矩阵特征多项式相同（$\det(M^T - \lambda I) = \det((M - \lambda I)^T) = \det(M - \lambda I)$），$\lambda_1 = 1$ 也必然是矩阵 $M$ 本身的特征值！
 
-**第二步：全概率守恒与正交补分解。**
+**第二步：全概率守恒与不变子空间直和。**
 
-设 $\mathbf{u}_\infty$ 是对应于 $\lambda_1 = 1$ 的归一化右特征向量，满足 $M\mathbf{u}_\infty = \mathbf{u}_\infty$ 且 $\mathbf{1}^T \mathbf{u}_\infty = 1$。
-将任意初值概率向量分解在特征基上（假定 $M$ 可对角化，不可对角化时使用 Jordan 标准形同样成立）：
-$$
-\mathbf{u}_0 = c_1 \mathbf{u}_\infty + \sum_{i=2}^n c_i \mathbf{x}_i
-$$
-两端左乘全 1 行向量 $\mathbf{1}^T$。注意对于任何特征向量 $\mathbf{x}_i$（$i \ge 2$），两端左乘 $\mathbf{1}^T$：
-$$
-\mathbf{1}^T (M\mathbf{x}_i) = \mathbf{1}^T (\lambda_i \mathbf{x}_i) \implies (\mathbf{1}^T M)\mathbf{x}_i = \lambda_i (\mathbf{1}^T \mathbf{x}_i) \implies \mathbf{1}^T \mathbf{x}_i = \lambda_i (\mathbf{1}^T \mathbf{x}_i)
-$$
-由于 $\lambda_i \ne 1$，上式只能是：
-$$
-\mathbf{1}^T \mathbf{x}_i = 0 \quad (\forall i \ge 2)
-$$
-这证明了所有瞬态特征向量 $\mathbf{x}_i$ 必须垂直于全 1 向量！
-因此两端求和：$\mathbf{1}^T \mathbf{u}_0 = c_1 \mathbf{1}^T \mathbf{u}_\infty + 0 \implies 1 = c_1 \cdot 1 \implies c_1 = 1$。
-执行 $k$ 步迭代：
-$$
-\mathbf{u}_k = M^k \mathbf{u}_0 = \mathbf{u}_\infty + \sum_{i=2}^n c_i \lambda_i^k \mathbf{x}_i
-$$
-因为所有 $|\lambda_i| \lt 1$（$i \ge 2$），当 $k \to \infty$ 时，$\lambda_i^k \to 0$。求和项完全消亡，证得 $\lim_{k\to\infty} \mathbf{u}_k = \mathbf{u}_\infty$。
+佩龙–弗罗贝尼乌斯定理给出唯一的严格正平稳分布 $\mathbf{u}_\infty$，其分量和为 $1$。由 $\mathbf{1}^T M=\mathbf{1}^T$，子空间 $H=\operatorname{Null}(\mathbf{1}^T)$ 在 $M$ 下不变。任意向量可唯一分解为 $(\mathbf{1}^T\mathbf{u})\mathbf{u}_\infty+\mathbf{w}$，其中 $\mathbf{w}\in H$。$M$ 在 $H$ 上的限制具有其余特征值，且模长都小于 $1$，因此即使 $M$ 亏损，也有 $M^k\mathbf{w}\to\mathbf{0}$。
+
+所以 $\lim_{k\to\infty}M^k=\mathbf{u}_\infty\mathbf{1}^T$。这是沿 $H$ 投影到平稳分布所在直线的投影；当且仅当 $\mathbf{u}_\infty$ 是均匀分布时，它是欧氏正交投影。
 </ProofCollapse>
 
 ---
@@ -354,15 +342,15 @@ $$
 2. **陷阱二：行列式的“线性假象”与纯量缩放陷阱**  
    加法非线性：绝大多数情况下 $\det(A + B) \ne \det(A) + \det(B)$！数乘缩放必须按阶数提纯量：对于 $n$ 阶方阵，$\det(cA) = c^n \det(A)$，而不是 $c \det(A)$；同理 $\det(-A) = (-1)^n \det(A)$。
 3. **陷阱三：高斯消元“摧毁特征值”陷阱**  
-   初等行变换矩阵 $E$ 保持方程解空间和行空间，且 $\det(A) = \pm \det(U)$，但它**完全不保持特征值与特征向量**！$A$ 与消元得到的阶梯形矩阵 $U$ 的特征值天差地别。绝对不能将 $U$ 的主对角线元素冒充为 $A$ 的特征值（特征值只在相似变换 $S^{-1}AS$ 下保持不变）。
+   消元 $EA=U$ 保持行空间与零空间。行列式按各初等行变换的因子变化，而 $U$ 的特征值可以不同于 $A$ 的特征值。相似变换 $S^{-1}AS$ 保持特征谱。
 4. **陷阱四：可逆性与可对角化性的“完全独立”陷阱**  
    “可逆”对应行列式非零（无零特征值）；“可对角化”对应具有 $n$ 个独立特征向量（$\operatorname{GM} = \operatorname{AM}$）。二者互不相干！
    - 可逆且不可对角化：$\begin{bmatrix} 2 & 1 \\ 0 & 2 \end{bmatrix}$（$\det = 4 \ne 0$，但几何重数仅为 1）；
    - 不可逆但可对角化：$\begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}$ 或 $\begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}$（$\det = 0$，但对角阵天然可对角化）。
 5. **陷阱五：矩阵指数拆分与乘法不可交换陷阱**  
-   恒等式 $e^{A + B} = e^A e^B$ **当且仅当** $A$ 与 $B$ 可交换（即 $AB = BA$）时方才成立！对于一般矩阵，$e^{A + B} \ne e^A e^B$。
+   若 $AB=BA$，则 $e^{A+B}=e^Ae^B$。矩阵不交换时，该等式可能失效，见第 23 讲的反例。
 6. **陷阱六：马尔可夫转移矩阵的周期振荡陷阱**  
-   若马尔可夫矩阵存在零元素（如置换矩阵 $\begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$），其特征值可能包含 $\lambda = -1$ 或复根。此时系统不会收敛到固定稳态，而是发生二周期往复振荡。仅当转移矩阵为**正转移矩阵**（$m_{ij} \gt 0$）或本原矩阵时，才保证唯一收敛。
+   两状态交换矩阵 $\begin{bmatrix}0&1\\1&0\end{bmatrix}$ 会使分量不同的初态振荡，而均匀分布保持不变。本原性保证所有初态趋于同一个严格正极限；趋于同一极限的充要谱条件是 $1$ 为单特征值且其余特征值模长小于 $1$。
 
 </PitfallAlert>
 
@@ -372,11 +360,11 @@ $$
 
 <KeyTakeaways items={[
   "正规方程与正交补分解：四大子空间的互为正交补结构决定了无解系统 $A\\mathbf{x} = \\mathbf{b}$ 必可正交分解为最优投影 $\\mathbf{p} \\in \\operatorname{Col}(A)$ 与残差 $\\mathbf{e} \\in \\operatorname{Null}(A^T)$，正规方程为 $A^T A \\hat{\\mathbf{x}} = A^T \\mathbf{b}$。",
-  "QR 分解与体积几何化：$A = QR$ 将正规方程对角化为上三角回代系统 $R\\hat{\\mathbf{x}} = Q^T \\mathbf{b}$，其对角元乘积精确还原了平行多面体的 $n$ 维几何超体积 $\\prod r_{ii} = |\\det(A)|$。",
+  "对列满秩的 $A$，薄 QR 分解将正规方程化为 $R\\hat{\\mathbf{x}}=Q^T\\mathbf{b}$，列向量张成的 $n$ 维体积为 $\\prod_i r_{ii}=\\sqrt{\\det(A^TA)}$。当 $A$ 为方阵时，此体积等于 $|\\det(A)|$。",
   "行列式的三大核心功能：判定奇异性与可逆性（$\\det A \\ne 0$）、计算伴随逆矩阵（$A^{-1} = \\frac{1}{\\det A}C^T$）、连接动力系统谱分析的特征方程网关（$\\det(A - \\lambda I) = 0$）。",
   "谱理论的核心不变量：相似变换 $S^{-1}AS$ 保持特征多项式、特征谱、迹（$\\operatorname{tr}(A) = \\sum \\lambda_i$）与行列式（$\\det(A) = \\prod \\lambda_i$）完全不变。",
-  "动力系统的稳定性边界：离散系统 $\\mathbf{u}_{k+1} = A\\mathbf{u}_k$ 稳定充要条件为谱半径 $\\rho(A) = \\max |\\lambda_i| \\lt 1$；连续系统 $\\frac{d\\mathbf{u}}{dt} = A\\mathbf{u}$ 稳定充要条件为全谱实部负 $\\operatorname{Re}(\\lambda_i) \\lt 0$（二维系统等价于 $\\operatorname{tr} A \\lt 0$ 且 $\\det A \\gt 0$）。",
-  "马尔可夫链的谱投影：所有列和为 1 保证主特征值 $\\lambda_1 = 1$（左特征向量为 $\\mathbf{1}$），其余特征值 $|\\lambda_i| \\le 1$；瞬态误差分量在 $\\operatorname{Null}(\\mathbf{1}^T)$ 子空间中指数消亡，收敛到唯一稳态 $\\mathbf{u}_\\infty$。"
+  "动力系统的稳定性边界：离散系统 $\\mathbf{u}_{k+1} = A\\mathbf{u}_k$ 渐近稳定的充要条件为谱半径 $\\rho(A) = \\max |\\lambda_i| \\lt 1$；连续系统 $\\frac{d\\mathbf{u}}{dt} = A\\mathbf{u}$ 渐近稳定的充要条件为全谱实部负 $\\operatorname{Re}(\\lambda_i) \\lt 0$（二维实系统等价于 $\\operatorname{tr} A \\lt 0$ 且 $\\det A \\gt 0$）。",
+  "对本原列随机矩阵 $M$，$M^k$ 收敛到谱投影 $\\mathbf{u}_\\infty\\mathbf{1}^T$，将每个向量映射为其分量和乘以平稳分布。"
 ]} />
 
 ---
@@ -412,7 +400,7 @@ $$
 
 <DualSolution>
 <SolutionIntuition>
-在几何上，三维观测向量 $\mathbf{b} = [6, 0, 0]^T$ 不在平面 $A\mathbf{x}$ 上。最小二乘法就是在由 $\mathbf{a}_1 = [1, 1, 1]^T$ 和 $\mathbf{a}_2 = [0, 1, 2]^T$ 所张成的二维平面上寻找垂足点 $\mathbf{p}$。
+在几何上，三维观测向量 $\mathbf{b} = [6, 0, 0]^T$ 不在平面 $\operatorname{Col}(A)$ 上。最小二乘法就是在由 $\mathbf{a}_1 = [1, 1, 1]^T$ 和 $\mathbf{a}_2 = [0, 1, 2]^T$ 所张成的二维平面上寻找垂足点 $\mathbf{p}$。
 
 垂足点是平面上最接近 $\mathbf{b}$ 的向量，而从垂足点指回 $\mathbf{b}$ 的连线 $\mathbf{e}$ 必然是垂直于该平面的法向量。因为投影矩阵 $P$ 满足 $P^2 = P$，作用在平面内的任意向量都保持不变（对应特征值 $\lambda = 1$，共有 2 个独立特征向量），而任何垂直于该平面的法线向量都会被直接压灭为零（对应特征值 $\lambda = 0$，共有 1 个独立特征向量）。
 </SolutionIntuition>
@@ -470,7 +458,7 @@ $$
 因为 $P$ 为二维平面上的投影算子：
 - 对任何平面内向量 $\mathbf{v} \in \operatorname{Col}(A)$，$P\mathbf{v} = 1\cdot\mathbf{v}$，对应特征值 $\lambda_1 = 1, \lambda_2 = 1$；
 - 对法线向量 $\mathbf{n} \in \operatorname{Null}(A^T)$，$P\mathbf{n} = 0\cdot\mathbf{n}$，对应特征值 $\lambda_3 = 0$。
-因此 $P$ 的全部特征值为 $\{1, 1, 0\}$。
+因此 $P$ 的特征值按重数计为 $1,1,0$。
 验证迹不变量：
 $$
 \operatorname{tr}(P) = \frac{5 + 2 + 5}{6} = \frac{12}{6} = 2 = 1 + 1 + 0 = \operatorname{rank}(A)
@@ -506,9 +494,9 @@ $$
 
 <DualSolution>
 <SolutionIntuition>
-Gram-Schmidt 正交化本质上是将斜角坐标轴逐个扳直、校准并归一化的几何过程。原始矩阵 $A$ 的三列向量夹角并非直角，行列式代表倾斜六面体的体积。
+Gram-Schmidt 正交化本质上是将斜角坐标轴逐个扳直、校准并归一化的几何过程。原始矩阵 $A$ 的三列向量夹角并非直角，$|\det(A)|$ 给出该平行六面体的体积。
 
-$A = QR$ 分解将该倾斜体积分解为一个旋转变换矩阵 $Q$（体积倍率为 1）和一个剪切拉伸上三角矩阵 $R$（体积倍率为对角元之积）。这就解释了为何底乘高计算体积等价于矩阵对角元连续相乘。
+$A = QR$ 分解将该倾斜体积分解为一个保持长度与角度的正交矩阵 $Q$（本题中反转定向）（体积倍率为 1）和一个剪切拉伸上三角矩阵 $R$（体积倍率为对角元之积）。这就解释了为何底乘高计算体积等价于矩阵对角元连续相乘。
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -616,7 +604,7 @@ $$
 <TrueFalseInteractive
   id="l25-tf1"
   correct={false}
-  quickFeedback="初等行变换改变了矩阵的几何方向。消元矩阵 E 保持行空间与行列式（至多改变正负号），但会彻底摧毁原矩阵的特征值与特征向量；特征值仅在相似变换 S⁻¹AS 下保持守恒。"
+  quickFeedback="初等行变换保持行空间与零空间，却可能改变特征值。下文的例子中，原矩阵特征值为 3 和 −1，阶梯形矩阵的特征值为 1 和 −3。"
 />
 
 <ProgressiveHint hints={[
@@ -627,7 +615,7 @@ $$
 
 <DualSolution>
 <SolutionIntuition>
-初学者最容易将“方程消元”与“特征值求解”混为一谈。高斯消元是左乘初等矩阵 $EA$，改变了向量变换的朝向，因而彻底打乱了不变子空间。
+初学者最容易将“方程消元”与“特征值求解”混为一谈。高斯消元是左乘初等矩阵 $EA$，改变了向量变换的朝向，也可能改变不变子空间。
 
 另外，“奇异矩阵不可对角化”也是典型幻觉：行列式为 0 仅仅意味着有特征值等于 0，而特征值为 0 与能否凑足 $n$ 个独立特征向量毫无冲突。
 </SolutionIntuition>
@@ -645,7 +633,7 @@ $$
 
 **命题 B：错误（False）。**
 
-*反例*：考虑简单的对角矩阵 $A = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}$。其行列式 $\det(A) = 1\times 0 = 0$。然而 $A$ 本身已经是纯对角阵，可取相似变换矩阵 $S = I_2$，显然完全可对角化。再如全零矩阵 $O_{n\times n}$，行列式为 0，但已经是实对角矩阵。
+*反例*：考虑简单的对角矩阵 $A = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}$。其行列式 $\det(A) = 1\times 0 = 0$。然而 $A$ 本身已经是纯对角阵，可取相似变换矩阵 $S = I_2$，显然完全可对角化。再如全零矩阵 $0_{n\times n}$，行列式为 0，但已经是实对角矩阵。
 
 **命题 C：正确（True）。**
 
@@ -658,7 +646,7 @@ $$
 $$
 \det(A) = -\det(A) \implies 2\det(A) = 0 \implies \det(A) = 0
 $$
-由于特征值乘积等于行列式 $\prod_{i=1}^3 \lambda_i = \det(A) = 0$，必存在至少一个特征值等于 0。又因为实系数多项式的复根必成共轭对出现，3 阶矩阵的特征值只能是一个实根和一对共轭虚根（$\lambda_1 = 0, \lambda_{2,3} = \pm i\omega$），因此 $\lambda = 0$ 必为其特征值。
+由于特征值乘积等于行列式 $\prod_{i=1}^3 \lambda_i = \det(A) = 0$，必存在至少一个特征值等于 0。又因为实系数多项式的复根必成共轭对出现，实反对称矩阵的特征值在虚轴上，因此三个特征值可写为$0,\pm i\omega$，其中 $\omega\ge0$。
 
 **命题 D：错误（False）。**
 
@@ -702,7 +690,7 @@ $$
 <SolutionIntuition>
 特征多项式的重根只是对角化困难的潜在诱因。当 $\lambda = 2$ 出现两重根时，我们需要观察能否从其零空间中掏出两个线性无关的特征向量。
 
-通过初等行化简，参数 $c$ 的存在与否直接决定了零空间的维度：若 $c=0$，原矩阵在第 1、2 行拥有两个自由度，退化为可对角化矩阵；若 $c \ne 0$，剪切效应挤压了特征子空间，使得几何重数缩减为 1，出现亏损。
+通过初等行化简，参数 $c$ 的存在与否直接决定了零空间的维度：若 $c=0$，特征向量方程中 $x_1,x_2$ 均为自由变量，退化为可对角化矩阵；若 $c \ne 0$，剪切效应挤压了特征子空间，使得几何重数缩减为 1，出现亏损。
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -723,7 +711,7 @@ $$
 $$
 A_c - 2I = \begin{bmatrix} 0 & c & 1 \\ 0 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}
 $$
-第三行为 $[0, 0, 1]$。从第一行减去第三行，矩阵等价化简为：
+第三行为 $[0, 0, 1]$。从第一行减去第三行，再交换第二行与第三行，得到：
 $$
 \begin{bmatrix} 0 & c & 0 \\ 0 & 0 & 1 \\ 0 & 0 & 0 \end{bmatrix}
 $$
@@ -761,10 +749,10 @@ $$
 **第四小问：$c = 1$ 时的亏损幂计算。**
 
 当 $c = 1$ 时，$\operatorname{GM}(2) = 1 \lt \operatorname{AM}(2) = 2$，矩阵不可对角化。
-但我们可观察其分块结构：左上角 $2\times 2$ 块为经典的 Jordan 块 $J = \begin{bmatrix} 2 & 1 \\ 0 & 2 \end{bmatrix} = 2I_2 + N$，其中 $N = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}$ 满足 $N^2 = O$。
+但我们可观察其分块结构：左上角 $2\times 2$ 块为经典的 Jordan 块 $J = \begin{bmatrix} 2 & 1 \\ 0 & 2 \end{bmatrix} = 2I_2 + N$，其中 $N = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}$ 满足 $N^2 = 0_{2\times 2}$。
 利用二项式展开：
 $$
-J^{100} = (2I_2 + N)^{100} = 2^{100} I_2 + \binom{100}{1} 2^{99} N + 0 = \begin{bmatrix} 2^{100} & 100 \cdot 2^{99} \\ 0 & 2^{100} \end{bmatrix}
+J^{100} = (2I_2 + N)^{100} = 2^{100} I_2 + \binom{100}{1} 2^{99} N = \begin{bmatrix} 2^{100} & 100 \cdot 2^{99} \\ 0 & 2^{100} \end{bmatrix}
 $$
 对于第三列，由于 $A_1 \mathbf{e}_3 = [1, 0, 3]^T$，记 $(A_1^k)_{13} = x_k$。由递推关系 $x_{k+1} = 2x_k + 3^k$（初值 $x_1 = 1$），解一阶常系数差分方程得到 $x_k = 3^k - 2^k$。
 因此整体矩阵幂为：
@@ -804,7 +792,7 @@ $$
 <SolutionIntuition>
 解微分方程组的关键是“以特征向量为坐标轴”。在特征坐标系下，原本错综复杂的耦合方程 $\frac{du_1}{dt} = -2u_1 + 3u_2$ 与 $\frac{du_2}{dt} = u_1 - 4u_2$ 被拆解为两个各自独立的单变量放射衰减：$\frac{dv_1}{dt} = \lambda_1 v_1$ 与 $\frac{dv_2}{dt} = \lambda_2 v_2$。
 
-因为两个特征值均为负数，解由两个指数衰减项叠加构成。快衰减项衰减殆尽后，系统轨线在相平面中最终将切着“慢衰减特征向量”缓缓滑入原点。
+因为两个特征值均为负数，解由两个指数衰减项叠加构成。慢模态系数非零的轨线沿慢特征向量的切线方向趋于原点。
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -878,7 +866,7 @@ $$
 考察特征判据：
 - 判别式：$\Delta = (\operatorname{tr} A)^2 - 4\det(A) = (-6)^2 - 4\times 5 = 36 - 20 = 16 \gt 0$（两互异实根，排除螺旋与振荡）；
 - 符号判据：$\det(A) = 5 \gt 0$ 说明两特征值同号；$\operatorname{tr}(A) = -6 \lt 0$ 说明两特征值均为负数（$\lambda_2 \lt \lambda_1 \lt 0$）。
-因此原点平衡态属于**渐近稳定节点（Asymptotically Stable Node / Sink）**。当 $t \to \infty$ 时，由于 $e^{-5t}$ 衰减速率远大于 $e^{-t}$，所有相轨线在无限接近原点时，都将切入由慢特征向量 $\mathbf{x}_1 = [3, 1]^T$ 所确定的直线切线方向。
+因此原点平衡态属于**渐近稳定节点（Asymptotically Stable Node / Sink）**。当 $t \to \infty$ 时，由于 $e^{-5t}$ 衰减速率远大于 $e^{-t}$，所给轨线沿慢特征向量 $\mathbf{x}_1=[3,1]^T$ 确定的切线方向趋于原点。若初值在快特征直线上，轨线始终沿该直线。
 </SolutionRigorous>
 </DualSolution>
 </ExerciseCard>
@@ -901,10 +889,10 @@ M = \begin{bmatrix} 0.8 & 0.3 \\ 0.2 & 0.7 \end{bmatrix}
 $$
 1. 求矩阵 $M$ 的全部特征值 $\lambda_1, \lambda_2$ 及对应的特征向量；
 2. 初始人口分布为 $\mathbf{u}_0 = \begin{bmatrix} 1 \\ 0 \end{bmatrix}$（全部人口集中在城镇 1）。求 $k$ 步迁移后的人口分布 $\mathbf{u}_k = M^k \mathbf{u}_0$，并求出当 $k \to \infty$ 时的绝对稳态人口向量 $\mathbf{u}_\infty$；
-3. 验证瞬态扰动分量 $\mathbf{u}_0 - \mathbf{u}_\infty$ 严格属于全 1 向量的正交补空间（即满足 $\mathbf{1}^T (\mathbf{u}_0 - \mathbf{u}_\infty) = 0$）。
+3. 验证瞬态扰动分量 $\mathbf{u}_0 - \mathbf{u}_\infty$ 属于全 1 向量的正交补空间（即满足 $\mathbf{1}^T (\mathbf{u}_0 - \mathbf{u}_\infty) = 0$）。
 
 **第二部分（函数内积空间的正交投影与傅里叶级数联通）**：  
-在希尔伯特空间 $L^2[-\pi, \pi]$ 中，定义内积为：
+在实希尔伯特空间 $L^2([-\pi,\pi];\mathbb{R})$ 中，定义内积为：
 $$
 \langle f, g \rangle = \int_{-\pi}^\pi f(x) g(x) \, dx
 $$
@@ -922,7 +910,7 @@ $$
 <SolutionIntuition>
 本题是模块二（投影与正交）和模块三（特征值与马尔可夫）的终极交汇。
 
-在第一部分，马尔可夫链的稳态收敛本质上是一个投影过程：矩阵迭代 $M^\infty$ 将任意初始概率分布正交投影到了稳态子空间上，而瞬态分量由于垂直于全 1 向量（概率质量为 0），被不可逆地衰减抹去。
+在第一部分，马尔可夫链的稳态收敛本质上是一个投影过程：极限算子 $\lim_{k\to\infty}M^k$ 沿零和方向 $\operatorname{Null}(\mathbf{1}^T)$ 投影到稳态直线上。本题稳态分布不均匀，因此该投影是斜投影（Oblique Projection）。
 
 在第二部分，我们将有限维的向量投影直接跃迁到无限维函数空间。傅里叶系数就是函数在正交三角基底上的坐标投影，它与有限维的最小二乘投影 $\hat{x}_i = \frac{\mathbf{q}_i^T \mathbf{b}}{\mathbf{q}_i^T \mathbf{q}_i}$ 拥有完全一致的数学心跳！
 </SolutionIntuition>
@@ -1009,11 +997,11 @@ $$
 
 将系数代入，最终得到目标函数在子空间上的正交投影为：
 $$
-\operatorname{proj}_V(x) = 2\sin x
+(\operatorname{proj}_V f)(x)=2\sin x
 $$
 
 **深层数学统一性阐释**：  
-这正是傅里叶级数（Fourier Series）的第一阶展开项！它与有限维最小二乘正规方程 $(A^T A)\hat{\mathbf{x}} = A^T \mathbf{b}$ 拥有完全相同的灵魂：由于基向量两两正交，Gram 矩阵 $A^T A$ 成为对角矩阵 $\operatorname{diag}(\pi, \pi, 2\pi)$，使得各坐标方向的投影完全解耦。傅里叶分析正是无穷维希尔伯特空间上的正交投影几何学！
+这正是傅里叶级数（Fourier Series）的第一阶展开项！它与有限维最小二乘正规方程 $(A^T A)\hat{\mathbf{x}} = A^T \mathbf{b}$ 拥有完全相同的灵魂：由于基向量两两正交，Gram 矩阵 $A^T A$ 成为对角矩阵 $\operatorname{diag}(2\pi,\pi,\pi)$，使得各坐标方向的投影完全解耦。傅里叶分析正是无穷维希尔伯特空间上的正交投影几何学！
 </SolutionRigorous>
 </DualSolution>
 </ExerciseCard>

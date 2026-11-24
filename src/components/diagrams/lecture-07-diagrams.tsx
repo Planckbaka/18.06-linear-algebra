@@ -2,20 +2,24 @@ import * as React from 'react';
 import { MathDiagram } from './math-diagram';
 
 export function RrefNullspaceBlockDiagram({
-  caption = '简化行阶梯形 $R = \\operatorname{rref}(A)$ 与零空间基矩阵 $N$ 的解剖学对应（假设列已按主列在前、自由列在后重排）：当 $R$ 化为分块标准形 $\\begin{bmatrix} I_r & F \\\\ 0 & 0 \\end{bmatrix}$ 时，只需将右上角自由块 $F \\in \\mathbb{R}^{r\\times(n-r)}$ **整体取负号搬到上方、下方垫上单位阵 $I_{n-r}$**，就自动拼出零空间矩阵 $N = \\begin{bmatrix} -F \\\\ I_{n-r} \\end{bmatrix}$，其 $n-r$ 列正是 $n-r$ 个线性无关特解，因为分块乘积 $RN = -I_r F + F I_{n-r} = 0$ 恒成立！',
+  lang = 'zh',
+  caption = '设 $R=\\operatorname{rref}(A)$。将主列排在自由列之前得 $R_{\\mathrm{p}}=RP_{\\mathrm{col}}=\\begin{bmatrix}I_r&F\\\\0&0\\end{bmatrix}$。分块乘得 $R_{\\mathrm{p}}N=\\begin{bmatrix}-F+F\\\\0\\end{bmatrix}=0_{m\\times(n-r)}$，其中 $N=\\begin{bmatrix}-F\\\\I_{n-r}\\end{bmatrix}$。$P_{\\mathrm{col}}N$ 的列给出原变量顺序下的零空间基。',
 }: {
+  lang?: 'en' | 'zh';
   caption?: string;
 }) {
+  const isEnglish = lang === 'en';
+
   return (
     <MathDiagram
-      title="Block Anatomy of R = rref(A) and the Nullspace Matrix N = [−F; I]"
+      title={isEnglish ? 'Nullspace Basis from Pivot-Ordered RREF' : '按主列重排后构造零空间基'}
       caption={caption}
     >
       <svg
         viewBox="0 0 710 265"
         className="w-full max-w-[710px] select-none text-foreground"
         role="img"
-        aria-label="Block matrix transformation from R = [I F; 0 0] to Nullspace matrix N = [-F; I] showing RN = 0"
+        aria-label={isEnglish ? 'Block matrix transformation from pivot-ordered RREF Rₚ = [I F; 0 0] to N = [-F; I], showing that RₚN is zero' : '将主列排在自由列前，由 Rₚ 的自由块 F 构造 N，并验证 RₚN = 0。'}
       >
         <defs>
           <marker id="l07-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
@@ -26,7 +30,7 @@ export function RrefNullspaceBlockDiagram({
         {/* ================= LEFT: R = [I_r  F;  0  0] ================= */}
         <g transform="translate(26, 36)">
           <text x="120" y="-12" textAnchor="middle" className="fill-current text-[12.5px] font-bold">
-            简化行阶梯形 R ∈ ℝᵐˣⁿ（秩 = r）
+            {isEnglish ? 'Pivot columns first: Rₚ ∈ ℝᵐˣⁿ' : '按主列重排后 Rₚ ∈ ℝᵐˣⁿ'}
           </text>
 
           {/* Outer matrix R */}
@@ -34,10 +38,10 @@ export function RrefNullspaceBlockDiagram({
 
           {/* Column dimension labels */}
           <text x="68" y="8" textAnchor="middle" className="fill-blue-600 dark:fill-blue-400 font-mono text-[10.5px] font-semibold">
-            r 个主列 (Pivot)
+            {isEnglish ? 'r pivot columns' : 'r 个主列 (Pivot)'}
           </text>
           <text x="186" y="8" textAnchor="middle" className="fill-amber-700 dark:fill-amber-300 font-mono text-[10.5px] font-semibold">
-            n−r 个自由列 (Free)
+            {isEnglish ? 'n − r free columns' : 'n−r 个自由列 (Free)'}
           </text>
 
           {/* Top-left block I_r */}
@@ -47,7 +51,7 @@ export function RrefNullspaceBlockDiagram({
             I_r
           </text>
           <text x="68" y="92" textAnchor="middle" className="fill-blue-700 dark:fill-blue-300 font-mono text-[10px]">
-            (r × r 单位块)
+            {isEnglish ? '(r × r identity)' : '(r × r 单位块)'}
           </text>
 
           {/* Top-right block F */}
@@ -56,13 +60,13 @@ export function RrefNullspaceBlockDiagram({
             F
           </text>
           <text x="182" y="92" textAnchor="middle" className="fill-amber-800 dark:fill-amber-200 font-mono text-[10px]">
-            (r × (n−r) 自由块)
+            {isEnglish ? '(r × (n − r))' : '(r × (n−r) 自由块)'}
           </text>
 
           {/* Bottom zero rows */}
           <rect x="10" y="118" width="220" height="48" rx="5" fill="currentColor" fillOpacity="0.04" stroke="currentColor" strokeOpacity="0.18" strokeDasharray="4 3" />
           <text x="120" y="147" textAnchor="middle" className="fill-current font-mono text-[12px] opacity-60">
-            0  (m − r 个全零行)
+            {isEnglish ? '0 (m − r zero rows)' : '0  (m − r 个全零行)'}
           </text>
         </g>
 
@@ -76,13 +80,13 @@ export function RrefNullspaceBlockDiagram({
           markerEnd="url(#l07-arrow)"
         />
         <text x="318" y="42" textAnchor="middle" className="fill-amber-700 dark:fill-amber-300 font-mono text-[11px] font-bold">
-          取负号 F ⟼ −F
+          {isEnglish ? 'Negate F ⟼ −F' : '取负号 F ⟼ −F'}
         </text>
 
         {/* ================= MIDDLE: N = [-F; I_{n-r}] ================= */}
         <g transform="translate(394, 24)">
           <text x="64" y="-2" textAnchor="middle" className="fill-emerald-700 dark:fill-emerald-300 text-[12.5px] font-bold">
-            零空间矩阵 N ∈ ℝⁿˣ⁽ⁿ⁻ʳ⁾
+            {isEnglish ? 'N ∈ ℝⁿˣ⁽ⁿ⁻ʳ⁾' : '零空间矩阵 N ∈ ℝⁿˣ⁽ⁿ⁻ʳ⁾'}
           </text>
           <rect x="6" y="12" width="116" height="186" rx="8" className="fill-emerald-500/[0.05] stroke-emerald-600/50 dark:stroke-emerald-400/50" strokeWidth="1.5" />
 
@@ -92,7 +96,7 @@ export function RrefNullspaceBlockDiagram({
             −F
           </text>
           <text x="64" y="84" textAnchor="middle" className="fill-current font-mono text-[9.5px] opacity-80">
-            主变量自动反解
+            {isEnglish ? 'Pivot variables' : '主变量自动反解'}
           </text>
 
           {/* Bottom block I_{n-r} */}
@@ -101,7 +105,7 @@ export function RrefNullspaceBlockDiagram({
             I_(n−r)
           </text>
           <text x="64" y="171" textAnchor="middle" className="fill-current font-mono text-[9.5px] opacity-80">
-            自由变量轮流取 1
+            {isEnglish ? 'Free variables' : '自由变量轮流取 1'}
           </text>
         </g>
 
@@ -109,16 +113,16 @@ export function RrefNullspaceBlockDiagram({
         <g transform="translate(534, 62)">
           <rect x="0" y="0" width="154" height="122" rx="10" fill="currentColor" fillOpacity="0.035" stroke="currentColor" strokeOpacity="0.18" />
           <text x="77" y="26" textAnchor="middle" className="fill-current font-mono text-[12px] font-bold">
-            分块核验 R N = 0
+            {isEnglish ? 'Check RₚN = 0' : '分块核验 RₚN = 0'}
           </text>
           <text x="77" y="54" textAnchor="middle" className="fill-current font-mono text-[11px]">
-            I_r(−F) + F(I)
+            Iᵣ(−F) + FIₙ₋ᵣ
           </text>
           <text x="77" y="76" textAnchor="middle" className="fill-emerald-600 dark:fill-emerald-400 font-mono text-[12px] font-bold">
-            = −F + F = 0 !
+            {isEnglish ? 'Top block: −F + F = 0' : '上块为 −F + F = 0'}
           </text>
           <text x="77" y="103" textAnchor="middle" className="fill-current text-[10px] opacity-75">
-            N 的 n−r 列即特解基!
+            {isEnglish ? 'Columns of N form a basis' : 'N 的列构成零空间基'}
           </text>
         </g>
       </svg>

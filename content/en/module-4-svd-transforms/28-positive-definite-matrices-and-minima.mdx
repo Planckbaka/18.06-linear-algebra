@@ -87,7 +87,7 @@ $$
 
 Look closely at the two coefficients sitting outside the squares:
 - The first coefficient is $d_1 = a$;
-- The second coefficient is $d_2 = c - \frac{b^2}{a} = \frac{ac - b^2}{a} = \frac{\det(A_2)}{\det(A_1)}$!
+- The second coefficient is $d_2 = c - \frac{b^2}{a} = \frac{ac - b^2}{a} = \frac{\det(A)}{a}$!
 
 Those are **the exact two pivots produced by Gaussian elimination** on $A$! Written in symmetric elimination form $A = L D L^T$, this is:
 
@@ -233,7 +233,7 @@ $$
 ---
 
 **Step 5: Prove $(3) \iff (4)$**
-Key fact: when performing Gaussian elimination on $A$ without row exchanges, the first $k$ steps involve only the upper-left $k \times k$ block $A_k$. Whenever the first $k - 1$ pivots $d_1, \dots, d_{k-1}$ are nonzero, $A_k$ factors uniquely as $A_k = L_k D_k U_k$, where $L_k$ and $U_k$ are unit triangular matrices ($\det(L_k) = \det(U_k) = 1$) and $D_k = \operatorname{diag}(d_1, \dots, d_k)$. Taking determinants gives:
+Key fact: when performing Gaussian elimination on $A$ without row exchanges, the first $k$ pivots can be computed using only the leading block $A_k$. Whenever the first $k - 1$ pivots $d_1, \dots, d_{k-1}$ are nonzero, $A_k$ admits a factorization $A_k = L_k D_k U_k$, where $L_k$ and $U_k$ are unit triangular matrices ($\det(L_k) = \det(U_k) = 1$) and $D_k = \operatorname{diag}(d_1, \dots, d_k)$. Taking determinants gives:
 
 $$
 \det(A_k) = \det(L_k)\det(D_k)\det(U_k) = d_1 d_2 \cdots d_k
@@ -287,7 +287,7 @@ Let us check $K_3$ with all five yardsticks at once—each one is an immediate s
 
 ## 3. Positive Semidefinite (PSD) Matrices and the Subtlety of "All Principal Minors"
 
-In machine learning covariance estimation, kernel matrices, and graph Laplacians $L = A^T A$, we frequently encounter matrices whose columns may be linearly dependent. The energy remains nonnegative, but is allowed to flatten to zero along certain directions—giving a **positive semidefinite (PSD) matrix**.
+Covariance matrices, positive semidefinite kernel matrices, and graph Laplacians such as $L = A^T A$, can have linearly dependent columns. The energy remains nonnegative, but is allowed to flatten to zero along certain directions—giving a **positive semidefinite (PSD) matrix**.
 
 <DefinitionCard label="Definition" title="Characterization of Positive Semidefinite (PSD) Matrices">
 
@@ -295,7 +295,7 @@ Let $A = A^T \in \mathbb{R}^{n \times n}$ be a real symmetric matrix. The follow
 
 1. **Nonnegative Energy**: $\mathbf{x}^T A \mathbf{x} \ge 0$ for all $\mathbf{x} \in \mathbb{R}^n$;
 2. **Nonnegative Eigenvalues**: All $n$ real eigenvalues satisfy $\lambda_1, \lambda_2, \dots, \lambda_n \ge 0$;
-3. **Rank-Deficient Gram Factorization**: There exists $R \in \mathbb{R}^{m \times n}$ (without requiring full column rank; $\operatorname{rank}(R) = \operatorname{rank}(A) \le n$) such that $A = R^T R$;
+3. **Gram Factorization**: There exists $R \in \mathbb{R}^{m \times n}$ (without requiring full column rank; $\operatorname{rank}(R) = \operatorname{rank}(A) \le n$) such that $A = R^T R$;
 4. **All Principal Minors Nonnegative**: **All** $2^n - 1$ principal submatrices $A_{I,I}$ (not merely the upper-left leading ones! Here $I$ ranges over all nonempty subsets of $\{1, 2, \dots, n\}$, selecting the same row and column indices) have nonnegative determinants:
    $$
    \det(A_{I,I}) \ge 0 \qquad (\forall \varnothing \ne I \subseteq \{1, 2, \dots, n\})
@@ -318,7 +318,9 @@ $$
 B = \begin{bmatrix} 0 & 0 \\ 0 & -1 \end{bmatrix}
 $$
 
-Its two **leading** principal minors are $\det(B_1) = 0 \ge 0$ and $\det(B_2) = 0 \ge 0$—both satisfy "$\ge 0$"! Yet its eigenvalues are $0$ and $-1$, and taking $\mathbf{x} = [0, 1]^T$ gives $\mathbf{x}^T B \mathbf{x} = -1 \lt 0$, so $B$ is not PSD at all. The culprit is the **non-leading $1 \times 1$ principal minor** in row 2, column 2: $\det(B_{\{2\},\{2\}}) = -1 \lt 0$. That is why testing PSD requires checking **all** principal minors $\ge 0$.
+Its two **leading** principal minors are $\det(B_1) = 0 \ge 0$ and $\det(B_2) = 0 \ge 0$—both satisfy "$\ge 0$"! Yet its eigenvalues are $0$ and $-1$, and taking $\mathbf{x} = [0, 1]^T$ gives $\mathbf{x}^T B \mathbf{x} = -1 \lt 0$, so $B$ is not PSD at all. The culprit is the **non-leading $1 \times 1$ principal minor** in row 2, column 2: $\det(B_{\{2\},\{2\}}) = -1 \lt 0$. The principal-minor criterion for PSD uses all principal minors $\ge 0$.
+
+To prove the all-principal-minors test, first restrict a PSD form to any subset of coordinates. The resulting principal submatrix is PSD, so its determinant is nonnegative. Conversely, assume all principal minors are nonnegative. For $\varepsilon\gt 0$, the coefficients of $\det(A_k+\varepsilon I_k)$ are sums of principal minors of $A_k$ by multilinearity in the columns, and the term $\varepsilon^k$ is positive. Hence all leading principal minors of $A+\varepsilon I_n$ are positive. Apply the SPD criterion, then take $\varepsilon\downarrow 0$ in the quadratic form to get $A\succeq 0$.
 
 ---
 
@@ -338,11 +340,11 @@ $$
 H(\mathbf{x}^*)_{ij} = \frac{\partial^2 f}{\partial x_i \partial x_j}(\mathbf{x}^*)
 $$
 
-Because mixed partial derivatives commute (Clairaut's theorem), $H(\mathbf{x}^*)$ is automatically a **real symmetric matrix**! Consequently, the local shape of a multivariable function reduces completely to the definiteness of its Hessian:
-- If $H(\mathbf{x}^*) \succ 0$ (**SPD**), then $\frac{1}{2}\Delta\mathbf{x}^T H \Delta\mathbf{x} \gt 0$ for every small nonzero $\Delta\mathbf{x}$, so $\mathbf{x}^*$ is a **strict local minimum**;
+Because mixed partial derivatives commute (Clairaut's theorem), $H(\mathbf{x}^*)$ is automatically a **real symmetric matrix**! At an interior local minimum, the Hessian must be PSD because the second derivative along every line through $\mathbf{x}^*$ is nonnegative. At a stationary point, the second-order test gives the following conclusions.
+- If $H(\mathbf{x}^*) \succ 0$ (**SPD**), then $\Delta\mathbf{x}^T H\Delta\mathbf{x}\ge \lambda_{\min}(H)\|\Delta\mathbf{x}\|_2^2$, where $\lambda_{\min}(H)\gt 0$. This bound dominates the Taylor remainder for sufficiently small nonzero perturbations, so $\mathbf{x}^*$ is a **strict local minimum**;
 - If $H(\mathbf{x}^*) \prec 0$ (negative definite), $\mathbf{x}^*$ is a **strict local maximum**;
 - If $H(\mathbf{x}^*)$ is indefinite (both positive and negative eigenvalues), the surface rises along positive-eigenvalue directions and falls along negative-eigenvalue directions, so $\mathbf{x}^*$ is a **saddle point**;
-- If $H(\mathbf{x}^*)$ is merely semidefinite (zero eigenvalue), second derivatives lose control along the null eigenvector and higher-order terms decide (for example, $x_1^2 + x_2^4$ has a minimum at the origin, whereas $x_1^2 - x_2^4$ and $x_1^2 + x_2^3$ do not).
+- If $H(\mathbf{x}^*)$ is merely semidefinite (zero eigenvalue), second derivatives lose control along the nullspace and the second-order test is inconclusive (for example, $x_1^2 + x_2^4$ has a minimum at the origin, whereas $x_1^2 - x_2^4$ and $x_1^2 + x_2^3$ do not).
 
 ### 2. The Principal Axis Theorem: Why Larger Eigenvalues Give Shorter Semi-Axes
 
@@ -468,7 +470,7 @@ $$
 A(t) = \begin{bmatrix} 1 & 2 & 0 \\ 2 & 5 & 2 \\ 0 & 2 & t \end{bmatrix}
 $$
 
-1. Using the **leading principal minors test** $\det(A_k) \gt 0$, determine the values of $t$ for which $A(t)$ is positive definite (SPD), and the values for which it is positive semidefinite (PSD).
+1. Use the leading principal minors test to find the SPD range of $t$. Use the quadratic form or all principal minors to find the PSD range.
 2. Set $t = 6$ and find the $L D L^T$ factorization and the lower-triangular Cholesky factorization $A(6) = L_c L_c^T$ (where $L_c = L\sqrt{D}$).
 3. Write the quadratic form $\mathbf{x}^T A(6) \mathbf{x}$ as a sum of three independent squares (completing the square).
 
@@ -671,7 +673,7 @@ Therefore, both $A^{-1}$ and $B^T A B$ are symmetric positive definite.
 
 </ExerciseCard>
 
-<ExerciseCard id="l28-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Zero-Calculation Reasoning: The SPD Convex Cone, Matrix Products, and Diagonal Dominance of the Largest Entry">
+<ExerciseCard id="l28-ex4" tier="L3" tierLabel="L3 · Zero-Calculation Subspace Reasoning" title="Zero-Calculation Reasoning: The SPD Convex Cone, Matrix Products, and The Largest Entry in Absolute Value">
 
 Let $A, B \in \mathbb{R}^{n \times n}$ be symmetric positive definite matrices ($A \succ 0$ and $B \succ 0$). Without computing any eigenvalues, prove the following:
 
@@ -750,8 +752,8 @@ This problem unifies SPD matrices with solving linear systems, weighted least sq
    $$
    and explain why this immediately proves that $\mathbf{x}^*$ is the unique global minimum of $P(\mathbf{x})$ over all of $\mathbb{R}^n$.
 2. **Weighted Least Squares and 3D Ellipsoid Volume**:
-   - (a) In generalized least squares, let $M \in \mathbb{R}^{m \times n}$ have full column rank ($\operatorname{rank}(M) = n$) and let $W \succ 0$ be an SPD weight matrix (such as an inverse covariance matrix $\Sigma^{-1}$). To minimize $J(\mathbf{x}) = (M\mathbf{x} - \mathbf{y})^T W (M\mathbf{x} - \mathbf{y})$, prove that the coefficient matrix $M^T W M$ in the weighted normal equations $(M^T W M)\hat{\mathbf{x}} = M^T W \mathbf{y}$ is SPD, guaranteeing a unique optimal solution $\hat{\mathbf{x}}$.
-   - (b) Given that the unit sphere in $\mathbb{R}^3$ has volume $\frac{4}{3}\pi$, derive the volume of the solid 3D ellipsoid $\{\mathbf{x} \in \mathbb{R}^3 \mid \mathbf{x}^T A \mathbf{x} \le 1\}$ for a $3 \times 3$ SPD matrix $A$ in terms of $\det(A)$.
+   - (a) In generalized least squares, let $M \in \mathbb{R}^{m \times n}$ have full column rank ($\operatorname{rank}(M) = n$) and let $\mathbf{y}\in\mathbb{R}^m$ and $W\in\mathbb{R}^{m\times m}$ be an SPD weight matrix (such as an inverse covariance matrix $\Sigma^{-1}$). To minimize $J(\mathbf{x}) = (M\mathbf{x} - \mathbf{y})^T W (M\mathbf{x} - \mathbf{y})$, prove that the coefficient matrix $M^T W M$ in the weighted normal equations $(M^T W M)\hat{\mathbf{x}} = M^T W \mathbf{y}$ is SPD, guaranteeing a unique optimal solution $\hat{\mathbf{x}}$.
+   - (b) Given that the unit ball in $\mathbb{R}^3$ has volume $\frac{4}{3}\pi$, derive the volume of the solid 3D ellipsoid $\{\mathbf{x} \in \mathbb{R}^3 \mid \mathbf{x}^T A \mathbf{x} \le 1\}$ for a $3 \times 3$ SPD matrix $A$ in terms of $\det(A)$.
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
   "Part 1: First use $A\\mathbf{x}^* = \\mathbf{b}$ to evaluate $P(\\mathbf{x}^*) = -\\frac{1}{2}(\\mathbf{x}^*)^T A \\mathbf{x}^*$, then expand $\\frac{1}{2}(\\mathbf{x} - \\mathbf{x}^*)^T A (\\mathbf{x} - \\mathbf{x}^*)$ and compare.",
@@ -852,12 +854,18 @@ $$
 \nabla_{\mathbf{x}} \log \mathcal{N}(\mathbf{x}; \boldsymbol{\mu}, \Sigma) = -\Sigma^{-1}(\mathbf{x} - \boldsymbol{\mu})
 $$
 
-**Key geometric insight**: Why doesn't the denoising score vector $-\Sigma^{-1}(\mathbf{x} - \boldsymbol{\mu})$ point straight along the Euclidean radial line $-(\mathbf{x} - \boldsymbol{\mu})$ toward $\boldsymbol{\mu}$?
-Because multiplying by $\Sigma^{-1} = \sum_{i=1}^d \frac{1}{\lambda_i}\mathbf{q}_i \mathbf{q}_i^T$ applies only a gentle pull along high-variance flat directions (large $\lambda_i$), while exerting a massive restoring force along tightly constrained, low-variance directions (small $\lambda_i$, huge $\lambda_i^{-1}$)! When a noisy sample sits off the thin data manifold, the large-eigenvalue components of $\Sigma^{-1}$ snap it rapidly back onto the manifold surface before it drifts smoothly along the tangent directions.
+For $c\gt 0$, the score is normal to the level ellipsoid and points inward. It is radial when $\mathbf{x}-\boldsymbol{\mu}$ lies in an eigenspace of $\Sigma$. The component along $\mathbf{q}_i$ is $-\mathbf{q}_i^T(\mathbf{x}-\boldsymbol{\mu})/\lambda_i$, so equal offsets produce larger score components in lower-variance directions.
+
+Diffusion uses the score of the time-dependent marginal $p_t$. For Gaussian $\mathbf{x}_0$ and independent $\boldsymbol{\varepsilon}\sim\mathcal{N}(\mathbf{0},I_d)$, consider $\mathbf{x}_t=\alpha_t\mathbf{x}_0+\beta_t\boldsymbol{\varepsilon}$. Then
+$$
+\Sigma_t=\alpha_t^2\Sigma+\beta_t^2 I_d,\qquad
+\nabla_{\mathbf{x}}\log p_t(\mathbf{x})=-\Sigma_t^{-1}(\mathbf{x}-\alpha_t\boldsymbol{\mu})
+$$
+whenever $\Sigma_t\succ 0$. At fixed $\alpha_t$, adding isotropic noise raises the covariance eigenvalues and reduces the precision in each eigendirection. The score gives the direction of increasing density. The full reverse diffusion dynamics also depend on the noise process.
 
 ### 2. Ill-Conditioned Loss-Landscape Hessians and Natural Gradient (Fisher Information Matrix)
 
-In deep learning optimization, expand the loss $\mathcal{L}(\boldsymbol{\theta})$ around a local minimum $\boldsymbol{\theta}^* \in \mathbb{R}^P$:
+Consider a twice continuously differentiable loss near a stationary point $\boldsymbol{\theta}^*\in\mathbb{R}^P$ and assume its Hessian there is SPD. Its local quadratic model is
 
 $$
 \mathcal{L}(\boldsymbol{\theta}) \approx \mathcal{L}(\boldsymbol{\theta}^*) + \frac{1}{2}(\boldsymbol{\theta} - \boldsymbol{\theta}^*)^T H (\boldsymbol{\theta} - \boldsymbol{\theta}^*), \qquad H = \nabla^2 \mathcal{L}(\boldsymbol{\theta}^*) \succ 0
@@ -867,7 +875,7 @@ When curvature varies wildly across parameter directions, the Hessian's **condit
 - Across the steep canyon walls ($\lambda_{\max}$ direction, short semi-axis $1/\sqrt{\lambda_{\max}}$), the gradient is enormous;
 - Along the canyon floor ($\lambda_{\min}$ direction, long semi-axis $1/\sqrt{\lambda_{\min}}$), the gradient is tiny.
 
-This puts vanilla **gradient descent** $\boldsymbol{\theta}_{k+1} = \boldsymbol{\theta}_k - \eta \nabla\mathcal{L}(\boldsymbol{\theta}_k)$ in a bind: if $\eta$ exceeds $2/\lambda_{\max}$, iterates bounce violently off the steep walls and diverge; keeping $\eta \lt 2/\lambda_{\max}$ slows progress along the canyon floor by a factor of $\kappa(H)$!
+For the exact SPD quadratic model, gradient descent with step size $\eta$ multiplies the error in direction $i$ by $1-\eta\lambda_i(H)$ at each step. Convergence from every initial point holds exactly when $0\lt\eta\lt 2/\lambda_{\max}(H)$. At $\eta=1/\lambda_{\max}(H)$ the slowest contraction factor is $1-1/\kappa(H)$.
 
 **Second-order preconditioning and Natural Gradient**:
 How do we "whiten" an ill-conditioned canyon into a round, isotropic bowl?
@@ -876,7 +884,7 @@ How do we "whiten" an ill-conditioned canyon into a round, isotropic bowl?
   $$
   F(\boldsymbol{\theta}) = \mathbb{E}_{\mathbf{x} \sim p_{\boldsymbol{\theta}}}\!\left[ \nabla_{\boldsymbol{\theta}} \log p_{\boldsymbol{\theta}}(\mathbf{x})\, \nabla_{\boldsymbol{\theta}} \log p_{\boldsymbol{\theta}}(\mathbf{x})^T \right]
   $$
-  Recall Section 3: **any expected outer product $\mathbf{g}\mathbf{g}^T$ automatically satisfies $\mathbf{v}^T F \mathbf{v} = \mathbb{E}[(\mathbf{v}^T \nabla\log p)^2] \ge 0$**! Thus the Fisher matrix $F$ is **guaranteed to be symmetric positive semidefinite ($F \succeq 0$)**, and adding tiny damping $F + \epsilon I$ makes it strictly SPD! Modern adaptive and second-order optimizers—from diagonal Adam, to Kronecker-factored K-FAC and Shampoo ($G_L^{-1/4} G G_R^{-1/4}$), to orthogonalized matrix-gradient methods like Muon—all tame ill-conditioned curvature ellipsoids through efficient SPD or orthogonal preconditioning.
+  If the parameter score has finite second moment, then $\mathbf{v}^T F\mathbf{v}=\mathbb{E}[(\mathbf{v}^T\nabla_{\boldsymbol{\theta}}\log p_{\boldsymbol{\theta}}(\mathbf{x}))^2]\ge 0$, so $F$ is symmetric PSD. Under the regularity conditions allowing two derivatives to pass through the normalization integral over fixed support, $F=-\mathbb{E}_{p_{\boldsymbol{\theta}}}[\nabla_{\boldsymbol{\theta}}^2\log p_{\boldsymbol{\theta}}(\mathbf{x})]$. This model expectation generally differs from the observed training-loss Hessian. The natural-gradient step is $-\eta F^{-1}\nabla\mathcal{L}$ when $F$ is invertible. Damping by $\epsilon\gt 0$ gives an SPD preconditioner and the step $-\eta(F+\epsilon I_P)^{-1}\nabla\mathcal{L}$.
 
 <CollapsibleCode language="python" title="gaussian_ellipsoid_score_and_hessian.py">
 ```python

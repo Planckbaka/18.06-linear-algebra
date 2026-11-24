@@ -96,7 +96,7 @@ export function MarkovSteadyStateSimplexDiagram({
             1. 列随机性：A 的每一列元素之和等于 1
           </text>
           <text x="52" y="108" className="fill-blue-600 dark:fill-blue-400 text-xs font-mono">
-            1&#7510; A = 1&#7510;  (1 = [1, 1, ..., 1]&#7510; 行向量乘各列和)
+            1ᵀ A = 1ᵀ，1ᵀ = [1, 1, ..., 1]
           </text>
 
           {/* 箭头 1 -> 2 */}
@@ -121,10 +121,10 @@ export function MarkovSteadyStateSimplexDiagram({
             strokeWidth="1"
           />
           <text x="52" y="158" className="fill-foreground text-xs font-medium">
-            2. 移项与转置：1&#7510; (A - I) = 0&#7510;
+            2. 移项与转置：1ᵀ (A - I) = 0ᵀ
           </text>
           <text x="52" y="176" className="fill-blue-600 dark:fill-blue-400 text-xs font-mono">
-            &lt;=&gt; (A&#7510; - I) 1 = 0  =&gt; 1 是 A&#7510; 对应 &#955;=1 的特征向量
+            &lt;=&gt; (Aᵀ - I) 1 = 0  =&gt; 1 是 Aᵀ 对应 &#955;=1 的特征向量
           </text>
 
           {/* 箭头 2 -> 3 */}
@@ -152,7 +152,7 @@ export function MarkovSteadyStateSimplexDiagram({
             3. 转置零空间包含非平凡全 1 向量：
           </text>
           <text x="52" y="244" className="fill-purple-600 dark:fill-purple-400 text-xs font-mono">
-            1 &#8712; Null(A&#7510; - I)  =&gt;  dim Null(A&#7510; - I) &gt;= 1
+            1 &#8712; Null(Aᵀ - I)  =&gt;  dim Null(Aᵀ - I) &gt;= 1
           </text>
 
           {/* 箭头 3 -> 4 */}
@@ -177,10 +177,10 @@ export function MarkovSteadyStateSimplexDiagram({
             strokeWidth="1.2"
           />
           <text x="52" y="295" className="fill-foreground text-xs font-medium">
-            4. 四大子空间基本定理（行秩 = 列秩 = r）：
+            4. A − I 的行秩与列秩均为 r
           </text>
           <text x="52" y="315" className="fill-emerald-600 dark:fill-emerald-400 text-xs font-mono font-semibold">
-            dim Null(A - I) = dim Null(A&#7510; - I) = n - r &gt;= 1
+            dim Null(A - I) = dim Null(Aᵀ - I) = n - r &gt;= 1
           </text>
           <text x="52" y="340" className="fill-foreground text-xs">
             &#8658; 必然存在非零右特征向量 x&#8321; &#8800; 0 使得：
@@ -189,7 +189,7 @@ export function MarkovSteadyStateSimplexDiagram({
             (A - I) x&#8321; = 0  &lt;=&gt;  A x&#8321; = 1 &#183; x&#8321;
           </text>
           <text x="52" y="378" className="fill-muted-foreground text-[11px]">
-            结论：任意马尔可夫矩阵必有 &#955;&#8321; = 1 对应的稳态向量！
+            结论：任意列随机矩阵必有特征值 λ = 1。
           </text>
         </g>
 
@@ -208,7 +208,7 @@ export function MarkovSteadyStateSimplexDiagram({
 
           {/* 标题 */}
           <text x="475" y="52" className="fill-foreground font-semibold text-sm">
-            概率单形（Simplex）演化与稳态吸引子
+            概率单形演化：A = [0.9  0.2; 0.1  0.8]
           </text>
 
           {/* 单形下阴影多边形 (530, 310) -> (730, 310) -> (530, 110) */}
@@ -280,13 +280,13 @@ export function MarkovSteadyStateSimplexDiagram({
           {/* u_inf: u1 = 2/3 -> 530 + 133.3 = 663.3; u2 = 1/3 -> 310 - 66.7 = 243.3 */}
           {/* u0 = [0.1, 0.9] -> (550, 130) */}
           {/* u1 = [0.27, 0.73] -> (584, 164) */}
-          {/* u2 = [0.389, 0.611] -> (608, 188) */}
-          {/* u3 = [0.472, 0.528] -> (624, 204) */}
+          {/* u2 = [0.389, 0.611] -> (607.8, 187.8) */}
+          {/* u3 = [0.4723, 0.5277] -> (624.46, 204.46) */}
 
           {/* 演化点 u0 */}
           <circle cx="550" cy="130" r="4.5" className="fill-amber-600 dark:fill-amber-400" />
           <text x="558" y="132" className="fill-amber-700 dark:fill-amber-300 text-[11px] font-mono">
-            u&#8320; [0.1, 0.9]&#7510;
+            u₀ = [0.1, 0.9]ᵀ
           </text>
 
           {/* 演化点 u1 */}
@@ -296,13 +296,13 @@ export function MarkovSteadyStateSimplexDiagram({
           </text>
 
           {/* 演化点 u2 */}
-          <circle cx="608" cy="188" r="3.5" className="fill-amber-600 dark:fill-amber-400" />
+          <circle cx="607.8" cy="187.8" r="3.5" className="fill-amber-600 dark:fill-amber-400" />
           <text x="616" y="190" className="fill-amber-700 dark:fill-amber-300 text-[11px] font-mono">
             u&#8322;
           </text>
 
           {/* 演化点 u3 */}
-          <circle cx="624" cy="204" r="3" className="fill-amber-600 dark:fill-amber-400" />
+          <circle cx="624.46" cy="204.46" r="3" className="fill-amber-600 dark:fill-amber-400" />
 
           {/* 轨迹虚线箭头沿单形滑向稳态 */}
           <line
@@ -318,23 +318,23 @@ export function MarkovSteadyStateSimplexDiagram({
 
           {/* 稳态吸引子 u_inf */}
           <circle
-            cx="663.3"
-            cy="243.3"
+            cx="663.333"
+            cy="243.333"
             r="6.5"
             className="fill-emerald-600 dark:fill-emerald-400 stroke-background"
             strokeWidth="2"
           />
           {/* 闪烁圆环 */}
           <circle
-            cx="663.3"
-            cy="243.3"
+            cx="663.333"
+            cy="243.333"
             r="11"
             className="stroke-emerald-600 dark:stroke-emerald-400 fill-none"
             strokeWidth="1"
             strokeDasharray="2 2"
           />
           <text x="678" y="247" className="fill-emerald-600 dark:fill-emerald-400 text-xs font-mono font-bold">
-            u&#8734; = [2/3, 1/3]&#7510;
+            u&#8734; = [2/3, 1/3]ᵀ
           </text>
 
           {/* 瞬态衰减模式标注 */}
@@ -349,19 +349,19 @@ export function MarkovSteadyStateSimplexDiagram({
               strokeWidth="1"
             />
             <text x="14" y="22" className="fill-foreground text-xs font-medium">
-              模态分解：u&#7522; = u&#8734; + c&#8322; (&#955;&#8322;)&#7522; x&#8322;
+              模态分解：uₖ = u∞ + c₂ λ₂ᵏ x₂
             </text>
             <text x="14" y="42" className="fill-purple-600 dark:fill-purple-400 text-xs font-mono">
-              &#955;&#8322; = 0.7 &lt; 1,  x&#8322; = [1, -1]&#7510;
+              λ₂ = 0.7，x₂ = [1, −1]ᵀ，c₂ = −17/30
             </text>
             <text x="14" y="62" className="fill-foreground text-xs font-mono">
-              1&#7510; x&#8322; = 1 + (-1) = 0  (零和质量交换向量！)
+              1ᵀ x&#8322; = 1 + (-1) = 0  (零和质量交换向量！)
             </text>
             <text x="14" y="82" className="fill-muted-foreground text-[11px]">
-              由于 1&#7510; x&#8322; = 0，瞬态衰减完全沿单形进行，总概率严格守恒 1
+              由于 1ᵀ x&#8322; = 0，瞬态衰减完全沿单形进行，总概率严格守恒 1
             </text>
             <text x="14" y="98" className="fill-emerald-600 dark:fill-emerald-400 text-[11px] font-semibold">
-              当 k &#8594; &#8734; 时，(0.7)&#7522; &#8594; 0，系统必收敛至稳态 u&#8734;
+              当 k &#8594; &#8734; 时，(0.7)ᵏ &#8594; 0，系统必收敛至稳态 u&#8734;
             </text>
           </g>
         </g>
@@ -371,7 +371,7 @@ export function MarkovSteadyStateSimplexDiagram({
 }
 
 export function FourierFunctionSpaceProjectionDiagram({
-  caption = '从有限维欧氏空间正交投影（左）到无穷维 L^2([0, 2\\pi]) 傅里叶级数正交投影（右）的统一代数结构',
+  caption = '从有限维欧氏空间正交投影（左）到无穷维 $L^2([0,2\\pi])$ 傅里叶级数正交投影（右）的统一代数结构',
 }: {
   caption?: string
 }) {
@@ -447,13 +447,13 @@ export function FourierFunctionSpaceProjectionDiagram({
             strokeWidth="1"
           />
           <text x="52" y="92" className="fill-foreground text-xs font-mono">
-            离散点积：x&#7510; y = &#8721; x&#7522; y&#7522;
+            离散点积：xᵀ y = &#8721; xᵢ yᵢ
           </text>
           <text x="52" y="112" className="fill-blue-600 dark:fill-blue-400 text-xs font-mono">
-            正交基底：&#123;q&#8321;, q&#8322;, ..., q&#8345;&#125;,  q&#7522;&#7510; q&#7523; = 0 (i &#8800; j)
+            正交基底：&#123;q&#8321;, q&#8322;, ..., q&#8345;&#125;,  q&#7522;ᵀ qⱼ = 0 (i &#8800; j)
           </text>
           <text x="52" y="132" className="fill-purple-600 dark:fill-purple-400 text-xs font-mono">
-            正交投影：c&#7522; = (q&#7522;&#7510; v) / (q&#7522;&#7510; q&#7522;) = (q&#7522;&#7510; v) / ||q&#7522;||&#178;
+            正交投影：c&#7522; = (q&#7522;ᵀ v) / (q&#7522;ᵀ q&#7522;) = (q&#7522;ᵀ v) / ||q&#7522;||&#178;
           </text>
           <text x="52" y="150" className="fill-foreground text-xs font-mono">
             完全分解：v = c&#8321; q&#8321; + c&#8322; q&#8322; + ... + c&#8345; q&#8345;
@@ -514,11 +514,11 @@ export function FourierFunctionSpaceProjectionDiagram({
             {/* 投影长度标注 */}
             <circle cx="130" cy="0" r="3" className="fill-blue-600 dark:fill-blue-400" />
             <text x="80" y="16" className="fill-blue-600 dark:fill-blue-400 text-[11px] font-mono">
-              c&#8321; q&#8321;
+              c₁ q₁
             </text>
             <circle cx="0" cy="-65" r="3" className="fill-purple-600 dark:fill-purple-400" />
             <text x="-52" y="-55" className="fill-purple-600 dark:fill-purple-400 text-[11px] font-mono">
-              c&#8322; q&#8322;
+              c₂ q₂
             </text>
           </g>
 
@@ -569,16 +569,16 @@ export function FourierFunctionSpaceProjectionDiagram({
             strokeWidth="1"
           />
           <text x="487" y="92" className="fill-foreground text-xs font-mono">
-            函数内积：&lt;f, g&gt; = &#8747;&#8320;&#178;&#7516; f(x) g(x) dx
+            函数内积：&lt;f, g&gt; = ∫₀<tspan baselineShift="super" fontSize="8">2π</tspan> f(x) g(x) dx
           </text>
           <text x="487" y="112" className="fill-blue-600 dark:fill-blue-400 text-xs font-mono">
             三角正交基：&#123;1, cos x, sin x, cos 2x, sin 2x, ...&#125;
           </text>
           <text x="487" y="132" className="fill-emerald-600 dark:fill-emerald-400 text-xs font-mono">
-            基向量长度：||1||&#178; = 2&#960;,  ||cos kx||&#178; = ||sin kx||&#178; = &#960;
+            基函数的范数平方：||1||&#178; = 2&#960;,  ||cos kx||&#178; = ||sin kx||&#178; = &#960;
           </text>
           <text x="487" y="150" className="fill-foreground text-xs font-mono">
-            级数展开：f(x) = a&#8320; &#183; 1 + &#8721; (a&#7522; cos kx + b&#7522; sin kx)
+            L² 极限：Sₙ → f，其中 Sₙ = a₀ + ∑ₖ₌₁ⁿ (aₖ cos kx + bₖ sin kx)
           </text>
 
           {/* 傅里叶投影系数直接等同于 R^n 投影 */}
@@ -595,13 +595,13 @@ export function FourierFunctionSpaceProjectionDiagram({
             完全同一套正交投影比值公式（分子内积，分母范数平方）：
           </text>
           <text x="487" y="217" className="fill-emerald-600 dark:fill-emerald-400 text-xs font-mono font-semibold">
-            a&#8320; = &lt;f, 1&gt; / ||1||&#178; = (1 / 2&#960;) &#8747;&#8320;&#178;&#7516; f(x) dx  (直流平均分量)
+            a&#8320; = &lt;f, 1&gt; / ||1||&#178; = (1 / 2&#960;) ∫₀<tspan baselineShift="super" fontSize="8">2π</tspan> f(x) dx  (直流平均分量)
           </text>
           <text x="487" y="247" className="fill-blue-600 dark:fill-blue-400 text-xs font-mono font-semibold">
-            a&#7522; = &lt;f, cos kx&gt; / ||cos kx||&#178; = (1 / &#960;) &#8747;&#8320;&#178;&#7516; f(x) cos(kx) dx
+            aₖ = &lt;f, cos kx&gt; / ||cos kx||&#178; = (1 / &#960;) ∫₀<tspan baselineShift="super" fontSize="8">2π</tspan> f(x) cos(kx) dx
           </text>
           <text x="487" y="277" className="fill-purple-600 dark:fill-purple-400 text-xs font-mono font-semibold">
-            b&#7522; = &lt;f, sin kx&gt; / ||sin kx||&#178; = (1 / &#960;) &#8747;&#8320;&#178;&#7516; f(x) sin(kx) dx
+            bₖ = &lt;f, sin kx&gt; / ||sin kx||&#178; = (1 / &#960;) ∫₀<tspan baselineShift="super" fontSize="8">2π</tspan> f(x) sin(kx) dx
           </text>
           <text x="487" y="302" className="fill-muted-foreground text-[11px]">
             本质：傅里叶系数并非凭空发明，它就是 Lecture 17 的正交投影比值！
@@ -621,7 +621,7 @@ export function FourierFunctionSpaceProjectionDiagram({
             帕塞瓦尔恒等式（无穷维勾股定理 / 能量守恒）：
           </text>
           <text x="487" y="369" className="fill-purple-600 dark:fill-purple-400 text-xs font-mono font-semibold">
-            ||f||&#178; = &#8747;&#8320;&#178;&#7516; f(x)&#178; dx = 2&#960; a&#8320;&#178; + &#960; &#8721;&#7522;&#61105;&#185;&#8734; (a&#7522;&#178; + b&#7522;&#178;)
+            ||f||&#178; = ∫₀<tspan baselineShift="super" fontSize="8">2π</tspan> f(x)&#178; dx = 2&#960; a&#8320;&#178; + &#960; ∑<tspan baselineShift="sub" fontSize="8">k=1</tspan><tspan baselineShift="super" fontSize="8">∞</tspan> (aₖ&#178; + bₖ&#178;)
           </text>
         </g>
       </svg>

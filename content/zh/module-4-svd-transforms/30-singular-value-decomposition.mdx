@@ -68,7 +68,7 @@ $$
      $$
      其中 $\sigma_1, \dots, \sigma_r$ 称为矩阵 $A$ 的**非零奇异值（Nonzero Singular Values）**（若按习惯补足 $\min(m,n)$ 个奇异值，则 $\sigma_{r+1} = \dots = \sigma_{\min(m,n)} = 0$）。
 
-2. **紧凑 / 经济奇异值分解（Thin / Economy SVD）**：由于 $\Sigma$ 中第 $r+1$ 行以后和第 $r+1$ 列以后全为零，截掉零块对应的 $\mathbf{u}_{r+1},\dots,\mathbf{u}_m$ 和 $\mathbf{v}_{r+1},\dots,\mathbf{v}_n$ 不改变乘积结果：
+2. **紧凑奇异值分解（Compact SVD）**：本讲的 Thin SVD 指仅保留正奇异值的紧凑分解。经济型 SVD 也可保留全部 $\min(m,n)$ 个奇异值（含零值）。由于 $\Sigma$ 中第 $r+1$ 行以后和第 $r+1$ 列以后全为零，截掉零块对应的 $\mathbf{u}_{r+1},\dots,\mathbf{u}_m$ 和 $\mathbf{v}_{r+1},\dots,\mathbf{v}_n$ 不改变乘积结果：
    $$
    A = U_r \Sigma_r V_r^T = \sum_{i=1}^r \sigma_i \mathbf{u}_i \mathbf{v}_i^T
    $$
@@ -304,16 +304,12 @@ SVD 直接为四大基本子空间同时配备了**终极标准正交基**：
   $$
   \|A\|_2 := \max_{\|\mathbf{x}\|_2 = 1} \|A\mathbf{x}\|_2 = \sigma_1
   $$
-  且最大值恰好在输入方向 $\mathbf{x} = \pm \mathbf{v}_1$ 处取到！当 $r = n \le m$ 时，最小拉伸倍数为 $\min_{\|\mathbf{x}\|_2=1}\|A\mathbf{x}\|_2 = \sigma_n$（在 $\mathbf{v}_n$ 处取到）。
+  且所有最大化向量恰为 $A^T A$ 最大特征值对应子空间中的单位向量，包括 $\pm\mathbf{v}_1$！当 $r = n \le m$ 时，最小拉伸倍数为 $\min_{\|\mathbf{x}\|_2=1}\|A\mathbf{x}\|_2 = \sigma_n$（在 $\mathbf{v}_n$ 处取到）。
 - **Frobenius 范数（Frobenius Norm）**：矩阵所有元素平方和的平方根，等于奇异值向量的欧氏长度：
   $$
   \|A\|_F := \sqrt{\sum_{i=1}^m \sum_{j=1}^n a_{ij}^2} = \sqrt{\operatorname{tr}(A^T A)} = \sqrt{\sum_{i=1}^r \sigma_i^2}
   $$
-- **$\ell_2$ 条件数（Condition Number）**：衡量线性方程组求解或优化曲面各向异性（“扁平狭长程度”）的指标：
-  $$
-  \kappa_2(A) = \frac{\sigma_1}{\sigma_r}
-  $$
-  当 $A \in \mathbb{R}^{n \times n}$ 可逆时，$\|A^{-1}\|_2 = \frac{1}{\sigma_n}$，此时 $\kappa_2(A) = \|A\|_2 \|A^{-1}\|_2 = \frac{\sigma_1}{\sigma_n}$。若 $\sigma_1 / \sigma_n \gg 1$，则椭球极度扁平，数值求解极度病态。
+- **$\ell_2$ 条件数（Condition Number）**：满秩矩阵满足 $\kappa_2(A)=\sigma_1/\sigma_{\min(m,n)}$。秩亏时通常的条件数为无穷大。若 $r>0$，比值 $\sigma_1/\sigma_r$ 衡量限制在 $\operatorname{Row}(A)\to\operatorname{Col}(A)$ 上的双射的条件数。对可逆方阵，该比值等于 $\|A\|_2\|A^{-1}\|_2$。
 
 ### 3. 一行导出极分解（Polar Decomposition）
 
@@ -349,13 +345,13 @@ $$
 
 它的两个特征值全部为零（$\lambda_1 = \lambda_2 = 0$），然而计算 $A^T A = \begin{bmatrix} 0 & 0 \\ 0 & 4 \end{bmatrix}$ 立得奇异值为 $\sigma_1 = 2, \sigma_2 = 0$！
 - **本质原因**：特征值衡量的是特殊不变方向上的拉伸，而奇异值衡量的是整个单位球面上的最大几何伸缩。非正规矩阵（$A^T A \ne A A^T$）的特征向量不正交（此处甚至只有 1 个特征向量），能通过剪切产生远超谱半径的几何放大！
-- **什么时候才相等？** 只有当方阵是**正规矩阵（Normal Matrix）**（即 $A^T A = A A^T$ 或复情形 $A^H A = A A^H$，包括对称矩阵、反对称矩阵和正交矩阵）时，才成立 $\sigma_i = |\lambda_i|$；而对一般对称矩阵（含负特征值），奇异值是特征值的**绝对值** $|\lambda_i|$，且左奇异向量还需把负特征值对应的负号吸收进 $\mathbf{u}_i = \operatorname{sgn}(\lambda_i)\mathbf{q}_i$ 中，以保持 $\sigma_i \ge 0$。
+- **什么时候才相等？** 只有当方阵是**正规矩阵（Normal Matrix）**（即 $A^T A = A A^T$ 或复情形 $A^H A = A A^H$，包括对称矩阵、反对称矩阵和正交矩阵）时，才成立 $\sigma_i = |\lambda_i|$；而对一般对称矩阵（含负特征值），奇异值是特征值的**绝对值** $|\lambda_i|$，且左奇异向量还需把负特征值对应的负号吸收进 $\mathbf{u}_i = \operatorname{sgn}(\lambda_i)\mathbf{q}_i$（$\lambda_i\ne 0$） 中，以保持 $\sigma_i \ge 0$。
 
 ### 3. 奇异值唯一，但奇异值分解矩阵 $U, V$ 并不唯一
 对于任意给定矩阵 $A$：
 - 奇异值序列 $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_r \gt 0$ 是**绝对唯一**的；
 - 当奇异值互异（$\sigma_1 \gt \sigma_2 \gt \dots \gt \sigma_r \gt 0$）时，奇异方向只差**成对的同步变号**（将 $\mathbf{u}_i, \mathbf{v}_i$ 同时变为 $-\mathbf{u}_i, -\mathbf{v}_i$，外积 $(-\mathbf{u}_i)(-\mathbf{v}_i)^T = \mathbf{u}_i \mathbf{v}_i^T$ 不变）；
-- 当存在重奇异值或零空间（dim $\ge 2$）时，该子空间内可以同时施加任意正交变换，因此 $U, V$ 有无穷多种合法选择。
+- 对重复出现的正奇异值，可对左右两组对应基向量施加同一个正交基变换。左右零空间的标准正交基则可独立选取。
 
 </PitfallAlert>
 
@@ -487,7 +483,7 @@ $$
 <DualSolution>
 <SolutionIntuition>
 
-特征值是**同方向**上的放大倍数，而奇异值是**跨方向**（把单位圆变成椭圆）的主半轴伸缩倍数。想象一个极端的水平错切/投影变换 $A = \begin{bmatrix} 0 & 2 \\ 0 & 0 \end{bmatrix}$：它把 $x$ 轴压成零向量，把 $y$ 轴上的 $[0,1]^T$ 旋转 90 度并拉长两倍送到 $[2,0]^T$。因为没有哪条直线经过变换还保持原方向不变（除了 $x$ 轴被压成 $0$），它的特征值全都是 $0$；但单位圆明明被拉成了一根长度为 $2$ 的线段，最大奇异值毫无疑问是 $\sigma_1 = 2$！
+特征值是**同方向**上的放大倍数，而奇异值是**跨方向**（把单位圆变成椭圆）的主半轴伸缩倍数。想象一个极端的水平错切/投影变换 $A = \begin{bmatrix} 0 & 2 \\ 0 & 0 \end{bmatrix}$：它把 $x$ 轴压成零向量，把 $y$ 轴上的 $[0,1]^T$ 旋转 90 度并拉长两倍送到 $[2,0]^T$。因为没有哪条直线经过变换还保持原方向不变（除了 $x$ 轴被压成 $0$），它的特征值全都是 $0$；但单位圆明明被拉成了一根半长为 $2$ 的线段，最大奇异值毫无疑问是 $\sigma_1 = 2$！
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -512,7 +508,7 @@ $$
 1. 行列式乘积守恒：$\prod_{i=1}^n \sigma_i = \sqrt{\det(A^T A)} = |\det(A)| = \prod_{i=1}^n |\lambda_i|$；
 2. 能量界（Schur 不等式）：$\sum_{i=1}^n \sigma_i^2 = \|A\|_F^2 \ge \sum_{i=1}^n |\lambda_i|^2$。
 
-结合 Schur 三角化定理可知，上述不等式取等号（以及全部满足 $\{\sigma_i\} = \{|\lambda_i|\}$）**当且仅当** $A$ 是**正规矩阵（Normal Matrix）**（即 $A^T A = A A^T$，包括实对称、实反对称与正交矩阵）。对非正规矩阵，非正交特征向量之间的“夹角耦合”会抬高奇异值，使 $\sigma_1 \ge \max_i |\lambda_i|$！
+结合 Schur 三角化定理可知，上述平方和不等式取等号（以及全部满足 $\{\sigma_i\} = \{|\lambda_i|\}$）**当且仅当** $A$ 是**正规矩阵（Normal Matrix）**（即 $A^T A = A A^T$，包括实对称、实反对称与正交矩阵）。对非正规矩阵，非正交特征向量之间的“夹角耦合”会抬高奇异值，使 $\sigma_1 \ge \max_i |\lambda_i|$！
 
 </SolutionRigorous>
 </DualSolution>
@@ -528,7 +524,7 @@ $$
 <TrueFalseInteractive
   id="l30-tf2"
   correct={false}
-  quickFeedback={"错误！即使所有奇异值互异，特征向量也至少差一个正负号自由度（反例：$A = \\operatorname{diag}(1, -2)$，$A^T A = A A^T = \\operatorname{diag}(1, 4)$，若独立选取同一组 $U = V$ 必然得到 $\\operatorname{diag}(2, 1)$ 或 $\\operatorname{diag}(1, 2) \\ne A$）；当奇异值出现重根时，两者还可能相差特征子空间内的任意旋转！"}
+  quickFeedback={"错误！即使所有奇异值互异，特征向量也至少差一个正负号自由度（反例：$A = \\operatorname{diag}(1, -2)$，$A^T A = A A^T = \\operatorname{diag}(1, 4)$，若独立选取同一组 $U = V$ 必然得到 $\\operatorname{diag}(1, 2) \\ne A$）；当正奇异值出现重根时，独立选取的 $U$ 和 $V$ 还可能在对应特征子空间内相差任意不耦合的正交变换，而合法的 SVD 必须在两侧同步施加**同一**正交变换以保持 $A\\mathbf{v}_i = \\sigma_i \\mathbf{u}_i$！"}
 />
 
 <ProgressiveHint hints={[
@@ -717,11 +713,7 @@ $$
 \operatorname{tr}(\Sigma Z) = \sum_{i=1}^n \sigma_i z_{ii} \le \sum_{i=1}^n \sigma_i \cdot 1 = \sum_{i=1}^n \sigma_i
 $$
 
-当且仅当对所有 $\sigma_i \gt 0$ 均有 $z_{ii} = 1$ 时（特别地，取 $Z = I_n$）上述上界达到极大值 $\sum_{i=1}^n \sigma_i$。此时：
-
-$$
-U^T W^* V = I_n \iff W^* = U V^T = Q
-$$
+取等当且仅当每个 $\sigma_i\gt 0$ 对应的 $z_{ii}=1$。由 $Z$ 的行列范数为 $1$，得 $Z=\operatorname{diag}(I_r,Z_0)$，其中 $r=\operatorname{rank}(A)$，当 $r\lt n$ 时 $Z_0\in O(n-r)$ 可任取。因此全部最优解为 $W=U\operatorname{diag}(I_r,Z_0)V^T$。取 $Z=I_n$ 得到 $W=Q$，且在 $r=n$ 时该解唯一。
 
 此时对应的最小逼近误差平方为：
 
@@ -769,7 +761,7 @@ $$
 
 <FrontierAIReading
   id="AI-13"
-  title="大模型权重奇异值谱、Eckart-Young 最优低秩截断与 Attention W_Qᵀ W_K 双线性瓶颈"
+  title="大模型权重奇异值谱、Eckart-Young 最优低秩截断与 Attention W_Q W_Kᵀ 双线性瓶颈"
   paperRef="Eckart & Young (1936) · Elhage et al. (2021) A Mathematical Framework for Transformer Circuits"
 >
 
@@ -816,7 +808,7 @@ $$
 在 Anthropic 著名的《A Mathematical Framework for Transformer Circuits》工作（Elhage et al., 2021）中，作者直接用矩阵秩与奇异值谱剖解了 Transformer 自注意力的结构性瓶颈。
 
 设模型隐状态维数为 $d_{\text{model}}$（如 Llama-3 8B 中 $d_{\text{model}} = 4096$），共有 $H$ 个注意力头，单头维数为 $d_{\text{head}} = d_{\text{model}} / H$（如 $H = 32, d_{\text{head}} = 128$）。
-对于第 $h$ 个注意力头，词元 $t$ 与 $s$ 的隐状态列向量分别为 $\mathbf{x}_t, \mathbf{x}_s \in \mathbb{R}^{d_{\text{model}}}$。使用 PyTorch 常见的投影权重矩阵 $W_Q^h, W_K^h \in \mathbb{R}^{d_{\text{model}} \times d_{\text{head}}}$（行向量约定 $\mathbf{q}_t^h = \mathbf{x}_t^T W_Q^h$，$\mathbf{k}_s^h = \mathbf{x}_s^T W_K^h$），注意力打分矩阵（Attention Logit）本质上是一个在输入特征空间上的**双线性型（Bilinear Form）**：
+对第 $h$ 个头，设 $\mathbf{x}_t,\mathbf{x}_s\in\mathbb{R}^{d_{\mathrm{model}}}$ 为词元隐状态。考虑无偏置、且不作位置相关变换的注意力头。取 $W_Q^h,W_K^h\in\mathbb{R}^{d_{\mathrm{model}}\times d_{\mathrm{head}}}$，用列向量 $\mathbf{q}_t^h=(W_Q^h)^T\mathbf{x}_t$ 与 $\mathbf{k}_s^h=(W_K^h)^T\mathbf{x}_s$ 表示查询和键。加掩码前的打分为
 
 $$
 \text{score}_h(t, s) = \frac{1}{\sqrt{d_{\text{head}}}} \mathbf{x}_t^T \underbrace{\left( W_Q^h (W_K^h)^T \right)}_{W_{QK}^h \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}} \mathbf{x}_s
@@ -831,9 +823,9 @@ $$
 $$
 
 从 SVD 的视角来看，$W_{QK}^h$ 最多只能有 $d_{\text{head}}$（例如 128）个非零奇异值，其余至少 $d_{\text{model}} - d_{\text{head}} = 3968$ 个奇异值严格为零！
-这直接带来了两个决定现代大模型架构演进的核心洞察：
-1. **单头注意力是极低秩的双线性过滤器**：每个单头注意力至多只能从 $d_{\text{model}}$ 维残差流中读取一个 $d_{\text{head}}$ 维的“查询子空间”（左奇异向量 $\mathbf{u}_1,\dots,\mathbf{u}_{d_{\text{head}}}$）去匹配另一个 $d_{\text{head}}$ 维的“键子空间”（右奇异向量 $\mathbf{v}_1,\dots,\mathbf{v}_{d_{\text{head}}}$）。如果只有 1 个头哪怕做满 4096 维投影计算量等价，多头并行（$H$ 个低秩双线性核相加 $\sum_{h=1}^H W_{QK}^h$）能分别独立聚焦语法、指代、位置感应（Induction Head）等不同低秩子空间！
-2. **MLA（Multi-Head Latent Attention, DeepSeek-V2/V3）的 SVD 灵感**：正因为各个头的 KV 矩阵存在大量冗余低秩结构，MLA 直接在注意力输入端学习一个低秩联合压缩潜向量 $c_t^{KV} \in \mathbb{R}^{d_c}$（$d_c \ll H d_{\text{head}}$），推理时只需缓存极窄的 $c_t^{KV}$ 并在数学上把上投影矩阵吸收到 $W_Q$ 侧构成联合 $W_{QK}$ 矩阵，用线性代数低秩分解一举省下超过 90% 的 KV Cache 显存！
+记 $r_h=\operatorname{rank}(W_{QK}^h)$。前 $r_h$ 个左右奇异向量分别张成影响打分的查询端和键端子空间。若 $X\in\mathbb{R}^{T\times d_{\mathrm{model}}}$ 的每行是一个词元隐状态，则原始打分矩阵 $XW_{QK}^hX^T/\sqrt{d_{\mathrm{head}}}$ 的秩也至多为 $d_{\mathrm{head}}$。这个界适用于加掩码和逐行 softmax 之前。每个头分别做 softmax 并聚合各自的值向量，随后拼接各头输出并作线性投影。
+
+多头潜变量注意力（Multi-Head Latent Attention, MLA）也用到低秩因式分解。若内容键和值都由共享潜变量重建，则它们合在一起的线性投影经由潜变量维数分解，因此可用共享潜变量替代分开的内容键和值缓存。
 
 ---
 
@@ -841,13 +833,13 @@ $$
 
 最后，SVD 在近年大模型压缩与高效训练中也正站在风口浪尖：
 - **为什么朴素权重 SVD 压缩会崩掉，而 SVD-LLM（Wang et al., 2024）能成功？**
-  虽然预训练大模型权重矩阵往往呈现显著的奇异值衰减，但直接对权重 $W$ 做 Eckart-Young 截断 $\min \|W - W_k\|_F$ 隐含了一个危险假设：**所有输入特征方向能量相等**（协方差 $X X^T \propto I$）。然而大模型激活存在极强的各向异性离群值（Outliers）。真正决定每层特征失真的是输出激活误差 $\|(W - W_k) X\|_F$！SVD-LLM 利用第 28 讲的 Cholesky 分解对激活协方差做白化 $X X^T = S S^T$，转而对白化后矩阵 $W S$ 做 SVD 截断再右乘 $S^{-1}$——于是奇异值截断误差与真实激活输出误差之间建立了严格的 $1:1$ 等距映射！
+  普通权重截断最小化秩至多为 $k$ 时的 $\|W-B\|_F$。设校准激活按列存入 $X\in\mathbb{R}^{n\times N}$，则输出误差为 $\|(W-B)X\|_F$。若 $X$ 行满秩，其未中心化 Gram 矩阵可作 Cholesky 分解 $XX^T=SS^T$，其中 $S$ 可逆。由迹恒等式，$\|(W-B)X\|_F=\|(W-B)S\|_F$。右乘 $S$ 保持秩，所以可取最优解 $B=(WS)_k S^{-1}$。
 - **Muon 优化器（Jordan et al., 2024）与极分解正交化**：
-  在训练二维线性层权重 $W \in \mathbb{R}^{m \times n}$ 时，梯度/动量矩阵 $G = U\Sigma V^T$ 常常条件数极高（$\sigma_1 \gg \sigma_r$），导致优化步长全被少数主奇异方向垄断。Muon 优化器使用快速 Newton-Schulz 矩阵迭代近似**极分解正交因子**：
+  在训练二维线性层权重 $W \in \mathbb{R}^{m \times n}$ 时，梯度/动量矩阵 $G = U\Sigma V^T$ 常常条件数极高（$\sigma_1 \gg \sigma_r$），导致优化步长全被少数主奇异方向垄断。Muon 优化器使用快速 Newton-Schulz 矩阵迭代近似**极分解的部分等距因子**：
   $$
   G = U\Sigma V^T \;\longmapsto\; \operatorname{Polar}(G) = U_r V_r^T
   $$
-  这等价于把所有非零奇异值**强行拉平为 $1$**，让模型在所有正交特征子空间里以完全一致的速度均衡学习！
+  理想的部分等距映射在非零奇异方向上的奇异值为 $1$，在右零空间上为零。上述迭代旨在近似更新矩阵的这一变换。
 
 <CollapsibleCode language="python" title="eckart_young_and_attention_rank_svd.py">
 ```python
@@ -902,17 +894,17 @@ def verify_svd_and_ai_connections():
     # 3. 验证单头注意力 W_QK = W_Q @ W_K^T 的秩瓶颈
     d_model = 512
     d_head = 64
-    W_Q = torch.randn(d_model, d_head) / (d_head ** 0.5)
-    W_K = torch.randn(d_model, d_head) / (d_head ** 0.5)
+    W_Q = torch.randn(d_model, d_head, dtype=torch.float64) / (d_head ** 0.5)
+    W_K = torch.randn(d_model, d_head, dtype=torch.float64) / (d_head ** 0.5)
     W_QK = W_Q @ W_K.T  # shape: (512, 512)
 
     S_qk = torch.linalg.svdvals(W_QK)
-    effective_rank = int((S_qk > 1e-5).sum().item())
+    effective_rank = int((S_qk > 1e-10).sum().item())
     tail_max_sv = S_qk[d_head].item()
     print("\n3. Transformer Attention W_QK = W_Q @ W_K^T 双线性瓶颈:")
     print(f"   矩阵尺寸: {tuple(W_QK.shape)}, 单头维度 d_head = {d_head}")
     print(f"   前 d_head 个奇异值中最小者 sigma_{d_head}   = {S_qk[d_head - 1].item():.6f}")
-    print(f"   第 d_head+1 个奇异值      sigma_{d_head + 1}   = {tail_max_sv:.2e} (严格截断为 0!)")
+    print(f"   第 d_head+1 个奇异值      sigma_{d_head + 1}   = {tail_max_sv:.2e} (精确算术中为 0)")
     print(f"   数值秩 rank(W_QK) = {effective_rank} <= d_head ({d_head}) << d_model ({d_model})")
 
     # 4. 验证极分解正交化 G -> U V^T (Muon 梯度谱拉平)

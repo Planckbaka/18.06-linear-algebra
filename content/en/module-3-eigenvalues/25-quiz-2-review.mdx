@@ -10,7 +10,7 @@ textbookRef: "Ch. 4–6 Review"
 If Module 1 (elimination, vector spaces, and the four fundamental subspaces) answered the foundational question of *when* a linear system $A\mathbf{x} = \mathbf{b}$ has a solution, then Module 2 (orthogonality and projection geometry) and Module 3 (determinants, eigenvalues, and dynamical systems) complete two sweeping theoretical leaps in linear algebra:
 
 1. **Module 2: Optimal Approximation in Static Geometry (Static Geometry & Least Squares)**  
-   Faced with an inconsistent system $A\mathbf{x} = \mathbf{b}$ that arises inevitably in real-world data (when the number of observations $m$ far exceeds the number of parameters $n$, typically $\mathbf{b} \notin \operatorname{Col}(A)$), we stop chasing an exact solution that does not exist. Instead, we aim to find the closest projection $\mathbf{p} = A\hat{\mathbf{x}}$ inside the column space $\operatorname{Col}(A)$. The orthogonal complement decomposition $\mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T)$ splits the observation cleanly into a **projection vector** and an **orthogonal residual**, $\mathbf{b} = \mathbf{p} + \mathbf{e}$. Gram–Schmidt orthogonalization reshapes a general column basis into an orthonormal basis $Q$, not only diagonalizing the normal equations ($R\hat{\mathbf{x}} = Q^T\mathbf{b}$) but also revealing the geometric hypervolume of an $n$-dimensional parallelepiped.
+   Faced with an inconsistent system $A\mathbf{x} = \mathbf{b}$ that arises inevitably in real-world data (when the number of observations $m$ far exceeds the number of parameters $n$, typically $\mathbf{b} \notin \operatorname{Col}(A)$), we stop chasing an exact solution that does not exist. Instead, we aim to find the closest projection $\mathbf{p} = A\hat{\mathbf{x}}$ inside the column space $\operatorname{Col}(A)$. The orthogonal complement decomposition $\mathbb{R}^m = \operatorname{Col}(A) \oplus \operatorname{Null}(A^T)$ splits the observation cleanly into a **projection vector** and an **orthogonal residual**, $\mathbf{b} = \mathbf{p} + \mathbf{e}$. For full column rank, Gram–Schmidt gives a matrix $Q$ with orthonormal columns and reduces the normal equations to a triangular system ($R\hat{\mathbf{x}} = Q^T\mathbf{b}$) but also revealing the geometric hypervolume of an $n$-dimensional parallelepiped.
 
 2. **Module 3: Spectral Evolution of Dynamical Systems (Spectral Theory & Dynamical Systems)**  
    Starting in Lecture 18, the role of a matrix undergoes a dramatic shift: we no longer just study how $A$ acts once on an external input $\mathbf{x}$, $A\mathbf{x} = \mathbf{b}$, but rather how $A$ acts **recursively on itself**—whether in discrete-time matrix powers $\mathbf{u}_{k+1} = A\mathbf{u}_k$ or continuous-time linear differential equations $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$. To decouple intertwined variables, we search for invariant directions: $A\mathbf{x} = \lambda\mathbf{x}$. Solving that equation requires conquering the characteristic polynomial $\det(A - \lambda I) = 0$, which motivates the axiomatic theory of determinants. Once we have an eigenbasis $S$, the matrix becomes purely diagonal in that basis, $A = S\Lambda S^{-1}$, and the system's evolution decouples completely into independent scalar modes of exponential growth, decay, oscillation, or convergence to a Markov steady state.
@@ -27,16 +27,16 @@ Before walking into MIT 18.06 Quiz 2, it is essential to have a unified cross-mo
 
 | Matrix Family | Algebraic Definition & Structure | Spectrum (Eigenvalues $\lambda_i$) | Trace & Determinant ($\operatorname{tr}, \det$) | Core Geometric Meaning & Applications |
 | :--- | :--- | :--- | :--- | :--- |
-| **Projection Matrix** $P$ | $P = A(A^T A)^{-1}A^T$<br/>$P^2 = P = P^T$ | $\lambda \in \{0, 1\}$<br/>$\operatorname{AM}(1) = \operatorname{rank}(A)$<br/>$\operatorname{AM}(0) = m - \operatorname{rank}(A)$ | $\operatorname{tr}(P) = \operatorname{rank}(A)$<br/>$\det(P) = 0$ (unless full rank $I$) | Orthogonally projects $\mathbb{R}^m$ onto $\operatorname{Col}(A)$; $\lambda=1$ on column space, $\lambda=0$ on left nullspace |
-| **Reflection Matrix (Householder)** $R$ | $R = 2P - I$<br/>$R^2 = I, R^T = R = R^{-1}$ | $\lambda \in \{+1, -1\}$<br/>Multiplicity of $-1$ equals dimension of normal space | $\operatorname{tr}(R) = 2\operatorname{rank}(A) - n$<br/>$\det(R) = (-1)^{\dim(\operatorname{Null}(A^T))}$ | Reflects across a mirror hyperplane; preserves vector lengths and inner products; backbone of Householder transformations |
-| **Orthogonal Matrix** $Q$ | $Q^T Q = I_n$<br/>When square: $Q^{-1} = Q^T$ | $\lvert\lambda_i\rvert = 1$<br/>Real eigenvalues $\pm 1$; complex eigenvalues in conjugate pairs $e^{\pm i\theta}$ | $\lvert\det(Q)\rvert = 1$<br/>$\det = 1$ (rotation), $\det = -1$ (reflection) | Rigid rotations and reflections; preserves lengths $\lVert Q\mathbf{x}\rVert = \lVert\mathbf{x}\rVert$ and angles; condition number $\kappa(Q) = 1$ |
-| **Markov Matrix** $M$ | $m_{ij} \ge 0, \sum_{i=1}^n m_{ij} = 1$<br/>Every column sums to 1 | $\lambda_1 = 1$<br/>All other $\lvert\lambda_i\rvert \le 1$ | $\det(M) = \prod \lambda_i$<br/>Sum of diagonal entries equals trace | State-transition probability flow; $\mathbf{1}^T M = \mathbf{1}^T$ conserves total probability; $\mathbf{u}_\infty \in \operatorname{Null}(M - I)$ is the steady state |
+| **Orthogonal projection** $P$ | $A\in\mathbb{R}^{m\times n}$; if $A$ has full column rank, $P=A(A^TA)^{-1}A^T$<br/>$P^2=P=P^T$ | $1$ with multiplicity $\operatorname{rank}(A)$; $0$ with multiplicity $m-\operatorname{rank}(A)$ | $\operatorname{tr}(P)=\operatorname{rank}(A)$<br/>$\det(P)=1$ for $P=I_m$, otherwise $0$ | Projects onto $\operatorname{Col}(A)$ along $\operatorname{Null}(A^T)$ |
+| **Subspace reflection** $R$ | $R=2P-I_m$ for an orthogonal projector $P$ of rank $r$<br/>$R^2=I_m,\ R^T=R$ | $+1$ on $\operatorname{Col}(P)$ and $-1$ on $\operatorname{Null}(P)$ | $\operatorname{tr}(R)=2r-m$<br/>$\det(R)=(-1)^{m-r}$ | Fixes the mirror subspace and reverses its orthogonal complement. The Householder case has $m-r=1$. |
+| **Orthogonal matrix** $Q$ | $Q\in\mathbb{R}^{n\times n}$, $Q^TQ=I_n$, $Q^{-1}=Q^T$ | $\lvert\lambda_i\rvert=1$; real eigenvalues are $\pm1$ and nonreal eigenvalues occur in conjugate pairs | $\det(Q)=+1$ preserves orientation and $\det(Q)=-1$ reverses it | Preserves lengths and angles; $\kappa_2(Q)=1$ |
+| **Markov Matrix** $M$ | $M\in\mathbb{R}^{n\times n}$<br/>$m_{ij}\ge0, \sum_{i=1}^n m_{ij} = 1$<br/>Every column sums to 1 | $\lambda_1 = 1$<br/>All other $\lvert\lambda_i\rvert \le 1$ | $\det(M) = \prod \lambda_i$<br/>Sum of diagonal entries equals trace | State-transition probability flow; $\mathbf{1}^T M = \mathbf{1}^T$ conserves total probability; $\mathbf{u}_\infty \in \operatorname{Null}(M - I)$ is a steady state when nonnegative and normalized |
 | **Upper Triangular Matrix** $U$ | $u_{ij} = 0 \ (i \gt j)$ | $\lambda_i = u_{ii}$<br/>Diagonal entries are the complete set of eigenvalues | $\operatorname{tr}(U) = \sum u_{ii}$<br/>$\det(U) = \prod u_{ii}$ | End state of elimination and Schur form; characteristic polynomial factors immediately; canonical solvable form |
 
 In addition, keep the division of labor among the **three pillars of matrix factorization** crystal clear:
 
-1. **Elimination Factorization $A = LU$**: Elementary row operations triangularize a linear system. They preserve the solution space and row space, and preserve the determinant (up to sign), but **completely destroy eigenvalues and eigenvectors**.
-2. **Orthogonal Factorization $A = QR$**: Gram–Schmidt constructs an orthonormal basis. Geometrically, it preserves the hypervolume of the parallelepiped spanned by the columns ($|\det A| = \prod r_{ii}$); numerically, it provides exceptional stability ($\kappa(R) = \kappa(A)$).
+1. **Elimination and LU.** Applying $E$ to both sides gives the equivalent system $EA\mathbf{x}=E\mathbf{b}$. Row space and nullspace are preserved. For square matrices $\det(EA)=\det(E)\det(A)$: row additions preserve the determinant, swaps reverse its sign, and row scalings multiply it by the scale factor. Elimination need not preserve eigenvalues. Pivoted elimination gives $P A=LU$ under the usual elimination conventions.
+2. **Thin QR for full column rank.** With $Q^TQ=I_n$ and $r_{ii}>0$, $Q$ is an isometric embedding, so the $n$-dimensional volume is $\prod_i r_{ii}=\sqrt{\det(A^TA)}$, equal to $|\det(A)|$ when $A$ is square. $A$ and $R$ have the same singular values, hence $\kappa_2(A)=\kappa_2(R)$.
 3. **Spectral Factorization $A = S\Lambda S^{-1}$**: Eigenvectors serve as a new basis that decouples the action of $A$. It preserves eigenvalues, trace, and determinant, and serves as the ultimate engine for solving discrete matrix powers and continuous ODE systems.
 
 </DefinitionCard>
@@ -85,18 +85,18 @@ In $\mathbb{R}^m$, we seek $\mathbf{p} = A\hat{\mathbf{x}} \in \operatorname{Col
 $$
 \mathbf{e} \in (\operatorname{Col}(A))^\perp = \operatorname{Null}(A^T)
 $$
-Therefore, every basis column of $A$ has zero inner product with $\mathbf{e}$, which in matrix form is:
+Therefore, every column of $A$ has zero inner product with $\mathbf{e}$, which in matrix form is:
 $$
 A^T \mathbf{e} = \mathbf{0} \iff A^T (\mathbf{b} - A\hat{\mathbf{x}}) = \mathbf{0} \iff A^T A \hat{\mathbf{x}} = A^T \mathbf{b}
 $$
-When $A$ has full column rank, $\operatorname{rank}(A^T A) = n$, so the $n\times n$ square matrix $A^T A$ is invertible and $(A^T A)^{-1}$ exists uniquely. $\blacksquare$
+If $A$ has full column rank, $\mathbf{x}^T A^TA\mathbf{x}=\|A\mathbf{x}\|^2\gt0$ for every $\mathbf{x}\ne\mathbf{0}$, so the symmetric matrix $A^TA$ is positive definite and invertible. If $A$ lacks full column rank, any nonzero $\mathbf{x}\in\operatorname{Null}(A)$ gives a zero quadratic form and shows that $A^TA$ is singular. The projection $\mathbf{p}$ is unique in either case. $\blacksquare$
 </ProofCollapse>
 
 ---
 
 <TheoremCard label="Theorem 2" title="Gram–Schmidt, QR Factorization, and Hypervolume Theorem">
 Let $A \in \mathbb{R}^{m\times n}$ have linearly independent columns $\mathbf{a}_1, \dots, \mathbf{a}_n$ (full column rank). Then:
-1. There exist a unique matrix $Q \in \mathbb{R}^{m\times n}$ with orthonormal columns ($Q^T Q = I_n$) and an upper triangular matrix $R \in \mathbb{R}^{n\times n}$ with strictly positive diagonal entries ($r_{ii} \gt 0$) such that:
+1. There exists a unique pair consisting of a matrix $Q \in \mathbb{R}^{m\times n}$ with orthonormal columns ($Q^T Q = I_n$) and an upper triangular matrix $R \in \mathbb{R}^{n\times n}$ with strictly positive diagonal entries ($r_{ii} \gt 0$) such that:
    $$
    A = QR
    $$
@@ -122,6 +122,8 @@ Strip away from each column its projections onto the previously constructed orth
   Set $r_{jj} = \|\mathbf{v}_j\|$. Because the columns are linearly independent, $\mathbf{v}_j \ne \mathbf{0}$, so $r_{jj} \gt 0$. Normalize to obtain $\mathbf{q}_j = \mathbf{v}_j / r_{jj}$.
 
 Rearranging gives $\mathbf{a}_j = \sum_{i=1}^j r_{ij} \mathbf{q}_i$. In matrix form this is $A = QR$, where $R$ is upper triangular with strictly positive diagonal entries $r_{ii} = \|\mathbf{v}_i\| \gt 0$.
+
+The factorization is unique: the first column fixes $r_{11}=\|\mathbf{a}_1\|$ and $\mathbf{q}_1$. At each subsequent step, projection onto the already determined columns of $Q$ fixes $r_{ij}$ for $i<j$. The residual length and its normalization then fix $r_{jj}$ and $\mathbf{q}_j$.
 
 **Step 2: Simplifying the normal equations and hypervolume.**
 
@@ -150,7 +152,7 @@ The determinant map $\det: \mathbb{R}^{n\times n} \to \mathbb{R}$ is uniquely de
    $$
    \det(AB) = \det(A)\det(B), \quad \det(A^T) = \det(A)
    $$
-2. The cofactor matrix $C \in \mathbb{R}^{n\times n}$ (with $C_{ij} = (-1)^{i+j} M_{ij}$) satisfies the adjugate identity:
+2. The cofactor matrix $C \in \mathbb{R}^{n\times n}$ (with $C_{ij}=(-1)^{i+j}M_{ij}$, where $M_{ij}$ is the determinant after deleting row $i$ and column $j$) satisfies the adjugate identity:
    $$
    A C^T = C^T A = (\det A) I_n
    $$
@@ -196,7 +198,7 @@ Let $A \in \mathbb{C}^{n\times n}$ have characteristic polynomial $p(\lambda) = 
    $$
    1 \le \operatorname{GM}(\lambda_j) = \dim(\operatorname{Null}(A - \lambda_j I)) \le \operatorname{AM}(\lambda_j)
    $$
-3. **Necessary and sufficient condition for diagonalizability**: There exists an invertible matrix $S$ such that $S^{-1} A S = \Lambda$ if and only if for every distinct eigenvalue of $A$, geometric multiplicity equals algebraic multiplicity:
+3. **Necessary and sufficient condition for diagonalizability**: There exists an invertible matrix $S$ such that $S^{-1} A S = \Lambda$ is diagonal if and only if for every distinct eigenvalue of $A$, geometric multiplicity equals algebraic multiplicity:
    $$
    \operatorname{GM}(\lambda_j) = \operatorname{AM}(\lambda_j), \quad \forall j
    $$
@@ -223,14 +225,14 @@ $A$ is diagonalizable iff there exists an invertible $S = [\mathbf{x}_1, \dots, 
 $$
 A [\mathbf{x}_1, \dots, \mathbf{x}_n] = [\lambda_1 \mathbf{x}_1, \dots, \lambda_n \mathbf{x}_n] \iff A\mathbf{x}_i = \lambda_i \mathbf{x}_i \ (i=1,\dots,n)
 $$
-Because $S$ is invertible, its $n$ columns $\mathbf{x}_1, \dots, \mathbf{x}_n$ must be linearly independent in $\mathbb{C}^n$. Since eigenvectors corresponding to distinct eigenvalues are automatically linearly independent, assembling $n$ independent eigenvectors depends solely on whether each repeated eigenvalue's eigenspace supplies enough independent eigenvectors—meaning $\operatorname{GM}(\lambda_j) = \operatorname{AM}(\lambda_j)$ for every $j$, so that $\sum \operatorname{GM}(\lambda_j) = \sum \operatorname{AM}(\lambda_j) = n$. $\blacksquare$
+Because $S$ is invertible, its $n$ columns $\mathbf{x}_1, \dots, \mathbf{x}_n$ must be linearly independent in $\mathbb{C}^n$. By Lecture 22 the eigenspaces form a direct sum over distinct eigenvalues and each geometric multiplicity is at most its algebraic multiplicity. Thus assembling $n$ independent eigenvectors depends solely on whether each repeated eigenvalue's eigenspace supplies enough independent eigenvectors—meaning $\operatorname{GM}(\lambda_j) = \operatorname{AM}(\lambda_j)$ for every $j$, so that $\sum_{\lambda_j\text{ distinct}}\operatorname{GM}(\lambda_j)=\sum_{\lambda_j\text{ distinct}}\operatorname{AM}(\lambda_j)=n$. $\blacksquare$
 </ProofCollapse>
 
 ---
 
 <TheoremCard label="Theorem 5" title="Dynamical Stability Criterion: Discrete Powers vs. Continuous ODEs">
-Let $A \in \mathbb{C}^{n\times n}$ be diagonalizable as $A = S\Lambda S^{-1}$.
-1. **Discrete dynamical system $\mathbf{u}_{k+1} = A\mathbf{u}_k$**: The general solution is:
+Let $A\in\mathbb{C}^{n\times n}$. The stability criteria below hold for every such $A$. When $A=S\Lambda S^{-1}$, the sums give the associated eigenbasis expansions.
+1. **Discrete dynamical system $\mathbf{u}_{k+1} = A\mathbf{u}_k$**: When $A$ is diagonalizable, the solution is:
    $$
    \mathbf{u}_k = A^k \mathbf{u}_0 = \sum_{i=1}^n c_i \lambda_i^k \mathbf{x}_i
    $$
@@ -238,7 +240,7 @@ Let $A \in \mathbb{C}^{n\times n}$ be diagonalizable as $A = S\Lambda S^{-1}$.
    $$
    \rho(A) = \max_{1 \le i \le n} |\lambda_i| \lt 1
    $$
-2. **Continuous linear ODE system $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$**: The general solution is given by the matrix exponential:
+2. **Continuous linear ODE system $\frac{d\mathbf{u}}{dt} = A\mathbf{u}$**: For diagonalizable $A$, the matrix exponential gives:
    $$
    \mathbf{u}(t) = e^{At}\mathbf{u}(0) = S e^{\Lambda t} S^{-1} \mathbf{u}(0) = \sum_{i=1}^n c_i e^{\lambda_i t} \mathbf{x}_i
    $$
@@ -250,16 +252,17 @@ Let $A \in \mathbb{C}^{n\times n}$ be diagonalizable as $A = S\Lambda S^{-1}$.
    $$
    \operatorname{tr}(A) \lt 0 \quad \text{and} \quad \det(A) \gt 0
    $$
+The exact propagators $A^k$ and $e^{At}$ also apply to defective matrices. As in Lectures 22 and 23, their Jordan blocks only add polynomial factors to decaying modes under the strict spectral inequalities.
 </TheoremCard>
 
 <ProofCollapse title="Rigorous Proof: Matrix Exponential Diagonalization and Phase-Plane Stability">
 **Step 1: Convergence of the discrete system.**
 
-Since $\mathbf{u}_k = \sum_{i=1}^n c_i \lambda_i^k \mathbf{x}_i$, the magnitude of the $i$-th mode scales as $|\lambda_i|^k$. Every mode decays to zero as $k \to \infty$ if and only if $|\lambda_i| \lt 1$ for all $i$. If any $|\lambda_i| \gt 1$, that eigenmode blows up exponentially; if $|\lambda_i| = 1$, it remains neutrally stable or oscillates.
+When $A$ is diagonalizable, $\mathbf{u}_k = \sum_{i=1}^n c_i \lambda_i^k \mathbf{x}_i$, so the magnitude of the $i$-th mode scales as $|\lambda_i|^k$. Every mode decays to zero as $k \to \infty$ if and only if $|\lambda_i| \lt 1$ for all $i$. If any $|\lambda_i| \gt 1$, that eigenmode blows up exponentially; if $|\lambda_i| = 1$, that individual mode has constant magnitude.
 
 **Step 2: The continuous system and matrix exponential.**
 
-The matrix exponential is defined by the power series $e^{At} = I + At + \frac{A^2 t^2}{2!} + \cdots$. Using $A^k = S\Lambda^k S^{-1}$:
+The matrix exponential is defined by the power series $e^{At} = I + At + \frac{A^2 t^2}{2!} + \cdots$. For diagonalizable $A$, use $A^k = S\Lambda^k S^{-1}$:
 $$
 e^{At} = \sum_{k=0}^\infty \frac{t^k (S\Lambda S^{-1})^k}{k!} = S \left( \sum_{k=0}^\infty \frac{t^k \Lambda^k}{k!} \right) S^{-1} = S e^{\Lambda t} S^{-1}
 $$
@@ -270,7 +273,9 @@ $$
 $$
 Clearly, $\lim_{t\to\infty} e^{\operatorname{Re}(\lambda_j)t} = 0 \iff \operatorname{Re}(\lambda_j) \lt 0$.
 
-For a $2\times 2$ matrix, the characteristic equation is $\lambda^2 - (\operatorname{tr} A)\lambda + \det(A) = 0$.
+For a defective $A$, the powers and exponentials on Jordan blocks have the polynomial factors detailed in Lectures 22 and 23. Under the strict spectral inequalities all those terms tend to zero. Necessity in both time models follows by starting with any nonzero eigenvector whose eigenvalue violates the inequality.
+
+For a real $2\times 2$ matrix, the characteristic equation is $\lambda^2 - (\operatorname{tr} A)\lambda + \det(A) = 0$.
 - If both roots are real, their sum is $\operatorname{tr}(A)$ and their product is $\det(A)$. Both roots are negative iff $\det(A) \gt 0$ and $\operatorname{tr}(A) \lt 0$.
 - If the roots are complex conjugates $\alpha \pm i\beta$, the real part is $\alpha = \frac{\operatorname{tr}(A)}{2}$ and the product is $\alpha^2 + \beta^2 = \det(A) \gt 0$. Thus $\alpha \lt 0 \iff \operatorname{tr}(A) \lt 0$.
 In both cases, asymptotic stability of a $2\times 2$ continuous system is equivalent to $\operatorname{tr}(A) \lt 0$ and $\det(A) \gt 0$. $\blacksquare$
@@ -280,7 +285,7 @@ In both cases, asymptotic stability of a $2\times 2$ continuous system is equiva
 
 <TheoremCard label="Theorem 6" title="Positive Markov Steady-State Convergence and Total-Probability Decomposition">
 Let $M \in \mathbb{R}^{n\times n}$ be a transition matrix with strictly positive entries ($m_{ij} \gt 0$) and column sums equal to $1$ ($\sum_{i=1}^n m_{ij} = 1$). Then:
-1. $\lambda_1 = 1$ is always the dominant eigenvalue of $M$, with the all-ones row vector as its left eigenvector:
+1. $\lambda_1 = 1$ is the simple dominant eigenvalue of $M$, with the all-ones row vector as its left eigenvector:
    $$
    \mathbf{1}^T M = \mathbf{1}^T \quad (\text{where } \mathbf{1} = [1, 1, \dots, 1]^T)
    $$
@@ -292,14 +297,14 @@ Let $M \in \mathbb{R}^{n\times n}$ be a transition matrix with strictly positive
    $$
    \lim_{k\to\infty} M^k \mathbf{u}_0 = \mathbf{u}_\infty \in \operatorname{Null}(M - I)
    $$
-4. The transient perturbation $\mathbf{u}_0 - \mathbf{u}_\infty$ lies strictly in the orthogonal complement of $\mathbf{1}$:
+4. The transient perturbation $\mathbf{u}_0 - \mathbf{u}_\infty$ lies in the orthogonal complement of $\mathbf{1}$:
    $$
    (\mathbf{u}_0 - \mathbf{u}_\infty) \in (\operatorname{span}\{\mathbf{1}\})^\perp = \operatorname{Null}(\mathbf{1}^T)
    $$
-   Total probability mass is conserved at every step, while transient modes decay exponentially at a rate governed by $|\lambda_2| \lt 1$.
+   The zero-sum subspace is invariant. For any $r$ strictly between its spectral radius and $1$, the error is $O(r^k)$, including for defective $M$.
 </TheoremCard>
 
-<ProofCollapse title="Rigorous Proof: Total-Probability Orthogonal Projection and Convergence">
+<ProofCollapse title="Rigorous Proof: Mass Conservation and Spectral Projection">
 **Step 1: Prove that $\lambda_1 = 1$ is always an eigenvalue.**
 
 Because each column of $M$ sums to $1$, multiplying the all-ones row vector $\mathbf{1}^T = [1, \dots, 1]$ by $M$ gives, in the $j$-th entry:
@@ -309,28 +314,11 @@ $$
 Hence $\mathbf{1}^T M = \mathbf{1}^T$, or equivalently $M^T \mathbf{1} = \mathbf{1}$.
 Thus $1$ is an eigenvalue of $M^T$ with eigenvector $\mathbf{1}$. Since $M$ and $M^T$ share the exact same characteristic polynomial ($\det(M^T - \lambda I) = \det((M - \lambda I)^T) = \det(M - \lambda I)$), $\lambda_1 = 1$ is also an eigenvalue of $M$.
 
-**Step 2: Conservation of probability and orthogonal complement decomposition.**
+**Step 2: Conservation of probability and the invariant direct sum.**
 
-Let $\mathbf{u}_\infty$ be the normalized right eigenvector for $\lambda_1 = 1$, satisfying $M\mathbf{u}_\infty = \mathbf{u}_\infty$ and $\mathbf{1}^T \mathbf{u}_\infty = 1$.
-Expand an arbitrary initial probability vector in the eigenbasis (assuming $M$ is diagonalizable; the same argument holds via Jordan blocks):
-$$
-\mathbf{u}_0 = c_1 \mathbf{u}_\infty + \sum_{i=2}^n c_i \mathbf{x}_i
-$$
-Multiply on the left by $\mathbf{1}^T$. For any eigenvector $\mathbf{x}_i$ with $\lambda_i \ne 1$:
-$$
-\mathbf{1}^T (M\mathbf{x}_i) = \mathbf{1}^T (\lambda_i \mathbf{x}_i) \implies (\mathbf{1}^T M)\mathbf{x}_i = \lambda_i (\mathbf{1}^T \mathbf{x}_i) \implies \mathbf{1}^T \mathbf{x}_i = \lambda_i (\mathbf{1}^T \mathbf{x}_i)
-$$
-Since $\lambda_i \ne 1$, we must have:
-$$
-\mathbf{1}^T \mathbf{x}_i = 0 \quad (\forall i \ge 2)
-$$
-Every transient eigenvector $\mathbf{x}_i$ is orthogonal to the all-ones vector $\mathbf{1}$!
-Taking $\mathbf{1}^T$ of the expansion gives $\mathbf{1}^T \mathbf{u}_0 = c_1 \mathbf{1}^T \mathbf{u}_\infty + 0 \implies 1 = c_1 \cdot 1 \implies c_1 = 1$.
-After $k$ steps:
-$$
-\mathbf{u}_k = M^k \mathbf{u}_0 = \mathbf{u}_\infty + \sum_{i=2}^n c_i \lambda_i^k \mathbf{x}_i
-$$
-Since $|\lambda_i| \lt 1$ for all $i \ge 2$, $\lambda_i^k \to 0$ as $k \to \infty$, so the transient sum vanishes and $\lim_{k\to\infty} \mathbf{u}_k = \mathbf{u}_\infty$. $\blacksquare$
+Perron–Frobenius gives a unique positive stationary distribution $\mathbf{u}_\infty$ of mass $1$. Since $\mathbf{1}^T M=\mathbf{1}^T$, the subspace $H=\operatorname{Null}(\mathbf{1}^T)$ is invariant. Every vector decomposes uniquely as $(\mathbf{1}^T\mathbf{u})\mathbf{u}_\infty+\mathbf{w}$ with $\mathbf{w}\in H$. The restriction of $M$ to $H$ has the remaining eigenvalues, each of modulus below $1$, so $M^k\mathbf{w}\to\mathbf{0}$ even when $M$ is defective.
+
+Thus $\lim_{k\to\infty}M^k=\mathbf{u}_\infty\mathbf{1}^T$. This is a projection onto the stationary line along $H$. It is orthogonal in the Euclidean inner product exactly when $\mathbf{u}_\infty$ is uniform.
 </ProofCollapse>
 
 ---
@@ -354,7 +342,7 @@ Since $|\lambda_i| \lt 1$ for all $i \ge 2$, $\lambda_i^k \to 0$ as $k \to \inft
 2. **Pitfall 2: Determinant "Linearity" and Scalar Scaling Traps**  
    Determinants are NOT additive: in general, $\det(A + B) \ne \det(A) + \det(B)$. Scalar multiplication pulls out a factor to the $n$-th power for an $n\times n$ matrix: $\det(cA) = c^n \det(A)$, not $c \det(A)$; similarly, $\det(-A) = (-1)^n \det(A)$.
 3. **Pitfall 3: Gaussian Elimination Destroys Eigenvalues**  
-   Elementary row operations $EA = U$ preserve the nullspace, the row space, and the determinant (up to sign), but they **completely alter eigenvalues and eigenvectors**. Never read the diagonal entries of the echelon matrix $U$ as eigenvalues of $A$—eigenvalues are preserved only under similarity transformations $S^{-1}AS$.
+   Reduction via $EA=U$ preserves row space and nullspace. The determinant follows the row-operation factors, and the eigenvalues of $U$ can differ from those of $A$. Similarity $S^{-1}AS$ guarantees spectral invariance.
 4. **Pitfall 4: Confusing Invertibility with Diagonalizability**  
    Invertibility means $\det(A) \ne 0$ (no zero eigenvalues). Diagonalizability means $n$ independent eigenvectors ($\operatorname{GM} = \operatorname{AM}$). These two properties are completely independent!
    - Invertible but NOT diagonalizable:
@@ -368,13 +356,13 @@ Since $|\lambda_i| \lt 1$ for all $i \ge 2$, $\lambda_i^k \to 0$ as $k \to \inft
      $$
      ($\det = 0$, yet already diagonal).
 5. **Pitfall 5: Matrix Exponential Splitting Without Commutativity**  
-   The identity $e^{A + B} = e^A e^B$ holds **if and only if** $A$ and $B$ commute ($AB = BA$). In general, $e^{A + B} \ne e^A e^B$.
+   Commutativity $AB=BA$ guarantees $e^{A+B}=e^Ae^B$. For noncommuting matrices the identity can fail, as shown in Lecture 23.
 6. **Pitfall 6: Periodic Oscillation in Markov Matrices with Zero Entries**  
-   If a Markov matrix contains zeros—such as the permutation matrix
+   Consider the two-state swap
    $$
    \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
    $$
-   —its eigenvalues can include $\lambda = -1$ or complex roots of unity. Then $M^k \mathbf{u}_0$ oscillates rather than converging to a single steady state. Unique convergence is guaranteed only when $M$ is strictly positive ($m_{ij} \gt 0$) or primitive.
+   For this swap, unequal starting components oscillate and the uniform distribution is stationary. Primitivity guarantees convergence to a shared positive limit. A simple eigenvalue at $1$ and all other eigenvalues of modulus below $1$ give the exact criterion for a shared limit.
 
 </PitfallAlert>
 
@@ -384,11 +372,11 @@ Since $|\lambda_i| \lt 1$ for all $i \ge 2$, $\lambda_i^k \to 0$ as $k \to \inft
 
 <KeyTakeaways title="Key Takeaways" items={[
   "Normal equations and orthogonal complements: The four-subspace orthogonality structure splits any inconsistent system $A\\mathbf{x} = \\mathbf{b}$ into the optimal projection $\\mathbf{p} \\in \\operatorname{Col}(A)$ and residual $\\mathbf{e} \\in \\operatorname{Null}(A^T)$, governed by $A^T A \\hat{\\mathbf{x}} = A^T \\mathbf{b}$.",
-  "QR factorization and hypervolume: $A = QR$ reduces the normal equations to the upper triangular system $R\\hat{\\mathbf{x}} = Q^T \\mathbf{b}$, and the product of the diagonal entries of $R$ gives the exact $n$-dimensional parallelepiped volume $\\prod r_{ii} = |\\det(A)|$.",
+  "For full column rank, thin QR reduces least squares to $R\\hat{\\mathbf{x}}=Q^T\\mathbf{b}$, and the volume is $\\prod_i r_{ii}=\\sqrt{\\det(A^TA)}$, equal to $|\\det(A)|$ in the square case.",
   "Three roles of the determinant: Testing singularity/invertibility ($\\det A \\ne 0$), computing the inverse via cofactors ($A^{-1} = \\frac{1}{\\det A}C^T$), and unlocking the characteristic equation $\\det(A - \\lambda I) = 0$ for dynamical systems.",
   "Spectral invariants: Similarity transformations $S^{-1}AS$ preserve the characteristic polynomial, the eigenvalues, the trace ($\\operatorname{tr}(A) = \\sum \\lambda_i$), and the determinant ($\\det(A) = \\prod \\lambda_i$).",
-  "Stability boundaries for dynamical systems: Discrete systems $\\mathbf{u}_{k+1} = A\\mathbf{u}_k$ are asymptotically stable iff $\\rho(A) = \\max |\\lambda_i| \\lt 1$; continuous systems $\\frac{d\\mathbf{u}}{dt} = A\\mathbf{u}$ are asymptotically stable iff $\\operatorname{Re}(\\lambda_i) \\lt 0$ (for $2\\times 2$ matrices: $\\operatorname{tr} A \\lt 0$ and $\\det A \\gt 0$).",
-  "Markov spectral projection: Column sums equal to $1$ guarantee $\\lambda_1 = 1$ (with left eigenvector $\\mathbf{1}$), while all other eigenvalues satisfy $|\\lambda_i| \\le 1$; transient components lie in $\\operatorname{Null}(\\mathbf{1}^T)$ and decay toward the unique steady state $\\mathbf{u}_\\infty$."
+  "Stability boundaries for dynamical systems: Discrete systems $\\mathbf{u}_{k+1} = A\\mathbf{u}_k$ are asymptotically stable iff $\\rho(A) = \\max |\\lambda_i| \\lt 1$; continuous systems $\\frac{d\\mathbf{u}}{dt} = A\\mathbf{u}$ are asymptotically stable iff $\\operatorname{Re}(\\lambda_i) \\lt 0$ (for real $2\\times 2$ matrices: $\\operatorname{tr} A \\lt 0$ and $\\det A \\gt 0$).",
+  "For primitive column-stochastic $M$, $M^k$ converges to the spectral projector $\\mathbf{u}_\\infty\\mathbf{1}^T$. It sends a vector to its total mass times the stationary distribution."
 ]} />
 
 ---
@@ -487,7 +475,7 @@ Notice that $I - P$ is the rank-1 outer-product projector onto the normal line s
 Because $P$ projects orthogonally onto the 2D plane $\operatorname{Col}(A)$:
 - For every $\mathbf{v} \in \operatorname{Col}(A)$, $P\mathbf{v} = 1\cdot\mathbf{v}$, giving $\lambda_1 = 1, \lambda_2 = 1$;
 - For every $\mathbf{n} \in \operatorname{Null}(A^T)$, $P\mathbf{n} = 0\cdot\mathbf{n}$, giving $\lambda_3 = 0$.
-Thus the eigenvalues of $P$ are $\{1, 1, 0\}$.
+Thus the eigenvalues of $P$, counted with multiplicity, are $1,1,0$.
 Verifying the trace:
 $$
 \operatorname{tr}(P) = \frac{5 + 2 + 5}{6} = \frac{12}{6} = 2 = 1 + 1 + 0 = \operatorname{rank}(A)
@@ -524,7 +512,7 @@ $$
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-Gram–Schmidt is the geometric process of straightening skewed coordinate axes one by one until they are mutually perpendicular and unit-length. The columns of $A$ are not orthogonal, so $\det(A)$ measures the volume of a tilted box.
+Gram–Schmidt is the geometric process of straightening skewed coordinate axes one by one until they are mutually perpendicular and unit-length. The columns of $A$ are not orthogonal, and $|\det(A)|$ gives the volume of a tilted box.
 
 Factoring $A = QR$ separates that tilted box into a rigid rotation/reflection $Q$ (volume factor $1$) and an upper triangular shearing/scaling matrix $R$ (volume factor equal to the product of its diagonal entries). That is why "base times height" equals the product of the diagonal of $R$.
 </SolutionIntuition>
@@ -636,7 +624,7 @@ Test Statement D immediately using the interactive card below:
   correct={false}
   trueLabel="True"
   falseLabel="False (Counterexample Exists)"
-  quickFeedback="Elementary row operations change the geometric action of a matrix. Elimination $E$ preserves the row space and the determinant (up to sign), but destroys eigenvalues and eigenvectors; eigenvalues are preserved only under similarity transformations $S^{-1}AS$."
+  quickFeedback="Row operations preserve the row space and nullspace, but can change eigenvalues. For example, the matrix in the solution has eigenvalues 3 and −1, while its echelon form has eigenvalues 1 and −3."
 />
 
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
@@ -647,7 +635,7 @@ Test Statement D immediately using the interactive card below:
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
 <SolutionIntuition>
-One of the most common traps in 18.06 is mixing up "Gaussian elimination" with "eigenvalue problems." Multiplying on the left by $E$ changes the directions of vectors in space, scrambling invariant subspaces.
+One of the most common traps in 18.06 is mixing up "Gaussian elimination" with "eigenvalue problems." Multiplying on the left by $E$ changes the directions of vectors in space, and can alter invariant subspaces.
 
 Likewise, thinking "singular means non-diagonalizable" is a classic illusion: $\det(A) = 0$ only tells you that $0$ is an eigenvalue, which poses no obstacle whatsoever to having $n$ independent eigenvectors.
 </SolutionIntuition>
@@ -667,7 +655,7 @@ Thus $A^{-1}$ is diagonalized by the **same** matrix $S$, with eigenvalues $\lam
 $$
 A = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}
 $$
-Here $\det(A) = 1 \times 0 = 0$, yet $A$ is already diagonal (diagonalized by $S = I_2$). The zero matrix $O_{n\times n}$ is another immediate counterexample.
+Here $\det(A) = 1 \times 0 = 0$, yet $A$ is already diagonal (diagonalized by $S = I_2$). The zero matrix $0_{n\times n}$ is another immediate counterexample.
 
 **Statement C: True.**
 
@@ -675,7 +663,7 @@ Here $\det(A) = 1 \times 0 = 0$, yet $A$ is already diagonal (diagonalized by $S
 $$
 \det(A) = \det(A^T) = \det(-A) = (-1)^3 \det(A) = -\det(A)
 $$
-Hence $2\det(A) = 0$, so $\det(A) = 0$. Since $\prod_{i=1}^3 \lambda_i = \det(A) = 0$, at least one eigenvalue must be $0$. (In fact, for a $3\times 3$ real skew-symmetric matrix, the eigenvalues are $0$ and a pure-imaginary pair $\pm i\omega$.)
+Hence $2\det(A) = 0$, so $\det(A) = 0$. Since $\prod_{i=1}^3 \lambda_i = \det(A) = 0$, at least one eigenvalue must be $0$. (In fact, for a $3\times 3$ real skew-symmetric matrix, the eigenvalues are $0,\pm i\omega$ for some $\omega\ge0$.)
 
 **Statement D: False.**
 
@@ -717,7 +705,7 @@ $$
 <ProgressiveHint buttonPrefix="Unlock Hint" hints={[
   "Since $A_c$ is upper triangular, its characteristic polynomial is the product of its diagonal factors.",
   "For the repeated eigenvalue $\\lambda = 2$, examine $\\dim(\\operatorname{Null}(A_c - 2I)) = 3 - \\operatorname{rank}(A_c - 2I)$.",
-  "When $c = 1$, split the upper-left $2\\times 2$ block into $2I_2 + N$ where $N^2 = O$."
+  "When $c = 1$, split the upper-left $2\\times 2$ block into $2I_2 + N$ where $N^2 = 0_{2\times 2}$."
 ]} />
 
 <DualSolution triggerLabel="Show Full Dual Solution (Intuition + Rigorous Proof)" intuitionLabel="Geometric Intuition" rigorousLabel="Rigorous Proof / Construction">
@@ -745,7 +733,7 @@ For $\lambda = 2$, examine $A_c - 2I$:
 $$
 A_c - 2I = \begin{bmatrix} 0 & c & 1 \\ 0 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}
 $$
-Subtracting row 3 from row 1 reduces this to:
+Subtracting row 3 from row 1 and then swapping rows 2 and 3 gives:
 $$
 \begin{bmatrix} 0 & c & 0 \\ 0 & 0 & 1 \\ 0 & 0 & 0 \end{bmatrix}
 $$
@@ -794,11 +782,11 @@ $$
 When $c = 1$, $\operatorname{GM}(2) = 1 \lt \operatorname{AM}(2) = 2$, so $A_1$ is defective.
 Observe its block structure: the upper-left $2\times 2$ block is a Jordan block $J = 2I_2 + N$, where:
 $$
-J = \begin{bmatrix} 2 & 1 \\ 0 & 2 \end{bmatrix}, \quad N = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}, \quad N^2 = O
+J = \begin{bmatrix} 2 & 1 \\ 0 & 2 \end{bmatrix}, \quad N = \begin{bmatrix} 0 & 1 \\ 0 & 0 \end{bmatrix}, \quad N^2 = 0_{2\times 2}
 $$
-By the binomial theorem (since $I_2$ and $N$ commute and $N^k = O$ for $k \ge 2$):
+By the binomial theorem (since $I_2$ and $N$ commute and $N^k = 0_{2\times 2}$ for $k \ge 2$):
 $$
-J^{100} = (2I_2 + N)^{100} = 2^{100} I_2 + \binom{100}{1} 2^{99} N + 0 = \begin{bmatrix} 2^{100} & 100 \cdot 2^{99} \\ 0 & 2^{100} \end{bmatrix}
+J^{100} = (2I_2 + N)^{100} = 2^{100} I_2 + \binom{100}{1} 2^{99} N = \begin{bmatrix} 2^{100} & 100 \cdot 2^{99} \\ 0 & 2^{100} \end{bmatrix}
 $$
 For the third column, let $x_k = (A_1^k)_{13}$. Since $A_1 \mathbf{e}_3 = [1, 0, 3]^T$, the recurrence $x_{k+1} = 2x_k + 3^k$ with $x_1 = 1$ solves to $x_k = 3^k - 2^k$.
 Combining the blocks gives:
@@ -839,7 +827,7 @@ $$
 <SolutionIntuition>
 The key to solving coupled linear ODEs is to "use the eigenvectors as coordinate axes." In eigen-coordinates, the coupled equations $\frac{du_1}{dt} = -2u_1 + 3u_2$ and $\frac{du_2}{dt} = u_1 - 4u_2$ decouple into two completely independent scalar decays: $\frac{dv_1}{dt} = \lambda_1 v_1$ and $\frac{dv_2}{dt} = \lambda_2 v_2$.
 
-Because both eigenvalues are negative, the solution is a sum of two decaying exponentials. Once the fast mode dies out, every trajectory in the phase plane curves into the origin tangent to the slow eigenvector.
+Because both eigenvalues are negative, the solution is a sum of two decaying exponentials. Once the fast mode dies out, trajectories with a nonzero slow-mode coefficient approach the origin tangent to the slow eigenvector.
 </SolutionIntuition>
 
 <SolutionRigorous>
@@ -917,7 +905,7 @@ $$
 Check the trace–determinant criteria:
 - Discriminant: $\Delta = (\operatorname{tr} A)^2 - 4\det(A) = (-6)^2 - 4\times 5 = 36 - 20 = 16 \gt 0$ (two distinct real roots, ruling out spirals and centers);
 - Signs: $\det(A) = 5 \gt 0$ (same sign) and $\operatorname{tr}(A) = -6 \lt 0$ (both negative: $\lambda_2 \lt \lambda_1 \lt 0$).
-Hence the origin $(0, 0)$ is an **asymptotically stable node (sink)**. As $t \to \infty$, since $e^{-5t}$ decays much faster than $e^{-t}$, all trajectories approach the origin tangent to the slow eigenvector $\mathbf{x}_1 = [3, 1]^T$.
+Hence the origin $(0, 0)$ is an **asymptotically stable node (sink)**. As $t \to \infty$, since $e^{-5t}$ decays much faster than $e^{-t}$, the given trajectory approaches the origin tangent to $\mathbf{x}_1=[3,1]^T$. Initial states on the fast eigenline remain on that line.
 </SolutionRigorous>
 </DualSolution>
 </ExerciseCard>
@@ -944,7 +932,7 @@ $$
 3. Verify that the transient difference $\mathbf{u}_0 - \mathbf{u}_\infty$ lies in the orthogonal complement of $\mathbf{1}$, i.e., $\mathbf{1}^T (\mathbf{u}_0 - \mathbf{u}_\infty) = 0$.
 
 **Part II (Orthogonal Projection in Function Space and Fourier Series)**:  
-In the Hilbert space $L^2[-\pi, \pi]$, define the inner product:
+In the real Hilbert space $L^2([-\pi,\pi];\mathbb{R})$, define the inner product:
 $$
 \langle f, g \rangle = \int_{-\pi}^\pi f(x) g(x) \, dx
 $$
@@ -962,7 +950,7 @@ Consider the subspace $V = \operatorname{span}\{1, \cos x, \sin x\}$.
 <SolutionIntuition>
 This problem is the ultimate meeting point of Module 2 (projections and orthogonality) and Module 3 (eigenvalues and Markov chains).
 
-In Part I, convergence to a Markov steady state is itself a projection: $M^\infty$ projects any initial probability vector onto the steady-state line, while the transient component—which is orthogonal to $\mathbf{1}$ and carries zero net probability mass—decays exponentially to zero.
+In Part I, convergence to a Markov steady state is itself a projection: $\lim_{k\to\infty}M^k$ projects along $\operatorname{Null}(\mathbf{1}^T)$ onto the steady-state line, while the transient component—which is orthogonal to $\mathbf{1}$ and carries zero net probability mass—decays exponentially to zero.
 
 In Part II, we lift finite-dimensional vector projection into an infinite-dimensional function space. Fourier coefficients are simply projection coordinates onto an orthogonal trigonometric basis, beating with the exact same mathematical heartbeat as $\hat{x}_i = \frac{\mathbf{q}_i^T \mathbf{b}}{\mathbf{q}_i^T \mathbf{q}_i}$.
 </SolutionIntuition>
@@ -1049,11 +1037,11 @@ Evaluating each integral:
 
 Substituting the coefficients gives the orthogonal projection:
 $$
-\operatorname{proj}_V(x) = 2\sin x
+(\operatorname{proj}_V f)(x)=2\sin x
 $$
 
 **Deep Mathematical Unity**:  
-This is the first-order term of the Fourier series of $x$! It shares the exact same structure as the finite-dimensional normal equations $(A^T A)\hat{\mathbf{x}} = A^T \mathbf{b}$: because the basis elements are orthogonal, the Gram matrix $A^T A$ becomes diagonal ($\operatorname{diag}(2\pi, \pi, \pi)$), decoupling all projection coordinates. Fourier analysis is orthogonal projection geometry in an infinite-dimensional Hilbert space!
+This is the first-degree Fourier partial sum of $f(x)=x$! It shares the exact same structure as the finite-dimensional normal equations $(A^T A)\hat{\mathbf{x}} = A^T \mathbf{b}$: because the basis elements are orthogonal, the Gram matrix $A^T A$ becomes diagonal ($\operatorname{diag}(2\pi, \pi, \pi)$), decoupling all projection coordinates. Fourier analysis is orthogonal projection geometry in an infinite-dimensional Hilbert space!
 </SolutionRigorous>
 </DualSolution>
 </ExerciseCard>

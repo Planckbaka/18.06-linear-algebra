@@ -5,11 +5,11 @@ videoEpisode: "P14"
 textbookRef: "§4.1"
 ---
 
-在第一模块中，我们深入剖析了线性方程组 $A\mathbf{x} = \mathbf{b}$、高斯消元以及四个基本子空间的维数定理（$r, n-r, r, m-r$）。但在此前所有的代数推演中，我们始终没有引入一个最核心的几何度量：**向量与子空间之间的“夹角”究竟是多少？**
+在第一模块中，我们深入剖析了线性方程组 $A\mathbf{x} = \mathbf{b}$、高斯消元以及四个基本子空间（The Four Fundamental Subspaces）的维数定理（$r, n-r, r, m-r$）。但在此前所有的代数推演中，我们始终没有引入一个最核心的几何度量：**如何判断向量或子空间是否正交？**
 
 在 MIT 18.06 的课堂上，Gilbert Strang 教授给出了全书最富激情的论断之一：**“$90^\circ$ 是整个数学中最完美的夹角！”**
 
-当两个向量相互垂直时，它们的点积为零，范数计算中的交叉项彻底消失，$n$ 维空间中的欧氏勾股定理得以成立；而当子空间相互垂直时，整个向量空间被干净利落地剖分为互不耦合的独立直和。在本讲中，我们将正式揭晓**线性代数基本定理第二部分（Fundamental Theorem of Linear Algebra, Part II）**：矩阵的行空间与零空间、列空间与左零空间，在几何上不仅是单纯的子空间，更是一对对完美的**正交补（Orthogonal Complement）**。这构成了后续投影矩阵、最小二乘法、QR 分解与奇异值分解（SVD）的全部几何根基。
+当两个向量相互垂直时，它们的点积为零，范数计算中的交叉项彻底消失，$n$ 维空间中的欧氏勾股定理得以成立；两个正交子空间的和是直和。当它们互为正交补时，直和才等于整个空间。在本讲中，我们将正式揭晓**线性代数基本定理第二部分（Fundamental Theorem of Linear Algebra, Part II）**：矩阵的行空间（Row Space）与零空间（Nullspace）、列空间（Column Space）与左零空间（Left Nullspace），在几何上不仅是单纯的子空间，更是一对对完美的**正交补（Orthogonal Complement）**。这构成了后续投影矩阵（Projection Matrix）、最小二乘法、QR 分解与奇异值分解（Singular Value Decomposition, SVD）的全部几何根基。
 
 ---
 
@@ -50,7 +50,7 @@ $$
 
 <TheoremCard label="Theorem 14.1" title="n 维勾股定理充要条件 (Pythagorean Theorem in ℝⁿ)" termEn="Pythagorean Theorem">
 
-设 $\mathbf{x}, \mathbf{y} \in \mathbb{R}^n$ 为任意实向量。则三角形满足勾股关系 $\|\mathbf{x} + \mathbf{y}\|_2^2 = \|\mathbf{x}\|_2^2 + \|\mathbf{y}\|_2^2$ 当且仅当 $\mathbf{x}$ 与 $\mathbf{y}$ 正交：
+设 $\mathbf{x}, \mathbf{y} \in \mathbb{R}^n$ 为任意实向量。则这两个向量满足勾股关系 $\|\mathbf{x} + \mathbf{y}\|_2^2 = \|\mathbf{x}\|_2^2 + \|\mathbf{y}\|_2^2$ 当且仅当 $\mathbf{x}$ 与 $\mathbf{y}$ 正交：
 
 $$
 \|\mathbf{x} + \mathbf{y}\|_2^2 = \|\mathbf{x}\|_2^2 + \|\mathbf{y}\|_2^2 \iff \mathbf{x}^T \mathbf{y} = 0 \iff \mathbf{x} \perp \mathbf{y}
@@ -59,6 +59,8 @@ $$
 同理，减法向量的模长平方也满足等价关系：$\|\mathbf{x} - \mathbf{y}\|_2^2 = \|\mathbf{x}\|_2^2 + \|\mathbf{y}\|_2^2 \iff \mathbf{x}^T \mathbf{y} = 0$。
 
 </TheoremCard>
+
+两个非零实向量正交当且仅当夹角为 $90^\circ$。零向量与任何向量的夹角均无定义。在 $\mathbb{C}$ 上，标准内积为 $\mathbf{x}^H\mathbf{y}$，范数平方展开的交叉项是 $2\operatorname{Re}(\mathbf{x}^H\mathbf{y})$。因此，复数域上的单个勾股等式只能推出内积的实部为零。
 
 <ProofCollapse title="展开 n 维勾股定理的严格代数推导">
 
@@ -137,7 +139,7 @@ $$
 
 > **正交子空间相交性推论**：若 $V \perp W$，则它们必定仅在原点相交，即 $V \cap W = \{\mathbf{0}\}$。
 > 
-> *证明*：设 $\mathbf{u} \in V \cap W$。因为 $\mathbf{u} \in V$ 且 $\mathbf{u} \in W$，而 $V \perp W$，所以 $\mathbf{u}$ 必须与自身正交，即 $\mathbf{u}^T \mathbf{u} = \|\mathbf{u}\|_2^2 = 0$。根据实数范数正定性，必有 $\mathbf{u} = \mathbf{0}$。
+> *证明*：设 $\mathbf{u} \in V \cap W$。因为 $\mathbf{u} \in V$ 且 $\mathbf{u} \in W$，而 $V \perp W$，所以 $\mathbf{u}$ 必须与自身正交，即 $\mathbf{u}^T \mathbf{u} = \|\mathbf{u}\|_2^2 = 0$。根据只有零向量的范数为零这一性质，必有 $\mathbf{u} = \mathbf{0}$。
 
 <PitfallAlert title="极其高频的直觉陷阱与网传笔记勘误">
 
@@ -145,9 +147,9 @@ $$
 
 1. **“交集为零向量”绝不等于“正交子空间”！**
    - 命题“$V \cap W = \{\mathbf{0}\} \implies V \perp W$”是**完全错误**的！
-   - 反例：在 $\mathbb{R}^2$ 中，取 $x$ 轴子空间 $V = \operatorname{span}\left(\begin{bmatrix} 1 \\ 0 \end{bmatrix}\right)$ 与直线 $y = x$ 子空间 $W = \operatorname{span}\left(\begin{bmatrix} 1 \\ 1 \end{bmatrix}\right)$。显然 $V \cap W = \{\mathbf{0}\}$，但向量 $\begin{bmatrix} 1 \\ 0 \end{bmatrix}$ 与 $\begin{bmatrix} 1 \\ 1 \end{bmatrix}$ 的点积为 $1 \neq 0$（夹角为 $45^\circ$）。交集仅为零向量只说明两子空间线性无关，绝不能证明两两垂直！
+   - 反例：在 $\mathbb{R}^2$ 中，取 $x$ 轴子空间 $V = \operatorname{span}\left(\begin{bmatrix} 1 \\ 0 \end{bmatrix}\right)$ 与直线 $y = x$ 子空间 $W = \operatorname{span}\left(\begin{bmatrix} 1 \\ 1 \end{bmatrix}\right)$。显然 $V \cap W = \{\mathbf{0}\}$，但向量 $\begin{bmatrix} 1 \\ 0 \end{bmatrix}$ 与 $\begin{bmatrix} 1 \\ 1 \end{bmatrix}$ 的点积为 $1 \neq 0$（夹角为 $45^\circ$）。交集仅含零向量，说明 $V+W$ 是直和。上面的非零内积说明它们并不正交。
 2. **三维空间中互相垂直的“墙面”与“地面”绝不是正交子空间！**
-   - 在教室中，水平地面（$xy$ 平面 $z=0$）与坚直墙面（$yz$ 平面 $x=0$）在物理上互相垂直。
+   - 在教室中，水平地面（$xy$ 平面 $z=0$）与竖直墙面（$yz$ 平面 $x=0$）在物理上互相垂直。
    - 但将它们视为 $\mathbb{R}^3$ 中的二维子空间时，它们相交于整条交线（$y$ 轴）！交集 $V \cap W$ 是一整条直线，包含了无穷多个非零向量（如 $\mathbf{y} = (0, 1, 0)^T$）。
    - 向量 $\mathbf{y}$ 既在地面又在墙面，它与自身的点积是 $1 \neq 0$。因此，**两个垂直平面绝不是正交子空间**！
 
@@ -187,7 +189,7 @@ $$
 
 </TheoremCard>
 
-<ProofCollapse title="展开正交补性质 1、3、5 的严格代数证明">
+<ProofCollapse title="展开正交补性质的证明">
 
 **1. 证明 $V^\perp$ 是子空间**：
 取 $\mathbf{x}_1, \mathbf{x}_2 \in V^\perp$ 以及任意标量 $c, d \in \mathbb{R}$。对于任意 $\mathbf{v} \in V$：
@@ -232,13 +234,15 @@ $$
 再计算维数：由维数互补定理，$\dim((V^\perp)^\perp) = n - \dim(V^\perp) = n - (n - \dim(V)) = \dim(V)$。
 既然有限维欧氏空间中的子空间 $V$ 包含于 $(V^\perp)^\perp$，且两者维数严格相等，那么两子空间必定完全相同：$(V^\perp)^\perp = V$。
 
+**4. 正交直和**。由交集仅含零向量及维数公式可知 $\dim(V+V^\perp)=n$，所以 $V+V^\perp=\mathbb{R}^n$。若 $\mathbf{v}+\mathbf{w}=\mathbf{v}'+\mathbf{w}'$ 是两种这样的分解，则 $\mathbf{v}-\mathbf{v}'=\mathbf{w}'-\mathbf{w}\in V\cap V^\perp=\{\mathbf{0}\}$，从而分解唯一。
+
 </ProofCollapse>
 
 ---
 
 ## 三、线性代数基本定理第二部分：四个子空间的正交补关系
 
-在第 10 讲中，我们建立了**线性代数基本定理第一部分**：对任意矩阵 $A \in \mathbb{R}^{m\times n}$，行空间与零空间的维数和为 $n$，列空间与左零空间的维数和为 $m$。
+在第 10 讲中，我们建立了**线性代数基本定理第一部分**：对任意矩阵 $A \in \mathbb{R}^{m\times n}$，行空间与零空间的维数和为 $n$，列空间与左零空间的维数和为 $m$。Strang 用 $C(A)$ 和 $N(A)$ 分别表示 $\operatorname{Col}(A)$ 和 $\operatorname{Null}(A)$。
 现在，我们终于可以揭开这四个子空间在空间角度上的最终真相——**它们正是互为正交补！**
 
 ### 1. 核心代数洞察：为什么行空间垂直于零空间？
@@ -263,7 +267,7 @@ $$
 $$
 
 请凝视这一推导：**$(A^T \mathbf{y})^T \mathbf{x} = \mathbf{y}^T (A\mathbf{x})$**。
-通过矩阵转置的交换律，转置算子从左边的 $A^T$ 转移到了右边的 $A\mathbf{x}$ 上。既然 $\mathbf{x}$ 位于零空间，代入 $A\mathbf{x} = \mathbf{0}$，整个内积瞬间坍缩为零！这以无可辩驳的代数力量证明了行空间中**每一个向量**都与零空间中**每一个向量**垂直。
+由转置反序律 $(A^T\mathbf{y})^T=\mathbf{y}^TA$，再用矩阵乘法的结合律得到 $\mathbf{y}^T(A\mathbf{x})$。既然 $\mathbf{x}$ 位于零空间，代入 $A\mathbf{x} = \mathbf{0}$，整个内积瞬间坍缩为零！这以无可辩驳的代数力量证明了行空间中**每一个向量**都与零空间中**每一个向量**垂直。
 
 <TheoremCard label="Theorem 14.3" title="线性代数基本定理第二部分 (Fundamental Theorem Part II)" termEn="Fundamental Theorem of Linear Algebra, Part II">
 
@@ -372,7 +376,7 @@ $$
 2. **输出完全由行空间决定**：整个输入向量 $\mathbf{x}$ 映射出的像 $A\mathbf{x}$，完完全全由其行空间分量 $\mathbf{x}_r$ 单独决定。
 3. **行空间到列空间的可逆一一双射（Bijection）**：
    如果我们将矩阵 $A$ 的定义域严格限制在行空间 $\operatorname{Row}(A)$ 上，那么变换 $A: \operatorname{Row}(A) \to \operatorname{Col}(A)$ 是一个**保维且严格一一对应（可逆）的双射**！
-   *证明*：设 $\mathbf{x}_r, \mathbf{x}_r' \in \operatorname{Row}(A)$ 满足 $A\mathbf{x}_r = A\mathbf{x}_r'$。移项得 $A(\mathbf{x}_r - \mathbf{x}_r') = \mathbf{0}$，说明差向量 $(\mathbf{x}_r - \mathbf{x}_r') \in \operatorname{Null}(A)$。但由于行空间是子空间，差向量同时属于 $\operatorname{Row}(A)$。因为 $\operatorname{Row}(A) \cap \operatorname{Null}(A) = \{\mathbf{0}\}$，必有 $\mathbf{x}_r - \mathbf{x}_r' = \mathbf{0} \implies \mathbf{x}_r = \mathbf{x}_r'$。即：**不同的行空间向量必定映射到不同的列空间向量**！
+   *证明*：设 $\mathbf{x}_r, \mathbf{x}_r' \in \operatorname{Row}(A)$ 满足 $A\mathbf{x}_r = A\mathbf{x}_r'$。移项得 $A(\mathbf{x}_r - \mathbf{x}_r') = \mathbf{0}$，说明差向量 $(\mathbf{x}_r - \mathbf{x}_r') \in \operatorname{Null}(A)$。但由于行空间是子空间，差向量同时属于 $\operatorname{Row}(A)$。因为 $\operatorname{Row}(A) \cap \operatorname{Null}(A) = \{\mathbf{0}\}$，必有 $\mathbf{x}_r - \mathbf{x}_r' = \mathbf{0} \implies \mathbf{x}_r = \mathbf{x}_r'$。这证明了单射性。对任意 $\mathbf{b}\in\operatorname{Col}(A)$，存在 $\mathbf{x}$ 使 $A\mathbf{x}=\mathbf{b}$。由 $A\mathbf{x}=A\mathbf{x}_r$ 可知 $\mathbf{b}$ 也是行空间向量 $\mathbf{x}_r$ 的像，故限制映射也是满射。
 
 ### 2. 无穷多解中的“最小范数解”（Minimum-Norm Solution）
 
@@ -392,7 +396,7 @@ $$
 
 等号成立当且仅当 $\mathbf{x}_n = \mathbf{0}$！
 这意味着：在所有能使 $A\mathbf{x} = \mathbf{b}$ 成立的无穷多个解中，**完全落在行空间内的那个解 $\mathbf{x}_r$ 拥有严格最小的欧氏范数（最短长度）**！
-这个最短解在工程与优化中极其关键，它正是后续第 33 讲中通过 **Moore-Penrose 伪逆**算出的解：$\mathbf{x}^+ = A^+ \mathbf{b}$。
+这个最短解在工程与优化中极其关键，它正是后续第 34 讲中通过 **Moore-Penrose 伪逆（Moore-Penrose Pseudoinverse）**算出的解：$\mathbf{x}^+ = A^+ \mathbf{b}$。
 
 ### 3. 输出空间分解与无解方程的救赎：引向第 15 讲
 
@@ -415,8 +419,8 @@ $$
 
 <InteractiveCanvasSlot
   id="l14-orthogonal-subspaces-interactive"
-  title="四子空间正交剖分与向量分解交互仪"
-  description="拖拽输入向量 $\mathbf{x} \in \mathbb{R}^3$，动态观察其在行空间 $\operatorname{Row}(A)$ 与零空间 $\operatorname{Null}(A)$ 上的唯一直角分解 $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$（实时校验直角勾股定理 $\|\mathbf{x}\|_2^2 = \|\mathbf{x}_r\|_2^2 + \|\mathbf{x}_n\|_2^2$），并联动观察矩阵变换后 $A\mathbf{x} = A\mathbf{x}_r$ 在列空间中的精确对应点与左零空间残差！"
+  title="行空间与零空间的正交分解实验"
+  description="调整行空间的倾角及 $\mathbf{x}\in\mathbb{R}^2$ 的两个坐标。观察 $\mathbf{x}_r$、$\mathbf{x}_n$ 如何相加得到 $\mathbf{x}$，并核验 $\|\mathbf{x}\|_2^2=\|\mathbf{x}_r\|_2^2+\|\mathbf{x}_n\|_2^2$。"
 />
 
 ---
@@ -425,7 +429,7 @@ $$
   items={[
     "向量正交充要条件：实向量正交等价于点积为零 $\\mathbf{x}^T\\mathbf{y} = 0$，且与欧氏勾股定理 $\\|\\mathbf{x}+\\mathbf{y}\\|_2^2 = \\|\\mathbf{x}\\|_2^2 + \\|\\mathbf{y}\\|_2^2$ 互为严格充要条件；零向量 $\\mathbf{0}$ 与全空间中每一个向量均正交。",
     "子空间正交与交集判定：子空间正交 $V \\perp W$ 要求 $V$ 中任意向量均垂直于 $W$ 中任意向量，此时两子空间交集必为 $V \\cap W = \\{\\mathbf{0}\\}$；但交集为零绝不反推正交（例如夹角 $45^\\circ$ 的相交直线）。",
-    "空间垂直平面的直觉陷阱：三维空间中互相垂直的墙面与地面相交于整条交线（交集包含非零向量），在子空间定义下绝非正交子空间；唯有一张二维平面与其一维法线才互为正交补。",
+    "空间垂直平面的直觉陷阱：三维空间中互相垂直的墙面与地面相交于整条交线（交集包含非零向量），在子空间定义下绝非正交子空间；任意过原点的二维平面的正交补都是它的一维法线。",
     "基本定理第二部分维度互补：对任意矩阵 $A \\in \\mathbb{R}^{m\\times n}$，行空间与零空间在 $\\mathbb{R}^n$ 中互为正交补 $\\operatorname{Null}(A) = (\\operatorname{Row}(A))^\\perp$（维数和 $r + (n-r) = n$）；列空间与左零空间在 $\\mathbb{R}^m$ 中互为正交补 $\\operatorname{Null}(A^T) = (\\operatorname{Col}(A))^\\perp$（维数和 $r + (m-r) = m$）。",
     "输入直和分解与保维双射：任意向量均可唯一分解为 $\\mathbf{x} = \\mathbf{x}_r + \\mathbf{x}_n$；矩阵 $A$ 将零空间整体压扁至 $\\mathbf{0}$，且在 $\\operatorname{Row}(A) \\to \\operatorname{Col}(A)$ 上建立可逆一一双射；纯行空间特解 $\\mathbf{x}_r$ 是所有无穷多解中欧氏范数最小的最优解（伪逆解）。",
     "输出正交分解开启投影理论：目标向量分解为 $\\mathbf{b} = \\mathbf{p} + \\mathbf{e}$（列空间投影 + 左零空间误差），直接为最小二乘法与正规方程组奠定了核心几何基石。"
@@ -451,7 +455,7 @@ $$
 A = \begin{bmatrix} 1 & 2 & 1 \\ 2 & 4 & 2 \end{bmatrix}, \quad \mathbf{x} = \begin{bmatrix} 3 \\ 1 \\ 2 \end{bmatrix}
 $$
 
-1. 求矩阵 $A$ 的秩 $r$，并分别写出行空间 $\operatorname{Row}(A)$ 与零空间 $\operatorname{Null}(A)$ 的一组基向量，直接计算内积验证两组基向量两两正交；
+1. 求矩阵 $A$ 的秩 $r$，并分别写出行空间 $\operatorname{Row}(A)$ 与零空间 $\operatorname{Null}(A)$ 的一组基向量，直接计算内积，验证行空间的每个基向量都与零空间的每个基向量正交；
 2. 将输入向量 $\mathbf{x}$ 正交分解为 $\mathbf{x} = \mathbf{x}_r + \mathbf{x}_n$（其中 $\mathbf{x}_r \in \operatorname{Row}(A), \mathbf{x}_n \in \operatorname{Null}(A)$），并严格检验勾股定理 $\|\mathbf{x}\|_2^2 = \|\mathbf{x}_r\|_2^2 + \|\mathbf{x}_n\|_2^2$！
 
 <ProgressiveHint
@@ -544,7 +548,7 @@ $\mathbf{x}_r^T \mathbf{x}_n = \frac{7}{36} [1(11) + 2(-8) + 1(5)] = \frac{7}{36
 <TrueFalseInteractive
   id="l14-tf1"
   correct={false}
-  quickFeedback="命题为假（False）！交集仅为零向量是子空间正交的必要条件，但绝非充分条件！两个子空间仅交于零点只说明它们线性无关或构成直和，它们之间的夹角可以是任意锐角（例如 45°），绝不一定是 90°！"
+  quickFeedback="命题为假。交集仅含零向量说明两子空间的和是直和。x 轴与直线 y = x 就只交于原点，夹角却是 45°。"
 />
 
 <ProgressiveHint
@@ -614,7 +618,7 @@ $$
 想象一根垂直插在桌面上的铅笔：
 - 铅笔所在的一维直线就是 $V$（由法向量 $\mathbf{a}$ 张成）；
 - 水平桌面就是由所有与铅笔垂直的方向张成的二维平面 $W$；
-- 桌面和铅笔只在原点相交，桌面上任意一条直线都与铅笔垂直，且 $1 + 2 = 3$，两者合在一起构成了整个三维空间 $\mathbb{R}^3$ 的正交直和分解；
+- 桌面和铅笔只在原点相交，桌面内任意方向都与铅笔方向正交，且 $1 + 2 = 3$，两者合在一起构成了整个三维空间 $\mathbb{R}^3$ 的正交直和分解；
 - 与桌面垂直的全体向量恰好只有这根铅笔方向，因此“桌面的垂线是铅笔，铅笔的垂面是桌面”，双重正交补完美回归自身！
 
 </SolutionIntuition>
@@ -669,7 +673,7 @@ $$
 <SolutionIntuition>
 
 正交补算子 $(\cdot)^\perp$ 具有神奇的“代数净化”能力：
-即使你丢给它一个完全没有任何加法或数乘结构的散乱点集 $S$，求正交补的过程本质上是在求解一组齐次齐次线性方程组 $\mathbf{s}^T \mathbf{x} = 0$。齐次方程组的解集天然形成一个平直、过原点的线性子空间！
+即使你丢给它一个完全没有任何加法或数乘结构的散乱点集 $S$，求正交补的过程本质上是在求解一组齐次线性方程 $\mathbf{s}^T \mathbf{x} = 0$。齐次方程组的解集天然形成一个平直、过原点的线性子空间！
 而且，如果一个向量垂直于几个点，它必然垂直于这些点通过线性组合张出的整个子空间 $\operatorname{span}(S)$。取两次正交补，就会把原来不封闭的集合 $S$ 自动“拉直并补全”为它所张成的最小子空间！
 
 </SolutionIntuition>
@@ -733,7 +737,7 @@ $$
 A = \begin{bmatrix} 1 & 1 \\ 1 & 2 \\ 2 & 3 \end{bmatrix}, \quad \mathbf{b} = \begin{bmatrix} 1 \\ 2 \\ 4 \end{bmatrix}
 $$
 
-1. **理论证明**：利用线性代数基本定理第二部分，证明著名的“Fredholm 抉择原理（Fredholm Alternative）”弱形式：
+1. **理论证明**：对任意 $A \in \mathbb{R}^{m\times n}$ 和 $\mathbf{b}\in\mathbb{R}^m$，利用线性代数基本定理第二部分，证明著名的“Fredholm 抉择原理（Fredholm Alternative）”弱形式：
    $$
    A\mathbf{x} = \mathbf{b} \text{ 有解} \iff (\forall \mathbf{y} \in \mathbb{R}^m: A^T \mathbf{y} = \mathbf{0} \implies \mathbf{y}^T \mathbf{b} = 0)
    $$
@@ -751,9 +755,9 @@ $$
 <SolutionIntuition>
 
 这道题展示了正交补理论在实际判定中的降维打击威力！
-传统的做法是对 $3\times 3$ 增广矩阵进行繁琐的高斯消元，观察最后一行是否出现 $0 = c$ 的矛盾行。
+传统的做法是对 $3\times 3$ 增广矩阵进行繁琐的高斯消元，观察最后一行是否出现形如 $0 = c$（$c\neq 0$）的矛盾行。
 但基本定理第二部分告诉我们：**$A\mathbf{x} = \mathbf{b}$ 能否求解，完全取决于 $\mathbf{b}$ 是否垂直于所有行消元中被归零的约束方向（即左零空间）！**
-左零空间 $\operatorname{Null}(A^T)$ 相当于系统的“质检员”。我们只需找出这名唯一的质检员 $\mathbf{y}$，用它与待检向量 $\mathbf{b}$ 轻轻点乘一次——如果不是零，说明数据立刻通不过质检，必定无解！
+左零空间 $\operatorname{Null}(A^T)$ 相当于系统的“质检员”。本题的左零空间是一维的，只需取任意一个非零基向量 $\mathbf{y}$，计算它与 $\mathbf{b}$ 的内积——如果不是零，说明数据立刻通不过质检，必定无解！
 
 </SolutionIntuition>
 <SolutionRigorous>

@@ -5,9 +5,9 @@ videoEpisode: "P15"
 textbookRef: "§4.2"
 ---
 
-在现实世界的工程测量、统计回归与机器学习中，我们几乎不可避免地面对包含噪声与海量观测的**超定方程组（Overdetermined System）** $A\mathbf{x} = \mathbf{b}$。此时矩阵 $A \in \mathbb{R}^{m\times n}$ 往往是“高瘦”长方矩阵（方程数 $m$ 远大于未知数个数 $n$，即 $m \gt n$）。当目标向量 $\mathbf{b}$ 不在 $A$ 的列空间 $\operatorname{Col}(A)$ 内时，$A\mathbf{x} = \mathbf{b}$ 根本不存在严格解。
+在现实世界的工程测量与统计回归中，我们几乎不可避免地面对包含噪声与海量观测的**超定方程组（Overdetermined System）** $A\mathbf{x} = \mathbf{b}$。此时矩阵 $A \in \mathbb{R}^{m\times n}$ 往往是“高瘦”长方矩阵（方程数 $m$ 大于未知数个数 $n$，即 $m \gt n$）。当目标向量 $\mathbf{b}$ 不在 $A$ 的列空间 $\operatorname{Col}(A)$ 内时，$A\mathbf{x} = \mathbf{b}$ 根本不存在严格解。
 
-工程与科学无法因为“无解”就止步放弃——我们必须在由 $A$ 的各列所张成的子空间 $\operatorname{Col}(A)$ 中，寻找距离 $\mathbf{b}$ 欧氏距离最近的最佳近似向量 $\mathbf{p} = A\hat{\mathbf{x}}$。在几何学中，距离最近的点恰好是垂足，而从目标点落向子空间的垂直线段正是正交残差。本讲中，Gilbert Strang 教授将带领我们完成从**一维直线投影（秩 1 投影矩阵）**到**高维子空间投影矩阵 $P = A(A^TA)^{-1}A^T$** 的优美跃升，并彻底揭开投影算子对称性、幂等性与正交互补分解的代数灵魂。
+工程与科学无法因为“无解”就止步放弃——我们必须在由 $A$ 的各列所张成的子空间 $\operatorname{Col}(A)$ 中，寻找距离 $\mathbf{b}$ 欧氏距离最近的最佳近似向量 $\mathbf{p} = A\hat{\mathbf{x}}$。在几何学中，距离最近的点恰好是垂足，而从目标点落向子空间的垂直线段正是正交残差。本讲中，Gilbert Strang 教授将带领我们完成从**一维直线投影（秩 1 投影矩阵）**到**满列秩矩阵的列空间投影矩阵（Projection Matrix）$P = A(A^TA)^{-1}A^T$** 的优美跃升，并彻底揭开投影算子对称性、幂等性与正交互补分解的代数灵魂。
 
 ---
 
@@ -18,7 +18,7 @@ textbookRef: "§4.2"
 <LineAndSubspaceProjectionDiagram />
 
 如上图所示：
-- **左侧一维世界**：目标向量 $\mathbf{b}$ 落在一条由非零向量 $\mathbf{a}$ 张成的直线上，垂足是一条垂直线段落下的点 $\mathbf{p} = \hat{x}\mathbf{a}$，投影矩阵是外积与内积之比组成的秩 1 矩阵；
+- **左侧一维世界**：将目标向量 $\mathbf{b}$ 投影到一条由非零向量 $\mathbf{a}$ 张成的直线上，所得垂足为 $\mathbf{p} = \hat{x}\mathbf{a}$，投影矩阵是外积与内积之比组成的秩 1 矩阵；
 - **右侧高维世界**：目标向量 $\mathbf{b}$ 悬浮在由多列张成的子空间平面 $\operatorname{Col}(A)$ 上方，垂足是平面内的点 $\mathbf{p} = A\hat{\mathbf{x}}$，而垂直垂线 $\mathbf{e} = \mathbf{b} - A\hat{\mathbf{x}}$ 严丝合缝地落入矩阵 $A$ 的**左零空间 $\operatorname{Null}(A^T)$**！
 
 ---
@@ -118,15 +118,15 @@ $$
 $$
 
 $$
-\|\mathbf{b}\|^2 = 3^2 + 3^2 + 0^2 = 18
+\|\mathbf{b}\|_2^2 = 3^2 + 3^2 + 0^2 = 18
 $$
 
 $$
-\|\mathbf{p}\|^2 = 1^2 + 2^2 + 2^2 = 9, \quad \|\mathbf{e}\|^2 = 2^2 + 1^2 + (-2)^2 = 9
+\|\mathbf{p}\|_2^2 = 1^2 + 2^2 + 2^2 = 9, \quad \|\mathbf{e}\|_2^2 = 2^2 + 1^2 + (-2)^2 = 9
 $$
 
 $$
-\|\mathbf{p}\|^2 + \|\mathbf{e}\|^2 = 9 + 9 = 18 = \|\mathbf{b}\|^2 \quad (\text{勾股定理精确成立！})
+\|\mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2 = 9 + 9 = 18 = \|\mathbf{b}\|_2^2 \quad (\text{勾股定理精确成立！})
 $$
 
 <DefinitionCard
@@ -194,11 +194,11 @@ $$
 
 <TheoremCard
   label="Theorem 15.1"
-  title="子空间正交性与左零空间的奇迹相逢"
-  termEn="Orthogonal Error Lives in the Left Nullspace"
+  title="最近点与左零空间"
+  termEn="Closest Point and the Left Nullspace"
 >
 
-误差向量 $\mathbf{e} = \mathbf{b} - A\hat{\mathbf{x}}$ 垂直于列空间 $\operatorname{Col}(A)$，等价于：
+设 $A\in\mathbb{R}^{m\times n}$、$\mathbf{b}\in\mathbb{R}^m$、$\hat{\mathbf{x}}\in\mathbb{R}^n$。点 $\mathbf{p}=A\hat{\mathbf{x}}$ 是 $\operatorname{Col}(A)$ 中距离 $\mathbf{b}$ 最近的唯一点，当且仅当残差 $\mathbf{e}=\mathbf{b}-\mathbf{p}$ 满足
 
 $$
 \mathbf{e} \in \operatorname{Col}(A)^\perp = \operatorname{Null}(A^T)
@@ -208,9 +208,21 @@ $$
 
 </TheoremCard>
 
+<ProofCollapse title="证明正交投影是唯一最近点">
+
+由第 14 讲的正交直和，存在唯一分解 $\mathbf{b}=\mathbf{p}_*+\mathbf{e}_*$，其中 $\mathbf{p}_*\in\operatorname{Col}(A)$ 且 $\mathbf{e}_*\in\operatorname{Null}(A^T)$。对任意 $\mathbf{y}\in\operatorname{Col}(A)$，差向量 $\mathbf{p}_*-\mathbf{y}$ 与 $\mathbf{e}_*$ 正交，因此
+
+$$
+\|\mathbf{b}-\mathbf{y}\|_2^2=\|\mathbf{e}_*\|_2^2+\|\mathbf{p}_*-\mathbf{y}\|_2^2.
+$$
+
+当且仅当 $\mathbf{y}=\mathbf{p}_*$ 时，距离平方达到最小值 $\|\mathbf{e}_*\|_2^2$。此外，由分解的唯一性，$\mathbf{b}-\mathbf{p}\in\operatorname{Null}(A^T)$ 当且仅当 $\mathbf{p}=\mathbf{p}_*$。
+
+</ProofCollapse>
+
 ### 3.2 高维投影矩阵 $P = A(A^TA)^{-1}A^T$ 的解析解
 
-当 $A$ 为列满秩矩阵（$\operatorname{rank}(A) = n$）时，对称方阵 $A^TA \in \mathbb{R}^{n\times n}$ 必定是**可逆矩阵**（完整的代数闭环将在第 16 讲展开：若 $A^TA\mathbf{x} = \mathbf{0}$，则 $\mathbf{x}^TA^TA\mathbf{x} = \|A\mathbf{x}\|^2 = 0 \implies A\mathbf{x}=\mathbf{0}$，由于列无关故 $\mathbf{x}=\mathbf{0}$，因此零空间只有零向量，方阵必然可逆！）。
+当 $A$ 为列满秩矩阵（$\operatorname{rank}(A) = n$）时，对称方阵 $A^TA \in \mathbb{R}^{n\times n}$ 必定是**可逆矩阵**（完整的代数闭环将在第 16 讲展开：若 $A^TA\mathbf{x} = \mathbf{0}$，则 $\mathbf{x}^TA^TA\mathbf{x} = \|A\mathbf{x}\|_2^2 = 0 \implies A\mathbf{x}=\mathbf{0}$，由于列无关故 $\mathbf{x}=\mathbf{0}$，因此零空间只有零向量，方阵必然可逆！）。
 
 在正规方程组两端左乘逆矩阵 $(A^TA)^{-1}$，我们解得唯一的坐标系数向量：
 
@@ -230,9 +242,11 @@ $$
 P = A (A^T A)^{-1} A^T \in \mathbb{R}^{m\times m}
 $$
 
+若 $A$ 的列线性相关，投影点 $\mathbf{p}$ 仍然唯一，但表示它的系数向量不唯一。可以改用 $\operatorname{Col}(A)$ 的一组基构造投影矩阵，也可写成 $P=AA^+$，其中 $A^+$ 是 Moore-Penrose 伪逆（Moore-Penrose Pseudoinverse）。若 $A=0$，投影将每个向量映为 $\mathbf{0}$。
+
 #### 一维与高维公式的无缝统摄
-当 $n = 1$ 时，$A$ 仅包含一列，退化为单个向量 $\mathbf{a}$。此时：
-- $A^TA = \mathbf{a}^T\mathbf{a}$ 是纯标量；
+当 $n = 1$ 时，满列秩意味着 $A$ 仅含一个非零列向量 $\mathbf{a}$。此时：
+- $A^TA$ 是 $1\times 1$ 矩阵，其唯一元素是标量 $\mathbf{a}^T\mathbf{a}$；
 - 矩阵求逆 $(A^TA)^{-1}$ 退化为标量倒数 $\frac{1}{\mathbf{a}^T\mathbf{a}}$；
 - $P = A(A^TA)^{-1}A^T = \mathbf{a} \left(\frac{1}{\mathbf{a}^T\mathbf{a}}\right) \mathbf{a}^T = \frac{\mathbf{a}\mathbf{a}^T}{\mathbf{a}^T\mathbf{a}}$。
 
@@ -257,7 +271,7 @@ $$
 1. **对称性（Symmetry）**：$P^T = P$；
 2. **幂等性（Idempotence）**：$P^2 = P$；
 3. **互补投影（Complementary Projection）**：矩阵 $I_m - P$ 是向正交补子空间 $\operatorname{Col}(A)^\perp = \operatorname{Null}(A^T)$ 的正交投影矩阵，满足 $(I - P)^T = I - P$ 且 $(I - P)^2 = I - P$；
-4. **正交解耦与勾股守恒**：$P(I - P) = (I - P)P = 0$，对任意 $\mathbf{b} \in \mathbb{R}^m$，有唯一正交拆分 $\mathbf{b} = P\mathbf{b} + (I - P)\mathbf{b}$，且范数守恒 $\|\mathbf{b}\|^2 = \|P\mathbf{b}\|^2 + \|(I - P)\mathbf{b}\|^2$。
+4. **正交解耦与勾股守恒**：$P(I - P) = (I - P)P = 0$，对任意 $\mathbf{b} \in \mathbb{R}^m$，有唯一正交拆分 $\mathbf{b} = P\mathbf{b} + (I - P)\mathbf{b}$，且范数守恒 $\|\mathbf{b}\|_2^2 = \|P\mathbf{b}\|_2^2 + \|(I - P)\mathbf{b}\|_2^2$。
 
 </TheoremCard>
 
@@ -283,13 +297,13 @@ $$
 连续两次作用矩阵乘法：
 
 $$
-P^2 = \left[ A (A^TA)^{-1} A^T \right] \left[ A (A^TA)^{-1} A^T \right] = A (A^TA)^{-1} \underbrace{\left[ A^T A \right] (A^TA)^{-1}}_{I_n} A^T
+P^2 = \left[ A (A^TA)^{-1} A^T \right] \left[ A (A^TA)^{-1} A^T \right] = A (A^TA)^{-1} \underbrace{(A^TA)(A^TA)^{-1}}_{I_n} A^T
 $$
 
 中间项 $(A^TA)(A^TA)^{-1} = I_n$ 精确相消为单位阵，剩下：
 
 $$
-P^2 = A I_n (A^TA)^{-1} A^T = A(A^TA)^{-1} A^T = P
+P^2 = A (A^TA)^{-1} I_n A^T = A(A^TA)^{-1} A^T = P
 $$
 
 几何直觉：若你已经把向量投射到了子空间平面上（垂足为 $\mathbf{p} = P\mathbf{b}$），再次对其施加投影，由于它已经在平面内，垂足自然在原地一动不动：$P\mathbf{p} = P(P\mathbf{b}) = P\mathbf{b} = \mathbf{p}$。
@@ -308,7 +322,7 @@ $$
 (I - P)^2 = I - 2P + P^2
 $$
 
-由于 $P^2 = P$，上式等于 $I - 2P + P = I - P$。
+由于 $P^2 = P$，上式等于 $I - 2P + P = I - P$。由定理 15.1，每个 $(I_m-P)\mathbf{b}=\mathbf{b}-P\mathbf{b}$ 都属于 $\operatorname{Null}(A^T)$。反过来，$P$ 将 $\operatorname{Null}(A^T)$ 中的向量映为 $\mathbf{0}$，因此 $I_m-P$ 保持这些向量不变。
 
 **4. 正交解耦与能量勾股守恒**：
 
@@ -327,7 +341,7 @@ $$
 由内积为零，直接得出勾股定理：
 
 $$
-\|\mathbf{b}\|^2 = \|\mathbf{p} + \mathbf{e}\|^2 = \|\mathbf{p}\|^2 + 2\mathbf{p}^T\mathbf{e} + \|\mathbf{e}\|^2 = \|\mathbf{p}\|^2 + \|\mathbf{e}\|^2
+\|\mathbf{b}\|_2^2 = \|\mathbf{p} + \mathbf{e}\|_2^2 = \|\mathbf{p}\|_2^2 + 2\mathbf{p}^T\mathbf{e} + \|\mathbf{e}\|_2^2 = \|\mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2
 $$
 
 </ProofCollapse>
@@ -344,9 +358,15 @@ $$
 P^2 = P \quad \text{且} \quad P^T = P
 $$
 
-如果一个方阵仅满足幂等性 $P^2 = P$ 但不对称（$P^T \neq P$），它对应的是沿某个非正交方向打落到子空间上的**斜投影（Oblique Projection）**，其残差向量并不垂直于目标子空间。
+如果一个方阵仅满足幂等性 $P^2 = P$ 但不对称（$P^T \neq P$），它对应的是沿某个非正交方向打落到子空间上的**斜投影（Oblique Projection）**，对某些输入，残差向量与目标子空间并不垂直。
 
 </DefinitionCard>
+
+<ProofCollapse title="证明对称幂等矩阵给出正交投影">
+
+对每个 $\mathbf{b}\in\mathbb{R}^m$，幂等性保证 $(I_m-P)\mathbf{b}\in\operatorname{Null}(P)$，而 $P\mathbf{b}\in\operatorname{Col}(P)$。若 $P^T=P$，则对任意 $\mathbf{u}\in\mathbb{R}^m$ 与 $\mathbf{v}\in\operatorname{Null}(P)$，有 $(P\mathbf{u})^T\mathbf{v}=\mathbf{u}^TP\mathbf{v}=0$，故这正是到 $\operatorname{Col}(P)$ 的正交分解。反之，到任意子空间的正交投影在该子空间的标准正交基（Orthonormal Basis）及其正交补的标准正交基下具有对角矩阵 $\operatorname{diag}(I_r,0)$，其中 $r$ 为目标子空间的维数。因此在原坐标中仍然对称且幂等。
+
+</ProofCollapse>
 
 ---
 
@@ -369,7 +389,7 @@ $$
 1. **矩阵根本不是方阵**：我们的前提是超定方程 $A \in \mathbb{R}^{m\times n}$，其中 $m \gt n$（高瘦长方矩阵）。**长方矩阵根本不存在两边逆矩阵 $A^{-1}$！**
 2. **穿脱法则的前提**：公式 $(BC)^{-1} = C^{-1}B^{-1}$ 成立的铁律前提是：**因子 $B$ 和 $C$ 必须各自都是同阶的可逆方阵！** 既然 $A$ 和 $A^T$ 根本不是方阵，怎么可能拆开写成 $A^{-1}$？
 3. **唯一的特例何时发生？**
-   仅当 $m = n$ 且 $A$ 是满秩可逆方阵时，$A^{-1}$ 才真正存在。但此时 $A$ 的 $n$ 个列向量已经张成了整个空间 $\mathbb{R}^n$（$\operatorname{Col}(A) = \mathbb{R}^n$）。任意向量 $\mathbf{b} \in \mathbb{R}^n$ 本身就躺在 $\operatorname{Col}(A)$ 里面，将它向全空间投影，垂足当然就是它自己！此时 $P = I_n$ 在几何上完全自洽！
+   仅当 $m = n$ 且 $A$ 是满秩可逆方阵时，$A^{-1}$ 才真正存在。但此时 $A$ 的 $n$ 个列向量已经张成了整个空间 $\mathbb{R}^n$（$\operatorname{Col}(A) = \mathbb{R}^n$）。任意向量 $\mathbf{b} \in \mathbb{R}^n$ 本身就躺在 $\operatorname{Col}(A)$ 里面，将它向全空间投影，垂足当然就是它自己！因此，在满列秩前提下，$P=I_m$ 当且仅当 $m=n$。
 
 </PitfallAlert>
 
@@ -386,8 +406,8 @@ $$
 
 <InteractiveCanvasSlot
   id="l15-interactive-subspace-projection"
-  title="交互实验：3D 空间子空间正交投影与残差分解"
-  description="拖拽目标向量 $\mathbf{b}$ 或调整平面基向量 $\mathbf{a}_1, \mathbf{a}_2$，实时观察垂足 $\mathbf{p} = P\mathbf{b}$、正交残差 $\mathbf{e} = (I-P)\mathbf{b} \in \operatorname{Null}(A^T)$ 的动态分离过程，验证直角几何约束与能量守恒式 $\|\mathbf{b}\|^2 = \|\mathbf{p}\|^2 + \|\mathbf{e}\|^2$。"
+  title="交互实验：直线与平面上的正交投影"
+  description="用滑块调整 $\mathbf{b}$ 与单位方向 $\mathbf{u}$ 的倾角。比较 $\mathbb{R}^2$ 中沿 $\mathbf{u}$ 的直线投影和 $\mathbb{R}^3$ 中由 $\mathbf{u}$、$\mathbf{e}_3$ 张成的平面投影，核验残差与各生成方向正交。"
 />
 
 ---
@@ -397,9 +417,9 @@ $$
 <KeyTakeaways
   items={[
     "向一维直线 $\\operatorname{span}\\{\\mathbf{a}\\}$ 投影时，垂足系数为 $\\hat{x} = \\frac{\\mathbf{a}^T\\mathbf{b}}{\\mathbf{a}^T\\mathbf{a}}$，秩 1 投影矩阵为 $P = \\frac{\\mathbf{a}\\mathbf{a}^T}{\\mathbf{a}^T\\mathbf{a}}$。",
-    "向多维子空间 $\\operatorname{Col}(A)$ 投影时，残差垂直于每一列导出正规方程组 $A^TA\\hat{\\mathbf{x}} = A^T\\mathbf{b}$，解得最优投影矩阵 $P = A(A^TA)^{-1}A^T$。",
+    "向多维子空间 $\\operatorname{Col}(A)$ 投影时，残差垂直于每一列导出正规方程组 $A^TA\\hat{\\mathbf{x}} = A^T\\mathbf{b}$，当 $A$ 满列秩时，投影矩阵为 $P = A(A^TA)^{-1}A^T$。",
     "正交投影矩阵的两大特征：对称性 $P^T = P$ 与幂等性 $P^2 = P$（再投一次原地不动）。",
-    "互补投影矩阵 $I_m - P$ 将向量投影至左零空间 $\\operatorname{Null}(A^T) = \\operatorname{Col}(A)^\\perp$，且 $P(I - P) = 0$ 带来严格的勾股能量守恒 $\\|\\mathbf{b}\\|^2 = \\|P\\mathbf{b}\\|^2 + \\|(I-P)\\mathbf{b}\\|^2$。",
+    "互补投影矩阵 $I_m - P$ 将向量投影至左零空间 $\\operatorname{Null}(A^T) = \\operatorname{Col}(A)^\\perp$，且 $P(I - P) = 0$ 带来严格的勾股能量守恒 $\\|\\mathbf{b}\\|_2^2 = \\|P\\mathbf{b}\\|_2^2 + \\|(I-P)\\mathbf{b}\\|_2^2$。",
     "长方矩阵 $A \\in \\mathbb{R}^{m\\times n}$（$m \\gt n$）绝不存在逆矩阵 $A^{-1}$，切勿将 $(A^TA)^{-1}$ 盲目拆成 $A^{-1}A^{-T}$ 得出 $P = I$ 的荒谬推论！"
   ]}
 />
@@ -416,7 +436,7 @@ $$
 
 1. 计算直线投影矩阵 $P_1$ 以及互补投影矩阵 $I_3 - P_1$；
 2. 计算投影向量 $\mathbf{p} = P_1\mathbf{b}$ 和误差向量 $\mathbf{e} = (I_3 - P_1)\mathbf{b}$；
-3. 验证 $\mathbf{a}^T\mathbf{e} = 0$ 与勾股能量守恒式 $\|\mathbf{b}\|^2 = \|\mathbf{p}\|^2 + \|\mathbf{e}\|^2$。
+3. 验证 $\mathbf{a}^T\mathbf{e} = 0$ 与勾股能量守恒式 $\|\mathbf{b}\|_2^2 = \|\mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2$。
 
 <ProgressiveHint
   hints={[
@@ -476,19 +496,19 @@ $$
 $$
 
 $$
-\|\mathbf{b}\|^2 = 3^2 + 0^2 + 6^2 = 9 + 36 = 45
+\|\mathbf{b}\|_2^2 = 3^2 + 0^2 + 6^2 = 9 + 36 = 45
 $$
 
 $$
-\|\mathbf{p}\|^2 = 4^2 + (-2)^2 + 4^2 = 16 + 4 + 16 = 36
+\|\mathbf{p}\|_2^2 = 4^2 + (-2)^2 + 4^2 = 16 + 4 + 16 = 36
 $$
 
 $$
-\|\mathbf{e}\|^2 = (-1)^2 + 2^2 + 2^2 = 1 + 4 + 4 = 9
+\|\mathbf{e}\|_2^2 = (-1)^2 + 2^2 + 2^2 = 1 + 4 + 4 = 9
 $$
 
 $$
-\|\mathbf{p}\|^2 + \|\mathbf{e}\|^2 = 36 + 9 = 45 = \|\mathbf{b}\|^2
+\|\mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2 = 36 + 9 = 45 = \|\mathbf{b}\|_2^2
 $$
 
 </SolutionRigorous>
@@ -546,7 +566,7 @@ $$
 
 反例：取 $m = 2$，$P_1 = P_2 = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}$（向 $x$ 轴投影）。此时 $P_1 + P_2 = \begin{bmatrix} 2 & 0 \\ 0 & 0 \end{bmatrix}$，其平方为 $\begin{bmatrix} 4 & 0 \\ 0 & 0 \end{bmatrix} \neq P_1 + P_2$。故命题一般不成立。
 
-事实上，可以严格证明：$P_1 + P_2$ 为正交投影矩阵当且仅当 $P_1 P_2 = P_2 P_1 = 0 \iff V_1 \perp V_2$。
+更一般地，若 $P^2=P$，对任意 $\mathbf{v}\in V_1$ 有 $\mathbf{v}^T(P_1P_2+P_2P_1)\mathbf{v}=2\mathbf{v}^TP_2\mathbf{v}=2\|P_2\mathbf{v}\|_2^2=0$。因此 $V_1\subseteq\operatorname{Null}(P_2)=V_2^\perp$。反之，若 $V_1\perp V_2$，两个交叉乘积都为零，故 $P$ 是到 $V_1\oplus V_2$ 的正交投影。
 
 </SolutionRigorous>
 </DualSolution>
@@ -561,7 +581,7 @@ $$
 <TrueFalseInteractive
   id="l15-tf2"
   correct={true}
-  quickFeedback="命题为真（True）！因为 P(I - P) = 0，若 P ≠ I，则存在非零向量 v ∈ Null(Aᵀ) 使得 Pv = 0。零空间不只有零向量，行列式必为 0，矩阵绝不可逆！"
+  quickFeedback="命题为真。由于 $P\neq I_m$，可取 $\mathbf{u}=(I_m-P)\mathbf{v}\neq \mathbf{0}$。由 $P(I_m-P)=0$ 得 $P\mathbf{u}=\mathbf{0}$，故 $P$ 奇异。"
 />
 
 <ProgressiveHint
@@ -574,7 +594,7 @@ $$
 <DualSolution>
 <SolutionIntuition>
 
-投影的操作把三维空间里的物体压扁到一张纸上（降维打击）。降维过程中，垂直于纸面的那根轴（正交补子空间）被彻底拍平压缩到了原点 $\mathbf{0}$。一旦有非零向量被压成了 $\mathbf{0}$，这个过程就永远无法无损还原——丢掉的信息找不回来，因此绝不可能可逆！唯一不可逆的例外是没有发生任何压平操作的全空间恒等映射 $P = I_m$。
+投影的操作把三维空间里的物体压扁到一张纸上（降维打击）。降维过程中，垂直于纸面的那根轴（正交补子空间）被彻底拍平压缩到了原点 $\mathbf{0}$。一旦有非零向量被压成了 $\mathbf{0}$，这个过程就永远无法无损还原——丢掉的信息找不回来，因此绝不可能可逆！唯一可逆的投影是投向全空间的恒等映射 $P = I_m$。
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -591,7 +611,7 @@ $$
 P\mathbf{u} = P(I_m - P)\mathbf{v} = 0 \mathbf{v} = \mathbf{0}
 $$
 
-由于存在非零向量 $\mathbf{u} \neq \mathbf{0}$ 满足 $P\mathbf{u} = \mathbf{0}$，矩阵 $P$ 具有非平凡的零空间（$\operatorname{dim}(\operatorname{Null}(P)) \ge 1$）。由可逆矩阵等价定理，$\det(P) = 0$，$P$ 必为奇异矩阵。
+由于存在非零向量 $\mathbf{u} \neq \mathbf{0}$ 满足 $P\mathbf{u} = \mathbf{0}$，矩阵 $P$ 具有非平凡的零空间（$\dim(\operatorname{Null}(P)) \ge 1$）。由可逆矩阵等价定理，$\det(P) = 0$，$P$ 必为奇异矩阵。
 
 **证明法二（特征值法）**：
 
@@ -614,7 +634,7 @@ $$
 设 $A \in \mathbb{R}^{m\times n}$ 为列满秩矩阵（$\operatorname{rank}(A) = n \lt m$），其对应的投影矩阵为 $P = A(A^TA)^{-1}A^T \in \mathbb{R}^{m\times m}$。
 
 1. 利用矩阵迹（Trace）的循环移位性质 $\operatorname{tr}(XY) = \operatorname{tr}(YX)$，**完全不计算 $P$ 的具体元素**，直接推导出 $\operatorname{tr}(P)$ 的精确数值；
-2. 结合习题 `l15-ex3` 中投影矩阵的特征值结论，说明为什么对任何正交投影矩阵，总有：
+2. 结合习题 `l15-ex3` 中投影矩阵的特征值结论，说明为什么投向 $\operatorname{Col}(A)$ 的正交投影矩阵 $P$ 满足下式，即使 $A$ 的列线性相关也成立。
 
 $$
 \operatorname{tr}(P) = \operatorname{rank}(P) = \dim(\operatorname{Col}(A))
@@ -630,7 +650,7 @@ $$
 <DualSolution>
 <SolutionIntuition>
 
-矩阵的迹等于全部特征值的总和。对于投影矩阵，任何落在投影平面内的向量都不会改变（对应特征值 $\lambda = 1$），而垂直于平面的所有向量都被压成零（对应特征值 $\lambda = 0$）。因此，特征值中 $1$ 的个数恰好就是子空间的维数（平面的自由度）！迹把整个 $m\times m$ 庞大矩阵的对角线数字全部加起来，结果不偏不倚，正好数出了子空间里面有多少个互相正交的独立维度。
+矩阵的迹等于全部特征值的总和。对于投影矩阵，目标子空间内的每个非零向量都不会改变（对应特征值 $\lambda = 1$），而正交补中的每个非零向量都映为零向量（对应特征值 $\lambda = 0$）。因此，特征值中 $1$ 的个数恰好就是子空间的维数（平面的自由度）！迹把整个 $m\times m$ 庞大矩阵的对角线数字全部加起来，结果不偏不倚，正好数出了子空间里面有多少个互相正交的独立维度。
 
 </SolutionIntuition>
 <SolutionRigorous>
@@ -669,11 +689,13 @@ $$
 \operatorname{tr}(P) = \sum_{i=1}^{m} \lambda_i = n \times 1 + (m-n) \times 0 = n
 $$
 
-同时，对角化后非零特征值的个数等于矩阵的秩，故：
+同时，按重数计数的非零特征值个数等于矩阵的秩，故：
 
 $$
-\operatorname{rank}(P) = n = \operatorname{dim}(\operatorname{Col}(A)) = \operatorname{tr}(P)
+\operatorname{rank}(P) = n = \dim(\operatorname{Col}(A)) = \operatorname{tr}(P)
 $$
+
+将 $n$ 换为目标子空间的维数，同一论证适用于任意正交投影。
 
 </SolutionRigorous>
 </DualSolution>
@@ -773,15 +795,15 @@ $$
 勾股守恒核验：
 
 $$
-\|\mathbf{b}\|^2 = 3^2 + 3^2 + 3^2 = 27
+\|\mathbf{b}\|_2^2 = 3^2 + 3^2 + 3^2 = 27
 $$
 
 $$
-\|\mathbf{p}\|^2 = 2^2 + 4^2 + 2^2 = 24, \quad \|\mathbf{e}\|^2 = 3
+\|\mathbf{p}\|_2^2 = 2^2 + 4^2 + 2^2 = 24, \quad \|\mathbf{e}\|_2^2 = 3
 $$
 
 $$
-\|\mathbf{p}\|^2 + \|\mathbf{e}\|^2 = 24 + 3 = 27 = \|\mathbf{b}\|^2 \quad (\text{完美成立！})
+\|\mathbf{p}\|_2^2 + \|\mathbf{e}\|_2^2 = 24 + 3 = 27 = \|\mathbf{b}\|_2^2 \quad (\text{完美成立！})
 $$
 
 </SolutionRigorous>
@@ -794,17 +816,15 @@ $$
 
 <FrontierAIReading
   id="AI-06"
-  title="表征工程与概念擦除（Concept Erasure）：用互补投影矩阵 I − P 手术级移除隐空间特定概念"
+  title="概念擦除（Concept Erasure）：从探针零空间到 LEACE"
   paperRef="Ravfogel et al. (ACL 2020) Null It Out (INLP) · Belrose et al. (NeurIPS 2023) LEACE"
 >
 
-### 1. 现代前沿映射：大模型隐状态的“概念污染”与手术级切除
+### 1. 从激活中去掉指定探针方向
 
-在现代大规模语言模型（如 LLaMA、GPT 系列与 DeepSeek）的表征工程（Representation Engineering）与安全对齐中，一个核心挑战是：模型的隐藏层激活向量 $\mathbf{h} \in \mathbb{R}^d$（例如 $d = 4096$）往往混杂着我们**不希望模型利用或泄露的特定敏感特征**（如性别刻板偏见、用户隐私身份属性、版权作者水印特征或特定有害意图触发概念）。
+设模型在某一层给出隐藏向量 $\mathbf{h}\in\mathbb{R}^d$。给定一组线性探针（Linear Probes）的权重方向，互补投影 $I_d-P_C$ 可以去掉这些方向上的分量。它不改变正交补中的分量。
 
-如果粗暴地微调整个模型，不仅计算成本极其高昂，还极易引发灾难性遗忘。表征工程提出了一种外科手术式（Surgical）的几何解决方案：**利用线性正交补投影矩阵 $I_d - P$，将敏感概念子空间从隐空间中彻底正交切除，同时最大程度保留原表征的有用语义！**
-
-### 2. 数学表述：概念子空间与零线性泄露
+### 2. 给定探针子空间的正交投影
 
 假设我们通过对模型激活值训练一个或多个**线性探针（Linear Probe）**，提取出了表征敏感概念的方向向量组 $\mathbf{c}_1, \dots, \mathbf{c}_k \in \mathbb{R}^d$（通常 $k \ll d$，例如 $k = 1$ 或 $k = 4$）。我们将这些概念方向作为列向量构造矩阵：
 
@@ -812,9 +832,9 @@ $$
 C = \begin{bmatrix} \mathbf{c}_1 & \mathbf{c}_2 & \cdots & \mathbf{c}_k \end{bmatrix} \in \mathbb{R}^{d\times k}
 $$
 
-假设探针向量线性无关，则 $C$ 为列满秩矩阵。敏感概念所张成的子空间即为列空间 $\operatorname{Col}(C) \subset \mathbb{R}^d$。
+假设探针向量线性无关，则 $C$ 为列满秩矩阵。敏感概念所张成的子空间即为列空间 $\operatorname{Col}(C) \subseteq \mathbb{R}^d$。
 
-由本讲定理 15.1，我们立即可以写出概念子空间上的正交投影矩阵：
+由第 3.2 节的满列秩公式，探针权重张成空间上的正交投影矩阵为
 
 $$
 P_C = C(C^T C)^{-1} C^T \in \mathbb{R}^{d\times d}
@@ -832,18 +852,18 @@ $$
 \mathbf{h}_\perp = (I_d - P_C)\mathbf{h}
 $$
 
-这个看似极简的线性代数操作，在机器学习理论上具有两条铁铸的数学保证：
+该投影有以下两个性质。
 
-#### 保证 ①：绝对零线性泄露（Zero Linear Leakage）
-对概念子空间内的任意线性探针分类器 $\mathbf{w} \in \operatorname{Col}(C)$，由于它可表示为 $\mathbf{w} = C\boldsymbol{\alpha}$（$\boldsymbol{\alpha} \in \mathbb{R}^k$），探针在净化表征 $\mathbf{h}_\perp$ 上的预测输出严格为零：
+#### ① 指定探针方向上的分数为零
+对任意权重 $\mathbf{w}=C\boldsymbol{\alpha}$（$\boldsymbol{\alpha}\in\mathbb{R}^k$），投影后的线性分数为
 
 $$
 \mathbf{w}^T \mathbf{h}_\perp = (C\boldsymbol{\alpha})^T (I_d - P_C)\mathbf{h} = \boldsymbol{\alpha}^T \left( C^T - \underbrace{C^T C(C^T C)^{-1}}_{I_k} C^T \right) \mathbf{h} = \boldsymbol{\alpha}^T (C^T - C^T)\mathbf{h} = 0
 $$
 
-无论分类阈值如何调整，任何基于 $\operatorname{Col}(C)$ 的线性探针都**绝对不可能从 $\mathbf{h}_\perp$ 中探测出哪怕一丝一毫的概念信息**！
+若探针带偏置，其分数等于与输入无关的常数。该结论仅适用于权重在指定张成空间内的探针。其余线性探针或非线性探针仍可能利用概念信息。
 
-#### 保证 ②：最小语义失真（Minimal Distortion / Best Approximation）
+#### ② 到指定零空间的最小欧氏改动
 在所有满足“对概念子空间完全正交（$C^T\mathbf{z} = \mathbf{0}$）”的净化候选向量 $\mathbf{z}$ 中，$\mathbf{h}_\perp$ 是欧氏距离 $\|\mathbf{h} - \mathbf{z}\|_2$ 最小的**唯一最邻近点**：
 
 $$
@@ -868,14 +888,21 @@ $$
 
 当且仅当 $\mathbf{z} = \mathbf{h}_\perp$ 时，第二项为零，下界严格取得！
 
-### 3. 前沿算法演进：INLP 与 LEACE
+### 3. 迭代零空间投影与 LEACE
 
-1. **INLP（Iterative Null-space Projection, Ravfogel et al., ACL 2020）**：
-   通过迭代训练线性分类器，每轮找出一个最具辨别力的概念法向量 $\mathbf{w}_i$，并给当前激活空间左乘 $I - \mathbf{w}_i\mathbf{w}_i^T / \|\mathbf{w}_i\|^2$。多轮迭代相当于逐步将激活投影到各探针零空间的交集上；
-2. **LEACE（Least-squares Concept Erasure, Belrose et al., NeurIPS 2023）**：
-   在 NeurIPS 2023 最佳论文之一的 LEACE 中，作者将这一几何正交投影与数据协方差白化（Whitening）相结合，一步闭式求出满足均值中和与协方差正交的最优仿射投影算子，成为现代大模型对齐与可解释性领域概念擦除的标准基线。
+**INLP（Iterative Null-space Projection）**在已投影的表征上重复训练线性分类器。设 $P_{i-1}\in\mathbb{R}^{d\times d}$ 为前几轮保留空间的正交投影，初始为 $P_0=I_d$。设 $W_i\in\mathbb{R}^{k_i\times d}$ 为有 $k_i$ 个输出的新探针的权重矩阵，有效权重为 $B_i=W_iP_{i-1}$。$B_i$ 的各行都属于当前保留空间，因此下一轮可用 $P_i=P_{i-1}-B_i^+B_i$，投影到当前空间与 $\operatorname{Null}(B_i)$ 的交。单个非零有效权重 $\mathbf{w}_i$ 对应秩 1 项 $\mathbf{w}_i\mathbf{w}_i^T/\|\mathbf{w}_i\|_2^2$。任意两个正交投影矩阵的乘积未必是到两个目标子空间之交的正交投影。
 
-<CollapsibleCode title="展开 PyTorch 张量维度与投影正交性验证脚本">
+**LEACE（Least-squares Concept Erasure）**直接约束表征与标签的交叉协方差。设随机列向量 $\mathbf{h}\in\mathbb{R}^d$、$\mathbf{z}\in\mathbb{R}^k$ 有有限二阶矩，并记 $\boldsymbol{\mu}=\mathbb{E}[\mathbf{h}]$、$\Sigma_{hh}=\operatorname{Cov}(\mathbf{h},\mathbf{h})$、$\Sigma_{hz}=\operatorname{Cov}(\mathbf{h},\mathbf{z})$。令 $W=(\Sigma_{hh}^{1/2})^+$ 为白化矩阵，$B=W\Sigma_{hz}$，$P_B=BB^+$ 为到 $\operatorname{Col}(B)$ 的正交投影，其中 $^+$ 表示 Moore-Penrose 伪逆。LEACE 的仿射映射为
+
+$$
+f(\mathbf{h})=\boldsymbol{\mu}+(I_d-W^+P_BW)(\mathbf{h}-\boldsymbol{\mu}).
+$$
+
+因为 $\operatorname{Col}(\Sigma_{hz})\subseteq\operatorname{Col}(\Sigma_{hh})$，且 $P_BB=B$，所以 $W^+P_BW\Sigma_{hz}=W^+W\Sigma_{hz}=\Sigma_{hz}$，从而 $\operatorname{Cov}(f(\mathbf{h}),\mathbf{z})=0$。对于每类概率均为正的独热标签，这等价于所有类别的条件均值一致。对于关于预测值为凸的损失，对每个类别应用 Jensen 不等式可知，任意仿射探针的风险至少等于它在共同均值处给出的常量预测的风险。因此，仿射探针与常量预测器的风险下确界相同。这仍允许类别的高阶统计量不同。
+
+LEACE 在满足该交叉协方差约束的仿射映射中最小化 $\mathbb{E}\|f(\mathbf{h})-\mathbf{h}\|_2^2$。原坐标下的线性部分通常是斜投影。上节的逐点最短距离问题固定的是输出子空间，这里的约束则指定哪些方向必须被消去。
+
+<CollapsibleCode title="PyTorch 验证：互补正交投影与指定探针分数">
 
 ```python
 import torch
@@ -886,15 +913,14 @@ def verify_concept_erasure():
     d, k, batch_size = 256, 3, 10
     
     # 模拟探针权重矩阵 C: d x k (列满秩)
-    C = torch.randn(d, k)
+    C = torch.randn(d, k, dtype=torch.float64)
     
     # 1. 构造子空间正交投影矩阵 P_C = C (C^T C)^{-1} C^T
     CtC = C.T @ C  # k x k 对称方阵
-    CtC_inv = torch.inverse(CtC)
-    P_C = C @ CtC_inv @ C.T  # d x d 投影矩阵
+    P_C = C @ torch.linalg.solve(CtC, C.T)  # d x d
     
     # 2. 构造互补投影矩阵 I - P_C
-    I_d = torch.eye(d)
+    I_d = torch.eye(d, dtype=C.dtype)
     P_perp = I_d - P_C
     
     # 验证核心代数公理
@@ -911,13 +937,13 @@ def verify_concept_erasure():
     assert orth_decouple_error < 1e-5, f"Decoupling failed: {orth_decouple_error}"
     
     # 3. 模拟隐藏层表征 h: batch_size x d
-    h = torch.randn(batch_size, d)
+    h = torch.randn(batch_size, d, dtype=C.dtype)
     
     # 4. 手术级概念擦除: h_perp = h @ (I - P_C)^T = h @ P_perp
     h_perp = h @ P_perp.T  # batch_size x d
     h_parallel = h @ P_C.T  # 概念分量
     
-    # 5. 验证绝对零线性泄露: 任何概念探针在 h_perp 上的输出全为 0
+    # 5. 验证指定探针分数 C.T @ h_perp.T 接近零
     # 即 C^T @ (h_perp)^T = 0  => shape: k x batch_size
     leakage = C.T @ h_perp.T
     max_leakage = torch.max(torch.abs(leakage)).item()
@@ -929,10 +955,10 @@ def verify_concept_erasure():
     energy_diff = torch.max(torch.abs(norm_h_sq - norm_parts_sq)).item()
     assert energy_diff < 1e-4, f"Pythagorean theorem mismatch: {energy_diff}"
     
-    print("✅ PyTorch 全部投影公理与概念擦除零泄露验证通过！")
+    print("指定探针的互补投影验证通过。")
     print(f"  - 投影对称性残差: {sym_error:.2e}")
     print(f"  - 投影幂等性残差: {idemp_error:.2e}")
-    print(f"  - 探针线性最大泄露量: {max_leakage:.2e}")
+    print(f"  - 指定探针分数的最大绝对值: {max_leakage:.2e}")
     print(f"  - 能量守恒最大误差: {energy_diff:.2e}")
 
 if __name__ == "__main__":
